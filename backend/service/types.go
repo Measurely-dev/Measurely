@@ -88,6 +88,7 @@ type ToggleMetricRequest struct {
 type GetMetricEventsRequest struct {
 	MetricId uuid.UUID `json:"metricid"`
 	AppId    uuid.UUID `json:"appid"`
+	Offset   int       `json:"offset"`
 }
 
 type SendEmailRequest struct {

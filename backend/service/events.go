@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -42,7 +43,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +79,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get the metric events
-	metrics, err := s.DB.GetMetrics(request.AppId)
+	metrics, err := s.DB.GetMetricEvents(request.MetricId, request.Offset)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -93,6 +94,49 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (s *Service) UpdateMeterTotal() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+
+		keys, err := s.redisClient.Keys(s.redisCtx, "metric:*:add").Result()
+		if err != nil {
+			log.Println("Failed to scan Redis keys:", err)
+			continue
+		}
+
+		// Fetch counts
+		counts := make(map[string]int)
+		for _, key := range keys {
+			count, err := s.redisClient.Get(s.redisCtx, key).Int()
+			if err != nil {
+				log.Println("Failed to get value from Redis:", err)
+				continue
+			}
+			metricid := strings.TrimPrefix(key, "metric:")
+			metricid = strings.TrimSuffix(metricid, ":add")
+			counts[metricid] = count
+		}
+
+		// report to stripe
+		for metricid, count := range counts {
+			if count == 0 {
+				continue
+			}
+
+			s.DB.UpdateMetricTotal(uuid.MustParse(metricid), count)
+
+			redisKeyOverage := fmt.Sprintf("metric:%s:add", metricid)
+			oerr := s.redisClient.Set(s.redisCtx, redisKeyOverage, 0, 0).Err()
+			if oerr != nil {
+				log.Println("Failed to reset overage count to zero in Redis:", oerr)
+			}
+		}
+	}
 }
 
 func (s *Service) StoreMetricEvents() {
@@ -252,14 +296,25 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 	}
 
 	// Check if the metric is disbled
+	var metricid uuid.UUID
+	exists := false
 	for _, metric := range cache.Metrics {
 		if metric.Identifier == request.Metric {
+			exists = true
 			if !metric.Enabled {
 				return errors.New("Metric is disabled")
 			}
 			break
 		}
 	}
+
+	if !exists {
+		return errors.New("Metric not found")
+	}
+
+	// update the total
+	key := fmt.Sprintf("metric:%s:add", metricid)
+	s.redisClient.IncrBy(s.redisCtx, key, int64(request.Value))
 
 	// Broadcast message to connected clients
 	bytes, err := json.Marshal(request)

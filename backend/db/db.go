@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 type DB struct {
@@ -76,7 +77,7 @@ func (db *DB) UpdateUserPlan(id uuid.UUID, plan sql.Null[string]) error {
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO users (appid, name, enabled) VALUES ($1, $2, $3) RETURNING *", metric.AppId, metric.Name, metric.Enabled).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Enabled)
+	err := db.Conn.QueryRow("INSERT INTO users (appid, name, enabled) VALUES ($1, $2, $3) RETURNING *", metric.AppId, metric.Name, metric.Enabled).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Enabled, &new_metric.Total)
 	if err != nil {
 		return new_metric, err
 	}
@@ -100,7 +101,7 @@ func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 	var metrics []types.Metric
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.AppId, &metric.Id, &metric.Name, &metric.Identifier, &metric.Enabled)
+		err := rows.Scan(&metric.AppId, &metric.Id, &metric.Name, &metric.Identifier, &metric.Enabled, &metric.Total)
 		if err != nil {
 			return []types.Metric{}, err
 		}
@@ -125,8 +126,8 @@ func (db *DB) GetMetricCount(appid uuid.UUID) (int, error) {
 	return count, nil
 }
 
-func (db *DB) GetMetricEvents(metricid uuid.UUID) ([]types.MetricEvent, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metricevents WHERE metricid = $1", metricid)
+func (db *DB) GetMetricEvents(metricid uuid.UUID, offset int) ([]types.MetricEvent, error) {
+	rows, err := db.Conn.Query("SELECT * FROM metricevents WHERE metricid = $1 LIMIT $2 OFFSET $3 ORDER BY date DESC", metricid, 1000, offset)
 	if err != nil {
 		return []types.MetricEvent{}, err
 	}
@@ -146,6 +147,14 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID) ([]types.MetricEvent, error) {
 
 func (db *DB) ToggleMetric(id uuid.UUID, appid uuid.UUID, enabled bool) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET enabled = $1 WHERE id = $2 AND appid = $3", enabled, id, appid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) UpdateMetricTotal(id uuid.UUID, total int) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET total = $1 WHERE id = $2", total, id)
 	if err != nil {
 		return err
 	}

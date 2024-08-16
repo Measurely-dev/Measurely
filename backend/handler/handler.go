@@ -53,19 +53,11 @@ func (h *Handler) setup_api() {
 		AllowCredentials: true,
 	}).Handler
 
-	publicCors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Allow all origins for this route
-		AllowedMethods:   []string{"POST", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: false,
-	}).Handler
-
 	h.router.Use(privateCors)
 	h.router.Group(func(r chi.Router) {
 		r.Post("/email-valid", h.service.EmailValid)
 		r.Post("/login", h.service.Login)
 		r.Post("/login-github", h.service.LoginGithub)
-		r.Post("/github-callback", h.service.GithubCallback)
 		r.Post("/register", h.service.Register)
 		r.Post("/logout", h.service.Logout)
 		r.Post("/forgot-password", h.service.ForgotPassword)
@@ -73,8 +65,9 @@ func (h *Handler) setup_api() {
 
 		r.Post("/feedback", h.service.SendFeedback)
 
-		r.With(publicCors).Post("/{apikey}/{metric}", h.service.CreateMetricEvent)
-		r.With(publicCors).HandleFunc("/webhook", h.service.Webhook)
+		r.Post("/{apikey}/{metric}", h.service.CreateMetricEvent)
+		r.HandleFunc("/webhook", h.service.Webhook)
+		r.HandleFunc("/github-callback", h.service.GithubCallback)
 
 		r.Group(func(cr chi.Router) {
 			cr.Use(h.service.AuthentificatedMiddleware)
@@ -83,8 +76,6 @@ func (h *Handler) setup_api() {
 
 			cr.Delete("/account", h.service.DeleteAccount)
 
-			// cr.Post("/new-email", h.service.NewEmail)
-			// cr.Post("/new-password", h.service.NewPassword)
 			cr.Delete("/account", h.service.DeleteAccount)
 
 			cr.Get("/application", h.service.GetApplications)

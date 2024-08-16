@@ -48,6 +48,7 @@ type Metric struct {
 	Name       string    `json:"name"`
 	Identifier string    `json:"identifier"`
 	Enabled    bool      `json:"enabled"`
+	Total      int       `json:"total"`
 }
 
 type MetricEvent struct {

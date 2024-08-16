@@ -5,6 +5,7 @@ CREATE TABLE Users (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Email TEXT NOT NULL UNIQUE,
     Password TEXT NOT NULL,
+    Provider INT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,
     CurrentPlan TEXT NULL
 );
@@ -30,10 +31,11 @@ CREATE TABLE Metrics(
     Name TEXT NOT NULL,
     Identifier TEXT NOT NULL,
     Enabled BOOLEAN NOT NULL, 
+    Total INT NOT NULL DEFAULT 0,
     FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_logs_app_id_created_at ON logs (AppId, Time);
+CREATE INDEX idx_metrics_app_id ON Metrics (AppId, Id);
 
 -- Create Metric events table
 CREATE TABLE MetricEvents (
@@ -45,6 +47,9 @@ CREATE TABLE MetricEvents (
     Value INT NOT NULL,
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
+
+
+CREATE INDEX idx_metrics_events_metricid_id ON MetricEvents (MetricId);
 
 
 -- Create Account Recovery table
@@ -60,6 +65,5 @@ CREATE TABLE Feedbacks (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Date TIMESTAMP NOT NULL,
     Email TEXT NOT NULL,
-    Content TEXT NOT NULL,
-    FOREIGN KEY (Date) REFERENCES Analytics(Date) ON DELETE CASCADE
+    Content TEXT NOT NULL
 )

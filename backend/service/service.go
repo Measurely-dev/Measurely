@@ -1,10 +1,12 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -232,10 +234,167 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
+	// Get the environment variable
+	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
+
+	// Create the dynamic redirect URL for login
+	redirectURL := fmt.Sprintf(
+		"https://github.com/login/oauth/authorize?client_id=%s&scope=user:email",
+		githubClientID,
+	)
+
+	http.Redirect(w, r, redirectURL, 301)
 }
 
 func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
 
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_SECRET")
+
+	// Set us the request body as JSON
+	requestBodyMap := map[string]string{
+		"client_id":     clientID,
+		"client_secret": clientSecret,
+		"code":          code,
+	}
+	requestJSON, _ := json.Marshal(requestBodyMap)
+
+	// POST request to set URL
+	req, reqerr := http.NewRequest(
+		"POST",
+		"https://github.com/login/oauth/access_token",
+		bytes.NewBuffer(requestJSON),
+	)
+	if reqerr != nil {
+		log.Println(reqerr)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	// Get the response
+	resp, resperr := http.DefaultClient.Do(req)
+	if resperr != nil {
+		log.Println(resperr)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Response body converted to stringified JSON
+	respbody, _ := io.ReadAll(resp.Body)
+
+	// Represents the response received from Github
+	type githubAccessTokenResponse struct {
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+		Scope       string `json:"scope"`
+	}
+
+	// Convert stringified JSON to a struct object of type githubAccessTokenResponse
+	var ghresp githubAccessTokenResponse
+	json.Unmarshal(respbody, &ghresp)
+
+	// Get request to a set URL
+	req2, reqerr := http.NewRequest(
+		"GET",
+		"https://api.github.com/user",
+		nil,
+	)
+	if reqerr != nil {
+		log.Println(reqerr)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Set the Authorization header before sending the request
+	// Authorization: token XXXXXXXXXXXXXXXXXXXXXXXXXXX
+	authorizationHeaderValue := fmt.Sprintf("Bearer %s", ghresp.AccessToken)
+	req2.Header.Set("Authorization", authorizationHeaderValue)
+
+	// Make the request
+	resp2, resperr := http.DefaultClient.Do(req2)
+	if resperr != nil {
+		log.Println(resperr)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Read the response as a byte slice
+	respbody2, _ := io.ReadAll(resp2.Body)
+
+	type UserInfo struct {
+		Email string `json:"email"`
+	}
+
+	var userInfo UserInfo
+	json.Unmarshal(respbody2, &userInfo)
+
+	user, err := s.DB.GetUserByEmail(userInfo.Email)
+	if err == sql.ErrNoRows {
+		stripe_params := &stripe.CustomerParams{
+			Email: stripe.String(userInfo.Email),
+		}
+
+		c, err := customer.New(stripe_params)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+
+		new_user := types.User{
+			Email:            userInfo.Email,
+			Password:         "",
+			Provider:         types.GITHUB,
+			StripeCustomerId: c.ID,
+			CurrentPlan:      "free",
+		}
+
+		user, _ = s.DB.CreateUser(new_user)
+
+		// send email
+		s.ScheduleEmail(SendEmailRequest{
+			To: new_user.Email,
+			Fields: MailFields{
+				Subject:     "Thank you for joining Log Trace.",
+				Content:     "You can now access your account's dashboard by using the following link.",
+				Link:        os.Getenv("ORIGIN") + "/dashboard",
+				ButtonTitle: "Access dashboard",
+			},
+		})
+	} else if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	} else {
+		// send email
+		s.ScheduleEmail(SendEmailRequest{
+			To: user.Email,
+			Fields: MailFields{
+				Subject:     "A new login has been detected",
+				Content:     "A new user has logged into your account. If you do not recall having logged into your Log Trace dashboard, please update your password immediately.",
+				Link:        os.Getenv("ORIGIN") + "/dashboard",
+				ButtonTitle: "Update password",
+			},
+		})
+	}
+
+	if user.Provider != types.GITHUB {
+		log.Println("user already exists")
+		return
+	}
+
+	cookie, err := CreateCookie(&user, s.scookie)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &cookie)
+	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", 301)
 }
 
 func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
@@ -277,6 +436,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		Password:         hashed_password,
 		StripeCustomerId: c.ID,
 		Provider:         types.EMAIL,
+		CurrentPlan:      "free",
 	})
 	if err != nil {
 		log.Println(err)
