@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,9 +33,11 @@ type Service struct {
 	ApiRateLimiters map[string]*rate.Limiter
 	redisClient     *redis.Client
 	redisCtx        context.Context
-	plans           map[string]types.Plan
-	discountCode    string
 }
+
+const defaultProcessRate = 10000
+const defaultStorageRate = 10000
+const defaultEmailRate = 10000
 
 func New() Service {
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
@@ -72,33 +75,6 @@ func New() Service {
 		log.Fatalln(rerr)
 	}
 
-	plans := make(map[string]types.Plan)
-	plans["starter"] = types.Plan{
-		Name:              "Base",
-		Price:             "",
-		AppLimit:          1,
-		MetricPerAppLimit: 2,
-		TimeFrames:        []int{types.YEAR, types.MONTH},
-	}
-
-	plans["plus"] = types.Plan{
-		Name:              "Starter",
-		Price:             "price_1PoTkIIA5zCZk9dL7QEzx8XP",
-		AppLimit:          5,
-		MetricPerAppLimit: 5,
-		TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
-	}
-
-	plans["pro"] = types.Plan{
-		Name:              "Pro",
-		Price:             "price_1PoTlpIA5zCZk9dLdb4xESXC",
-		AppLimit:          15,
-		MetricPerAppLimit: 15,
-		TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
-	}
-
-	discountCode := "V9boHIHP"
-
 	return Service{
 		DB:              db,
 		scookie:         securecookie,
@@ -107,9 +83,58 @@ func New() Service {
 		ApiRateLimiters: make(map[string]*rate.Limiter),
 		redisClient:     redis_client,
 		redisCtx:        redis_ctx,
-		plans:           plans,
-		discountCode:    discountCode,
 	}
+}
+
+func (s *Service) SetupSharedVariables() {
+
+	defaultProcessRate := 10000
+	defaultStorageRate := 10000
+	defaultEmailRate := 10000
+
+	if _, err := s.redisClient.Get(s.redisCtx, "rate:event").Result(); err == redis.Nil {
+
+		s.redisClient.Set(s.redisCtx, "rate:event", defaultProcessRate, 0)
+	}
+
+	if _, err := s.redisClient.Get(s.redisCtx, "rate:storage").Result(); err == redis.Nil {
+		s.redisClient.Set(s.redisCtx, "rate:storage", defaultStorageRate, 0)
+	}
+
+	if _, err := s.redisClient.Get(s.redisCtx, "rate:email").Result(); err == redis.Nil {
+		s.redisClient.Set(s.redisCtx, "rate:email", defaultEmailRate, 0)
+	}
+
+	if _, err := s.redisClient.Get(s.redisCtx, "plan:free").Result(); err == redis.Nil {
+		s.redisClient.Set(s.redisCtx, "plan:free", types.Plan{
+			Price:             "",
+			Name:              "Free",
+			AppLimit:          1,
+			MetricPerAppLimit: 2,
+			TimeFrames:        []int{types.YEAR, types.MONTH},
+		}, 0)
+	}
+
+	if _, err := s.redisClient.Get(s.redisCtx, "plan:plus").Result(); err == redis.Nil {
+		s.redisClient.Set(s.redisCtx, "plan:plus", types.Plan{
+			Price:             "price_1PoTkIIA5zCZk9dL7QEzx8XP",
+			Name:              "Starter",
+			AppLimit:          5,
+			MetricPerAppLimit: 5,
+			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
+		}, 0)
+	}
+
+	if _, err := s.redisClient.Get(s.redisCtx, "plan:pro").Result(); err == redis.Nil {
+		s.redisClient.Set(s.redisCtx, "plan:pro", types.Plan{
+			Price:             "price_1PoTlpIA5zCZk9dLdb4xESXC",
+			Name:              "Pro",
+			AppLimit:          15,
+			MetricPerAppLimit: 15,
+			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
+		}, 0)
+	}
+
 }
 
 func (s *Service) CleanUp() {
@@ -145,6 +170,10 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) IsConnected(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -247,6 +276,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		Email:            request.Email,
 		Password:         hashed_password,
 		StripeCustomerId: c.ID,
+		Provider:         types.EMAIL,
 	})
 	if err != nil {
 		log.Println(err)
@@ -746,7 +776,8 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.plans[user.CurrentPlan].AppLimit >= 0 {
+	plan, _ := s.GetPlan(user.CurrentPlan)
+	if plan.AppLimit >= 0 {
 
 		// Get application count
 		count, cerr := s.DB.GetApplicationCountByUser(val)
@@ -756,7 +787,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if count >= s.plans[user.CurrentPlan].AppLimit {
+		if count >= plan.AppLimit {
 			http.Error(w, "You have reached your application limit", http.StatusUnauthorized)
 			return
 		}
@@ -927,8 +958,9 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	plan, _ := s.GetPlan(user.CurrentPlan)
 	var enabled bool
-	if count >= s.plans[user.CurrentPlan].MetricPerAppLimit {
+	if count >= plan.MetricPerAppLimit {
 		enabled = false
 	} else {
 		enabled = true
@@ -1090,6 +1122,54 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Service) IsConnected(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UpgradeRates(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("UPGRADE_SECRET")
+
+	var request UpgradeRateRequest
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Secret != secret {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	newRate := request.NewRate
+
+	// Update global variables
+	key := fmt.Sprintf("rate:%s", request.Name)
+	s.redisClient.Set(s.redisCtx, key, newRate, 0)
+
+	w.Write([]byte("Successfully changed the rate"))
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateRates(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("UPGRADE_SECRET")
+
+	var request UpdatePlanRequest
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Secret != secret {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	// Update global variables
+	key := fmt.Sprintf("plan:%s", request.Name)
+	s.redisClient.Set(s.redisCtx, key, request.Plan, 0)
+
+	w.Write([]byte("Successfully updated the plan."))
 	w.WriteHeader(http.StatusOK)
 }

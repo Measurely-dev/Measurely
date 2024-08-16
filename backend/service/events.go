@@ -115,7 +115,7 @@ func (s *Service) StoreMetricEvents() {
 		}
 
 		// Fetch logs from the list
-		eventBytes, err := s.redisClient.LRange(s.redisCtx, "events:store", 0, int64(s.logstorerate)-1).Result()
+		eventBytes, err := s.redisClient.LRange(s.redisCtx, "events:store", 0, int64(s.GetRate("storage"))-1).Result()
 		if err != nil {
 			log.Println("Failed to fetch logs from Redis:", err)
 			continue
@@ -157,7 +157,7 @@ func (s *Service) ProcessMetricEvents() {
 	for {
 		<-ticker.C
 
-		for i := 0; i < s.processrate; i++ {
+		for i := 0; i < s.GetRate("event"); i++ {
 			logBytes, err := s.redisClient.BRPop(s.redisCtx, 0, "events:process").Result()
 			if err != nil {
 				log.Println("Failed to fetch metric events from Redis:", err)

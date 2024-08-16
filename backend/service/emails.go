@@ -13,7 +13,8 @@ func (s *Service) ProcessEmails() {
 	for {
 		<-ticker.C
 
-		for i := 0; i < s.emailprocessrate; i++ {
+		rate := s.GetRate("email")
+		for i := 0; i < rate; i++ {
 			emailBytes, err := s.redisClient.BRPop(s.redisCtx, 0, "emails:send").Result()
 			if err != nil {
 				log.Println("Failed to fetch emails from Redis:", err)
@@ -41,7 +42,7 @@ func (s *Service) ProcessEmails() {
 		}
 
 		// Clear processed emails from Redis
-		s.redisClient.LTrim(s.redisCtx, "emails:send", -int64(s.emailprocessrate), -1)
+		s.redisClient.LTrim(s.redisCtx, "emails:send", -int64(rate), -1)
 
 	}
 

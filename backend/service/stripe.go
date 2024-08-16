@@ -46,7 +46,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plan, exists := s.plans[request.PlanName]
+	plan, exists := s.GetPlan(request.PlanName)
 	if !exists {
 		http.Error(w, "Plan Not Found", http.StatusNotFound)
 		return
@@ -74,9 +74,6 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 				Message: stripe.String("You can cancel your subscription at any time in your Log Trace Dashboard."),
 			},
 		},
-		Discounts: []*stripe.CheckoutSessionDiscountParams{{
-			Coupon: stripe.String(s.discountCode),
-		}},
 	}
 
 	new_session, err := session.New(params2)
@@ -237,7 +234,7 @@ func (s *Service) ChangeSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, exists := s.plans[request.Plan]
+	plan, exists := s.GetPlan(request.Plan)
 	if !exists {
 		http.Error(w, "Invalid plan", http.StatusBadRequest)
 		return
@@ -286,13 +283,8 @@ func (s *Service) ChangeSubscription(w http.ResponseWriter, r *http.Request) {
 		Items: []*stripe.SubscriptionItemsParams{
 			{
 				ID:       stripe.String(subscriptions.Data[0].Items.Data[0].ID),
-				Price:    stripe.String(s.plans[request.Plan].Price),
+				Price:    stripe.String(plan.Price),
 				Quantity: stripe.Int64(1),
-			},
-		},
-		Discounts: []*stripe.SubscriptionDiscountParams{
-			{
-				Coupon: stripe.String(s.discountCode),
 			},
 		},
 	}
@@ -407,7 +399,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		planData, exists := s.plans[session.Metadata["plan"]]
+		planData, exists := s.GetPlan(session.Metadata["plan"])
 		if !exists {
 			log.Println("Plan not found")
 			http.Error(w, "Plan not found", http.StatusNotFound)

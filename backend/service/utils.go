@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	netmail "net/mail"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -99,4 +102,42 @@ func GenerateRandomKey() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+func (s *Service) GetRate(name string) int {
+	key := fmt.Sprintf("rate_limit:%s", name)
+	val, err := s.redisClient.Get(s.redisCtx, key).Result()
+
+	result, serr := strconv.Atoi(val)
+
+	if err != nil || serr != nil {
+		switch name {
+		case "event":
+			return defaultProcessRate
+		case "storage":
+			return defaultStorageRate
+		case "email":
+			return defaultEmailRate
+		default:
+			return 0
+		}
+	}
+
+	return result
+}
+
+func (s *Service) GetPlan(name string) (types.Plan, bool) {
+	key := fmt.Sprintf("plan:%s", name)
+	val, err := s.redisClient.Get(s.redisCtx, key).Result()
+	if err != nil {
+		return types.Plan{}, false
+	}
+
+	var plan types.Plan
+	err = json.Unmarshal([]byte(val), &plan)
+	if err != nil {
+		return types.Plan{}, false
+	}
+
+	return plan, true
 }

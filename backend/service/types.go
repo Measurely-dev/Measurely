@@ -95,10 +95,16 @@ type SendEmailRequest struct {
 	Fields MailFields
 }
 
-type ChangeProcessRateRequest struct {
+type UpgradeRateRequest struct {
 	Secret  string `json:"secret"`
+	Name    string `json:"name"`
 	NewRate int    `json:"newrate"`
-	Type    int    `json:"type"`
+}
+
+type UpdatePlanRequest struct {
+	Secret string     `json:"secret"`
+	Name   string     `json:"name"`
+	Plan   types.Plan `json:"plan"`
 }
 
 type CacheData struct {

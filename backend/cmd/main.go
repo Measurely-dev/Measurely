@@ -20,6 +20,8 @@ func main() {
 	}
 
 	service := service.New()
+	service.SetupSharedVariables()
+
 	handler := handler.New(&service)
 
 	PORT := ":8080"
