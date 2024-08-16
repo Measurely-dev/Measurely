@@ -5,15 +5,14 @@ export default function Card3(props: { className?: string }) {
     <Card className={`w-[320px] rounded-2xl shadow-sm ${props.className}`}>
       <div className='flex flex-col items-center justify-center px-4 py-5 text-center'>
         <span className='text-[17px] font-semibold'>
-          Jane Doe Is Spamming You With Email Do You Want To Block Her?
+          New user created an account
         </span>
         <span className='mt-[4px] text-[13px]'>
-          By blocking her you accept to start using Measurably to manage you’re
-          clients.
+          A new user called 'John Doe' created an account on your application called Acme inc.
         </span>
       </div>
       <div className='flex cursor-pointer select-none items-center justify-center border-t py-2 text-[17px] text-blue-500'>
-        Block
+        See more
       </div>
     </Card>
   );

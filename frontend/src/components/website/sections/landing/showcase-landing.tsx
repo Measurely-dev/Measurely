@@ -1,32 +1,35 @@
-import Link from 'next/link';
-import WebButton from '../../components/button';
-import WebChip from '../../components/chip';
-import Card1 from '../../components/showcase/card1';
-import Card2 from '../../components/showcase/card2';
-import Card3 from '../../components/showcase/card3';
-import Card4 from '../../components/showcase/card4';
+import Link from "next/link";
+import WebButton from "../../components/button";
+import WebChip from "../../components/chip";
+import Card1 from "../../components/showcase/card1";
+import Card2 from "../../components/showcase/card2";
+import Card3 from "../../components/showcase/card3";
+import Card4 from "../../components/showcase/card4";
+import Card5 from "../../components/showcase/card5";
 
 export default function ShowcaseLandingSection(props: {
-  type: 'default' | 'waitlist';
+  type: "default" | "waitlist";
 }) {
   return (
-    <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[30vh]'>
-      <WebChip color='default' href='/'>
-        <span className='mr-1 font-medium'>Measurably</span> is the new way
+    <div className="relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[30vh]">
+      <WebChip color="default" href="/">
+        <span className="mr-1 font-medium">Measurably</span> is the new way
       </WebChip>
-      <div className='mt-5 text-center text-6xl font-semibold leading-[1.15] tracking-normal max-md:text-5xl'>
-      <span className='font-mono'>Measurely</span> track what matters,<br/> grow with confidence.
+      <div className="mt-5 text-center text-6xl font-semibold leading-[1.15] tracking-normal max-md:text-5xl">
+        <span className="font-mono">Measurely</span> track what matters,
+        <br /> grow with confidence.
       </div>
-      <Link href='/waitlist'>
-        <WebButton className='mt-8'>
-          {props.type === 'waitlist' ? 'Join waitlist' : 'Get started'}
+      <Link href="/waitlist">
+        <WebButton className="mt-8">
+          {props.type === "waitlist" ? "Join waitlist" : "Get started"}
         </WebButton>
       </Link>
-      <Card1 className='absolute -right-16 -top-8 rotate-[-9deg] max-lg:hidden' />
-      <div className='absolute bottom-0 flex h-10 w-full max-w-[1200px] items-center justify-center'>
-        <Card2 className='absolute -bottom-10 right-16 rotate-[7deg] max-xl:w-[300px] max-lg:translate-x-[-45%] max-lg:rotate-0 max-md:hidden' />
-        <Card3 className='absolute bottom-[90px] max-xl:w-[320px] max-lg:hidden' />
-        <Card4 className='absolute -bottom-10 left-16 rotate-[-7deg] max-xl:w-[300px] max-lg:right-[50%] max-lg:translate-x-[50%] max-lg:rotate-0 max-md:left-[50%] max-md:w-[350px] max-md:translate-x-[-50%]' />
+      <Card5 className="absolute -left-16 -top-8 rotate-[9deg] max-lg:hidden" />
+      <Card1 className="absolute -right-16 -top-8 rotate-[-9deg] max-lg:hidden" />
+      <div className="absolute bottom-0 flex h-10 w-full max-w-[1200px] items-center justify-center">
+        <Card2 className="absolute -bottom-10 right-16 rotate-[7deg] max-xl:w-[300px] max-lg:translate-x-[-45%] max-lg:rotate-0 max-md:hidden" />
+        <Card3 className="absolute bottom-[90px] max-xl:w-[320px] max-lg:hidden" />
+        <Card4 className="absolute -bottom-10 left-16 rotate-[-7deg] max-xl:w-[300px] max-lg:right-[50%] max-lg:translate-x-[50%] max-lg:rotate-0 max-md:left-[50%] max-md:w-[350px] max-md:translate-x-[-50%]" />
       </div>
     </div>
   );

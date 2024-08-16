@@ -5,6 +5,7 @@ import WebBox from '../../components/box';
 import WebFooterHeader from '../../components/footerHeader';
 import WebTitle from '../../components/title';
 import ContentContainer from '../../containers/content';
+import { LayoutGridIcon, SparklesIcon, VerifiedIcon } from 'lucide-react';
 
 export default function BentoUiSection(props: {
   type: 'default' | 'waitlist';
@@ -74,25 +75,25 @@ export default function BentoUiSection(props: {
           img='https://framerusercontent.com/images/NSgMty5qHcNLTMQrQEZ8DPmMpYo.png'
         />
         <WebTitle
-          subtitle='Invoices'
+          subtitle='Metrics Simplified'
           className='mt-[145px]'
-          title={`Start closer to the finish line with templates made by industry experts.`}
+          title={`Unlock the Power of Real-Time Metrics with Measurely`}
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <WebBox
-            icon={''}
+            icon={<VerifiedIcon className='size-10 text-secondary stroke-[1]'/>}
             title='Verified by experts'
             description='Templates created by the leading experts to help you deliver a powerful story'
           />
           <WebBox
-            icon={''}
-            title='Contextual guidance'
-            description='Best practice guidance is baked into the template - without leaving Chronicle'
+            icon={<SparklesIcon className='size-10 text-secondary stroke-[1]'/>}
+            title='Custom Metrics'
+            description='Tailor tracking to your unique needs for precise monitoring.'
           />
           <WebBox
-            icon={''}
-            title='Templates for everything'
-            description='Whether it’s all hands or pitch decks, start closer to the finish line with a template'
+            icon={<LayoutGridIcon className='size-10 text-secondary stroke-[1]'/>}
+            title='Effortless Integration'
+            description='Seamlessly connect with your existing tools and workflows.'
           />
         </div>
         <WebFooterHeader type={props.type} className='mt-[170px]' />

@@ -7,7 +7,7 @@ export default function WebBox(props: {
   description: string;
 }) {
   return (
-    <div className='flex h-[350px] flex-col items-center justify-center gap-[30px] rounded-[30px] bg-white px-[25px] py-5'>
+    <div className='flex h-[350px] flex-col items-center pt-16 gap-[30px] rounded-[30px] bg-white px-[25px] py-5'>
       <div className='flex size-[80px] items-center justify-center rounded-full border bg-accent/50'>
         {props.icon}
       </div>

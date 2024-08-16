@@ -12,8 +12,8 @@ export default function Navbar(props: {
       href: '/about',
     },
     {
-      name: 'Ressources',
-      href: '/ressources',
+      name: 'Documentation',
+      href: '/docs',
     },
     {
       name: 'Pricing',
