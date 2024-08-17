@@ -2,7 +2,7 @@ import WebPageHeader from "../../components/pageHeader";
 import WebPricingCard from "../../components/pricingCard";
 export default function SubscriptionUiSection() {
   return (
-    <div className="bg-background rounded-3xl p-8 mt-[145px]">
+    <div className="bg-background rounded-3xl p-8 pt-12 mt-[145px]">
       <WebPageHeader
         title={
           <span>
