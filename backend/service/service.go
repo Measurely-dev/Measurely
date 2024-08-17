@@ -107,36 +107,57 @@ func (s *Service) SetupSharedVariables() {
 		s.redisClient.Set(s.redisCtx, "rate:email", defaultEmailRate, 0)
 	}
 
-	if _, err := s.redisClient.Get(s.redisCtx, "plan:free").Result(); err == redis.Nil {
-		s.redisClient.Set(s.redisCtx, "plan:free", types.Plan{
+	plans, err := s.DB.GetPlans()
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatalln(err)
+	}
+
+	if len(plans) == 0 {
+		log.Println("Creating plans")
+		starter := types.Plan{
 			Price:             "",
-			Name:              "Free",
+			Identifier:        "starter",
+			Name:              "Starter",
 			AppLimit:          1,
 			MetricPerAppLimit: 2,
 			TimeFrames:        []int{types.YEAR, types.MONTH},
-		}, 0)
-	}
+		}
 
-	if _, err := s.redisClient.Get(s.redisCtx, "plan:plus").Result(); err == redis.Nil {
-		s.redisClient.Set(s.redisCtx, "plan:plus", types.Plan{
+		plus := types.Plan{
 			Price:             "price_1PoTkIIA5zCZk9dL7QEzx8XP",
-			Name:              "Starter",
+			Identifier:        "plus",
+			Name:              "Plus",
 			AppLimit:          5,
 			MetricPerAppLimit: 5,
 			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
-		}, 0)
-	}
+		}
 
-	if _, err := s.redisClient.Get(s.redisCtx, "plan:pro").Result(); err == redis.Nil {
-		s.redisClient.Set(s.redisCtx, "plan:pro", types.Plan{
+		pro := types.Plan{
 			Price:             "price_1PoTlpIA5zCZk9dLdb4xESXC",
+			Identifier:        "pro",
 			Name:              "Pro",
 			AppLimit:          15,
 			MetricPerAppLimit: 15,
 			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
-		}, 0)
+		}
+
+		plans = []types.Plan{starter, plus, pro}
+
+		s.DB.CreatePlan(starter)
+		s.DB.CreatePlan(plus)
+		s.DB.CreatePlan(pro)
 	}
 
+	for _, plan := range plans {
+		bytes, err := json.Marshal(plan)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		key := fmt.Sprintf("plan:%s", plan.Identifier)
+		s.redisClient.Set(s.redisCtx, key, bytes, 0)
+
+	}
 }
 
 func (s *Service) CleanUp() {
@@ -199,6 +220,12 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	user, derr := s.DB.GetUserByEmail(request.Email)
 	if derr == sql.ErrNoRows {
 		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// check if the user uses GIthub
+	if user.Provider == types.GITHUB {
+		http.Error(w, "User uses Github", http.StatusUnauthorized)
 		return
 	}
 
@@ -349,7 +376,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			Password:         "",
 			Provider:         types.GITHUB,
 			StripeCustomerId: c.ID,
-			CurrentPlan:      "free",
+			CurrentPlan:      "starter",
 		}
 
 		user, _ = s.DB.CreateUser(new_user)
@@ -436,7 +463,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		Password:         hashed_password,
 		StripeCustomerId: c.ID,
 		Provider:         types.EMAIL,
-		CurrentPlan:      "free",
+		CurrentPlan:      "starter",
 	})
 	if err != nil {
 		log.Println(err)
@@ -1244,6 +1271,29 @@ func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if request.Enabled {
+		// Get the user
+		user, gerr := s.DB.GetUserById(val)
+		if gerr != nil {
+			log.Println(gerr)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+
+		count, err := s.DB.GetMetricCount(request.AppId)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+
+		plan, _ := s.GetPlan(user.CurrentPlan)
+		if count >= plan.MetricPerAppLimit {
+			http.Error(w, "You have reached your limit", http.StatusBadRequest)
+			return
+		}
+	}
+
 	// Toggle the metric
 	err = s.DB.ToggleMetric(request.MetricId, request.AppId, request.Enabled)
 	if err != nil {
@@ -1282,7 +1332,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Service) UpgradeRates(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UpdateRates(w http.ResponseWriter, r *http.Request) {
 	secret := os.Getenv("UPGRADE_SECRET")
 
 	var request UpgradeRateRequest
@@ -1309,7 +1359,7 @@ func (s *Service) UpgradeRates(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) UpdateRates(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UpdatePlans(w http.ResponseWriter, r *http.Request) {
 	secret := os.Getenv("UPGRADE_SECRET")
 
 	var request UpdatePlanRequest
@@ -1326,10 +1376,124 @@ func (s *Service) UpdateRates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update global variables
 	key := fmt.Sprintf("plan:%s", request.Name)
-	s.redisClient.Set(s.redisCtx, key, request.Plan, 0)
+
+	// Get the plan
+	_, exists := s.GetPlan(request.Name)
+	if !exists {
+		request.Plan.Identifier = request.Name
+		if err := s.DB.CreatePlan(request.Plan); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		if err := s.DB.UpdatePlan(request.Name, request.Plan); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	bytes, err := json.Marshal(request.Plan)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	s.redisClient.Set(s.redisCtx, key, bytes, 0)
 
 	w.Write([]byte("Successfully updated the plan."))
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) GetRates(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("UPGRADE_SECRET")
+
+	var request GetRates
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Secret != secret {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	keys, err := s.redisClient.Keys(s.redisCtx, "rate:*").Result()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rates := make(map[string]float64)
+	for _, key := range keys {
+		rate, err := s.redisClient.Get(s.redisCtx, key).Float64()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rates[strings.TrimPrefix(key, "rate:")] = rate
+	}
+
+	bytes, jerr := json.Marshal(rates)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusContinue)
+		return
+	}
+
+	w.Write(bytes)
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("UPGRADE_SECRET")
+
+	var request GetPlans
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Secret != secret {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	keys, err := s.redisClient.Keys(s.redisCtx, "plan:*").Result()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rates := make(map[string]types.Plan)
+	for _, key := range keys {
+		val, err := s.redisClient.Get(s.redisCtx, key).Result()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var plan types.Plan
+		err = json.Unmarshal([]byte(val), &plan)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rates[strings.TrimPrefix(key, "plan:")] = plan
+	}
+
+	bytes, jerr := json.Marshal(rates)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusContinue)
+		return
+	}
+
+	w.Write(bytes)
+	w.Header().Set("Content-Type", "application/json")
 }

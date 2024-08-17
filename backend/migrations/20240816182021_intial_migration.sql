@@ -66,4 +66,14 @@ CREATE TABLE Feedbacks (
     Date TIMESTAMP NOT NULL,
     Email TEXT NOT NULL,
     Content TEXT NOT NULL
-)
+);
+
+-- Create Plan table 
+CREATE TABLE Plans (
+    Identifier TEXT NOT NULL UNIQUE,
+    Name TEXT NOT NULL,
+    Price TEXT NOT NULL,
+    AppLimit INT NOT NULL,
+    MetricPerAppLimit INT NOT NULL,
+    TimeFrames TEXT NOT NULL
+);

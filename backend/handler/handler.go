@@ -69,6 +69,11 @@ func (h *Handler) setup_api() {
 		r.HandleFunc("/webhook", h.service.Webhook)
 		r.HandleFunc("/github-callback", h.service.GithubCallback)
 
+		r.Post("/update-rates", h.service.UpdateRates)
+		r.Post("/update-plans", h.service.UpdatePlans)
+		r.Get("/rates", h.service.GetRates)
+		r.Get("/plans", h.service.GetPlans)
+
 		r.Group(func(cr chi.Router) {
 			cr.Use(h.service.AuthentificatedMiddleware)
 

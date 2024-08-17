@@ -3,6 +3,8 @@ package db
 import (
 	"Measurely/types"
 	"database/sql"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -119,7 +121,7 @@ func (db *DB) GetMetric(id uuid.UUID, appid uuid.UUID) (types.Metric, error) {
 
 func (db *DB) GetMetricCount(appid uuid.UUID) (int, error) {
 	var count int
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE appid = $1", appid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE appid = $1 AND enabled = true", appid)
 	if err != nil {
 		return 0, err
 	}
@@ -281,4 +283,67 @@ func (db *DB) DeleteAccountRecovery(code string) error {
 func (db *DB) CreateFeedback(feedback types.Feedback) error {
 	_, err := db.Conn.Exec("INSERT INTO feedbacks (date, email, content) VALUES ($1, $2, $3)", feedback.Date, feedback.Email, feedback.Content)
 	return err
+}
+
+func (db *DB) GetPlans() ([]types.Plan, error) {
+	rows, err := db.Conn.Query("SELECT * FROM plans")
+	if err != nil {
+		return []types.Plan{}, err
+	}
+	defer rows.Close()
+	var plans []types.Plan
+	for rows.Next() {
+		var plan types.Plan
+		var timeframes string
+		err := rows.Scan(&plan.Price, &plan.Identifier, &plan.Name, &plan.AppLimit, &plan.MetricPerAppLimit, &timeframes)
+		if err != nil {
+			return []types.Plan{}, err
+		}
+
+		plan.TimeFrames, err = StringToIntArray(timeframes)
+		if err != nil {
+			return []types.Plan{}, err
+		}
+
+		plans = append(plans, plan)
+	}
+
+	return plans, nil
+}
+
+func (db *DB) CreatePlan(plan types.Plan) error {
+	timeframes := IntArrayToString(plan.TimeFrames)
+	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, timeframes) VALUES ($1, $2, $3, $4, $5, $6)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, timeframes)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
+	timeframes := IntArrayToString(new_plan.TimeFrames)
+	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, timeframes = $5 WHERE identifier = $6", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, timeframes, identifier)
+	return err
+}
+
+func IntArrayToString(arr []int) string {
+	var strArr []string
+	for _, num := range arr {
+		strArr = append(strArr, strconv.Itoa(num))
+	}
+	return strings.Join(strArr, ",")
+}
+
+func StringToIntArray(str string) ([]int, error) {
+	strArr := strings.Split(str, ",")
+	var intArr []int
+
+	for _, s := range strArr {
+		num, err := strconv.Atoi(s)
+		if err != nil {
+			return nil, err
+		}
+		intArr = append(intArr, num)
+	}
+	return intArr, nil
 }

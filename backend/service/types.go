@@ -137,8 +137,8 @@ type SubscribeResponse struct {
 }
 
 type GetSubscriptionResponse struct {
-	Plan   string    `json:"plan"`
-	Renews time.Time `json:"renews"`
+	Plan   types.Plan `json:"plan"`
+	Renews time.Time  `json:"renews"`
 }
 
 type ChangeSubscriptionRequest struct {
@@ -161,4 +161,12 @@ type UpdateBudgetRequest struct {
 
 type CancelSubscriptionRequest struct {
 	Password string `json:"password"`
+}
+
+type GetRates struct {
+	Secret string `json:"secret"`
+}
+
+type GetPlans struct {
+	Secret string `json:"secret"`
 }

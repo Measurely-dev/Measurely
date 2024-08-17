@@ -73,9 +73,10 @@ type Feedback struct {
 }
 
 type Plan struct {
-	Name              string
-	Price             string
-	AppLimit          int
-	MetricPerAppLimit int
-	TimeFrames        []int
+	Name              string `json:"name"`
+	Identifier        string `json:"identifier"`
+	Price             string `json:"price"`
+	AppLimit          int    `json:"applimit"`
+	MetricPerAppLimit int    `json:"metricperapplimit"`
+	TimeFrames        []int  `json:"timeframes"`
 }

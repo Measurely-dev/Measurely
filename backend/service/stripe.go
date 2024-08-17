@@ -71,7 +71,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		},
 		CustomText: &stripe.CheckoutSessionCustomTextParams{
 			AfterSubmit: &stripe.CheckoutSessionCustomTextAfterSubmitParams{
-				Message: stripe.String("You can cancel your subscription at any time in your Log Trace Dashboard."),
+				Message: stripe.String("You can cancel your subscription at any time in your Measurely dashboard."),
 			},
 		},
 	}
@@ -296,14 +296,6 @@ func (s *Service) ChangeSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reset Log Counter
-	redisKey := fmt.Sprintf("user:%s:log_count", user.Id)
-
-	rerr := s.redisClient.Set(s.redisCtx, redisKey, 0, 0).Err()
-	if rerr != nil {
-		log.Println("Failed to reset log count to zero in Redis:", rerr)
-	}
-
 	s.DB.UpdateUserPlan(val, sql.Null[string]{V: request.Plan, Valid: true})
 
 	w.WriteHeader(http.StatusOK)
@@ -336,7 +328,7 @@ func (s *Service) GetCurrentSubscription(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response.Plan = user.CurrentPlan
+	response.Plan, _ = s.GetPlan(user.CurrentPlan)
 
 	if user.CurrentPlan != "free" {
 		subscriptions := subscription.List(&stripe.SubscriptionListParams{
