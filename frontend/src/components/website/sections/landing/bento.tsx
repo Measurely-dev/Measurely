@@ -79,7 +79,7 @@ export default function BentoUiSection(props: {
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
-          title={`Unlock the Power of Real-Time Metrics with Measurely`}
+          title={`Measure What Matters with Measurely`}
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <WebBox

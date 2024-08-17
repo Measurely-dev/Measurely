@@ -1,5 +1,5 @@
-import WebPageHeader from '../../components/pageHeader';
-import WebPricingCard from '../../components/pricingCard';
+import WebPageHeader from "../../components/pageHeader";
+import WebPricingCard from "../../components/pricingCard";
 
 export default function PricingCardsSection() {
   return (
@@ -7,95 +7,97 @@ export default function PricingCardsSection() {
       <WebPageHeader
         title={
           <span>
-            Pricing for all
-            <br />
-            different types of teams
+            <span className="font-mono bg-gradient-to-r mr-3 from-purple-500 via-blue-500 to-pink-400 text-transparent bg-clip-text animate-gradient">
+              Pricing
+            </span>
+            that fits
+            <br /> your needs
           </span>
         }
-        description='Find the plan the best suited for your team'
+        description="Find the plan the best suited for your application"
       />
-      <div className='mt-[70px] grid grid-cols-3 gap-[10px]'>
+      <div className="mt-[70px] grid grid-cols-3 gap-[10px]">
         <WebPricingCard
-          recurrence='month'
-          name='Free'
-          description='Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees.'
+          recurrence="month"
+          name="Free"
+          description="Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees."
           price={0}
-          reccurence='forever'
-          target='very small teams'
+          reccurence="forever"
+          target="very small teams"
           list={[
             {
-              name: 'Real-time contact syncing',
+              name: "Real-time contact syncing",
             },
             {
-              name: 'Automatic data enrichment',
+              name: "Automatic data enrichment",
             },
             {
-              name: 'Up to 3 seats',
+              name: "Up to 3 seats",
             },
           ]}
-          button='Get started now'
+          button="Get started now"
         />
         <WebPricingCard
-          recurrence='month'
-          name='Plus'
-          description='Advanced features to help you scale any business without limits.'
+          recurrence="month"
+          name="Plus"
+          description="Advanced features to help you scale any business without limits."
           price={25}
-          reccurence='month'
-          target='growing teams'
+          reccurence="month"
+          target="growing teams"
           list={[
             {
-              name: 'Private lists',
+              name: "Private lists",
             },
             {
-              name: 'Enhanced email sending',
+              name: "Enhanced email sending",
             },
             {
-              name: 'No seat limits',
+              name: "No seat limits",
             },
           ]}
-          button='Continue with Plus'
+          button="Continue with Plus"
         />
         <WebPricingCard
-          recurrence='month'
-          name='Pro'
-          description='For teams with more complex needs requiring the highest levels of support.'
+          recurrence="month"
+          name="Pro"
+          description="For teams with more complex needs requiring the highest levels of support."
           price={59}
-          reccurence='month'
-          target='scaling businesses'
+          reccurence="month"
+          target="scaling businesses"
           list={[
             {
-              name: 'Fully adjustable permissions',
+              name: "Fully adjustable permissions",
             },
             {
-              name: 'Advanced data enrichment',
+              name: "Advanced data enrichment",
             },
             {
-              name: 'Priority support',
+              name: "Priority support",
             },
           ]}
-          button='Continue with Pro'
+          button="Continue with Pro"
         />
       </div>
       <WebPricingCard
-        recurrence='month'
-        name='Entreprise'
-        className='mt-5'
-        description='Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees.'
-        price='custom'
-        reccurence='forever'
-        target='large organizations'
+        recurrence="month"
+        name="Entreprise"
+        className="mt-5"
+        description="Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees."
+        price="custom"
+        reccurence="forever"
+        target="large organizations"
         list={[
           {
-            name: 'Unlimited reporting',
+            name: "Unlimited reporting",
           },
           {
-            name: 'SAML and SSO',
+            name: "SAML and SSO",
           },
           {
-            name: 'Custom billing',
+            name: "Custom billing",
           },
         ]}
-        button='Talk to sales'
+        button="Talk to sales"
       />
     </>
   );

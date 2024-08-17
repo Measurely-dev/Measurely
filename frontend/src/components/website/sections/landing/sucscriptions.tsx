@@ -9,9 +9,8 @@ export default function SubscriptionUiSection() {
             <span className="font-mono bg-gradient-to-r mr-3 from-purple-500 via-blue-500 to-pink-400 text-transparent bg-clip-text animate-gradient">
               Pricing
             </span>
-            for all
-            <br />
-            different types of teams
+            that fits
+            <br /> your needs
           </span>
         }
         description=""
