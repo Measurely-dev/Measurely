@@ -5,7 +5,7 @@ import WebBox from '../../components/box';
 import WebFooterHeader from '../../components/footerHeader';
 import WebTitle from '../../components/title';
 import ContentContainer from '../../containers/content';
-import { LayoutGridIcon, SparklesIcon, VerifiedIcon } from 'lucide-react';
+import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
 import SubscriptionUiSection from './sucscriptions';
 
 export default function BentoUiSection(props: {
@@ -83,9 +83,9 @@ export default function BentoUiSection(props: {
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <WebBox
-            icon={<VerifiedIcon className='size-10 text-secondary stroke-[1]'/>}
-            title='Verified by experts'
-            description='Templates created by the leading experts to help you deliver a powerful story'
+            icon={<Gauge className='size-10 text-secondary stroke-[1]'/>}
+            title='Instant Insights'
+            description='Access real-time data to make quick, informed decisions.'
           />
           <WebBox
             icon={<SparklesIcon className='size-10 text-secondary stroke-[1]'/>}
