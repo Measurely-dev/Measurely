@@ -24,7 +24,7 @@ export default function Card2(props: { className?: string }) {
     <Card className={`w-[320px] rounded-2xl p-5 shadow-sm ${props.className}`}>
       <ShowcaseCursor
         cursor={1}
-        className="!absolute top-[-26px] !rotate-[-7deg] left-[135px]"
+        className="!absolute top-[-26px] !rotate-[-9deg] left-[135px]"
       />
       <CardHeader className="p-0">
         <CardTitle>New metric</CardTitle>

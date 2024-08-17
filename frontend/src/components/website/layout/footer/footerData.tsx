@@ -1,33 +1,11 @@
 export const footerData = [
-  {
-    title: 'Product',
-    items: [
-      { title: 'Changelog', href: '/changelog' },
-      { title: 'Pricing', href: '/pricing' },
-    ],
-  },
-  {
-    title: 'Ressource',
-    items: [
-      { title: 'Features', href: '/ressources/projects' },
-      { title: 'Introduction', href: '/ressources/introduction' },
-      { title: 'Getting started', href: '/ressources/getting-started' },
-      { title: "What's new", href: '/ressources/new' },
-    ],
-  },
-  {
-    title: 'Company',
-    items: [
-      { title: 'About', href: '/about' },
-      { title: 'Contact us', href: '/ressources/contact-us' },
-      { title: 'Help', href: '/ressources/help' },
-    ],
-  },
-  {
-    title: 'Branding',
-    items: [
-      { title: 'Assets', href: '/assets' },
-      { title: 'Policy', href: '/brand-policy' },
-    ],
-  },
+  { title: "Home", href: "/home" },
+  { title: "Documentation", href: "/docs" },
+  { title: "Pricing", href: "/pricing" },
+  { title: "Introduction", href: "/docs/intro" },
+  { title: "Getting started", href: "/docs/started" },
+  { title: "Installation", href: "/docs/installation" },
+  { title: "Terms of service", href: "/terms" },
+  { title: "Privacy policy", href: "/privacy" },
+  { title: "Help", href: "/help" },
 ];
