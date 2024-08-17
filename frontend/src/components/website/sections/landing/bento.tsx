@@ -6,6 +6,7 @@ import WebFooterHeader from '../../components/footerHeader';
 import WebTitle from '../../components/title';
 import ContentContainer from '../../containers/content';
 import { LayoutGridIcon, SparklesIcon, VerifiedIcon } from 'lucide-react';
+import SubscriptionUiSection from './sucscriptions';
 
 export default function BentoUiSection(props: {
   type: 'default' | 'waitlist';
@@ -74,6 +75,7 @@ export default function BentoUiSection(props: {
           description='Automatically record and match bills with payments, sync contacts with your accounting system, while working alongside your crypto subledger. All on-chain payments are associated with an invoice.'
           img='https://framerusercontent.com/images/NSgMty5qHcNLTMQrQEZ8DPmMpYo.png'
         />
+        <SubscriptionUiSection />
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
