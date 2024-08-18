@@ -1084,12 +1084,33 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get the user
+	user, err := s.DB.GetUserById(val)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
 	// Fetch Metrics
 	metrics, err := s.DB.GetMetrics(request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
+	}
+
+	// get the plan
+	plan, _ := s.GetPlan(user.CurrentPlan)
+	if len(metrics) >= plan.MetricPerAppLimit {
+		dif := len(metrics) - plan.MetricPerAppLimit
+
+		for i := 0; i < dif; i++ {
+			err := s.DB.ToggleMetric(metrics[0].Id, metrics[0].AppId, false)
+			if err == nil {
+				metrics[i].Enabled = false
+			}
+		}
 	}
 
 	bytes, jerr := json.Marshal(metrics)
