@@ -23,18 +23,16 @@ import (
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/customer"
 	"github.com/stripe/stripe-go/v79/subscription"
-	"golang.org/x/time/rate"
 	"gopkg.in/gomail.v2"
 )
 
 type Service struct {
-	DB              *db.DB
-	scookie         *securecookie.SecureCookie
-	dialer          *gomail.Dialer
-	connManager     *ConnectionManager
-	ApiRateLimiters map[string]*rate.Limiter
-	redisClient     *redis.Client
-	redisCtx        context.Context
+	DB          *db.DB
+	scookie     *securecookie.SecureCookie
+	dialer      *gomail.Dialer
+	connManager *ConnectionManager
+	redisClient *redis.Client
+	redisCtx    context.Context
 }
 
 const defaultProcessRate = 10000
@@ -78,13 +76,12 @@ func New() Service {
 	}
 
 	return Service{
-		DB:              db,
-		scookie:         securecookie,
-		dialer:          dialer,
-		connManager:     connManager,
-		ApiRateLimiters: make(map[string]*rate.Limiter),
-		redisClient:     redis_client,
-		redisCtx:        redis_ctx,
+		DB:          db,
+		scookie:     securecookie,
+		dialer:      dialer,
+		connManager: connManager,
+		redisClient: redis_client,
+		redisCtx:    redis_ctx,
 	}
 }
 
@@ -113,7 +110,6 @@ func (s *Service) SetupSharedVariables() {
 	}
 
 	if len(plans) == 0 {
-		log.Println("Creating plans")
 		starter := types.Plan{
 			Price:             "",
 			Identifier:        "starter",
@@ -252,7 +248,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		To: user.Email,
 		Fields: MailFields{
 			Subject:     "A new login has been detected",
-			Content:     "A new user has logged into your account. If you do not recall having logged into your Log Trace dashboard, please update your password immediately.",
+			Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
 			Link:        os.Getenv("ORIGIN") + "/dashboard",
 			ButtonTitle: "Update password",
 		},
@@ -385,7 +381,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		s.ScheduleEmail(SendEmailRequest{
 			To: new_user.Email,
 			Fields: MailFields{
-				Subject:     "Thank you for joining Log Trace.",
+				Subject:     "Thank you for joining Measurely",
 				Content:     "You can now access your account's dashboard by using the following link.",
 				Link:        os.Getenv("ORIGIN") + "/dashboard",
 				ButtonTitle: "Access dashboard",
@@ -401,7 +397,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			To: user.Email,
 			Fields: MailFields{
 				Subject:     "A new login has been detected",
-				Content:     "A new user has logged into your account. If you do not recall having logged into your Log Trace dashboard, please update your password immediately.",
+				Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
 				Link:        os.Getenv("ORIGIN") + "/dashboard",
 				ButtonTitle: "Update password",
 			},
@@ -486,7 +482,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	s.ScheduleEmail(SendEmailRequest{
 		To: new_user.Email,
 		Fields: MailFields{
-			Subject:     "Thank you for joining Log Trace.",
+			Subject:     "Thank you for joining Measurely.",
 			Content:     "You can now access your account's dashboard by using the following link.",
 			Link:        os.Getenv("ORIGIN") + "/dashboard",
 			ButtonTitle: "Access dashboard",
@@ -678,147 +674,6 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	w.WriteHeader(http.StatusOK)
-
-}
-
-// func (s *Service) NewEmail(w http.ResponseWriter, r *http.Request) {
-// 	val, ok := r.Context().Value("userid").(uuid.UUID)
-// 	if !ok {
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	var request NewEmailRequest
-
-// 	// Try to unmarshal the request body
-// 	jerr := json.NewDecoder(r.Body).Decode(&request)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	// Get the user
-// 	user, err := s.DB.GetUserById(val)
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	// Verify the email and password is valid
-// 	if !isEmailValid(request.NewEmail) || !isPasswordValid(request.Password) {
-// 		http.Error(w, "Invalid email or/and password", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	// Check if there is an account with then new email
-// 	_, err = s.DB.GetUserByEmail(request.NewEmail)
-// 	if err == nil {
-// 		http.Error(w, "Email already in use", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	// Check if the password is correct
-// 	if !CheckPasswordHash(request.Password, user.Password) {
-// 		http.Error(w, "Invalid password", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	// Update the user email
-// 	err = s.DB.UpdateUserEmail(user.Id, request.NewEmail)
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	w.WriteHeader(http.StatusOK)
-
-// 	// Send email
-// 	s.ScheduleEmail(SendEmailRequest{
-// 		To: user.Email,
-// 		Fields: MailFields{
-// 			Subject:     "Log Trace email has been changed",
-// 			Content:     "Your account's email has been successfully changed from " + user.Email + " to " + request.NewEmail + ". You must now use this new email to log into your account.",
-// 			Link:        os.Getenv("ORIGIN") + "/login",
-// 			ButtonTitle: "Login",
-// 		},
-// 	})
-
-// 	s.ScheduleEmail(SendEmailRequest{
-// 		To: request.NewEmail,
-// 		Fields: MailFields{
-// 			Subject:     "Log Trace email has been changed",
-// 			Content:     "Your account's email has been successfully changed from " + user.Email + " to " + request.NewEmail + ". You must now use this new email to log into your account.",
-// 			Link:        os.Getenv("ORIGIN") + "/login",
-// 			ButtonTitle: "Login",
-// 		},
-// 	})
-// }
-
-func (s *Service) NewPassword(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
-	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	var request NewPasswordRequest
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Get the user
-	user, err := s.DB.GetUserById(val)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	// Verify the email and password is valid
-	if !isPasswordValid(request.NewPassword) || !isPasswordValid(request.Password) {
-		http.Error(w, "Invalid new password or/and password", http.StatusBadRequest)
-		return
-	}
-
-	// Check if the password is correct
-	if !CheckPasswordHash(request.Password, user.Password) {
-		http.Error(w, "Invalid password", http.StatusBadRequest)
-		return
-	}
-
-	// Update the user email
-	hashed_password, herr := HashPassword(request.NewPassword)
-	if herr != nil {
-		log.Println(herr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	err = s.DB.UpdateUserPassword(user.Id, hashed_password)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-
-	// Send email
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject:     "Log Trace password has been changed",
-			Content:     "Your account's password has been successfully changed. You must now use this new password to log into your account.",
-			Link:        os.Getenv("ORIGIN") + "/login",
-			ButtonTitle: "Login",
-		},
-	})
 
 }
 

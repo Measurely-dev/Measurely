@@ -146,19 +146,6 @@ type ChangeSubscriptionRequest struct {
 	Password string `json:"password"`
 }
 
-type GetBudgetResponse struct {
-	Budget        int  `json:"budget"`
-	BudgetEnabled bool `json:"budgetenabled"`
-}
-
-type ToggleBudgetRequest struct {
-	Enabled bool `json:"enabled"`
-}
-
-type UpdateBudgetRequest struct {
-	Budget int `json:"budget"`
-}
-
 type CancelSubscriptionRequest struct {
 	Password string `json:"password"`
 }

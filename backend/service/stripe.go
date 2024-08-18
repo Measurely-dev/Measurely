@@ -422,7 +422,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			To: user.Email,
 			Fields: MailFields{
 				Subject: "Thank you for subscribing!",
-				Content: "Your " + planData.Name + " subscription has been successfully created. Your can now use Log Trace.",
+				Content: "Your " + planData.Name + " subscription has been successfully created.",
 
 				Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
 				ButtonTitle: "View Dashboard",
