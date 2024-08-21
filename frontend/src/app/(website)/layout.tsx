@@ -18,7 +18,7 @@ export default function RootLayout({
 
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
-      <Navbar type={is_authentificated === 'true' ? 'logged' : 'waitlist'} />
+      <Navbar type={is_authentificated === 'true' ? 'logged' : 'default'} />
       <div className='min-h-screen w-screen'>{children}</div>
       <Footer bg='default' type='waitlist' border={false} />
     </div>

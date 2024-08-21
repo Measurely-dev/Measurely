@@ -11,7 +11,7 @@ export default function PasswordReset() {
   const [view, set_view] = useState(0); // 0 : email input, 1 : sent email , 2 : password input, 3 : fail, 5 : success, 6 : loading
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState("");
 
   return (
     <WebContainer>
@@ -32,8 +32,12 @@ export default function PasswordReset() {
               },
             ]}
             button="Contine"
+            error={error}
             btn_loading={loading}
             action={(form) => {
+              setLoading(true);
+              setError('')
+
               const email = form.get("email");
               if (email === "") {
                 setError("Email is required");
@@ -55,7 +59,7 @@ export default function PasswordReset() {
                       setError(text);
                     });
                   } else {
-                    setEmail(email?.toString() ?? '');
+                    setEmail(email?.toString() ?? "");
                     set_view(1);
                   }
                 })
@@ -91,6 +95,9 @@ export default function PasswordReset() {
             btn_loading={loading}
             error={error}
             action={(form) => {
+              setLoading(true);
+              setError("");
+
               const password = form.get("password");
               const retype = form.get("retype");
 
@@ -113,17 +120,19 @@ export default function PasswordReset() {
                   password: password,
                 }),
                 credentials: "include",
-              }).then(res => {
-                if(! res.ok) {
-                  res.text().then((text) => {
-                    setError(text);
-                  });
-                } else {
-                  set_view(5);
-                }
-              }).finally(() => {
-                setLoading(false);
               })
+                .then((res) => {
+                  if (!res.ok) {
+                    res.text().then((text) => {
+                      setError(text);
+                    });
+                  } else {
+                    set_view(5);
+                  }
+                })
+                .finally(() => {
+                  setLoading(false);
+                });
             }}
           />
         ) : (
@@ -136,7 +145,9 @@ export default function PasswordReset() {
                 <div className="text-base font-semibold">Check your email</div>
                 <div className="mt-[10px] text-sm">
                   We emailed a magic link to{" "}
-                  <span className="font-semibold">{email ?? "unknown@mail.com"}</span>
+                  <span className="font-semibold">
+                    {email ?? "unknown@mail.com"}
+                  </span>
                   .
                   <br />
                   Proceed by opening the link.

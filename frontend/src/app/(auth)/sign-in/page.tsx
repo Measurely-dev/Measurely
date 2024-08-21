@@ -41,7 +41,8 @@ export default function SignIn() {
           btn_loading={loading}
           error={error}
           action={(form) => {
-            setError(error);
+            setLoading(true);
+            setError('');
 
             const password = form.get("password");
             const email = form.get("email");
