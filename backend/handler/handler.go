@@ -57,7 +57,7 @@ func (h *Handler) setup_api() {
 	h.router.Group(func(r chi.Router) {
 		r.Post("/email-valid", h.service.EmailValid)
 		r.Post("/login", h.service.Login)
-		r.Post("/login-github", h.service.LoginGithub)
+		r.Get("/login-github", h.service.LoginGithub)
 		r.Post("/register", h.service.Register)
 		r.Post("/logout", h.service.Logout)
 		r.Post("/forgot-password", h.service.ForgotPassword)

@@ -291,7 +291,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	)
 	if reqerr != nil {
 		log.Println(reqerr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -301,7 +301,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	resp, resperr := http.DefaultClient.Do(req)
 	if resperr != nil {
 		log.Println(resperr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 		return
 	}
 
@@ -327,7 +327,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	)
 	if reqerr != nil {
 		log.Println(reqerr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 		return
 	}
 
@@ -340,7 +340,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	resp2, resperr := http.DefaultClient.Do(req2)
 	if resperr != nil {
 		log.Println(resperr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 		return
 	}
 
@@ -363,7 +363,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		c, err := customer.New(stripe_params)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 			return
 		}
 
@@ -389,7 +389,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		})
 	} else if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 		return
 	} else {
 		// send email
@@ -406,13 +406,14 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 
 	if user.Provider != types.GITHUB {
 		log.Println("user already exists")
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", 301)
 		return
 	}
 
 	cookie, err := CreateCookie(&user, s.scookie)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
 		return
 	}
 
