@@ -1085,9 +1085,9 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the user
-	user, err := s.DB.GetUserById(val)
-	if err != nil {
-		log.Println(err)
+	user, uerr := s.DB.GetUserById(val)
+	if uerr != nil {
+		log.Println(uerr)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -1100,7 +1100,6 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get the plan
 	plan, _ := s.GetPlan(user.CurrentPlan)
 	if len(metrics) >= plan.MetricPerAppLimit {
 		dif := len(metrics) - plan.MetricPerAppLimit
