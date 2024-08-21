@@ -19,7 +19,7 @@ export default function Footer(props: {
     >
       <div className="z-10 flex w-full max-w-[1100px] flex-col gap-8">
         <div className="w-full flex justify-between items-center">
-          <div className="flex gap-2 items-center text-secondary">
+          <div className="flex gap-2 items-center text-sm text-secondary">
             <LogoSvg className="size-10" />© 2024
           </div>
           <Link href="/waitlist">
