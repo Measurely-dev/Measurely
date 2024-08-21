@@ -1,9 +1,5 @@
 'use client';
 
-import {
-  githubAuthAction,
-  googleAuthAction,
-} from '@/backend/actions/auth/providers';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -15,7 +11,6 @@ export default function AuthForm(props: {
   providers: boolean;
   form: Array<any>;
   button: string;
-  action: (formdata: FormData) => void;
   forgot_password?: boolean;
   policies?: boolean;
   error?: string;
@@ -24,7 +19,6 @@ export default function AuthForm(props: {
   const providers = [
     {
       name: 'Google',
-      action: googleAuthAction,
       svg: (
         <>
           <svg
@@ -58,7 +52,6 @@ export default function AuthForm(props: {
     },
     {
       name: 'Github',
-      action: githubAuthAction,
       svg: (
         <>
           <svg
@@ -82,11 +75,6 @@ export default function AuthForm(props: {
   return (
     <form
       className='flex min-h-screen w-full items-center justify-center'
-      onSubmit={(event) => {
-        event.preventDefault();
-        const formdata = new FormData(event.currentTarget);
-        props.action(formdata);
-      }}
     >
       <div className='flex w-[500px] flex-col gap-[10px] rounded-[30px] bg-accent p-[30px]'>
         <div
@@ -106,7 +94,6 @@ export default function AuthForm(props: {
                 <div
                   key={i}
                   className='flex w-full cursor-pointer items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium transition-all hover:bg-background/75'
-                  onClick={() => provider.action()}
                 >
                   {provider.svg}
                   Continue with {provider.name}

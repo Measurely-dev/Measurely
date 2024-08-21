@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function AuthNavbar(props: { button: string; href: any }) {
   return (
     <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3'>
-      <Link href='/'>
+      <Link href='/home'>
         <div className='flex cursor-pointer items-center gap-[10px]'>
           <LogoSvg className='size-8' />
           <div className='text-sm font-semibold'>Measurably</div>
