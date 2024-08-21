@@ -493,7 +493,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie := http.Cookie{
-		Name:     "log-trace-session",
+		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -757,7 +757,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	// logout
 	cookie := http.Cookie{
-		Name:     "log-trace-session",
+		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -1183,14 +1183,14 @@ func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("log-trace-session")
+		cookie, err := r.Cookie("measurely-session")
 		if err == http.ErrNoCookie {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		var auth_cookie AuthCookie
-		derr := s.scookie.Decode("log-trace-session", cookie.Value, &auth_cookie)
+		derr := s.scookie.Decode("measurely-session", cookie.Value, &auth_cookie)
 		if derr != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return

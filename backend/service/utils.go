@@ -47,13 +47,13 @@ func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Co
 		CreationDate: time.Now(),
 	}
 
-	encrypted, err := scookie.Encode("log-trace-session", auth_cookie)
+	encrypted, err := scookie.Encode("measurely-session", auth_cookie)
 	if err != nil {
 		return http.Cookie{}, err
 	}
 
 	cookie := http.Cookie{
-		Name:     "log-trace-session",
+		Name:     "measurely-session",
 		Value:    encrypted,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",

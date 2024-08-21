@@ -8,9 +8,9 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  const cookie = cookies().get("log-trace-session"); 
+  const cookie = cookies().get("measurely-session"); 
 
-  let logged = false;
+  let logged = true;
   if (cookie !== undefined) {
     logged = true;
   }
