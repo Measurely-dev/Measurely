@@ -266,7 +266,7 @@ func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
 		githubClientID,
 	)
 
-	http.Redirect(w, r, redirectURL, 301)
+	http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 }
 
 func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
@@ -291,7 +291,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	)
 	if reqerr != nil {
 		log.Println(reqerr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -301,7 +301,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	resp, resperr := http.DefaultClient.Do(req)
 	if resperr != nil {
 		log.Println(resperr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 		return
 	}
 
@@ -327,7 +327,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	)
 	if reqerr != nil {
 		log.Println(reqerr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 		return
 	}
 
@@ -340,7 +340,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	resp2, resperr := http.DefaultClient.Do(req2)
 	if resperr != nil {
 		log.Println(resperr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 		return
 	}
 
@@ -363,7 +363,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		c, err := customer.New(stripe_params)
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 			return
 		}
 
@@ -389,7 +389,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		})
 	} else if err != nil {
 		log.Println(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 		return
 	} else {
 		// send email
@@ -406,19 +406,19 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 
 	if user.Provider != types.GITHUB {
 		log.Println("user already exists")
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", http.StatusMovedPermanently)
 		return
 	}
 
 	cookie, err := CreateCookie(&user, s.scookie)
 	if err != nil {
 		log.Println(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", 301)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 		return
 	}
 
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", 301)
+	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
 }
 
 func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
@@ -679,7 +679,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -779,7 +779,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -884,7 +884,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -924,7 +924,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -950,7 +950,7 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1034,7 +1034,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1069,7 +1069,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1124,7 +1124,7 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1196,7 +1196,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userid", auth_cookie.UserId)
+		ctx := context.WithValue(r.Context(), types.USERID, auth_cookie.UserId)
 
 		if cookie.Expires.Sub(auth_cookie.CreationDate) <= 12*time.Hour {
 			new_cookie, err := CreateCookie(&types.User{Id: auth_cookie.UserId}, s.scookie)

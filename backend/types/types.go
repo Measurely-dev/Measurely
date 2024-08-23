@@ -26,6 +26,10 @@ const (
 	SECOND
 )
 
+type key int
+
+const USERID key = iota
+
 type User struct {
 	Id               uuid.UUID
 	Email            string

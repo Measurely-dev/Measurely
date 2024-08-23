@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Measurely/types"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -19,7 +20,7 @@ import (
 )
 
 func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -96,7 +97,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -134,7 +135,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CancelSubscription(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -214,7 +215,7 @@ func (s *Service) CancelSubscription(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) ChangeSubscription(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -313,7 +314,7 @@ func (s *Service) ChangeSubscription(w http.ResponseWriter, r *http.Request) {
 	})
 }
 func (s *Service) GetCurrentSubscription(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return

@@ -47,7 +47,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value("userid").(uuid.UUID)
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -302,14 +302,14 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 		if metric.Identifier == request.Metric {
 			exists = true
 			if !metric.Enabled {
-				return errors.New("Metric is disabled")
+				return errors.New("metric is disabled")
 			}
 			break
 		}
 	}
 
 	if !exists {
-		return errors.New("Metric not found")
+		return errors.New("metric not found")
 	}
 
 	// update the total
