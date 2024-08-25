@@ -6,6 +6,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 
 export default function DashboardNavItem(props: {
@@ -13,6 +14,7 @@ export default function DashboardNavItem(props: {
   name: string;
   href: string;
 }) {
+  const pathname = usePathname();
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
@@ -21,8 +23,7 @@ export default function DashboardNavItem(props: {
             href={'/'}
           >
             <div
-            // ${match ? 'bg-accent/75' : 'border-transparent bg-background hover:bg-accent/50'}
-              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] `}
+              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${pathname === props.href ? 'bg-accent/75' : 'border-transparent bg-background hover:bg-accent/50'}`}
             >
               {props.children}
             </div>
