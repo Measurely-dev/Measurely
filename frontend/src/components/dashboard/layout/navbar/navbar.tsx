@@ -4,8 +4,6 @@ import {
   BarChart,
   Box,
   CreditCard,
-  List,
-  Plus,
   Settings,
   Users,
 } from "react-feather";

@@ -6,26 +6,15 @@ import {
 } from "@/components/ui/tooltip";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
-import { BookOpen, MessageSquare } from "react-feather";
+import { BookOpen, MessageCircle, MessageSquare } from "react-feather";
 
 export default function NavbarItemChip() {
   const itemList = [
     {
-      label: "Documentation",
+      label: "Docs",
       href: "https://discord.com/",
-      icon: <BookOpen className="size-5" />,
-    },
-    {
-      label: "Community",
-      href: "https://discord.com/",
-      icon: <DiscordLogoIcon className="size-5" />,
-    },
-    {
-      label: "Support",
-      href: "https://discord.com/",
-      icon: <MessageSquare className="size-5" />,
+      icon: <BookOpen className="size-[18px]" />,
     },
   ];
   return (

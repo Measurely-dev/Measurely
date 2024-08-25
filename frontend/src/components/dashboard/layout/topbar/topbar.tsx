@@ -2,13 +2,13 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
-import { Bell, MessageSquare, User } from "react-feather";
+import { Bell, MessageSquare } from "react-feather";
 import FeedbackPopover from "../../components/feedbackPopover";
 import InboxPopover from "../../components/inboxPopover";
 
 import AvatarDropdown from "./dropdown";
-import TeamChip from "./team";
+import ApplicationsChip from "./application";
+import ApplicationType from "./type";
 // import TeamType from './type';
 
 export default function DashboardTopbar() {
@@ -16,8 +16,8 @@ export default function DashboardTopbar() {
     <div className="flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]">
       <div className="flex h-[40px] w-full flex-row items-center justify-between">
         <div className="flex items-center justify-center gap-2">
-          {/* <TeamChip /> */}
-          {/* <TeamType /> */}
+          <ApplicationsChip />
+          <ApplicationType type={'Pro'} />
         </div>
         <div className="flex flex-row gap-[12px]">
           <FeedbackPopover>
