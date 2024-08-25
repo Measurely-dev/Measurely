@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { TeamContext } from '@/contexts/teamContext';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -15,13 +14,12 @@ import { useContext, useState } from 'react';
 
 export default function TeamChip() {
   const [open, setOpen] = useState(false);
-  const { teams } = useContext(TeamContext);
   const router = useRouter();
   const pathname = usePathname();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      {/* <PopoverTrigger asChild>
         <Button
           variant='outline'
           role='combobox'
@@ -86,7 +84,7 @@ export default function TeamChip() {
             New team
           </Button>
         </Link>
-      </PopoverContent>
+      </PopoverContent> */}
     </Popover>
   );
 }

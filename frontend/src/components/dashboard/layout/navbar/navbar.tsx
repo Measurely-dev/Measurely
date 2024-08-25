@@ -54,9 +54,6 @@ export default function DashboardNavbar() {
           );
         })}
       </div>
-      <div className='flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] cursor-pointer items-center justify-center rounded-[12px] border text-secondary transition-all duration-200 hover:bg-accent/75'>
-        <Plus className='size-5' />
-      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { capitalizeFirstLetter } from '@/app/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,12 +8,10 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserContext } from '@/contexts/userContext';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useContext } from 'react';
+import { ReactNode } from 'react';
 import { ArrowUpRight } from 'react-feather';
 export default function AvatarDropdown(props: { children: ReactNode }) {
-  const { user } = useContext(UserContext);
   const router = useRouter();
 
   return (
@@ -23,11 +20,10 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
       <DropdownMenuContent className='mr-4 mt-1 w-56 gap-1 rounded-[16px] px-2 py-3 pb-2 shadow-sm'>
         <div className='mb-2 flex flex-col gap-0'>
           <DropdownMenuLabel className='py-0 text-sm'>
-            {capitalizeFirstLetter(user.value.first_name ?? 'unknown')}{' '}
-            {capitalizeFirstLetter(user.value.last_name ?? 'unknown')}
+            Zakary Fofana
           </DropdownMenuLabel>
           <DropdownMenuLabel className='py-0 text-xs font-normal text-secondary'>
-            {user.value.email}
+            zak@gmail.com
           </DropdownMenuLabel>
         </div>
         <DropdownMenuSeparator />
