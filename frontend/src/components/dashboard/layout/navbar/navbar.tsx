@@ -2,6 +2,7 @@ import LogoSvg from '@/components/global/logoSvg';
 import Link from 'next/link';
 import {
   BarChart,
+  Box,
   CreditCard,
   List,
   Plus,
@@ -18,24 +19,14 @@ export default function DashboardNavbar() {
       svg: <BarChart className='size-5' />,
     },
     {
-      name: 'Projects',
+      name: 'Metrics',
       href: '/dashboard/[team]/projects',
-      svg: <List className='size-5' />,
+      svg: <Box className='size-5' />,
     },
     {
       name: 'Payment',
       href: '/dashboard/[team]/payment',
       svg: <CreditCard className='size-5' />,
-    },
-    {
-      name: 'Members',
-      href: '/dashboard/[team]/members',
-      svg: <Users className='size-5' />,
-    },
-    {
-      name: 'Settings',
-      href: '/dashboard/[team]/settings',
-      svg: <Settings className='size-5' />,
     },
   ];
   return (

@@ -40,8 +40,8 @@ export default function DashboardTopbar() {
           </InboxPopover>
           <AvatarDropdown>
             <Avatar className="size-[35px] cursor-pointer">
-              <AvatarImage src="" className="rounded-full" />
-              <AvatarFallback>??</AvatarFallback>
+              <AvatarImage src="https://avatars.githubusercontent.com/u/115744911?v=4" className="rounded-full" />
+              <AvatarFallback>ZF</AvatarFallback>
             </Avatar>
           </AvatarDropdown>
         </div>
