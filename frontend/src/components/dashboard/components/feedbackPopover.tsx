@@ -8,15 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 export default function FeedbackPopover(props: { children: any }) {
   return (
     <Popover>
-      <PopoverTrigger>{props.children}</PopoverTrigger>
-      <PopoverContent className='mr-5 mt-1 w-[170px] rounded-[16px] p-2 shadow-sm'>
+      <PopoverTrigger asChild>{props.children}</PopoverTrigger>
+      <PopoverContent className='mr-5 mt-1 w-[200px] rounded-[16px] p-2 shadow-sm'>
         <Textarea
-          placeholder='Type a feedback...'
+          placeholder='Tell us what you think...'
           className='h-20 resize-none'
         />
         <div className='w-full justify-end items-end flex'>
           {' '}
-          <Button className='mt-2 rounded-[12px]' variant={'secondary'} size={'sm'}>
+          <Button className='mt-2 rounded-[12px] w-full' variant={'default'} size={'sm'}>
             Send
           </Button>
         </div>

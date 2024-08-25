@@ -27,12 +27,12 @@ export default function TeamChip() {
           className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] ${open ? 'bg-accent' : ''}`}
         >
           <Avatar className='size-6 border bg-accent p-1'>
-            <AvatarImage src={teams.list[teams.activeTeam].image ?? ''} />
+            <AvatarImage src={''} />
             <AvatarFallback>
-              {teams.list[teams.activeTeam].identifier[0].toUpperCase()}
+              ?
             </AvatarFallback>
           </Avatar>
-          {teams.list[teams.activeTeam].name}
+          Google inc
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>

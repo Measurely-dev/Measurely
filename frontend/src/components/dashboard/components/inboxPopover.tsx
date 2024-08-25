@@ -10,8 +10,8 @@ import { Archive, Inbox, MessageCircle } from 'react-feather';
 export default function InboxPopover(props: { children: any }) {
   return (
     <Popover>
-      <PopoverTrigger>{props.children}</PopoverTrigger>
-      <PopoverContent className='mr-5 mt-1 w-[370px] rounded-[16px] p-0 pb-5 shadow-sm'>
+      <PopoverTrigger asChild>{props.children}</PopoverTrigger>
+      <PopoverContent className='mr-5 mt-1 w-[370px] rounded-[16px] p-0 pb-5 shadow-md'>
         <Tabs className='mt-3'>
           <TabsList className='!mb-0 flex !h-fit w-fit items-start gap-1 rounded-none border-none bg-transparent !p-0 !pb-0'>
             <TabsTrigger

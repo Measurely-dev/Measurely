@@ -3,6 +3,8 @@
 import DashboardContent from "@/components/dashboard/layout/content/content";
 import DashboardNavbar from "@/components/dashboard/layout/navbar/navbar";
 import DashboardTopbar from "@/components/dashboard/layout/topbar/topbar";
+import LogoSvg from "@/components/global/logoSvg";
+import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 export default function DashboardWrapper({ children }: { children: any }) {
   return (
@@ -19,7 +21,7 @@ export default function DashboardWrapper({ children }: { children: any }) {
       {/* <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-8 bg-accent'>
           <div className='relative flex items-center justify-center gap-2'>
             <LogoSvg className='size-14' />
-            <div className='text-xl font-semibold'>Zway</div>
+            <div className='text-xl font-semibold'>Measurely</div>
           </div>
           <div className='w-[250px] rounded-full bg-input'>
             <Progress className='h-1' />
