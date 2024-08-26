@@ -62,11 +62,11 @@ export default function Password() {
           btn_loading={loading}
           action={async (formdata) => {
             set_loading(true);
-            set_error("")
+            set_error("");
 
             const email = searchParams.get("email")?.toString() ?? "";
             const first_name = searchParams.get("first_name")?.toString() ?? "";
-            const last_name = searchParams.get("last_name")?.toString ?? "";
+            const last_name = searchParams.get("last_name")?.toString() ?? "";
             const password = formdata.get("password")?.toString() ?? "";
             const retype = formdata.get("retyped_password")?.toString() ?? "";
 
@@ -86,7 +86,7 @@ export default function Password() {
             } else {
               fetch(process.env.NEXT_PUBLIC_API_URL + "/register", {
                 method: "POST",
-                headers : {
+                headers: {
                   "Content-Type": "application/json",
                 },
                 credentials: "include",
