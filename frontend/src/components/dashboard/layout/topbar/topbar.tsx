@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Bell, MessageSquare } from "react-feather";
+import { Bell, MessageSquare, User } from "react-feather";
 import FeedbackPopover from "../../components/feedbackPopover";
 import InboxPopover from "../../components/inboxPopover";
 
@@ -17,7 +17,7 @@ export default function DashboardTopbar() {
       <div className="flex h-[40px] w-full flex-row items-center justify-between">
         <div className="flex items-center justify-center gap-2">
           <ApplicationsChip />
-          <ApplicationType type={'Pro'} />
+          <ApplicationType type={"Pro"} />
         </div>
         <div className="flex flex-row gap-[12px]">
           <FeedbackPopover>
@@ -39,9 +39,12 @@ export default function DashboardTopbar() {
             </Button>
           </InboxPopover>
           <AvatarDropdown>
-            <Avatar className="size-[35px] cursor-pointer">
-              <AvatarImage src="https://avatars.githubusercontent.com/u/115744911?v=4" className="rounded-full" />
-              <AvatarFallback>ZF</AvatarFallback>
+            <Avatar className="size-[35px] cursor-pointer text-secondary hover:text-primary">
+              <AvatarImage src="" className="rounded-full" />
+              <AvatarFallback>
+                {" "}
+                <User className="size-1/2" />
+              </AvatarFallback>
             </Avatar>
           </AvatarDropdown>
         </div>
