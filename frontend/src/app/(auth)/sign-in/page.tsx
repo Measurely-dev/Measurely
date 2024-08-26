@@ -22,7 +22,6 @@ export default function SignIn() {
         <AuthForm
           title="Hey friend! Welcome back"
           providers={true}
-          row={[]}
           form={[
             {
               label: "Email",

@@ -17,7 +17,6 @@ export default function Waitlist() {
             title='Apply for early access!'
             description='We are still fine tuning the product and would love your help. Join our waitlist to help contribute to the future of presentations.'
             providers={false}
-            row={[]}
             form={[
               {
                 label: 'First name',

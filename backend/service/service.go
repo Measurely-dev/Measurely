@@ -590,7 +590,7 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		Fields: MailFields{
 			Subject:     "Recover your account",
 			Content:     "A request has been made to recover your account. If you do not recall making this request, please update your password immediately.",
-			Link:        os.Getenv("ORIGIN") + "/recover?code=" + account_recovery.Code,
+			Link:        os.Getenv("ORIGIN") + "/reset?code=" + account_recovery.Code,
 			ButtonTitle: "Recover my account",
 		},
 	})

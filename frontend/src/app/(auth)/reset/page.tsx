@@ -4,14 +4,23 @@ import AuthForm from "@/components/forms/auth";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
-import { setDefaultResultOrder } from "dns";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function PasswordReset() {
-  const [view, set_view] = useState(0); // 0 : email input, 1 : sent email , 2 : password input, 3 : fail, 5 : success, 6 : loading
+  const searchParams = useSearchParams();
+  const [view, set_view] = useState(6); // 0 : email input, 1 : sent email , 2 : password input, 3 : fail, 5 : success, 6 : loading
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("code") !== null) {
+      set_view(2);
+    } else {
+      set_view(0);
+    }
+  }, []);
 
   return (
     <WebContainer>
@@ -23,7 +32,6 @@ export default function PasswordReset() {
             title="Email"
             description="Please enter the email address linked to your account"
             providers={false}
-            row={[]}
             form={[
               {
                 label: "Email",
@@ -37,7 +45,7 @@ export default function PasswordReset() {
             btn_loading={loading}
             action={(form) => {
               setLoading(true);
-              setError('')
+              setError("");
 
               const email = form.get("email");
               if (email === "") {
@@ -78,7 +86,6 @@ export default function PasswordReset() {
             title="Password"
             description="Please choose a new password"
             providers={false}
-            row={[]}
             form={[
               {
                 label: "Password",
