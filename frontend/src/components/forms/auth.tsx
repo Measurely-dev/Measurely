@@ -5,11 +5,13 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useRouter } from "next/navigation";
+import { propagateServerField } from "next/dist/server/lib/render-server";
 
 export default function AuthForm(props: {
   title: string;
   description?: string;
   providers: boolean;
+  row : Array<any>;
   form: Array<any>;
   button: string;
   forgot_password?: boolean;
@@ -119,6 +121,22 @@ export default function AuthForm(props: {
         ) : (
           <></>
         )}
+        <div className="flex flex-row gap-[20px]">
+          {props.row.map((input, i) => {
+            return (
+              <div className="flex flex-col gap-[5px]" key={i}>
+                <Label className="text-sm">{input.label}</Label>
+                <Input
+                  type={input.type}
+                  name={input.name}
+                  defaultValue={input.default}
+                  placeholder={input.placeholder}
+                  className="rounded-[6px] bg-background py-2"
+                />
+              </div>
+            );
+          })}
+        </div>
         <div className="flex flex-col gap-[20px]">
           {props.form.map((input, i) => {
             return (

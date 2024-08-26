@@ -19,6 +19,20 @@ export default function SignIn() {
         <AuthForm
           title="CreateAccount"
           providers={true}
+          row={[
+            {
+              label: "First name",
+              name: "first_name",
+              placeholder: "First name",
+              type: "text",
+            },
+            {
+              label: "Last name",
+              name: "last_name",
+              placeholder: "Last name",
+              type: "text",
+            },
+          ]}
           form={[
             {
               label: "Email",
@@ -45,14 +59,22 @@ export default function SignIn() {
           error={error}
           action={(form) => {
             setLoading(true);
-            setError('');
+            setError("");
 
             const password = form.get("password");
             const retype = form.get("retype");
             const email = form.get("email");
+            const first_name = form.get("first_name");
+            const last_name = form.get("last_name");
 
-            if (password === "" || retype === "" || email === "") {
-              setError("Please enter email and password");
+            if (
+              password === "" ||
+              retype === "" ||
+              email === "" ||
+              first_name === "" ||
+              last_name === ""
+            ) {
+              setError("Please fill all the fields");
               return;
             }
 
@@ -70,6 +92,8 @@ export default function SignIn() {
               body: JSON.stringify({
                 email: email,
                 password: password,
+                firstname: first_name,
+                lastname: last_name,
               }),
             })
               .then((res) => {

@@ -23,6 +23,7 @@ export default function PasswordReset() {
             title="Email"
             description="Please enter the email address linked to your account"
             providers={false}
+            row={[]}
             form={[
               {
                 label: "Email",
@@ -77,6 +78,7 @@ export default function PasswordReset() {
             title="Password"
             description="Please choose a new password"
             providers={false}
+            row={[]}
             form={[
               {
                 label: "Password",
