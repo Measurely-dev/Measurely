@@ -10,7 +10,7 @@ export default async function middleware(request: NextRequest) {
 
   const cookie = cookies().get("measurely-session"); 
 
-  let logged = true;
+  let logged = false;
   if (cookie !== undefined) {
     logged = true;
   }

@@ -349,6 +349,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 
 	type UserInfo struct {
 		Email string `json:"email"`
+		Name  string `json:"name"`
 	}
 
 	var userInfo UserInfo
@@ -367,15 +368,29 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		names := strings.Split(userInfo.Name, " ")
+		var first_name string = ""
+		var last_name string = ""
+		if len(names) == 0 {
+			first_name = userInfo.Email
+		} else if len(names) == 1 {
+			first_name = names[0]
+		} else if len(names) == 2 {
+			first_name = names[0]
+			last_name = names[1]
+		}
+
 		new_user := types.User{
 			Email:            userInfo.Email,
 			Password:         "",
 			Provider:         types.GITHUB,
+			FirstName:        first_name,
+			LastName:         last_name,
 			StripeCustomerId: c.ID,
 			CurrentPlan:      "starter",
 		}
 
-		user, _ = s.DB.CreateUser(new_user)
+		user, err = s.DB.CreateUser(new_user)
 
 		// send email
 		s.ScheduleEmail(SendEmailRequest{
@@ -422,7 +437,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
-	var request AuthRequest
+	var request RegisterRequest
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -458,6 +473,8 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	new_user, err := s.DB.CreateUser(types.User{
 		Email:            request.Email,
 		Password:         hashed_password,
+		FirstName:        request.FirstName,
+		LastName:         request.LastName,
 		StripeCustomerId: c.ID,
 		Provider:         types.EMAIL,
 		CurrentPlan:      "starter",

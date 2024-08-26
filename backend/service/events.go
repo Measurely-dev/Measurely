@@ -295,7 +295,7 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 		return jerr
 	}
 
-	// Check if the metric is disbled
+	// Check if the metric is disabled
 	var metricid uuid.UUID
 	exists := false
 	for _, metric := range cache.Metrics {

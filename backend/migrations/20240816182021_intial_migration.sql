@@ -4,6 +4,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE Users (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Email TEXT NOT NULL UNIQUE,
+    FirstName TEXT NOT NULL,
+    LastName TEXT NOT NULL,
     Password TEXT NOT NULL,
     Provider INT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,

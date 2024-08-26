@@ -29,7 +29,7 @@ func (d *DB) Close() error {
 
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
-	err := db.Conn.QueryRow("INSERT INTO users (email, password, provider, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5) RETURNING *", user.Email, user.Password, user.Provider, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.Password, &new_user.Provider, &new_user.StripeCustomerId, &new_user.CurrentPlan)
+	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, provider, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.Provider, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.Provider, &new_user.StripeCustomerId, &new_user.CurrentPlan)
 	if err != nil {
 		return new_user, err
 	}
@@ -87,7 +87,7 @@ func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 }
 
 func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, date, type, column, value) VALUES (:metricid, :date, :type, :column, :value) RETURNING *", events)
+	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, date, type, column, value) VALUES (:metricid, :date, :type, :column, :value)", events)
 	if err != nil {
 		return err
 	}

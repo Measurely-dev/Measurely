@@ -12,6 +12,13 @@ type AuthRequest struct {
 	Password string `json:"password"`
 }
 
+type RegisterRequest struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	FirstName string `json:"firstname"`
+	LastName  string `json:"lastname"`
+}
+
 type EmailValidRequest struct {
 	Email string `json:"email"`
 	Type  int    `json:"type"`

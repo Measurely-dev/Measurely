@@ -34,6 +34,8 @@ type User struct {
 	Id               uuid.UUID
 	Email            string
 	Password         string
+	FirstName        string
+	LastName         string
 	Provider         int
 	StripeCustomerId string
 	CurrentPlan      string

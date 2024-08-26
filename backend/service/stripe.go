@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -366,7 +366,7 @@ func (s *Service) GetCurrentSubscription(w http.ResponseWriter, r *http.Request)
 func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 	const MaxBodyBytes = int64(65536)
 	req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
-	payload, err := ioutil.ReadAll(req.Body)
+	payload, err := io.ReadAll(req.Body)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading request body: %v\n", err)
 		w.WriteHeader(http.StatusServiceUnavailable)
