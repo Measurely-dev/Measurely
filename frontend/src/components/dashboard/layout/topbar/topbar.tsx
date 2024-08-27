@@ -29,7 +29,7 @@ export default function DashboardTopbar() {
               Feedback
             </Button>
           </FeedbackPopover>
-          <InboxPopover>
+          {/* <InboxPopover>
             <Button
               className="size-[35px] rounded-[12px] text-secondary hover:text-primary"
               variant="secondary"
@@ -37,7 +37,7 @@ export default function DashboardTopbar() {
             >
               <Bell className="size-1/2" />
             </Button>
-          </InboxPopover>
+          </InboxPopover> */}
           <AvatarDropdown>
             <Avatar className="size-[35px] cursor-pointer text-secondary hover:text-primary">
               <AvatarImage src="" className="rounded-full" />
