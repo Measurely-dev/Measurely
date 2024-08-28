@@ -20,7 +20,7 @@ export default function Register() {
       <AuthNavbar href="/sign-in" button="Sign in" />
       <ContentContainer>
         <AuthForm
-          title="Create your account"
+          title="Create an account"
           providers={true}
           form={[
             {
