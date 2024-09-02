@@ -37,6 +37,7 @@ export default function MetricDialog(props: { children: ReactNode }) {
               <Input
                 placeholder="optional"
                 type="number"
+                defaultValue={0}
                 className="h-11 rounded-[12px]"
               />
               <Label className="text-xs font-normal text-secondary leading-tight">
