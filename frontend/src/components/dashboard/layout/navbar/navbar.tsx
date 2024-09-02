@@ -35,12 +35,7 @@ export default function DashboardNavbar() {
       name: "Team",
       href: "/dashboard/[team]/projects",
       svg: <Users className="size-5" />,
-    },
-    {
-      name: "Payment",
-      href: "/dashboard/[team]/payment",
-      svg: <CreditCard className="size-5" />,
-    },
+    }
   ];
   return (
     <div className="flex h-screen flex-col py-[15px] pl-5">
