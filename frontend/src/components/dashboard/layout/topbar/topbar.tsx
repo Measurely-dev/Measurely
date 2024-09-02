@@ -2,13 +2,14 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Bell, MessageSquare, User } from "react-feather";
+import { Bell, MessageSquare, Plus, User } from "react-feather";
 import FeedbackPopover from "../../components/feedbackPopover";
 import InboxPopover from "../../components/inboxPopover";
 
 import AvatarDropdown from "./dropdown";
 import ApplicationsChip from "./application";
 import ApplicationType from "./type";
+import MetricDialog from "../../components/metricDialog";
 // import TeamType from './type';
 
 export default function DashboardTopbar() {
@@ -20,6 +21,12 @@ export default function DashboardTopbar() {
           <ApplicationType type={"Pro"} />
         </div>
         <div className="flex flex-row gap-[12px]">
+          <MetricDialog>
+            <Button className="h-[35px] gap-[8px] rounded-[12px]">
+              <Plus className="size-[16px]" />
+              Create metric
+            </Button>
+          </MetricDialog>
           <FeedbackPopover>
             <Button
               className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
