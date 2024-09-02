@@ -15,15 +15,17 @@ export default function DashboardNavItem(props: {
   href: string;
 }) {
   const pathname = usePathname();
+  console.log(pathname)
+  console.log(props.href)
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
         <TooltipTrigger>
           <Link
-            href={'/'}
+            href={props.href}
           >
             <div
-              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${pathname === props.href ? 'bg-accent/75' : 'border-transparent text-secondary bg-background hover:bg-accent/50'}`}
+              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${props.href === pathname ? 'bg-accent/75 ' : 'border-transparent text-secondary bg-background hover:bg-accent/50'}`}
             >
               {props.children}
             </div>

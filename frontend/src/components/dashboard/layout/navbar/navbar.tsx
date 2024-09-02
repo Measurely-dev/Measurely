@@ -28,12 +28,12 @@ export default function DashboardNavbar() {
     },
     {
       name: "Metrics",
-      href: "/dashboard/[team]/projects",
+      href: "/dashboard/metrics/",
       svg: <Box className="size-5" />,
     },
     {
       name: "Team",
-      href: "/dashboard/[team]/projects",
+      href: "/dashboard/team/",
       svg: <Users className="size-5" />,
     }
   ];
