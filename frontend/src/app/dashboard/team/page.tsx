@@ -25,7 +25,7 @@ export default function TeamPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="h-full w-fit mx-auto flex flex-col justify-center items-center gap-4">
+      <div className="h-fit mt-24 w-fit mx-auto flex flex-col justify-center items-center gap-4">
         <WebChip color="default">Coming soon</WebChip>
         <div className="w-[100%] aspect-[16/7] border rounded-xl mb-4"></div>
         <div className="flex flex-col gap-3 text-center">
