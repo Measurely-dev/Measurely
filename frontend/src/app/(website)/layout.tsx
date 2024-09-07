@@ -20,7 +20,7 @@ export default function RootLayout({
     <div className='flex flex-col items-center overflow-x-hidden'>
       <Navbar type={is_authentificated === 'true' ? 'logged' : 'default'} />
       <div className='min-h-screen w-screen'>{children}</div>
-      <Footer bg='default' type='waitlist' border={false} />
+      <Footer bg='default' type='default' border={false} />
     </div>
   );
 }

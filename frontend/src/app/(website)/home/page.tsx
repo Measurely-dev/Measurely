@@ -5,8 +5,8 @@ import ShowcaseLandingSection from '@/components/website/sections/landing/showca
 export default async function Home() {
   return (
     <WebContainer>
-      <ShowcaseLandingSection type='waitlist' />
-      <BentoUiSection type='waitlist' />
+      <ShowcaseLandingSection type='default' />
+      <BentoUiSection type='default' />
     </WebContainer>
   );
 }
