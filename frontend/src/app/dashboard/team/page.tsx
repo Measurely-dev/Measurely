@@ -15,7 +15,7 @@ export default function TeamPage() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className="pointer-events-none">
+            <BreadcrumbLink href="/dashboard/">
               Dashboard
             </BreadcrumbLink>
           </BreadcrumbItem>
