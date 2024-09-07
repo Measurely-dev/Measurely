@@ -25,7 +25,7 @@ export default function DashboardNavItem(props: {
             href={props.href}
           >
             <div
-              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${props.href === pathname ? 'bg-accent/75 ' : 'border-transparent text-secondary bg-background hover:bg-accent/50'}`}
+              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${props.href === pathname ? 'bg-accent/75 border-input/30' : 'border-transparent text-secondary bg-background hover:bg-accent/50'}`}
             >
               {props.children}
             </div>
