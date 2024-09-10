@@ -23,7 +23,7 @@ import { ArchiveIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { Plus, Search } from "react-feather";
 import ProjectTable from "./metricTable";
-import MetricDialog from "@/components/dashboard/components/metricDialog";
+import Link from "next/link";
 
 const metrics: any = [
   {
@@ -39,15 +39,15 @@ const metrics: any = [
     created: 'December 8, 2023'
   },
 ];
+
 export default function DashboardMetrics() {
   const [selectedProject, setSelectedProject] = useState<number>(0);
-
   return (
     <DashboardContentContainer className="w-full flex pb-[15px] mt-0 pt-[15px]">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard/">Dashboard</BreadcrumbLink>
+            <BreadcrumbLink href={'/'}>Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -61,12 +61,12 @@ export default function DashboardMetrics() {
           <div className="flex w-full flex-row gap-[10px]">
             <SearchComponent />
             <FiltersComponent />
-            <MetricDialog>
+            <Link href={'/new'}>
               <Button className="h-full gap-[8px] rounded-[12px]">
                 <Plus className="size-[16px]" />
                 Add metric
               </Button>
-            </MetricDialog>
+            </Link>
           </div>
 
           {metrics.length === 0 ? (

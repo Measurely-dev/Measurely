@@ -9,7 +9,7 @@ import InboxPopover from "../../components/inboxPopover";
 import AvatarDropdown from "./dropdown";
 import ApplicationsChip from "./application";
 import ApplicationType from "./type";
-import MetricDialog from "../../components/metricDialog";
+import Link from "next/link";
 // import TeamType from './type';
 
 export default function DashboardTopbar() {
@@ -21,12 +21,12 @@ export default function DashboardTopbar() {
           <ApplicationType type={"Pro"} />
         </div>
         <div className="flex flex-row gap-[12px]">
-          <MetricDialog>
+          <Link href={"/new"}>
             <Button className="h-[35px] gap-[8px] rounded-[12px]">
               <Plus className="size-[16px]" />
               Create metric
             </Button>
-          </MetricDialog>
+          </Link>
           <FeedbackPopover>
             <Button
               className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
