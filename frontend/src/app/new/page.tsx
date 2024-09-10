@@ -1,5 +1,15 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
@@ -9,6 +19,7 @@ import { useState } from "react";
 export default function NewTeam() {
   const [step, setStep] = useState(1);
   const [value, setValue] = useState<string>("");
+  const [naming, setNaming] = useState("auto");
 
   const metricTypes = [
     {
@@ -30,6 +41,16 @@ export default function NewTeam() {
         "Combines multiple variables to give a complete overview, ideal for tracking complex interactions like user engagement across various activities.",
     },
   ];
+
+  const renderStep = () => {
+    switch (value) {
+      case "basic":
+        return basicStep(setStep);
+      case "dual":
+        return dualStep({ setStep, naming, setNaming });
+    }
+  };
+
   return (
     <div className="flex flex-col">
       <WebContainer className="h-[100vh] w-[100vw]">
@@ -70,7 +91,7 @@ export default function NewTeam() {
               </div>
             </>
           ) : (
-            <></>
+            <div className="w-[500px] h-fit">{renderStep()}</div>
           )}
         </ContentContainer>
       </WebContainer>
@@ -99,13 +120,157 @@ function Metric(props: {
         props.value === "multi"
           ? {}
           : props.value === props.state
-          ? props.setState('')
+          ? props.setState("")
           : props.setState(props.value);
       }}
     >
       <div className="text-sm font-medium">{props.name}</div>
       <div className="text-secondary text-xs font-light">
         {props.descripiton}
+      </div>
+    </div>
+  );
+}
+
+function basicStep(setStep: any) {
+  return (
+    <div className="mx-auto flex w-[500px] flex-col gap-6">
+      <div className="flex flex-col gap-[5px]">
+        <div className="text-xl font-medium">New basic metric</div>
+        <div className="text-sm text-secondary">
+          We&apos;ll fill the billing details automatically if we find the
+          company.
+        </div>
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex flex-col gap-4 my-2">
+            <div className="flex w-full flex-col gap-3">
+              <Label>Metric name</Label>
+              <Input
+                placeholder="new users, new projects, account deleted"
+                type="email"
+                className="h-11 rounded-[12px]"
+              />
+            </div>
+            <div className="flex w-full flex-col gap-3">
+              <Label>Base value</Label>
+              <div className="flex flex-col gap-1">
+                <Input
+                  placeholder="optional"
+                  type="number"
+                  defaultValue={0}
+                  className="h-11 rounded-[12px]"
+                />
+                <Label className="text-xs font-normal text-secondary leading-tight">
+                  Base value stands for the value of the metric before using
+                  measurely to measure the metric
+                </Label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-row gap-2 w-full">
+          <Button
+            type="button"
+            variant="secondary"
+            className="rounded-[12px] w-full"
+            onClick={() => setStep(1)}
+          >
+            Back
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            className="rounded-[12px] w-full"
+          >
+            Create
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function dualStep(props: any) {
+  return (
+    <div className="mx-auto flex w-[500px] flex-col gap-6">
+      <div className="flex flex-col gap-[5px]">
+        <div className="text-xl font-medium">New dual metric</div>
+        <div className="text-sm text-secondary">
+          We&apos;ll fill the billing details automatically if we find the
+          company.
+        </div>
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex flex-col gap-4 my-2">
+            <div className="flex w-full flex-col gap-3">
+              <Label>Metric name</Label>
+              <Input
+                placeholder="new users, new projects, account deleted"
+                type="email"
+                className="h-11 rounded-[12px]"
+              />
+            </div>
+
+            <Label className="flex flex-col gap-3">
+              Varibale naming
+              <Select
+                defaultValue={"auto"}
+                onValueChange={(e) => {props.setNaming(e);}}
+              >
+                <SelectTrigger className="border h-11">
+                  <SelectValue placeholder="Select a type of naming" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={"auto"}>Automatic</SelectItem>
+                    <SelectItem value={"manual"}>Manual</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Label>
+            {props.naming === "auto" ? (
+              <></>
+            ) : (
+              <>
+                <div className="flex w-full flex-col gap-3">
+                  <Label>Positive variable name</Label>
+                  <Input
+                    placeholder="Account created, transfer sent"
+                    type="email"
+                    className="h-11 rounded-[12px]"
+                  />
+                </div>
+
+                <div className="flex w-full flex-col gap-3">
+                  <Label>Negative variable name</Label>
+                  <Input
+                    placeholder="Account deleted, transfer kept"
+                    type="email"
+                    className="h-11 rounded-[12px]"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-row gap-2 w-full">
+          <Button
+            type="button"
+            variant="secondary"
+            className="rounded-[12px] w-full"
+            onClick={() => props.setStep(1)}
+          >
+            Back
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            className="rounded-[12px] w-full"
+          >
+            Create
+          </Button>
+        </div>
       </div>
     </div>
   );
