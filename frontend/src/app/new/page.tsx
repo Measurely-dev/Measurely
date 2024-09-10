@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
@@ -136,7 +137,7 @@ function basicStep(setStep: any) {
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
       <div className="flex flex-col gap-[5px]">
-        <div className="text-xl font-medium">New basic metric</div>
+        <div className="text-xl font-medium">Basic metric</div>
         <div className="text-sm text-secondary">
           We&apos;ll fill the billing details automatically if we find the
           company.
@@ -195,7 +196,7 @@ function dualStep(props: any) {
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
       <div className="flex flex-col gap-[5px]">
-        <div className="text-xl font-medium">New dual metric</div>
+        <div className="text-xl font-medium">Dual metric</div>
         <div className="text-sm text-secondary">
           We&apos;ll fill the billing details automatically if we find the
           company.
@@ -205,7 +206,7 @@ function dualStep(props: any) {
             <div className="flex w-full flex-col gap-3">
               <Label>Metric name</Label>
               <Input
-                placeholder="new users, new projects, account deleted"
+                placeholder="Accounts, Transfers"
                 type="email"
                 className="h-11 rounded-[12px]"
               />
@@ -232,6 +233,7 @@ function dualStep(props: any) {
               <></>
             ) : (
               <>
+              <Separator className="my-2"/>
                 <div className="flex w-full flex-col gap-3">
                   <Label>Positive variable name</Label>
                   <Input
