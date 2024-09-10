@@ -102,9 +102,8 @@ function FiltersComponent() {
       <SelectContent>
         <SelectGroup>
           <SelectItem value="all">All filters</SelectItem>
-          <SelectItem value="high">High</SelectItem>
-          <SelectItem value="medium">Medium</SelectItem>
-          <SelectItem value="low">Low</SelectItem>
+          <SelectItem value="high">Date created</SelectItem>
+          <SelectItem value="medium">Type</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
