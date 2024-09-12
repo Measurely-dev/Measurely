@@ -1,7 +1,6 @@
 package types
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,28 +41,34 @@ type User struct {
 }
 
 type Application struct {
-	Id     uuid.UUID `json:"id"`
-	ApiKey string    `json:"apikey"`
-	UserId uuid.UUID `json:"userid"`
-	Name   string    `json:"name"`
+	Id          uuid.UUID `json:"id"`
+	ApiKey      string    `json:"apikey"`
+	UserId      uuid.UUID `json:"userid"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+}
+
+type MetricGroup struct {
+	Id      uuid.UUID `json:"id"`
+	AppId   uuid.UUID `json:"appid"`
+	Name    string    `json:"name"`
+	Type    int       `json:"type"`
+	Enabled bool      `json:"enabled"`
 }
 
 type Metric struct {
-	Id         uuid.UUID `json:"id"`
-	AppId      uuid.UUID `json:"appid"`
-	Name       string    `json:"name"`
-	Identifier string    `json:"identifier"`
-	Enabled    bool      `json:"enabled"`
-	Total      int       `json:"total"`
+	Id      uuid.UUID `json:"id"`
+	GroupId uuid.UUID `json:"groupid"`
+	Name    string    `json:"name"`
+	Total   int       `json:"total"`
 }
 
 type MetricEvent struct {
-	Id       uuid.UUID        `json:"id"`
-	MetricId uuid.UUID        `json:"metricid"`
-	Date     time.Time        `json:"date"`
-	Type     int              `json:"type"`
-	Columns  sql.Null[string] `json:"column"`
-	Value    int              `json:"value"`
+	Id       uuid.UUID `json:"id"`
+	MetricId uuid.UUID `json:"metricid"`
+	Date     time.Time `json:"date"`
+	Type     int       `json:"type"`
+	Value    int       `json:"value"`
 }
 
 type AccountRecovery struct {
@@ -85,4 +90,10 @@ type Plan struct {
 	AppLimit          int    `json:"applimit"`
 	MetricPerAppLimit int    `json:"metricperapplimit"`
 	TimeFrames        []int  `json:"timeframes"`
+}
+
+type AuthCookie struct {
+	UserId       uuid.UUID `json:"userId"`
+	Email        string    `json:"email"`
+	CreationDate time.Time `json:"creationDate"`
 }

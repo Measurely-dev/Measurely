@@ -15,6 +15,7 @@ func main() {
 	if _, exists := os.LookupEnv("RAILWAY_ENVIRONMENT"); !exists {
 		env_err := godotenv.Load()
 		if env_err != nil {
+			log.Println(env_err)
 			log.Fatal("Error loading .env file")
 		}
 	}

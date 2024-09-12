@@ -41,7 +41,7 @@ func CheckPasswordHash(password, hash string) bool {
 
 func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Cookie, error) {
 	// Create cookie and send it
-	auth_cookie := AuthCookie{
+	auth_cookie := types.AuthCookie{
 		UserId:       user.Id,
 		Email:        user.Email,
 		CreationDate: time.Now(),

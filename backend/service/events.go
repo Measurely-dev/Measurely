@@ -2,7 +2,6 @@ package service
 
 import (
 	"Measurely/types"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -244,15 +243,26 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 				return err
 			}
 
-			metrics, err := s.DB.GetMetrics(app.Id)
+			metricGroups, err := s.DB.GetMetricGroups(app.Id)
 			if err != nil {
 				return err
+			}
+
+			metrics := []types.Metric{}
+			for _, group := range metricGroups {
+				metricsTmp, err := s.DB.GetMetrics(group.Id)
+
+				if err == nil {
+					metrics = append(metrics, metricsTmp...)
+				}
+
 			}
 
 			var cache CacheData
 
 			cache.AppId = app.Id
 			cache.Metrics = metrics
+			cache.MetricGroups = metricGroups
 
 			bytes, err := json.Marshal(cache)
 			if err != nil {
@@ -299,11 +309,18 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 	var metricid uuid.UUID
 	exists := false
 	for _, metric := range cache.Metrics {
-		if metric.Identifier == request.Metric {
-			exists = true
-			if !metric.Enabled {
-				return errors.New("metric is disabled")
+		if metric.Id == request.MetricId {
+
+			for _, group := range cache.MetricGroups {
+				if group.Id == metric.GroupId {
+					exists = true
+					if !group.Enabled {
+						return errors.New("metric is disabled")
+					}
+					break
+				}
 			}
+
 			break
 		}
 	}
@@ -324,10 +341,9 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 
 	// Create the log
 	new_event := types.MetricEvent{
-		Date:    request.Date,
-		Type:    types.TIME,
-		Columns: sql.Null[string]{V: "", Valid: false},
-		Value:   request.Value,
+		Date:  request.Date,
+		Type:  types.TIME,
+		Value: request.Value,
 	}
 
 	eventKey := "events:store"

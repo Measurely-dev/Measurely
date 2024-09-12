@@ -60,7 +60,7 @@ func New() Service {
 
 	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	redis_client := redis.NewClient(&redis.Options{
@@ -114,7 +114,7 @@ func (s *Service) SetupSharedVariables() {
 			Price:             "",
 			Identifier:        "starter",
 			Name:              "Starter",
-			AppLimit:          1,
+			AppLimit:          10000,
 			MetricPerAppLimit: 2,
 			TimeFrames:        []int{types.YEAR, types.MONTH},
 		}
@@ -391,6 +391,11 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		user, err = s.DB.CreateUser(new_user)
+		if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+			return
+		}
 
 		// send email
 		s.ScheduleEmail(SendEmailRequest{
@@ -837,6 +842,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	plan, _ := s.GetPlan(user.CurrentPlan)
+	log.Println(plan.AppLimit)
 	if plan.AppLimit >= 0 {
 
 		// Get application count
@@ -880,9 +886,10 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_app, err := s.DB.CreateApplication(types.Application{
-		ApiKey: api_key,
-		Name:   request.Name,
-		UserId: val,
+		ApiKey:      api_key,
+		Name:        request.Name,
+		Description: request.Description,
+		UserId:      val,
 	})
 	if err != nil {
 		log.Println(err)
@@ -892,7 +899,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 
 	bytes, jerr := json.Marshal(new_app)
 	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
+		http.Error(w, jerr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -992,8 +999,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	identifier := strings.ReplaceAll(request.Name, " ", "_")
-
 	// Get the application
 	_, err := s.DB.GetApplication(request.AppId, val)
 	if err != nil {
@@ -1003,7 +1008,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get Metric Count
-	count, err := s.DB.GetMetricCount(request.AppId)
+	count, err := s.DB.GetMetricGroupCount(request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1027,11 +1032,11 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the metric
-	metric, err := s.DB.CreateMetric(types.Metric{
-		Name:       request.Name,
-		Identifier: identifier,
-		AppId:      request.AppId,
-		Enabled:    enabled,
+	metric, err := s.DB.CreateMetricGroup(types.MetricGroup{
+		Name:    request.Name,
+		AppId:   request.AppId,
+		Type:    request.Type,
+		Enabled: enabled,
 	})
 
 	if err != nil {
@@ -1075,7 +1080,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the metric
-	err = s.DB.DeleteMetric(request.MetricId, request.AppId)
+	err = s.DB.DeleteMetricGroup(request.MetricId, request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1102,32 +1107,12 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the user
-	user, uerr := s.DB.GetUserById(val)
-	if uerr != nil {
-		log.Println(uerr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
 	// Fetch Metrics
-	metrics, err := s.DB.GetMetrics(request.AppId)
+	metrics, err := s.DB.GetMetricGroups(request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
-	}
-
-	plan, _ := s.GetPlan(user.CurrentPlan)
-	if len(metrics) >= plan.MetricPerAppLimit {
-		dif := len(metrics) - plan.MetricPerAppLimit
-
-		for i := 0; i < dif; i++ {
-			err := s.DB.ToggleMetric(metrics[0].Id, metrics[0].AppId, false)
-			if err == nil {
-				metrics[i].Enabled = false
-			}
-		}
 	}
 
 	bytes, jerr := json.Marshal(metrics)
@@ -1173,7 +1158,7 @@ func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		count, err := s.DB.GetMetricCount(request.AppId)
+		count, err := s.DB.GetMetricGroupCount(request.AppId)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1188,7 +1173,7 @@ func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Toggle the metric
-	err = s.DB.ToggleMetric(request.MetricId, request.AppId, request.Enabled)
+	err = s.DB.ToggleMetricGroup(request.MetricId, request.AppId, request.Enabled)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1206,7 +1191,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		var auth_cookie AuthCookie
+		var auth_cookie types.AuthCookie
 		derr := s.scookie.Decode("measurely-session", cookie.Value, &auth_cookie)
 		if derr != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)

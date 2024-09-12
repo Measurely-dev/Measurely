@@ -24,12 +24,6 @@ type EmailValidRequest struct {
 	Type  int    `json:"type"`
 }
 
-type AuthCookie struct {
-	UserId       uuid.UUID `json:"userId"`
-	Email        string    `json:"email"`
-	CreationDate time.Time `json:"creationDate"`
-}
-
 type ForgotPasswordRequest struct {
 	Email string `json:"email"`
 }
@@ -59,7 +53,8 @@ type DeleteAccountRequest struct {
 }
 
 type CreateApplicationRequest struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type DeleteApplicationRequest struct {
@@ -68,9 +63,9 @@ type DeleteApplicationRequest struct {
 
 type CreateMetricEventRequest struct {
 	ApplicationApiKey string    `json:"applicationapikey"`
+	MetricId          uuid.UUID `json:"metricid"`
 	Date              time.Time `json:"time"`
 	Value             int       `json:"value"`
-	Metric            string    `json:"metric"`
 }
 
 type GetMetricsRequest struct {
@@ -78,8 +73,11 @@ type GetMetricsRequest struct {
 }
 
 type CreateMetricRequest struct {
-	Name  string    `json:"name"`
-	AppId uuid.UUID `json:"appid"`
+	Name      string    `json:"name"`
+	AppId     uuid.UUID `json:"appid"`
+	Type      int       `json:"type"`
+	BaseValue int       `json:"basevalue"`
+	Metrics   []string  `json:"metrics"`
 }
 type DeleteMetricRequest struct {
 	MetricId uuid.UUID `json:"metricid"`
@@ -116,8 +114,9 @@ type UpdatePlanRequest struct {
 }
 
 type CacheData struct {
-	AppId   uuid.UUID      `json:"appid"`
-	Metrics []types.Metric `json:"metrics"`
+	AppId        uuid.UUID           `json:"appid"`
+	MetricGroups []types.MetricGroup `json:"metricgroups"`
+	Metrics      []types.Metric      `json:"metrics"`
 }
 
 type CreateWebSocketRequest struct {

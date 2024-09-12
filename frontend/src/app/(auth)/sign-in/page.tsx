@@ -52,6 +52,7 @@ export default function SignIn() {
               return;
             }
 
+            console.log(process.env.NEXT_PUBLIC_API_URL + `/login`);
             fetch(process.env.NEXT_PUBLIC_API_URL + `/login`, {
               method: "POST",
               headers: {

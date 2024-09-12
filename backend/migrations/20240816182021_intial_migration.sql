@@ -21,23 +21,32 @@ CREATE TABLE Applications (
     ApiKey TEXT NOT NULL UNIQUE,
     UserId UUID NOT NULL,
     Name TEXT NOT NULL,
+    Description TEXT NULL,
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_apikey_id ON applications (ApiKey);
 
--- Create Metrics table
-CREATE TABLE Metrics(
+-- Create Metric Group table
+CREATE TABLE MetricGroups (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     AppId UUID NOT NULL,
-    Name TEXT NOT NULL,
-    Identifier TEXT NOT NULL,
-    Enabled BOOLEAN NOT NULL, 
-    Total INT NOT NULL DEFAULT 0,
+    Type INT NOT NULL,
+    Name TEXT NOT NULL UNIQUE,
+    Enabled BOOLEAN NOT NULL DEFAULT false,
     FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_metrics_app_id ON Metrics (AppId, Id);
+-- Create Metrics table
+CREATE TABLE Metrics(
+    Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    GroupId UUID NOT NULL,
+    Name TEXT NOT NULL,
+    Total INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (GroupId) REFERENCES MetricGroups(Id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_metrics_app_id ON Metrics (GroupId, Id);
 
 -- Create Metric events table
 CREATE TABLE MetricEvents (
@@ -45,7 +54,6 @@ CREATE TABLE MetricEvents (
     MetricId UUID NOT NULL,
     Date TIMESTAMP NOT NULL,
     Type INT NOT NULL,
-    Columns TEXT NULL, 
     Value INT NOT NULL,
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
