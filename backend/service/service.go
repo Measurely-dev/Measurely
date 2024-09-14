@@ -527,6 +527,36 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := s.DB.GetUserById(val)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	resp := GetUserResponse{
+		Email:       user.Email,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		CurrentPlan: user.CurrentPlan,
+	}
+
+	bytes, jerr := json.Marshal(resp)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(bytes)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var request ForgotPasswordRequest
 

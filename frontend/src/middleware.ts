@@ -25,7 +25,7 @@ export default async function middleware(request: NextRequest) {
 
   if(url.includes)
 
-  if (url.includes("dashboard") || url.includes("new-app")) {
+  if (url.includes("dashboard") || url.includes("new-app") || url.includes("new-metric")) {
     if (!logged) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +10,19 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserContext } from "@/dashContext";
 import { useRouter } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useContext } from "react";
 import { ArrowUpRight } from "react-feather";
+
+function Capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export default function AvatarDropdown(props: { children: ReactNode }) {
   const router = useRouter();
+
+  const { user } = useContext(UserContext);
 
   return (
     <DropdownMenu>
@@ -20,10 +30,10 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
       <DropdownMenuContent className="mr-4 mt-1 w-56 gap-1 rounded-[16px] px-2 py-3 pb-2 shadow-sm">
         <div className="mb-2 flex flex-col gap-0">
           <DropdownMenuLabel className="py-0 text-sm">
-            Zakary Fofana
+            {Capitalize(user?.firstname ?? "Unknown")} {Capitalize(user?.lastname ?? "")}
           </DropdownMenuLabel>
           <DropdownMenuLabel className="py-0 text-xs font-normal text-secondary">
-            zak@gmail.com
+            {user?.email}
           </DropdownMenuLabel>
         </div>
         <DropdownMenuSeparator />

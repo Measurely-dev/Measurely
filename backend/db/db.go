@@ -271,7 +271,7 @@ func (db *DB) GetApplications(userid uuid.UUID) ([]types.Application, error) {
 	var apps []types.Application
 	for rows.Next() {
 		var app types.Application
-		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Description)
+		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Description, &app.Image)
 		if err != nil {
 			return []types.Application{}, err
 		}

@@ -7,25 +7,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { AppsContext } from '@/dashContext';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 export default function ApplicationsChip() {
   const [open, setOpen] = useState(false);
-  const teams = [
-    {
-      image: 'https://avatars.githubusercontent.com/u/13409222?s=80&v=4',
-      identifier: 'Electron',
-      name: 'Electron'
-    },
-    {
-      image: 'https://avatars.githubusercontent.com/u/21003710?s=80&v=4',
-      identifier: 'Pytorch',
-      name: 'PyTorch'
-    },
-  ]
+
+  const {applications, activeApp} = useContext(AppsContext)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -37,12 +27,12 @@ export default function ApplicationsChip() {
           className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] ${open ? 'bg-accent' : ''}`}
         >
           <Avatar className='size-6 border bg-accent'>
-            <AvatarImage src={'https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/google/google.png?size=48'} />
+            <AvatarImage src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications?.[activeApp].image}`} />
             <AvatarFallback>
-              G
+              {applications?.[activeApp].name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          Google inc
+          {applications?.[activeApp].name}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>
@@ -51,7 +41,7 @@ export default function ApplicationsChip() {
         side='bottom'
         align='start'
       >
-        {teams.map((team, i) => {
+        {applications?.map((app, i) => {
           return (
             <div
               key={i}
@@ -59,12 +49,12 @@ export default function ApplicationsChip() {
             >
               <div className='flex flex-row items-center justify-center gap-2'>
                 <Avatar className='size-6 border bg-accent'>
-                  <AvatarImage src={team.image ?? ''} />
+                  <AvatarImage src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`}/>
                   <AvatarFallback>
-                    {team.identifier[0].toUpperCase()}
+                    {app.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className='text-[14px] font-medium'>{team.name}</div>
+                <div className='text-[14px] font-medium'>{app.name}</div>
               </div>
               <CheckIcon
                 className={`size-4 ${'' ? '' : 'hidden'}`}

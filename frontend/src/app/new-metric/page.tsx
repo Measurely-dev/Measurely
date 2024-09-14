@@ -17,27 +17,27 @@ import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import Footer from "@/components/website/layout/footer/footer";
 import { useState } from "react";
 
-export default function NewTeam() {
+export default function NewMetric() {
   const [step, setStep] = useState(1);
-  const [value, setValue] = useState<string>("");
+  const [value, setValue] = useState<number>(0);
   const [naming, setNaming] = useState("auto");
 
   const metricTypes = [
     {
       name: "Basic metric",
-      value: "basic",
+      value: 0,
       description:
         "Tracks a single, always-positive variable, perfect for monitoring growth, like total active users or daily logins.",
     },
     {
       name: "Dual Variable Metric",
-      value: "dual",
+      value: 1,
       description:
         "This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.",
     },
     {
       name: "Multi-metric (Coming soon)",
-      value: "multi",
+      value: 2,
       description:
         "Combines multiple variables to give a complete overview, ideal for tracking complex interactions like user engagement across various activities.",
     },
@@ -45,10 +45,10 @@ export default function NewTeam() {
 
   const renderStep = () => {
     switch (value) {
-      case "basic":
-        return basicStep(setStep);
-      case "dual":
-        return dualStep({ setStep, naming, setNaming });
+      case 0:
+        return BasicStep(setStep);
+      case 1:
+        return DualStep({ setStep, naming, setNaming });
     }
   };
 
@@ -85,7 +85,6 @@ export default function NewTeam() {
                 <Button
                   className="w-full rounded-[12px]"
                   onClick={() => setStep(2)}
-                  disabled={value === "" ? true : false}
                 >
                   Next
                 </Button>
@@ -103,26 +102,25 @@ export default function NewTeam() {
 
 function Metric(props: {
   name: string;
-  value: string;
+  value: number;
   descripiton: string;
   state: any;
-  setState: (props: string) => void;
+  setState: (props: number) => void;
 }) {
   return (
     <div
       className={`w-full rounded-xl border p-3 gap-1 flex flex-col select-none transition-all duration-150 
-      ${props.value === "multi" ? "cursor-not-allowed !bg-accent" : ""}
+      ${props.value === 2 ? "cursor-not-allowed !bg-accent" : ""}
        ${
          props.state === props.value
            ? "ring-2 ring-blue-500 bg-blue-500/5 cursor-pointer"
            : "hover:bg-accent/50 cursor-pointer"
        }`}
       onClick={() => {
-        props.value === "multi"
-          ? {}
-          : props.value === props.state
-          ? props.setState("")
-          : props.setState(props.value);
+        if (props.value === 2) {
+          return;
+        }
+        props.setState(props.value);
       }}
     >
       <div className="text-sm font-medium">{props.name}</div>
@@ -133,7 +131,10 @@ function Metric(props: {
   );
 }
 
-function basicStep(setStep: any) {
+function BasicStep(setStep: any) {
+  const [baseValue, setBaseValue] = useState(0);
+  const [name, setName] = useState("");
+
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
       <div className="flex flex-col gap-[5px]">
@@ -150,6 +151,8 @@ function basicStep(setStep: any) {
                 placeholder="new users, new projects, account deleted"
                 type="email"
                 className="h-11 rounded-[12px]"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div className="flex w-full flex-col gap-3">
@@ -158,7 +161,8 @@ function basicStep(setStep: any) {
                 <Input
                   placeholder="optional"
                   type="number"
-                  defaultValue={0}
+                  value={baseValue}
+                  onChange={(e) => setBaseValue(Number(e.target.value))}
                   className="h-11 rounded-[12px]"
                 />
                 <Label className="text-xs font-normal text-secondary leading-tight">
@@ -182,7 +186,25 @@ function basicStep(setStep: any) {
           <Button
             type="button"
             variant="default"
+            disabled={name === ""}
             className="rounded-[12px] w-full"
+            onClick={() => {
+              if (name === "") {
+                return;
+              }
+
+              // fetch(process.env.NEXT_POUBLIC_API_URL + "/metrics", {
+              //   method: "POST",
+              //   headers: {
+              //     "Content-Type": "application/json",
+              //   },
+              //   credentials: "include",
+              //   body: JSON.stringify({
+              //     name: name,
+              //     baseValue: baseValue,
+              //   }),
+              // });
+            }}
           >
             Create
           </Button>
@@ -192,7 +214,7 @@ function basicStep(setStep: any) {
   );
 }
 
-function dualStep(props: any) {
+function DualStep(props: any) {
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
       <div className="flex flex-col gap-[5px]">
@@ -216,7 +238,9 @@ function dualStep(props: any) {
               Varibale naming
               <Select
                 defaultValue={"auto"}
-                onValueChange={(e) => {props.setNaming(e);}}
+                onValueChange={(e) => {
+                  props.setNaming(e);
+                }}
               >
                 <SelectTrigger className="border h-11">
                   <SelectValue placeholder="Select a type of naming" />
@@ -233,7 +257,7 @@ function dualStep(props: any) {
               <></>
             ) : (
               <>
-              <Separator className="my-2"/>
+                <Separator className="my-2" />
                 <div className="flex w-full flex-col gap-3">
                   <Label>Positive variable name</Label>
                   <Input

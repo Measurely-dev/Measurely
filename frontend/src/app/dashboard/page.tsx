@@ -1,3 +1,4 @@
+"use client";
 import DashboardContentContainer from "@/components/dashboard/container/container";
 import {
   Breadcrumb,
@@ -27,3 +28,4 @@ export default function DashboardHomePage() {
     </DashboardContentContainer>
   );
 }
+

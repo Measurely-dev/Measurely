@@ -83,6 +83,8 @@ func (h *Handler) setup_api() {
 
 			cr.Delete("/account", h.service.DeleteAccount)
 
+			cr.Get("/user", h.service.GetUser)
+
 			cr.Get("/application", h.service.GetApplications)
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)

@@ -19,6 +19,14 @@ type RegisterRequest struct {
 	LastName  string `json:"lastname"`
 }
 
+type GetUserResponse struct {
+	Email       string `json:"email"`
+	FirstName   string `json:"firstname"`
+	LastName    string `json:"lastname"`
+	Image       string `json:"image"`
+	CurrentPlan string `json:"currentplan"`
+}
+
 type EmailValidRequest struct {
 	Email string `json:"email"`
 	Type  int    `json:"type"`

@@ -15,7 +15,7 @@ import { Camera } from "react-feather";
 
 const maxSize = 500 * 1024;
 
-export default function NewTeam() {
+export default function NewApp() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
