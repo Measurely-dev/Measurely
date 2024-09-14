@@ -77,6 +77,14 @@ func (db *DB) UpdateUserPlan(id uuid.UUID, plan sql.Null[string]) error {
 	return nil
 }
 
+func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
+	_, err := db.Conn.Exec("UPDATE users SET image = $1 WHERE id = $2", image, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
 	err := db.Conn.QueryRow("INSERT INTO users (groupid, name, total) VALUES ($1, $2, $3) RETURNING *", metric.GroupId, metric.Name, metric.Total).Scan(&new_metric.Id, &new_metric.GroupId, &new_metric.Name, &new_metric.Total)

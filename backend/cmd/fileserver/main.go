@@ -26,6 +26,8 @@ func main() {
 		}
 	}
 
+	const MAX_SIZE = 500 * 1024
+
 	router := chi.NewRouter()
 	router.Use(middleware.StripSlashes)
 
@@ -67,9 +69,6 @@ func main() {
 		// Get the application from url
 		appId, err := uuid.Parse(r.URL.Query().Get("appid"))
 		if err != nil {
-			log.Println("1")
-			log.Println(err)
-			log.Println(appId)
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
@@ -88,8 +87,7 @@ func main() {
 		}
 
 		// Parse the form to retrieve file
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			log.Println("2")
+		if err := r.ParseMultipartForm(MAX_SIZE); err != nil {
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
 		} // 10 MB limit
@@ -97,7 +95,6 @@ func main() {
 		// Retrieve file from form
 		file, _, err := r.FormFile("file")
 		if err != nil {
-			log.Println("3")
 			http.Error(w, "Unable to get file", http.StatusBadRequest)
 			return
 		}
@@ -116,6 +113,13 @@ func main() {
 		_, err = io.Copy(outFile, file)
 		if err != nil {
 			http.Error(w, "Unable to save file", http.StatusInternalServerError)
+			return
+		}
+
+		// Update the application
+		if err := db.UpdateApplicationImage(appId, fileName); err != nil {
+			log.Println(err)
+			http.Error(w, "Unable to update application", http.StatusInternalServerError)
 			return
 		}
 
@@ -143,7 +147,7 @@ func main() {
 		}
 
 		// Parse the form to retrieve file
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
+		if err := r.ParseMultipartForm(MAX_SIZE); err != nil {
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
 		} // 10 MB limit
@@ -156,7 +160,7 @@ func main() {
 		}
 		defer file.Close()
 
-		fileName := "user-" + auth_cookie.UserId.String() // Generate or use a unique name
+		fileName := "user_" + auth_cookie.UserId.String() // Generate or use a unique name
 		outFile, err := os.Create(filepath.Join("uploads", fileName))
 		if err != nil {
 			log.Println(err)
@@ -169,6 +173,13 @@ func main() {
 		_, err = io.Copy(outFile, file)
 		if err != nil {
 			http.Error(w, "Unable to save file", http.StatusInternalServerError)
+			return
+		}
+
+		// Update the user
+		if err := db.UpdateUserImage(auth_cookie.UserId, fileName); err != nil {
+			log.Println(err)
+			http.Error(w, "Unable to update user", http.StatusInternalServerError)
 			return
 		}
 

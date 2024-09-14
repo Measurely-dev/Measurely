@@ -38,6 +38,7 @@ type User struct {
 	Provider         int
 	StripeCustomerId string
 	CurrentPlan      string
+	Image            string
 }
 
 type Application struct {

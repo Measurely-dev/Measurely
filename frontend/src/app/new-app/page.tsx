@@ -63,27 +63,10 @@ export default function NewTeam() {
             credentials: "include",
             body: formData,
           }
-        )
-          .then((res) => {
-            if (res.ok) {
-              fetch(process.env.NEXT_PUBLIC_API_URL + "/application-image", {
-                method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                  appid: json.id,
-                  image: "app_" + json.id,
-                }),
-              });
-            }
-
-            router.push("/dashboard");
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+        ).finally(() => {
+          setLoading(false);
+          router.push("/dashboard")
+        });
       });
   }
 
@@ -147,9 +130,8 @@ export default function NewTeam() {
 
                     createApp();
                   };
-                }
-                else {
-                  createApp()
+                } else {
+                  createApp();
                 }
               }}
             >

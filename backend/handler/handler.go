@@ -86,7 +86,6 @@ func (h *Handler) setup_api() {
 			cr.Get("/application", h.service.GetApplications)
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)
-			cr.Patch("/application-image", h.service.UpdateApplicationImage)
 			cr.Get("/metrics", h.service.GetMetrics)
 			cr.Get("/events", h.service.GetMetricEvents)
 			cr.Get("/connect", h.service.HandleWebSocket)

@@ -10,6 +10,7 @@ CREATE TABLE Users (
     Provider INT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,
     CurrentPlan TEXT NULL
+    Image TEXT NOT NULL DEFAULT '',
 );
 
 
