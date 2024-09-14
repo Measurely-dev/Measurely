@@ -15,7 +15,9 @@ import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import Footer from "@/components/website/layout/footer/footer";
-import { useState } from "react";
+import { AppsContext } from "@/dashContext";
+import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
 
 export default function NewMetric() {
   const [step, setStep] = useState(1);
@@ -46,7 +48,7 @@ export default function NewMetric() {
   const renderStep = () => {
     switch (value) {
       case 0:
-        return BasicStep(setStep);
+        return <BasicStep setStep={setStep} />;
       case 1:
         return DualStep({ setStep, naming, setNaming });
     }
@@ -131,9 +133,14 @@ function Metric(props: {
   );
 }
 
-function BasicStep(setStep: any) {
+function BasicStep(props: { setStep: (props: number) => void }) {
   const [baseValue, setBaseValue] = useState(0);
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const { applications, activeApp } = useContext(AppsContext);
+  const router = useRouter();
 
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
@@ -148,7 +155,7 @@ function BasicStep(setStep: any) {
             <div className="flex w-full flex-col gap-3">
               <Label>Metric name</Label>
               <Input
-                placeholder="new users, new projects, account deleted"
+                placeholder="users, projects, accounts"
                 type="email"
                 className="h-11 rounded-[12px]"
                 value={name}
@@ -179,36 +186,55 @@ function BasicStep(setStep: any) {
             type="button"
             variant="secondary"
             className="rounded-[12px] w-full"
-            onClick={() => setStep(1)}
+            onClick={() => props.setStep(1)}
           >
             Back
           </Button>
           <Button
             type="button"
             variant="default"
-            disabled={name === ""}
+            loading={loading}
+            disabled={name === "" || loading}
             className="rounded-[12px] w-full"
             onClick={() => {
+              setLoading(true);
+              setError("");
               if (name === "") {
+                setError("Name cannot be empty");
                 return;
               }
 
-              // fetch(process.env.NEXT_POUBLIC_API_URL + "/metrics", {
-              //   method: "POST",
-              //   headers: {
-              //     "Content-Type": "application/json",
-              //   },
-              //   credentials: "include",
-              //   body: JSON.stringify({
-              //     name: name,
-              //     baseValue: baseValue,
-              //   }),
-              // });
+              fetch(process.env.NEXT_PUBLIC_API_URL + "/metric", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                  name: name,
+                  basevalue: baseValue,
+                  type: 0,
+                  appid: applications?.[activeApp].id,
+                  metrics: ["default"],
+                }),
+              })
+                .then((res) => {
+                  if (!res.ok) {
+                    res.text().then((text) => {
+                      setError(text);
+                    });
+                  } else {
+                    router.push("/dashboard/metrics");
+                  }
+                })
+                .finally(() => setLoading(false));
             }}
           >
             Create
           </Button>
         </div>
+
+        {error && <div className="text-red-500">{error}</div>}
       </div>
     </div>
   );

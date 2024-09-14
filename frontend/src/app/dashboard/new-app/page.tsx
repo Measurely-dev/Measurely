@@ -9,8 +9,9 @@ import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import Footer from "@/components/website/layout/footer/footer";
+import { AppsContext } from "@/dashContext";
 import { useRouter } from "next/navigation";
-import { Dispatch, useState } from "react";
+import { Dispatch, useContext, useState } from "react";
 import { Camera } from "react-feather";
 
 const maxSize = 500 * 1024;
@@ -24,6 +25,9 @@ export default function NewApp() {
   const [file, setFile] = useState<File | null>(null);
 
   const router = useRouter();
+
+  const { setActiveApp, applications, setApplications } =
+    useContext(AppsContext);
 
   function createApp() {
     fetch(process.env.NEXT_PUBLIC_API_URL + "/application", {
@@ -49,24 +53,31 @@ export default function NewApp() {
         }
       })
       .then((json) => {
-        if (file === null) {
-          return;
+        if (file !== null) {
+          const formData = new FormData();
+          formData.append("file", file);
+
+          fetch(
+            process.env.NEXT_PUBLIC_FILE_URL + "/app-upload?appid=" + json.id,
+            {
+              method: "POST",
+              credentials: "include",
+              body: formData,
+            }
+          )
+            .then((res) => {
+              if (res.ok) {
+                json.image = "app_" + json.id;
+              }
+            })
+            .finally(() => {
+              setLoading(false);
+            });
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-
-        fetch(
-          process.env.NEXT_PUBLIC_FILE_URL + "/app-upload?appid=" + json.id,
-          {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-          }
-        ).finally(() => {
-          setLoading(false);
-          router.push("/dashboard")
-        });
+        setApplications((apps) => [...(apps ?? []), json]);
+        setActiveApp(applications?.length ?? 0);
+        router.push("/dashboard");
       });
   }
 
@@ -103,33 +114,12 @@ export default function NewApp() {
 
                 if (file !== null) {
                   if (file.size > maxSize) {
-                    setError("File too large");
+                    setError("The image is too large. Max 500KB");
                     setLoading(false);
                     return;
                   }
-                  const img = new Image();
-                  const objectURL = URL.createObjectURL(file);
-                  img.src = objectURL;
 
-                  img.onload = () => {
-                    const width = img.width;
-                    const height = img.height;
-
-                    // Check if image is square (1:1 aspect ratio)
-                    if (file.size > maxSize) {
-                      setError("File too large. The max is 500KB");
-                      setLoading(false);
-                      return;
-                    } else if (width !== height) {
-                      setError("Image must be square.");
-                      setLoading(false);
-                      return;
-                    }
-
-                    URL.revokeObjectURL(objectURL); // Clean up
-
-                    createApp();
-                  };
+                  createApp();
                 } else {
                   createApp();
                 }

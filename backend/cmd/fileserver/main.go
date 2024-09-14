@@ -30,6 +30,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(middleware.StripSlashes)
+	router.Use(middleware.Logger)
 
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
 	if err != nil {

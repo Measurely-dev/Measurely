@@ -1028,9 +1028,25 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if request.Type != types.BASE && request.Type != types.DUAL {
+		http.Error(w, "Invalid metric type", http.StatusBadRequest)
+		return
+	}
+
+	if request.Type == types.BASE && len(request.Metrics) != 1 {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	if request.Type == types.DUAL && len(request.Metrics) != 2 {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
 	// Get the application
 	_, err := s.DB.GetApplication(request.AppId, val)
 	if err != nil {
+		log.Println(1049)
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1039,6 +1055,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get Metric Count
 	count, err := s.DB.GetMetricGroupCount(request.AppId)
 	if err != nil {
+		log.Println(1058)
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1047,6 +1064,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get the user
 	user, err := s.DB.GetUserById(val)
 	if err != nil {
+		log.Println(1065)
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1061,7 +1079,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the metric
-	metric, err := s.DB.CreateMetricGroup(types.MetricGroup{
+	group, err := s.DB.CreateMetricGroup(types.MetricGroup{
 		Name:    request.Name,
 		AppId:   request.AppId,
 		Type:    request.Type,
@@ -1069,12 +1087,27 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
+		log.Println("1087")
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, jerr := json.Marshal(metric)
+	for _, metric := range request.Metrics {
+		_, err = s.DB.CreateMetric(types.Metric{
+			Name:    metric,
+			GroupId: group.Id,
+			Total:   request.BaseValue,
+		})
+		if err != nil {
+			log.Println("1100")
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	bytes, jerr := json.Marshal(group)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return

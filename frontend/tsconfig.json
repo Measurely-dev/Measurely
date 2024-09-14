@@ -27,6 +27,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/components/dashboard/(dashboardContent)/[team_identifier]/projects/create"
-, "src/app/dashboard/team"  ],
+, "src/app/dashboard/(main)/team"  ],
   "exclude": ["node_modules"]
 }

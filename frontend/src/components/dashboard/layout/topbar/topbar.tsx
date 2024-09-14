@@ -24,7 +24,7 @@ export default function DashboardTopbar() {
           {/* <ApplicationType type={"Pro"} /> */}
         </div>
         <div className="flex flex-row gap-[12px]">
-          <Link href={"/new-metric"}>
+          <Link href={"/dashboard/new-metric"}>
             <Button className="h-[35px] gap-[8px] rounded-[12px]">
               <Plus className="size-[16px]" />
               Create metric

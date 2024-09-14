@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 
 // This function can be marked `async` if using `await` inside
 export default async function middleware(request: NextRequest) {
-
   const url = request.nextUrl.pathname;
   if (url === "/") {
     return NextResponse.redirect(new URL("/home", request.url));
@@ -20,10 +19,6 @@ export default async function middleware(request: NextRequest) {
   if (cookie !== undefined) {
     logged = true;
   }
-
-
-
-  if(url.includes)
 
   if (url.includes("dashboard") || url.includes("new-app") || url.includes("new-metric")) {
     if (!logged) {

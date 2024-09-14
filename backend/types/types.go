@@ -25,6 +25,12 @@ const (
 	SECOND
 )
 
+const (
+	BASE = iota
+	DUAL
+	MULTI
+)
+
 type key int
 
 const USERID key = iota

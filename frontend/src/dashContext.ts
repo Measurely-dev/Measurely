@@ -1,16 +1,16 @@
-import { createContext } from "react";
+import { createContext, Dispatch } from "react";
 import { Application, User } from "./types";
 
 export interface UserContextType {
   user: User | null;
-  setUser: (new_user: User) => void;
+  setUser: Dispatch<React.SetStateAction<User | null>>;
 }
 
 export interface AppsContextType {
   applications: Application[] | null;
-  setApplications: (new_applications: Application[]) => void;
+  setApplications: Dispatch<React.SetStateAction<Application[] | null>>; 
   activeApp: number;
-  setActiveApp: (new_applications: number) => void;
+  setActiveApp: Dispatch<React.SetStateAction<number>>;
 }
 
 export const UserContext = createContext<UserContextType>({
