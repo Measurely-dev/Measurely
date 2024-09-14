@@ -46,6 +46,7 @@ type Application struct {
 	UserId      uuid.UUID `json:"userid"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
+	Image       string    `json:"image"`
 }
 
 type MetricGroup struct {

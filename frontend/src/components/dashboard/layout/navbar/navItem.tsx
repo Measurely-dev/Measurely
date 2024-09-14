@@ -15,8 +15,6 @@ export default function DashboardNavItem(props: {
   href: string;
 }) {
   const pathname = usePathname();
-  console.log(pathname)
-  console.log(props.href)
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>

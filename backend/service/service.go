@@ -842,7 +842,6 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	plan, _ := s.GetPlan(user.CurrentPlan)
-	log.Println(plan.AppLimit)
 	if plan.AppLimit >= 0 {
 
 		// Get application count
@@ -970,6 +969,41 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (s *Service) UpdateApplicationImage(w http.ResponseWriter, r *http.Request) {
+
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request UpdateApplicationImageRequest
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the application
+	_, err := s.DB.GetApplication(request.AppId, val)
+	if err != nil {
+		http.Error(w, "Unauthorized or not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Update the application
+	err = s.DB.UpdateApplicationImage(request.AppId, request.Image)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {

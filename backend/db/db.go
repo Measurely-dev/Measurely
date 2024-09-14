@@ -227,6 +227,14 @@ func (db *DB) GetApplication(id uuid.UUID, userid uuid.UUID) (types.Application,
 	return app, nil
 }
 
+func (db *DB) UpdateApplicationImage(id uuid.UUID, image string) error {
+	_, err := db.Conn.Exec("UPDATE applications SET image = $1 WHERE id = $2", image, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DB) GetApplicationCountByUser(userid uuid.UUID) (int, error) {
 	var count int
 	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM applications WHERE userid = $1", userid)
@@ -276,7 +284,7 @@ func (db *DB) GetApplicationByName(userid uuid.UUID, name string) (types.Applica
 }
 func (db *DB) CreateApplication(app types.Application) (types.Application, error) {
 	var new_app types.Application
-	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name, description) VALUES ($1, $2, $3, $4) RETURNING *", app.UserId, app.ApiKey, app.Name, app.Description).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Description)
+	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name, description) VALUES ($1, $2, $3, $4) RETURNING *", app.UserId, app.ApiKey, app.Name, app.Description).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Description, &new_app.Image)
 	if err != nil {
 		return new_app, err
 	}

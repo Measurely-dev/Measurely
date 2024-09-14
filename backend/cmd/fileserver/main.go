@@ -38,17 +38,19 @@ func main() {
 	block_key := []byte(os.Getenv("BLOCK_KEY"))
 	securecookie := securecookie.New(hash_key, block_key)
 
-	fs := http.FileServer(http.Dir("uploads"))
-	router.Handle("/uploads/*", http.StripPrefix("/uploads/", fs))
-
-	publicCors := cors.New(cors.Options{
+	Cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("ORIGIN")},
 		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}).Handler
 
-	router.With(publicCors).Post("/app-upload", func(w http.ResponseWriter, r *http.Request) {
+	router.Use(Cors)
+
+	fs := http.FileServer(http.Dir("uploads"))
+	router.Handle("/uploads/*", http.StripPrefix("/uploads/", fs))
+
+	router.Post("/app-upload", func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("measurely-session")
 		if err == http.ErrNoCookie {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -63,8 +65,7 @@ func main() {
 		}
 
 		// Get the application from url
-		log.Println(chi.URLParam(r, "appid"))
-		appId, err := uuid.Parse(chi.URLParam(r, "appid"))
+		appId, err := uuid.Parse(r.URL.Query().Get("appid"))
 		if err != nil {
 			log.Println("1")
 			log.Println(err)
@@ -102,7 +103,7 @@ func main() {
 		}
 		defer file.Close()
 
-		fileName := "app-" + appId.String() // Generate or use a unique name
+		fileName := "app_" + appId.String() // Generate or use a unique name
 		outFile, err := os.Create(filepath.Join("uploads", fileName))
 		if err != nil {
 			log.Println(err)
@@ -120,7 +121,7 @@ func main() {
 
 		fmt.Fprintf(w, "File uploaded successfully: %s", fileName)
 	})
-	router.With(publicCors).Post("/user-upload", func(w http.ResponseWriter, r *http.Request) {
+	router.Post("/user-upload", func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("measurely-session")
 		if err == http.ErrNoCookie {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)

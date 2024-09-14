@@ -57,6 +57,11 @@ type CreateApplicationRequest struct {
 	Description string `json:"description"`
 }
 
+type UpdateApplicationImageRequest struct {
+	AppId uuid.UUID `json:"appid"`
+	Image string    `json:"image"`
+}
+
 type DeleteApplicationRequest struct {
 	ApplicationId uuid.UUID `json:"applicationid"`
 }

@@ -9,8 +9,11 @@ import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import Footer from "@/components/website/layout/footer/footer";
+import { useRouter } from "next/navigation";
 import { Dispatch, useState } from "react";
-import { Camera, Loader } from "react-feather";
+import { Camera } from "react-feather";
+
+const maxSize = 500 * 1024;
 
 export default function NewTeam() {
   const [loading, setLoading] = useState(false);
@@ -18,7 +21,71 @@ export default function NewTeam() {
   const [description, setDescription] = useState<string>("");
 
   const [error, setError] = useState<string>("");
-  const [file, setFile] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
+
+  const router = useRouter();
+
+  function createApp() {
+    fetch(process.env.NEXT_PUBLIC_API_URL + "/application", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        name: name,
+        description: description,
+        file: file,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.text().then((text) => {
+            setError(text);
+            setLoading(false);
+          });
+        } else {
+          return res.json();
+        }
+      })
+      .then((json) => {
+        if (file === null) {
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch(
+          process.env.NEXT_PUBLIC_FILE_URL + "/app-upload?appid=" + json.id,
+          {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          }
+        )
+          .then((res) => {
+            if (res.ok) {
+              fetch(process.env.NEXT_PUBLIC_API_URL + "/application-image", {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                  appid: json.id,
+                  image: "app_" + json.id,
+                }),
+              });
+            }
+
+            router.push("/dashboard");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      });
+  }
 
   return (
     <div className="flex flex-col">
@@ -51,55 +118,46 @@ export default function NewTeam() {
                 setLoading(true);
                 setError("");
 
-                fetch(process.env.NEXT_PUBLIC_API_URL + "/application", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  credentials: "include",
-                  body: JSON.stringify({
-                    name: name,
-                    description: description,
-                    file: file,
-                  }),
-                })
-                  .then((res) => {
-                    if (!res.ok) {
-                      res.text().then((text) => {
-                        setError(text);
-                        setLoading(false);
-                      });
-                    }else {
-                      return res.json();
+                if (file !== null) {
+                  if (file.size > maxSize) {
+                    setError("File too large");
+                    setLoading(false);
+                    return;
+                  }
+                  const img = new Image();
+                  const objectURL = URL.createObjectURL(file);
+                  img.src = objectURL;
+
+                  img.onload = () => {
+                    const width = img.width;
+                    const height = img.height;
+
+                    // Check if image is square (1:1 aspect ratio)
+                    if (file.size > maxSize) {
+                      setError("File too large. The max is 500KB");
+                      setLoading(false);
+                      return;
+                    } else if (width !== height) {
+                      setError("Image must be square.");
+                      setLoading(false);
+                      return;
                     }
 
-                  })
-                  .then((json) => {
-                    const formData = new FormData();
-                    formData.append("file", file);
-                    console.log(
-                      process.env.NEXT_PUBLIC_FILE_URL + "/app-upload"
-                    );
-                    fetch(
-                      process.env.NEXT_PUBLIC_FILE_URL +
-                        "/app-upload?appid=" +
-                        json.id,
-                      {
-                        method: "POST",
-                        credentials: "include",
-                        body: formData,
-                      }
-                    ).finally(() => {
-                      setLoading(false);
-                    });
-                  }).finally(() => {
-                    setLoading(false);
-                  });
+                    URL.revokeObjectURL(objectURL); // Clean up
+
+                    createApp();
+                  };
+                }
+                else {
+                  createApp()
+                }
               }}
             >
               Create application
             </Button>
             {/* </Link> */}
+
+            {error && <div className="text-red-500">{error}</div>}
           </div>
         </ContentContainer>
       </WebContainer>
@@ -146,6 +204,7 @@ function Inputs(props: {
                 props.setFile(event.target.files?.[0]);
               }}
               type="file"
+              accept=".jpg, .jpeg, .png, .webp .svg"
               className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
             />
           </Label>

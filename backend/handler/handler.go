@@ -46,14 +46,14 @@ func (h *Handler) Start(port string) error {
 }
 
 func (h *Handler) setup_api() {
-	privateCors := cors.New(cors.Options{
+	Cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("ORIGIN")}, // Allow all origins for this route
-		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}).Handler
 
-	h.router.Use(privateCors)
+	h.router.Use(Cors)
 	h.router.Group(func(r chi.Router) {
 		r.Post("/email-valid", h.service.EmailValid)
 		r.Post("/login", h.service.Login)
@@ -86,6 +86,7 @@ func (h *Handler) setup_api() {
 			cr.Get("/application", h.service.GetApplications)
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)
+			cr.Patch("/application-image", h.service.UpdateApplicationImage)
 			cr.Get("/metrics", h.service.GetMetrics)
 			cr.Get("/events", h.service.GetMetricEvents)
 			cr.Get("/connect", h.service.HandleWebSocket)
