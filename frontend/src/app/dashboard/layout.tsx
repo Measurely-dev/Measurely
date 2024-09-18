@@ -3,7 +3,6 @@
 import { AppsContext, UserContext } from "@/dashContext";
 import { useState } from "react";
 import { Application, User } from "@/types";
-import { useRouter } from "next/navigation";
 
 export default function DashboardContentLayout({
   children,

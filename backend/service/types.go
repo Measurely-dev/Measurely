@@ -82,7 +82,7 @@ type CreateMetricEventRequest struct {
 }
 
 type GetMetricsRequest struct {
-	AppId uuid.UUID `json:"appid"`
+	MetricId uuid.UUID `json:"metricid"`
 }
 
 type CreateMetricRequest struct {

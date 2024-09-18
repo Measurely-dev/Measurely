@@ -25,14 +25,8 @@ func New(s *service.Service) Handler {
 
 func (h *Handler) Start(port string) error {
 	h.router.Use(middleware.StripSlashes)
-
-	if os.Getenv("ENVIRONMENT") == "production" {
-		h.router.Use(middleware.Recoverer)
-	}
-
-	if os.Getenv("ENVIRONMENT") == "development" {
-		h.router.Use(middleware.Logger)
-	}
+	h.router.Use(middleware.Logger)
+	h.router.Use(middleware.Recoverer)
 
 	h.setup_api()
 
@@ -88,7 +82,7 @@ func (h *Handler) setup_api() {
 			cr.Get("/application", h.service.GetApplications)
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)
-			cr.Get("/metrics", h.service.GetMetrics)
+			cr.Get("/metric-groups", h.service.GetMetricGroups)
 			cr.Get("/events", h.service.GetMetricEvents)
 			cr.Get("/connect", h.service.HandleWebSocket)
 

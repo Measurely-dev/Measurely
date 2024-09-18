@@ -20,34 +20,43 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArchiveIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
 import { Plus, Search } from "react-feather";
-import ProjectTable from "./metricTable";
+import MetricTable from "./metricTable";
 import Link from "next/link";
-
-const metrics: any = [
-  {
-    name: "Accounts",
-    value: "1239223",
-    today: -234,
-    created: 'June 2, 2024'
-  },
-  {
-    name: "Metrics",
-    value: "3432948798432",
-    today: +384382,
-    created: 'December 8, 2023'
-  },
-];
+import { useContext, useEffect } from "react";
+import { AppsContext } from "@/dashContext";
 
 export default function DashboardMetrics() {
-  const [selectedProject, setSelectedProject] = useState<number>(0);
+  const { applications,setApplications, activeApp } = useContext(AppsContext);
+
+
+  useEffect(() => {
+    if (applications?.[activeApp].groups === null) {
+      fetch(process.env.NEXT_PUBLIC_API_URL + "/metric-groups?appid=" + applications[activeApp].id, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }).then(res => {
+        if (res.ok)
+        {
+          return res.json();
+        } else {
+          return [];
+        }
+      }).then(json => {
+        setApplications(applications.map((v, i) => (i === activeApp ? Object.assign({}, v, { groups: json }): v)));
+      })
+    }
+  }, [])
+
   return (
     <DashboardContentContainer className="w-full flex pb-[15px] mt-0 pt-[15px]">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href={'/'}>Dashboard</BreadcrumbLink>
+            <BreadcrumbLink href={"/"}>Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -57,37 +66,34 @@ export default function DashboardMetrics() {
       </Breadcrumb>
       {/* /Breadcrumb */}
       <div className="mt-5 flex h-full flex-row gap-5">
-        <div className="flex w-full flex-col gap-[10px]">
-          <div className="flex w-full flex-row gap-[10px]">
-            <SearchComponent />
-            <FiltersComponent />
-            <Link href={'/new'}>
-              <Button className="h-full gap-[8px] rounded-[12px]">
-                <Plus className="size-[16px]" />
-                Add metric
-              </Button>
-            </Link>
-          </div>
+        {applications?.[activeApp].groups === null ? (
+          <div>LOADING...</div>
+        ) : (
+          <div className="flex w-full flex-col gap-[10px]">
+            <div className="flex w-full flex-row gap-[10px]">
+              <SearchComponent />
+              <FiltersComponent />
+              <Link href={"/dashboard/new-metric"}>
+                <Button className="h-full gap-[8px] rounded-[12px]">
+                  <Plus className="size-[16px]" />
+                  Add metric
+                </Button>
+              </Link>
+            </div>
 
-          {metrics.length === 0 ? (
-            <Empty>
-              <ArchiveIcon className="h-17 w-16" />
-              <div className="flex flex-col items-center gap-3 text-center">
-                No project created yet
-                <div className="w-[349px] text-sm">
-                  Create a project that you can connect to your client&apos;s
-                  later
+            {applications?.[activeApp].groups?.length === 0 ? (
+              <Empty>
+                <ArchiveIcon className="h-17 w-16" />
+                <div className="flex flex-col items-center gap-3 text-center">
+                  No metric created yet
+                  <div className="w-[349px] text-sm">Create a metric</div>
                 </div>
-              </div>
-            </Empty>
-          ) : (
-            <ProjectTable
-              metrics={metrics}
-              setSelectedProject={setSelectedProject}
-              selectedProject={selectedProject}
-            />
-          )}
-        </div>
+              </Empty>
+            ) : (
+              <MetricTable />
+            )}
+          </div>
+        )}
       </div>
     </DashboardContentContainer>
   );

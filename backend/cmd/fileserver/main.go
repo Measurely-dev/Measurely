@@ -31,6 +31,7 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(middleware.StripSlashes)
 	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -186,5 +187,8 @@ func main() {
 
 		fmt.Fprintf(w, "File uploaded successfully: %s", fileName)
 	})
-	http.ListenAndServe(":7000", router)
+
+	PORT := ":7000"
+	log.Println("Server started on port ", PORT)
+	http.ListenAndServe(PORT, router)
 }

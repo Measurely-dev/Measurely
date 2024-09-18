@@ -3,6 +3,7 @@
 import { AppsContext, UserContext } from "@/dashContext";
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Henny_Penny } from "next/font/google";
 
 export default function DashboardContentLayout({
   children,
@@ -63,6 +64,10 @@ export default function DashboardContentLayout({
         .then((json) => {
           if (json === null || json.length === 0) {
             router.push("/dashboard/new-app");
+          }
+          json.metrics = null;
+          for (let i = 0; i < json.length; i++) {
+            json[i].groups = null;
           }
           setApplications(json);
         });

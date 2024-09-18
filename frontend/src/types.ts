@@ -4,6 +4,19 @@ export interface Application {
   name: string;
   description: string;
   image: string;
+  groups: null | Group[]
+}
+
+export interface Group{
+  name: string;
+  value: number;
+  metrics : Metric[];
+  created: string;
+}
+
+export interface Metric {
+  name: string;
+  value: number;
 }
 
 export interface User {
