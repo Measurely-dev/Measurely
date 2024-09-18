@@ -30,7 +30,8 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
       <DropdownMenuContent className="mr-4 mt-1 w-56 gap-1 rounded-[16px] px-2 py-3 pb-2 shadow-sm">
         <div className="mb-2 flex flex-col gap-0">
           <DropdownMenuLabel className="py-0 text-sm">
-            {Capitalize(user?.firstname ?? "Unknown")} {Capitalize(user?.lastname ?? "")}
+            {Capitalize(user?.firstname ?? "Unknown")}{" "}
+            {Capitalize(user?.lastname ?? "")}
           </DropdownMenuLabel>
           <DropdownMenuLabel className="py-0 text-xs font-normal text-secondary">
             {user?.email}
@@ -61,23 +62,23 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-
-            fetch("/api/logout", { method: "POST" }).then(() => {
-              router.push("/sign-in");
-            });
-          }}
-        >
-          <button className="w-full" type="submit">
-            <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
-              Log out
-              {/* Dropdown menu shortcut */}
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </button>
-        </form>
+        <button className="w-full" onClick={() => {
+          fetch (process.env.NEXT_PUBLIC_API_URL + "/logout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }).then(() => {
+            router.push("/sign-in");
+          })
+        }}>
+          <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
+            Log out
+            {/* Dropdown menu shortcut */}
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </button>
       </DropdownMenuContent>
     </DropdownMenu>
   );

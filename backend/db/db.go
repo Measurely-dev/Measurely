@@ -29,7 +29,7 @@ func (d *DB) Close() error {
 
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
-	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, provider, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.Provider, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.Provider, &new_user.StripeCustomerId, &new_user.CurrentPlan)
+	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, provider, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.Provider, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.Provider, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image)
 	if err != nil {
 		return new_user, err
 	}
@@ -104,7 +104,7 @@ func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
 
 func (db *DB) CreateMetricGroup(group types.MetricGroup) (types.MetricGroup, error) {
 	var new_group types.MetricGroup
-	err := db.Conn.QueryRow("INSERT INTO metricgroups (appid, type, name, enabled) VALUES ($1, $2, $3, $4) RETURNING *", group.AppId, group.Type, group.Name, group.Enabled).Scan(&new_group.Id, &new_group.AppId, &new_group.Type, &new_group.Name, &new_group.Enabled)
+	err := db.Conn.QueryRow("INSERT INTO metricgroups (appid, type, name, enabled) VALUES ($1, $2, $3, $4) RETURNING *", group.AppId, group.Type, group.Name, group.Enabled).Scan(&new_group.Id, &new_group.AppId, &new_group.Type, &new_group.Name, &new_group.Enabled, &new_group.Created)
 	if err != nil {
 		return new_group, err
 	}
@@ -138,7 +138,7 @@ func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
 	var groups []types.MetricGroup
 	for rows.Next() {
 		var group types.MetricGroup
-		err := rows.Scan(&group.Id, &group.AppId, &group.Type, &group.Name, &group.Enabled)
+		err := rows.Scan(&group.Id, &group.AppId, &group.Type, &group.Name, &group.Enabled, &group.Created)
 		if err != nil {
 			return []types.MetricGroup{}, err
 		}
@@ -148,8 +148,8 @@ func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
 	return groups, nil
 }
 
-func (db *DB) GetMetrics(metricid uuid.UUID) ([]types.Metric, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE groupid = $1", metricid)
+func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
+	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE groupid = $1", groupid)
 	if err != nil {
 		return []types.Metric{}, err
 	}
@@ -173,9 +173,9 @@ func (db *DB) GetMetric(id uuid.UUID, appid uuid.UUID) (types.Metric, error) {
 	return metric, err
 }
 
-func (db *DB) GetMetricCount(metricid uuid.UUID) (int, error) {
+func (db *DB) GetMetricCount(groupid uuid.UUID) (int, error) {
 	var count int
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE groupid = $1", metricid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE groupid = $1", groupid)
 	if err != nil {
 		return 0, err
 	}

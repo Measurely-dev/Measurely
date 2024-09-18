@@ -46,6 +46,10 @@ export default function DashboardMetrics() {
           return [];
         }
       }).then(json => {
+        if (json === null)
+        {
+          json = []
+        }
         setApplications(applications.map((v, i) => (i === activeApp ? Object.assign({}, v, { groups: json }): v)));
       })
     }

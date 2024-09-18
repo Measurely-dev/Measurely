@@ -11,7 +11,7 @@ export interface Group{
   name: string;
   value: number;
   metrics : Metric[];
-  created: string;
+  created: Date;
 }
 
 export interface Metric {

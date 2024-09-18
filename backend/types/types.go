@@ -62,6 +62,7 @@ type MetricGroup struct {
 	Name    string    `json:"name"`
 	Type    int       `json:"type"`
 	Enabled bool      `json:"enabled"`
+	Created time.Time `json:"created"`
 }
 
 type Metric struct {

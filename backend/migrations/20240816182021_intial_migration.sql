@@ -9,8 +9,8 @@ CREATE TABLE Users (
     Password TEXT NOT NULL,
     Provider INT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,
-    CurrentPlan TEXT NULL
-    Image TEXT NOT NULL DEFAULT '',
+    CurrentPlan TEXT NULL,
+    Image TEXT NOT NULL DEFAULT ''
 );
 
 
@@ -36,6 +36,7 @@ CREATE TABLE MetricGroups (
     Type INT NOT NULL,
     Name TEXT NOT NULL UNIQUE,
     Enabled BOOLEAN NOT NULL DEFAULT false,
+    Created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 

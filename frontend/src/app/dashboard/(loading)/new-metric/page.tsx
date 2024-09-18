@@ -139,7 +139,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { applications, activeApp } = useContext(AppsContext);
+  const { applications, setApplications, activeApp } = useContext(AppsContext);
   const router = useRouter();
 
   return (
@@ -224,10 +224,36 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                       setError(text);
                     });
                   } else {
-                    router.push("/dashboard/metrics");
+                    return res.json();
                   }
                 })
-                .finally(() => setLoading(false));
+                .then((json) => {
+                  if (
+                    json === null ||
+                    applications?.[activeApp].groups === null ||
+                    applications === null
+                  ) {
+                    return;
+                  }
+
+                  setApplications(
+                    applications?.map((v, i) =>
+                      i === activeApp
+                        ? Object.assign({}, v, {
+                            groups: [
+                              ...(applications[activeApp].groups ?? []),
+                              json,
+                            ],
+                          })
+                        : v
+                    )
+                  );
+
+                  router.push("/dashboard/metrics");
+                })
+                .finally(() => {
+                  setLoading(false);
+                });
             }}
           >
             Create
