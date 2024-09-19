@@ -94,7 +94,7 @@ export default function NewApp() {
         )}
         <ContentContainer className="flex h-full items-center justify-center">
           {/* /Breadcrumb */}
-          <div className="mx-auto flex w-[500px] flex-col gap-6">
+          <div className="mx-auto flex w-[500px] flex-col gap-6 border p-6 rounded-3xl bg-accent/35">
             <div className="flex flex-col gap-[5px]">
               <div className="text-xl font-medium">
                 {applications === null
