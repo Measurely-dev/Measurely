@@ -90,7 +90,6 @@ export default function DashboardMetrics() {
                 <ArchiveIcon className="size-10" />
                 <div className="flex flex-col items-center gap-3 text-center">
                   No metric created yet
-                  <div className="w-[349px] text-sm">Create a metric</div>
                 </div>
               </Empty>
             ) : (
