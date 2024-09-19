@@ -188,7 +188,7 @@ func main() {
 		fmt.Fprintf(w, "File uploaded successfully: %s", fileName)
 	})
 
-	PORT := ":7000"
+	PORT := ":7100"
 	log.Println("Server started on port ", PORT)
 	http.ListenAndServe(PORT, router)
 }

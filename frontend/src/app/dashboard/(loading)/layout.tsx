@@ -63,6 +63,7 @@ export default function DashboardContentLayout({
         .then((json) => {
           if (json === null || json.length === 0) {
             router.push("/dashboard/new-app");
+            return
           }
           for (let i = 0; i < json.length; i++) {
             json[i].groups = null;

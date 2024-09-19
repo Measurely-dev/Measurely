@@ -154,7 +154,7 @@ function Inputs(props: {
       <div className="flex w-full items-center gap-5">
         <Avatar className="relative size-[65px] cursor-pointer items-center justify-center !rounded-[16px] overflow-visible ">
           <Label className="relative h-full w-full cursor-pointer">
-            <AvatarImage src={reader} />
+            <AvatarImage className="rounded-[16px]" src={reader} />
             <AvatarFallback className="!rounded-[16px] w-full h-full">
               <Camera className="text-secondary" />
             </AvatarFallback>
