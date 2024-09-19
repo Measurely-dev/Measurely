@@ -29,6 +29,7 @@ frontend/yarn-error.log*
 frontend/.env*.local
 frontend/.env
 backend/.env
+backend/uploads
 
 # vercel
 .vercel
