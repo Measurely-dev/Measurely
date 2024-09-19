@@ -29,6 +29,8 @@ export default function NewApp() {
   const { setActiveApp, applications, setApplications } =
     useContext(AppsContext);
 
+  console.log(applications);
+
   function createApp() {
     fetch(process.env.NEXT_PUBLIC_API_URL + "/application", {
       method: "POST",
@@ -75,6 +77,7 @@ export default function NewApp() {
             });
         }
 
+        json.groups = null
         setApplications((apps) => [...(apps ?? []), json]);
         setActiveApp(applications?.length ?? 0);
         router.push("/dashboard");
@@ -84,12 +87,20 @@ export default function NewApp() {
   return (
     <div className="flex flex-col">
       <WebContainer className="h-[100vh] w-[100vw]">
-        <AuthNavbar href="/dashboard" button="Dashboard" />
+        {applications === null ? (
+          <AuthNavbar href="" button={null} />
+        ) : (
+          <AuthNavbar href="/dashboard" button="Dashboard" />
+        )}
         <ContentContainer className="flex h-full items-center justify-center">
           {/* /Breadcrumb */}
           <div className="mx-auto flex w-[500px] flex-col gap-6">
             <div className="flex flex-col gap-[5px]">
-              <div className="text-xl font-medium">New Application</div>
+              <div className="text-xl font-medium">
+                {applications === null
+                  ? "Create your first application"
+                  : "Create application"}
+              </div>
               <div className="text-sm text-secondary">
                 We&apos;ll fill the billing details automatically if we find the
                 company.
@@ -108,6 +119,7 @@ export default function NewApp() {
             <Button
               className="w-full rounded-[12px]"
               loading={loading}
+              disabled={loading || name === ""}
               onClick={() => {
                 setLoading(true);
                 setError("");

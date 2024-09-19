@@ -32,7 +32,7 @@ export default function DashboardMetrics() {
 
   useEffect(() => {
     if (applications?.[activeApp].groups === null) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + "/metric-groups?appid=" + applications[activeApp].id, {
+      fetch(process.env.NEXT_PUBLIC_API_URL + "/metric-groups?appid=" + applications?.[activeApp].id, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -53,14 +53,14 @@ export default function DashboardMetrics() {
         setApplications(applications.map((v, i) => (i === activeApp ? Object.assign({}, v, { groups: json }): v)));
       })
     }
-  }, [])
+  }, [activeApp])
 
   return (
     <DashboardContentContainer className="w-full flex pb-[15px] mt-0 pt-[15px]">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href={"/"}>Dashboard</BreadcrumbLink>
+            <BreadcrumbLink className="pointer-events-none">Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

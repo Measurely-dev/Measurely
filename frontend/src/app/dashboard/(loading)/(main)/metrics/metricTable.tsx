@@ -5,10 +5,7 @@ import { useContext } from "react";
 import { Box, MoreHorizontal } from "react-feather";
 
 export default function MetricTable () {
-
   const {applications, activeApp} = useContext(AppsContext);
-  console.log(applications)
-
 
   return (
     <div className="flex flex-col gap-[15px]">

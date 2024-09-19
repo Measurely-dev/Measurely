@@ -9,10 +9,6 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  if(url.includes("home")) {
-    return;
-  }
-
   const cookie = cookies().get("measurely-session");
 
   let logged = false;
@@ -20,23 +16,35 @@ export default async function middleware(request: NextRequest) {
     logged = true;
   }
 
-  if (url.includes("dashboard") || url.includes("new-app") || url.includes("new-metric")) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("is-authentificated", logged ? "true" : "false");
+
+  if (
+    url.includes("dashboard") ||
+    url.includes("new-app") ||
+    url.includes("new-metric")
+  ) {
     if (!logged) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
-  } else {
+  } else if (url.includes("sign-in") || url.includes("register")) {
     if (logged) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
-  
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
     "/",
+    "/home",
     "/sign-in",
     "/register",
     "/forgot-password",
