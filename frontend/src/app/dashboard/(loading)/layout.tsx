@@ -1,8 +1,10 @@
 "use client";
 
 import { AppsContext, UserContext } from "@/dashContext";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LogoSvg from "@/components/global/logoSvg";
+import { Progress } from "@/components/ui/progress";
 
 export default function DashboardContentLayout({
   children,
@@ -11,6 +13,7 @@ export default function DashboardContentLayout({
 }>) {
   const { applications, setApplications } = useContext(AppsContext);
   const { user, setUser } = useContext(UserContext);
+  const [barPercent, setBarPercent] = useState<number>(0);
 
   const router = useRouter();
 
@@ -63,7 +66,7 @@ export default function DashboardContentLayout({
         .then((json) => {
           if (json === null || json.length === 0) {
             router.push("/dashboard/new-app");
-            return
+            return;
           }
           for (let i = 0; i < json.length; i++) {
             json[i].groups = null;
@@ -73,7 +76,19 @@ export default function DashboardContentLayout({
     }
   }, []);
 
+
   return (
-    <>{applications === null || user === null ? <>LOADING</> : <>{ children }</>}</>
+    <>
+      {applications === null || user === null ? (
+        <div className="absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-8 bg-accent">
+          <div className="relative flex items-center justify-center gap-2">
+            <LogoSvg className="size-14" />
+            <div className="text-xl font-semibold">Measurely</div>
+          </div>
+        </div>
+      ) : (
+        <>{children}</>
+      )}
+    </>
   );
 }
