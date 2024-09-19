@@ -81,6 +81,11 @@ type CreateMetricEventRequest struct {
 	Value             int       `json:"value"`
 }
 
+type MetricGroupResponse struct {
+	types.MetricGroup
+	Metrics []types.Metric `json:"metrics"`
+}
+
 type GetMetricsRequest struct {
 	MetricId uuid.UUID `json:"metricid"`
 }

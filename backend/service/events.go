@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -52,17 +53,24 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request GetMetricEventsRequest
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
 	// Get application
-	_, err := s.DB.GetApplication(request.AppId, val)
+	_, err = s.DB.GetApplication(appid, val)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -70,7 +78,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get Metric
-	_, err = s.DB.GetMetric(request.MetricId, request.AppId)
+	_, err = s.DB.GetMetric(metricid, appid)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -78,7 +86,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get the metric events
-	metrics, err := s.DB.GetMetricEvents(request.MetricId, request.Offset)
+	metrics, err := s.DB.GetMetricEvents(metricid, offset)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -342,7 +350,6 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 	// Create the log
 	new_event := types.MetricEvent{
 		Date:  request.Date,
-		Type:  types.TIME,
 		Value: request.Value,
 	}
 

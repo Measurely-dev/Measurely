@@ -12,10 +12,6 @@ const (
 )
 
 const (
-	TIME = iota
-)
-
-const (
 	YEAR = iota
 	MONTH
 	WEEK
@@ -76,7 +72,6 @@ type MetricEvent struct {
 	Id       uuid.UUID `json:"id"`
 	MetricId uuid.UUID `json:"metricid"`
 	Date     time.Time `json:"date"`
-	Type     int       `json:"type"`
 	Value    int       `json:"value"`
 }
 

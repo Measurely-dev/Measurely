@@ -9,14 +9,22 @@ export interface Application {
 
 export interface Group{
   name: string;
-  value: number;
   metrics : Metric[];
   created: Date;
+  enabled : boolean;
+  type : number;
 }
 
 export interface Metric {
+  id : string;
   name: string;
-  value: number;
+  total: number;
+}
+
+export interface MetricEvent {
+  id: string;
+  date: Date;
+  value : number;
 }
 
 export interface User {
@@ -34,3 +42,7 @@ export interface Plan {
   metric_per_app_limit: number;
 }
 
+export enum GroupType {
+  Base,
+  Dual
+}

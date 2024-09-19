@@ -95,7 +95,7 @@ func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 }
 
 func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, date, type, value) VALUES (:metricid, :date, :type, :value)", events)
+	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, date, value) VALUES (:metricid, :date, :value)", events)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (db *DB) GetMetricCount(groupid uuid.UUID) (int, error) {
 }
 
 func (db *DB) GetMetricEvents(metricid uuid.UUID, offset int) ([]types.MetricEvent, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metricevents WHERE metricid = $1 LIMIT $2 OFFSET $3 ORDER BY date DESC", metricid, 1000, offset)
+	rows, err := db.Conn.Query(`SELECT * FROM metricevents WHERE metricid = $1 AND date::date = CURRENT_DATE - INTERVAL '1 day' * $2 ORDER BY date DESC`, metricid, offset)
 	if err != nil {
 		return []types.MetricEvent{}, err
 	}
@@ -191,7 +191,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, offset int) ([]types.MetricEve
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.Type, &event.Date, &event.Value, &event.MetricId)
+		err := rows.Scan(&event.Id, &event.Date, &event.Value, &event.MetricId)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}

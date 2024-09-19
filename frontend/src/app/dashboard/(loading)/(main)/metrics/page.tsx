@@ -50,6 +50,7 @@ export default function DashboardMetrics() {
         {
           json = []
         }
+        console.log(json)
         setApplications(applications.map((v, i) => (i === activeApp ? Object.assign({}, v, { groups: json }): v)));
       })
     }

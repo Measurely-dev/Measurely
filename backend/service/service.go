@@ -1095,21 +1095,26 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	metricsResp := MetricGroupResponse{
+		MetricGroup: group,
+	}
+
 	for _, metric := range request.Metrics {
-		_, err = s.DB.CreateMetric(types.Metric{
+		created_metric, err := s.DB.CreateMetric(types.Metric{
 			Name:    metric,
 			GroupId: group.Id,
 			Total:   request.BaseValue,
 		})
 		if err != nil {
-			log.Println("1100")
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
+
+		metricsResp.Metrics = append(metricsResp.Metrics, created_metric)
 	}
 
-	bytes, jerr := json.Marshal(group)
+	bytes, jerr := json.Marshal(metricsResp)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return
@@ -1188,7 +1193,21 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, jerr := json.Marshal(metrics)
+	metricsResp := []MetricGroupResponse{}
+
+	for _, metric := range metrics {
+		subs, err := s.DB.GetMetrics(metric.Id)
+		if err != nil && err != sql.ErrNoRows {
+			log.Println(err)
+		}
+
+		metricsResp = append(metricsResp, MetricGroupResponse{
+			MetricGroup: metric,
+			Metrics:     subs,
+		})
+	}
+
+	bytes, jerr := json.Marshal(metricsResp)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return

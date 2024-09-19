@@ -16,24 +16,24 @@ import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import Footer from "@/components/website/layout/footer/footer";
 import { AppsContext } from "@/dashContext";
+import { GroupType } from "@/types";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { use, useContext, useState } from "react";
 
 export default function NewMetric() {
   const [step, setStep] = useState(1);
   const [value, setValue] = useState<number>(0);
-  const [naming, setNaming] = useState("auto");
 
   const metricTypes = [
     {
       name: "Basic metric",
-      value: 0,
+      value: GroupType.Base,
       description:
         "Tracks a single, always-positive variable, perfect for monitoring growth, like total active users or daily logins.",
     },
     {
       name: "Dual Variable Metric",
-      value: 1,
+      value: GroupType.Dual,
       description:
         "This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.",
     },
@@ -47,10 +47,10 @@ export default function NewMetric() {
 
   const renderStep = () => {
     switch (value) {
-      case 0:
+      case GroupType.Base:
         return <BasicStep setStep={setStep} />;
-      case 1:
-        return DualStep({ setStep, naming, setNaming });
+      case GroupType.Dual:
+        return <DualStep setStep={setStep} />;
     }
   };
 
@@ -155,7 +155,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
             <div className="flex w-full flex-col gap-3">
               <Label>Metric name</Label>
               <Input
-                placeholder="users, projects, accounts"
+                placeholder="created users, deleted projects, suspended accounts"
                 type="email"
                 className="h-11 rounded-[12px]"
                 value={name}
@@ -213,7 +213,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                 body: JSON.stringify({
                   name: name,
                   basevalue: baseValue,
-                  type: 0,
+                  type: GroupType.Base,
                   appid: applications?.[activeApp].id,
                   metrics: ["default"],
                 }),
@@ -266,7 +266,18 @@ function BasicStep(props: { setStep: (props: number) => void }) {
   );
 }
 
-function DualStep(props: any) {
+function DualStep(props: { setStep: (props: number) => void }) {
+  const [name, setName] = useState("");
+  const [namePos, setNamePos] = useState("added");
+  const [nameNeg, setNameNeg] = useState("removed");
+  const [namingType, setNamingType] = useState("auto");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const {applications, setApplications, activeApp} = useContext(AppsContext)
+  const router = useRouter()
+
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
       <div className="flex flex-col gap-[5px]">
@@ -282,6 +293,8 @@ function DualStep(props: any) {
               <Input
                 placeholder="Accounts, Transfers"
                 type="email"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="h-11 rounded-[12px]"
               />
             </div>
@@ -291,7 +304,14 @@ function DualStep(props: any) {
               <Select
                 defaultValue={"auto"}
                 onValueChange={(e) => {
-                  props.setNaming(e);
+                  setNamingType(e);
+                  if (e === "manual") {
+                    setNamePos("");
+                    setNameNeg("");
+                  } else {
+                    setNamePos("added");
+                    setNameNeg("removed");
+                  }
                 }}
               >
                 <SelectTrigger className="border h-11">
@@ -305,7 +325,7 @@ function DualStep(props: any) {
                 </SelectContent>
               </Select>
             </Label>
-            {props.naming === "auto" ? (
+            {namingType === "auto" ? (
               <></>
             ) : (
               <>
@@ -316,6 +336,10 @@ function DualStep(props: any) {
                     placeholder="Account created, transfer sent"
                     type="email"
                     className="h-11 rounded-[12px]"
+                    value={namePos}
+                    onChange={(e) => {
+                      setNamePos(e.target.value);
+                    }}
                   />
                 </div>
 
@@ -325,6 +349,10 @@ function DualStep(props: any) {
                     placeholder="Account deleted, transfer kept"
                     type="email"
                     className="h-11 rounded-[12px]"
+                    value={nameNeg}
+                    onChange={(e) => {
+                      setNameNeg(e.target.value);
+                    }}
                   />
                 </div>
               </>
@@ -344,11 +372,76 @@ function DualStep(props: any) {
           <Button
             type="button"
             variant="default"
+            loading={loading}
+            disabled={
+              loading || name === "" || namePos === "" || nameNeg === ""
+            }
             className="rounded-[12px] w-full"
+            onClick={() => {
+              setLoading(true);
+              setError("");
+              if (name === "") {
+                setError("Name cannot be empty");
+                return;
+              }
+
+              fetch(process.env.NEXT_PUBLIC_API_URL + "/metric", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                  name: name,
+                  basevalue: 0,
+                  type: GroupType.Dual,
+                  appid: applications?.[activeApp].id,
+                  metrics: [namePos, nameNeg],
+                }),
+              })
+                .then((res) => {
+                  if (!res.ok) {
+                    res.text().then((text) => {
+                      setError(text);
+                    });
+                  } else {
+                    return res.json();
+                  }
+                })
+                .then((json) => {
+                  if (
+                    json === null ||
+                    applications?.[activeApp].groups === null ||
+                    applications === null
+                  ) {
+                    return;
+                  }
+
+                  setApplications(
+                    applications?.map((v, i) =>
+                      i === activeApp
+                        ? Object.assign({}, v, {
+                            groups: [
+                              ...(applications[activeApp].groups ?? []),
+                              json,
+                            ],
+                          })
+                        : v
+                    )
+                  );
+
+                  router.push("/dashboard/metrics");
+                })
+                .finally(() => {
+                  setLoading(false);
+                });
+            }}
           >
             Create
           </Button>
         </div>
+
+        {error && <div className="text-red-500">{error}</div>}
       </div>
     </div>
   );
