@@ -52,7 +52,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
             className="px-3 rounded-[12px]"
           >
             <span className="sr-only">View</span>
-            {view? (
+            {view ? (
               <EyeClosedIcon className="h-4 w-4" />
             ) : (
               <Eye className="h-4 w-4" />

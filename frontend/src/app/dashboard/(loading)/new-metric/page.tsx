@@ -155,7 +155,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
             <div className="flex w-full flex-col gap-3">
               <Label>Metric name</Label>
               <Input
-                placeholder="created users, deleted projects, suspended accounts"
+                placeholder="New users, Deleted projects, Suspended accounts"
                 type="email"
                 className="h-11 rounded-[12px]"
                 value={name}

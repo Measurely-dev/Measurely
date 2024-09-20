@@ -4,6 +4,20 @@ import { AppsContext } from "@/dashContext";
 import { Group, GroupType, MetricEvent } from "@/types";
 import { useContext, useEffect, useState } from "react";
 import { Box, MoreHorizontal } from "react-feather";
+import { formatDistanceToNow } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+
+const formattedDate = (dateString: any) => {
+  try {
+    // Convert the date to a specific timezone (e.g., UTC)
+    const utcDate = new Date(dateString);
+    const zonedDate = toZonedTime(utcDate, 'UTC'); // Change 'UTC' to any specific timezone if needed
+    return formatDistanceToNow(zonedDate, { addSuffix: true });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid Date'; // Fallback if date formatting fails
+  }
+};
 
 export default function MetricTable() {
   const { applications, activeApp } = useContext(AppsContext);
@@ -14,9 +28,12 @@ export default function MetricTable() {
       <Header />
       <div className="flex flex-col gap-2">
         {/* Items components */}
-        {applications?.[activeApp].groups?.map((group, i) => {
-          return <Item key={i} group={group} index={i} />;
-        })}
+        {applications?.[activeApp].groups
+          ?.slice() // Create a shallow copy to avoid mutating the original array
+          .reverse() // Reverse the array to show higher index first
+          .map((group, i) => {
+            return <Item key={i} group={group} index={i} />;
+          })}
       </div>
     </div>
   );
@@ -142,9 +159,7 @@ const Item = (props: { group: Group; index: number }) => {
         </Badge>
       </div>
       <div className="flex items-center text-sm text-secondary justify-end font-light">
-        {new Date(props.group.created).getFullYear()} /{" "}
-        {new Date(props.group.created).getMonth()} /{" "}
-        {new Date(props.group.created).getDay()}
+      {formattedDate(props.group.created)}
       </div>
       <div className="h-full flex justify-end items-center w-full">
         <Button
