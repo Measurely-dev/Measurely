@@ -29,8 +29,8 @@ export default function MetricTable() {
       <div className="flex flex-col gap-2">
         {/* Items components */}
         {applications?.[activeApp].groups
-          ?.slice() // Create a shallow copy to avoid mutating the original array
-          .reverse() // Reverse the array to show higher index first
+          ?.slice()
+          .reverse()
           .map((group, i) => {
             return <Item key={i} group={group} index={i} />;
           })}
