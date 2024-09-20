@@ -11,6 +11,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeClosedIcon } from "@radix-ui/react-icons";
@@ -23,7 +34,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="shadow-sm">
+      <DialogContent className="shadow-sm !rounded-3xl">
         <DialogHeader>
           <DialogTitle>API KEY</DialogTitle>
           <DialogDescription>
@@ -60,13 +71,6 @@ export default function ApiDialog(props: { children: ReactNode }) {
           </Button>
         </div>
         <DialogFooter>
-          <Button
-            type="button"
-            className="rounded-[16px] w-full"
-            variant="default"
-          >
-            Randomize key
-          </Button>
           <DialogClose asChild>
             <Button
               type="button"
@@ -76,7 +80,35 @@ export default function ApiDialog(props: { children: ReactNode }) {
               Close
             </Button>
           </DialogClose>
-        </DialogFooter>{" "}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                className="rounded-[16px] w-full"
+                variant="destructiveOutline"
+              >
+                Randomize key
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="!rounded-3xl border border-red-500 bg-red-500/30 backdrop-blur-3xl py-8">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-red-200">Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription className="text-red-300">
+                  This action cannot be undone. This will permanently delete
+                  your current API KEY.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="rounded-[14px] bg-white">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction className="border rounded-[14px] border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20">
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
