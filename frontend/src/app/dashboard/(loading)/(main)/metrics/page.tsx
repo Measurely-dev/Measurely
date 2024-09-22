@@ -23,12 +23,14 @@ import { ArchiveIcon } from "@radix-ui/react-icons";
 import { Plus, Search } from "react-feather";
 import MetricTable from "./metricTable";
 import Link from "next/link";
-import { useContext, useEffect } from "react";
+import { Dispatch, SetStateAction, useContext, useEffect, useState } from "react";
 import { AppsContext } from "@/dashContext";
 
 export default function DashboardMetrics() {
   const { applications,setApplications, activeApp } = useContext(AppsContext);
 
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("new")
 
   useEffect(() => {
     if (applications?.[activeApp].groups === null) {
@@ -76,8 +78,8 @@ export default function DashboardMetrics() {
         ) : (
           <div className="flex w-full flex-col gap-[10px]">
             <div className="flex w-full flex-row gap-[10px]">
-              <SearchComponent />
-              <FiltersComponent />
+              <SearchComponent search={search} setSearch={setSearch}/>
+              <FiltersComponent filter={filter} setFilter={setFilter}/>
               <Link href={"/dashboard/new-metric"}>
                 <Button className="h-full gap-[8px] rounded-[12px]">
                   <Plus className="size-[16px]" />
@@ -94,7 +96,7 @@ export default function DashboardMetrics() {
                 </div>
               </Empty>
             ) : (
-              <MetricTable />
+              <MetricTable search={search} filter={filter}/>
             )}
           </div>
         )}
@@ -103,30 +105,35 @@ export default function DashboardMetrics() {
   );
 }
 
-function FiltersComponent() {
+function FiltersComponent(props : {filter : string, setFilter : Dispatch<SetStateAction<string>>}) {
   return (
-    <Select>
+    <Select value={props.filter} onValueChange={props.setFilter}>
       <SelectTrigger className="w-[220px] min-w-[220px] bg-accent">
-        <SelectValue placeholder="Select filter(s)" />
+        <SelectValue placeholder="Select filter" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectItem value="all">All filters</SelectItem>
-          <SelectItem value="high">Date created</SelectItem>
-          <SelectItem value="medium">Type</SelectItem>
+          <SelectItem value="new">Newest to oldest</SelectItem>
+          <SelectItem value="old">Oldest to newest</SelectItem>
+          <SelectItem value="total">Total value</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
   );
 }
 
-function SearchComponent() {
+function SearchComponent(props : {
+  search : string,
+  setSearch : Dispatch<SetStateAction<string>>
+}) {
   return (
     <div className="flex w-full flex-row items-center gap-[0px] rounded-[12px] bg-accent pl-[12px]">
       <Search className="size-[18px] text-secondary" />
       <Input
         className="px-0!ring-0 h-[40px] w-full rounded-none border-none bg-transparent"
         placeholder="Search metric..."
+        value={props.search}
+        onChange={(e) => props.setSearch(e.target.value)}
       />
     </div>
   );
