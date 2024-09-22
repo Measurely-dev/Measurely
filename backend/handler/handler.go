@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"Measurely/file"
 	"Measurely/service"
 
 	"github.com/go-chi/chi/v5"
@@ -12,7 +13,7 @@ import (
 )
 
 type Handler struct {
-	router  chi.Router
+	router  *chi.Mux
 	service *service.Service
 }
 
@@ -29,6 +30,7 @@ func (h *Handler) Start(port string) error {
 	h.router.Use(middleware.Recoverer)
 
 	h.setup_api()
+	file.SetupFileServer(h.router)
 
 	go h.service.ProcessMetricEvents()
 	go h.service.ProcessEmails()
@@ -83,6 +85,7 @@ func (h *Handler) setup_api() {
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)
 			cr.Get("/metric-groups", h.service.GetMetricGroups)
+			cr.Patch("/rand-apikey", h.service.RandomizeApiKey)
 			cr.Get("/events", h.service.GetMetricEvents)
 			cr.Get("/connect", h.service.HandleWebSocket)
 

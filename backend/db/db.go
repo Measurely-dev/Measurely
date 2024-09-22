@@ -299,6 +299,14 @@ func (db *DB) CreateApplication(app types.Application) (types.Application, error
 	return new_app, nil
 }
 
+func (db *DB) UpdateApplicationApiKey(id uuid.UUID, apikey string) error {
+	_, err := db.Conn.Exec("UPDATE applications SET apikey = $1 WHERE id = $2", apikey, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DB) DeleteApplication(id uuid.UUID, userid uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM applications WHERE id = $1 AND userid = $2", id, userid)
 	if err != nil {

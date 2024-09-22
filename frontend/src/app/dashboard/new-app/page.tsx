@@ -1,5 +1,6 @@
 "use client";
 
+import ErrorMsg from "@/components/dashboard/components/error";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,7 +142,7 @@ export default function NewApp() {
             </Button>
             {/* </Link> */}
 
-            {error && <div className="text-red-500">{error}</div>}
+          <ErrorMsg error={error}/>
           </div>
         </ContentContainer>
       </WebContainer>

@@ -22,14 +22,27 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeClosedIcon } from "@radix-ui/react-icons";
-import { ReactNode, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 import { Eye } from "react-feather";
+import { AppsContext } from "@/dashContext";
+import ErrorMsg from "./error";
 
 export default function ApiDialog(props: { children: ReactNode }) {
   const [view, setView] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string>("");
+
+  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  useEffect(() => {
+    if (applications !== null) {
+      if (applications[activeApp].apikey !== null) {
+        setApiKey(applications[activeApp].apikey);
+      }
+    }
+  }, []);
 
   return (
     <Dialog>
@@ -46,16 +59,26 @@ export default function ApiDialog(props: { children: ReactNode }) {
             <Label htmlFor="link" className="sr-only">
               Link
             </Label>
-            <Input
+            <Button
               id="link"
-              className={`rounded-[12px] ${view ? "" : "text-secondary"}`}
-              value={
-                view
-                  ? "AIzaSyDaGmWKa4JsXZ-HjGw7ISLn_3namBGewQe"
-                  : "HIDDEN PRIVATE API KEY"
-              }
-              readOnly
-            />
+              className={`rounded-[12px]  ${view ? "" : "text-secondary"}`}
+              variant={"outline"}
+              onClick={() => {
+                if (apiKey !== null) {
+                  navigator.clipboard.writeText(apiKey);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1000);
+                }
+              }}
+            >
+              {copied
+                ? "Copied!"
+                : apiKey !== null
+                ? view
+                  ? apiKey
+                  : "Click to copy"
+                : "LOADING..."}
+            </Button>
           </div>
           <Button
             onClick={() => setView(!view)}
@@ -92,7 +115,9 @@ export default function ApiDialog(props: { children: ReactNode }) {
             </AlertDialogTrigger>
             <AlertDialogContent className="!rounded-3xl border border-red-500 bg-red-500/30 backdrop-blur-3xl py-8">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-red-200">Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitle className="text-red-200">
+                  Are you absolutely sure?
+                </AlertDialogTitle>
                 <AlertDialogDescription className="text-red-300">
                   This action cannot be undone. This will permanently delete
                   your current API KEY.
@@ -102,13 +127,54 @@ export default function ApiDialog(props: { children: ReactNode }) {
                 <AlertDialogCancel className="rounded-[14px] bg-white">
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction className="border rounded-[14px] border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20">
+                <AlertDialogAction
+                  className="border rounded-[14px] border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                  onClick={() => {
+                    setApiKey(null);
+                    setError("");
+                    fetch(process.env.NEXT_PUBLIC_API_URL + "/rand-apikey", {
+                      method: "PATCH",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        appid: applications?.[activeApp].id,
+                      }),
+                      credentials: "include",
+                    })
+                      .then((res) => {
+                        if (res.ok === true) {
+                          return res.text();
+                        } else {
+                          setError(
+                            "Failed to generate a new API KEY. Try again later."
+                          );
+                        }
+                      })
+                      .then((data) => {
+                        if (data !== null && applications !== null) {
+                          setApiKey(data as string);
+
+                          setApplications(
+                            applications?.map((v, i) =>
+                              i === activeApp
+                                ? Object.assign({}, v, {
+                                    apiKey: data,
+                                  })
+                                : v
+                            )
+                          );
+                        }
+                      });
+                  }}
+                >
                   Continue
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </DialogFooter>
+        <ErrorMsg error={error} />
       </DialogContent>
     </Dialog>
   );

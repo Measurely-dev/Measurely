@@ -1,4 +1,5 @@
 "use client";
+import ErrorMsg from "@/components/dashboard/components/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -260,7 +261,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
           </Button>
         </div>
 
-        {error && <div className="text-red-500">{error}</div>}
+        <ErrorMsg error={error} />
       </div>
     </div>
   );
@@ -275,8 +276,8 @@ function DualStep(props: { setStep: (props: number) => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const {applications, setApplications, activeApp} = useContext(AppsContext)
-  const router = useRouter()
+  const { applications, setApplications, activeApp } = useContext(AppsContext);
+  const router = useRouter();
 
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
@@ -441,7 +442,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
           </Button>
         </div>
 
-        {error && <div className="text-red-500">{error}</div>}
+      <ErrorMsg error={error}/>
       </div>
     </div>
   );

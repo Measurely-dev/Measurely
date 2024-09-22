@@ -70,8 +70,12 @@ type UpdateApplicationImageRequest struct {
 	Image string    `json:"image"`
 }
 
+type RandomizeApiKeyRequest struct {
+	AppId uuid.UUID `json:"appid"`
+}
+
 type DeleteApplicationRequest struct {
-	ApplicationId uuid.UUID `json:"applicationid"`
+	AppId uuid.UUID `json:"appid"`
 }
 
 type CreateMetricEventRequest struct {

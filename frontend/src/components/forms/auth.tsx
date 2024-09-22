@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useRouter } from "next/navigation";
 import { propagateServerField } from "next/dist/server/lib/render-server";
+import ErrorMsg from "../dashboard/components/error";
 
 export default function AuthForm(props: {
   title: string;
@@ -151,11 +152,7 @@ export default function AuthForm(props: {
             <></>
           )}
 
-          {props.error !== undefined ? (
-            <div className="text-sm text-secondary">{props.error}</div>
-          ) : (
-            <></>
-          )}
+         <ErrorMsg error={props.error ?? ""} /> 
         </div>
         {props.policies ? (
           <div className="mt-5 flex flex-col items-center justify-center gap-2 text-center">

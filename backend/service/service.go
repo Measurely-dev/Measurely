@@ -936,6 +936,66 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request RandomizeApiKeyRequest
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the application
+	_, gerr := s.DB.GetApplication(request.AppId, val)
+	if gerr != nil {
+		log.Println(gerr)
+		http.Error(w, "Application does not exist.", http.StatusNotFound)
+		return
+	}
+
+	tries := 5
+	var api_key string = ""
+	var aerr error
+	for {
+		if tries <= 0 {
+			break
+		}
+		tries -= 1
+		api_key, aerr = GenerateRandomKey()
+		if aerr != nil {
+			continue
+		}
+
+		_, aerr = s.DB.GetApplicationByApi(api_key)
+		if aerr != nil {
+			break
+		}
+	}
+
+	if api_key == "" {
+		http.Error(w, "Internal error, please try again later", http.StatusRequestTimeout)
+		return
+	}
+
+	//Update the app's api key
+	err := s.DB.UpdateApplicationApiKey(request.AppId, api_key)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(api_key))
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
@@ -952,21 +1012,8 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
-	app, err := s.DB.GetApplication(request.ApplicationId, val)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	if app.UserId != val {
-		http.Error(w, "You don't have access to this application", http.StatusForbidden)
-		return
-	}
-
 	// Delete the application
-	err = s.DB.DeleteApplication(app.Id, val)
+	err := s.DB.DeleteApplication(request.AppId, val)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1048,7 +1095,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get the application
 	_, err := s.DB.GetApplication(request.AppId, val)
 	if err != nil {
-		log.Println(1049)
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1057,7 +1103,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get Metric Count
 	count, err := s.DB.GetMetricGroupCount(request.AppId)
 	if err != nil {
-		log.Println(1058)
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1066,7 +1111,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get the user
 	user, err := s.DB.GetUserById(val)
 	if err != nil {
-		log.Println(1065)
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1089,7 +1133,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Println("1087")
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
