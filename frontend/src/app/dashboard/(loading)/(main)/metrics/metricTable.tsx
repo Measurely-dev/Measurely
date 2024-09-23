@@ -6,6 +6,7 @@ import { useContext, useEffect, useState } from "react";
 import { Box, MoreHorizontal } from "react-feather";
 import { formatDistanceToNow } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
+import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 
 const formattedDate = (dateString: any) => {
   try {
@@ -23,7 +24,7 @@ function sortbyDate(a: Group, b: Group, order: string): number {
   if (a.created < b.created) {
     return order === "new" ? 1 : -1;
   } else if (a.created > b.created) {
-    return  order === "new" ? -1 : 1;
+    return order === "new" ? -1 : 1;
   } else {
     return 0;
   }
@@ -206,13 +207,15 @@ const Item = (props: { group: Group; index: number }) => {
         {formattedDate(props.group.created)}
       </div>
       <div className="h-full flex justify-end items-center w-full">
-        <Button
-          className="rounded-[12px] !bg-transparent"
-          variant={"secondary"}
-          size={"icon"}
-        >
-          <MoreHorizontal />
-        </Button>
+        <MetricDropdown>
+          <Button
+            className="rounded-[12px] !bg-transparent"
+            variant={"secondary"}
+            size={"icon"}
+          >
+            <MoreHorizontal />
+          </Button>
+        </MetricDropdown>
       </div>
     </div>
   );
