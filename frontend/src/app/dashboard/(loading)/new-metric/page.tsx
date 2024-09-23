@@ -19,7 +19,7 @@ import Footer from "@/components/website/layout/footer/footer";
 import { AppsContext } from "@/dashContext";
 import { GroupType } from "@/types";
 import { useRouter } from "next/navigation";
-import { use, useContext, useState } from "react";
+import { useContext, useState } from "react";
 
 export default function NewMetric() {
   const [step, setStep] = useState(1);
