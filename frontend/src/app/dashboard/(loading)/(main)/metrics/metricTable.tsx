@@ -7,6 +7,7 @@ import { Box, MoreHorizontal } from "react-feather";
 import { formatDistanceToNow } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import MetricDropdown from "@/components/dashboard/components/metricDropdown";
+import { Filter, Search } from "lucide-react";
 
 const formattedDate = (dateString: any) => {
   try {
@@ -57,6 +58,25 @@ function sortByTotal(a: Group, b: Group): number {
 
 export default function MetricTable(props: { search: string; filter: string }) {
   const { applications, activeApp } = useContext(AppsContext);
+  const [groups, setGroups] = useState<Group[]>([]);
+
+  useEffect(() => {
+    setGroups(
+      applications?.[activeApp].groups
+        ?.sort((a, b) => {
+          if (props.filter === "new" || props.filter === "old") {
+            return sortbyDate(a, b, props.filter);
+          } else if (props.filter === "total") {
+            return sortByTotal(a, b);
+          } else {
+            return 0;
+          }
+        })
+        .filter((group) =>
+          group.name.toLowerCase().includes(props.search.toLowerCase())
+        ) ?? []
+    );
+  }, [activeApp, props.filter, props.search]);
 
   return (
     <div className="flex flex-col gap-[15px]">
@@ -64,21 +84,15 @@ export default function MetricTable(props: { search: string; filter: string }) {
       <Header />
       <div className="flex flex-col gap-2">
         {/* Items components */}
-        {applications?.[activeApp].groups
-          ?.sort((a, b) => {
-            if (props.filter === "new" || props.filter === "old") {
-              return sortbyDate(a, b, props.filter);
-            } else if (props.filter === "total") {
-              return sortByTotal(a, b);
-            } else {
-              return 0;
-            }
-          })
-          .map((group, i) => {
-            if (group.name.toLowerCase().includes(props.search.toLowerCase())) {
+        {groups.length === 0 ? (
+          <div className="text-center text-secondary">No metrics found</div>
+        ) : (
+          <>
+            {groups.map((group, i) => {
               return <Item key={group.metrics[0].id} group={group} index={i} />;
-            }
-          })}
+            })}
+          </>
+        )}
       </div>
     </div>
   );

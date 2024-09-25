@@ -42,10 +42,10 @@ export default function ApiDialog(props: { children: ReactNode }) {
         setApiKey(applications[activeApp].apikey);
       }
     }
-  }, []);
+  }, [activeApp]);
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={() => setView(false)}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="shadow-sm !rounded-3xl">
         <DialogHeader>

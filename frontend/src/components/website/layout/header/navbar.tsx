@@ -8,7 +8,7 @@ export default function Navbar(props: {
 }) {
   const links: any = [
     {
-      name: 'Documentations',
+      name: 'Documentation',
       href: '/Docs',
     },
     {
