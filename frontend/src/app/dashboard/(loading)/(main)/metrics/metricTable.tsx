@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { AppsContext } from "@/dashContext";
 import { Group, GroupType, MetricEvent } from "@/types";
 import { useContext, useEffect, useState } from "react";
-import { Box, MoreHorizontal } from "react-feather";
+import { AlertCircle, Box, MoreHorizontal, Trash } from "react-feather";
 import { formatDistanceToNow } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import { Filter, Search } from "lucide-react";
+import Empty from "@/components/dashboard/components/empty";
 
 const formattedDate = (dateString: any) => {
   try {
@@ -85,7 +86,12 @@ export default function MetricTable(props: { search: string; filter: string }) {
       <div className="flex flex-col gap-2">
         {/* Items components */}
         {groups.length === 0 ? (
-          <div className="text-center text-secondary">No metrics found</div>
+          <Empty>
+            <AlertCircle className="size-10" />
+            <div className="flex flex-col items-center gap-3 text-center">
+              No metric found with that name
+            </div>
+          </Empty>
         ) : (
           <>
             {groups.map((group, i) => {
