@@ -81,12 +81,12 @@ function EditDialogContent() {
     <DialogContent className="shadow-sm rounded-sm">
       <DialogHeader>
         <DialogTitle>Edit metric</DialogTitle>
-        <DialogDescription>
-          You can edit your metric right here!
+        <DialogDescription className="mt-1 text-[16px] text-blue-500">
+          <span className="text-[20px] text-blue-500 font-semibold mr-1">#</span>127371263321
         </DialogDescription>
       </DialogHeader>
       <div className="flex w-full flex-col gap-3">
-        <div className="flex flex-col gap-4 my-2">
+        <div className="flex flex-col gap-4">
           <div className="flex w-full flex-col gap-3">
             <Label>Metric name</Label>
             <Input
