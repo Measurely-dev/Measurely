@@ -50,7 +50,7 @@ export default function Card1(props: { className?: string }) {
             className="text-xs placeholder:text-xs"
           />
         </div>
-        <Button className="w-full" variant={"destructiveOutline"} size="sm">
+        <Button className="w-full bg-red-500/20 text-red-500 hover:bg-red-500/30 hover:text-red-500" variant={"destructiveOutline"} size="sm">
           Create milestone
         </Button>
       </CardContent>
