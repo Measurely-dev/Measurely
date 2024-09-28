@@ -64,7 +64,7 @@ export default function MetricDropdown(props: { children: any }) {
               <AlertDialogCancel className="rounded-[8px] bg-white">
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction className="border rounded-[8px] border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20">
+              <AlertDialogAction className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -47,21 +47,23 @@ export default function ApiDialog(props: { children: ReactNode }) {
   return (
     <Dialog onOpenChange={() => setView(false)}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="shadow-sm !rounded-3xl">
+      <DialogContent className="shadow-sm">
         <DialogHeader>
           <DialogTitle>API KEY</DialogTitle>
           <DialogDescription>
             Anyone who has this link will be able to use it.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
           <div className="grid flex-1 gap-2">
             <Label htmlFor="link" className="sr-only">
               Link
             </Label>
             <Button
               id="link"
-              className={`rounded-[12px]  ${view ? "" : "text-secondary"}`}
+              className={`rounded-[8px] rounded-r-none border-r-0  ${
+                view ? "" : "text-secondary"
+              }`}
               variant={"outline"}
               onClick={() => {
                 if (apiKey !== null) {
@@ -83,7 +85,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
           <Button
             onClick={() => setView(!view)}
             size="sm"
-            className="px-3 rounded-[12px]"
+            className="px-3 rounded-[8px] border-l-0 rounded-l-none h-full"
           >
             <span className="sr-only">View</span>
             {view ? (
@@ -97,7 +99,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
           <DialogClose asChild>
             <Button
               type="button"
-              className="rounded-[16px] w-full"
+              className="rounded-[12px] w-full"
               variant="secondary"
             >
               Close
@@ -107,13 +109,13 @@ export default function ApiDialog(props: { children: ReactNode }) {
             <AlertDialogTrigger asChild>
               <Button
                 type="button"
-                className="rounded-[16px] w-full"
+                className="rounded-[12px] w-full"
                 variant="destructiveOutline"
               >
                 Randomize key
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="!rounded-3xl border border-red-500 bg-red-500/30 backdrop-blur-3xl py-8">
+            <AlertDialogContent className="border border-red-500 bg-red-500/30 backdrop-blur-3xl py-8">
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-red-200">
                   Are you absolutely sure?
@@ -128,7 +130,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
                   Cancel
                 </AlertDialogCancel>
                 <AlertDialogAction
-                  className="border rounded-[14px] border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                  className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90"
                   onClick={() => {
                     setApiKey(null);
                     setError("");
