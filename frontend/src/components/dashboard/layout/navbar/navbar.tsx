@@ -17,6 +17,7 @@ import {
 import { usePathname } from "next/navigation";
 import NavbarItemChip from "./navbarItemChip";
 import { Separator } from "@/components/ui/separator";
+import { HomeIcon } from "lucide-react";
 
 export default function DashboardNavbar() {
   const pathname = usePathname();
@@ -24,7 +25,7 @@ export default function DashboardNavbar() {
     {
       name: "Overview",
       href: "/dashboard/",
-      svg: <BarChart className="size-5" />,
+      svg: <HomeIcon className="size-5" />,
     },
     {
       name: "Metrics",
