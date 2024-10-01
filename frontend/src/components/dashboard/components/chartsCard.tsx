@@ -33,7 +33,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useState } from "react";
-import { CubeIcon } from "@radix-ui/react-icons";
 import { Box } from "react-feather";
 
 export const description = "A simple area chart";
@@ -79,7 +78,7 @@ const chartConfig = {
 
 export function ChartsCard() {
   return (
-    <Card className="border-t-0 rounded-t-none">
+    <Card className="border-t-0 rounded-t-none border-accent">
       {Header()}
       <CardContent className="flex flex-row gap-5">
         {/* Chart 1 */}
