@@ -1,4 +1,5 @@
 "use client";
+import { ChartsCard } from "@/components/dashboard/components/chartsCard";
 import MetricStats from "@/components/dashboard/components/metricStats";
 import ProfileCard from "@/components/dashboard/components/profileCard";
 import DashboardContentContainer from "@/components/dashboard/container/container";
@@ -68,6 +69,8 @@ export default function DashboardHomePage() {
           }
         ]}
       />
+      {/* Charts card (2 charts) */}
+      <ChartsCard />
     </DashboardContentContainer>
   );
 }

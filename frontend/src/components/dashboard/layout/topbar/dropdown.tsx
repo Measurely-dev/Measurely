@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserContext } from "@/dashContext";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useContext } from "react";
 import { ArrowUpRight } from "react-feather";
@@ -34,7 +35,16 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
             {Capitalize(user?.lastname ?? "")}
           </DropdownMenuLabel>
           <DropdownMenuLabel className="py-0 text-xs font-normal text-secondary">
-            {user?.email}
+            {user?.email === "" ? (
+              <Link
+                href="/dashboard/settings"
+                className="cursor hover:text-blue-500"
+              >
+                Add your email in the settings
+              </Link>
+            ) : (
+              user?.email
+            )}
           </DropdownMenuLabel>
         </div>
         <DropdownMenuSeparator />
@@ -62,17 +72,20 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <button className="w-full" onClick={() => {
-          fetch (process.env.NEXT_PUBLIC_API_URL + "/logout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }).then(() => {
-            router.push("/sign-in");
-          })
-        }}>
+        <button
+          className="w-full"
+          onClick={() => {
+            fetch(process.env.NEXT_PUBLIC_API_URL + "/logout", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            }).then(() => {
+              router.push("/sign-in");
+            });
+          }}
+        >
           <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
             Log out
             {/* Dropdown menu shortcut */}
