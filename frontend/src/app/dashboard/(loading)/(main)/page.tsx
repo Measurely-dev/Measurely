@@ -34,43 +34,38 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <ProfileCard
+      {/* <ProfileCard
         className="mt-5"
         email={user?.email ?? "exemple@domain.com"}
         firstName={Capitalize(user?.firstname ?? "Unknown")}
         lastName={Capitalize(user?.lastname ?? "")}
         image={user?.image ?? ""}
         profileType="Owner"
-      />
+      /> */}
       {/* Project stats */}
       <MetricStats
         className="mt-5"
         stats={[
           {
-            title: "Unresolved tickets",
-            description: "Across this projects",
-            value: "+3",
+            title: "Number of metric",
+            description: "Across this application",
+            value: "+25",
           },
           {
-            title: "Unread message",
-            description: "Since your last login",
-            value: "+23",
+            title: "Number of dual metric",
+            description: "Across this application",
+            value: "+13",
           },
           {
-            title: "Invoice reccurence",
-            description: "Current",
-            value: "monthly",
+            title: "Number of basic metric",
+            description: "Across this application",
+            value: "+12",
           },
           {
-            title: "Invoice payload",
+            title: "Metric payload",
             description: "this month",
             value: "-42",
-          },
-          {
-            title: "Invoice profit",
-            description: "profit this month in CAD",
-            value: "$73922",
-          },
+          }
         ]}
       />
     </DashboardContentContainer>
