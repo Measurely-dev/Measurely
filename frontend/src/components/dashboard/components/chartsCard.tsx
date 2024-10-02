@@ -214,6 +214,7 @@ function metricsDropdown() {
                 <CommandItem
                   key={metric.value}
                   value={metric.value}
+                  className="rounded-[10px]"
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? "new-accounts" : currentValue);
                     setOpen(false);
