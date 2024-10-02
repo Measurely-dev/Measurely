@@ -85,7 +85,8 @@ export default function ApiDialog(props: { children: ReactNode }) {
           <Button
             onClick={() => setView(!view)}
             size="sm"
-            className="px-3 rounded-[8px] border-l-0 rounded-l-none h-full"
+            variant={"secondary"}
+            className="px-3 rounded-[8px] border-l-0 rounded-l-none h-full border"
           >
             <span className="sr-only">View</span>
             {view ? (
@@ -126,7 +127,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="rounded-[14px] bg-white">
+                <AlertDialogCancel className="rounded-[8px] bg-white">
                   Cancel
                 </AlertDialogCancel>
                 <AlertDialogAction

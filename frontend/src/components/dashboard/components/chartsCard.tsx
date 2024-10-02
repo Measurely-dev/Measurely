@@ -78,7 +78,7 @@ const chartConfig = {
 
 export function ChartsCard() {
   return (
-    <Card className="border-t-0 rounded-t-none border-accent">
+    <Card className="border-t-0 rounded-t-none border-input">
       {Header()}
       <CardContent className="flex flex-row gap-5">
         {/* Chart 1 */}
@@ -215,7 +215,7 @@ function metricsDropdown() {
                   key={metric.value}
                   value={metric.value}
                   onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
+                    setValue(currentValue === value ? "new-accounts" : currentValue);
                     setOpen(false);
                   }}
                 >
