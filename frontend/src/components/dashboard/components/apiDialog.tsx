@@ -47,7 +47,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
   return (
     <Dialog onOpenChange={() => setView(false)}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="shadow-sm">
+      <DialogContent className="shadow-none border border-input !rounded-lg">
         <DialogHeader>
           <DialogTitle>API KEY</DialogTitle>
           <DialogDescription>

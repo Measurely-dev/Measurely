@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import WebChip from "@/components/website/components/chip";
+import { User, Users } from "lucide-react";
 export default function TeamPage() {
   return (
     <DashboardContentContainer className="w-full flex pb-[15px]  mt-0 h-[calc(100vh-15px-50px)] pt-[15px]">
@@ -27,7 +28,9 @@ export default function TeamPage() {
       </Breadcrumb>
       <div className="h-fit mt-24 w-fit mx-auto flex flex-col justify-center items-center gap-4">
         <WebChip color="default">Coming soon</WebChip>
-        <div className="w-[100%] aspect-[16/7] border rounded-xl mb-4"></div>
+        <div className="w-[100%] aspect-[16/7] border rounded-xl mb-4 flex justify-center items-center">
+          <Users className="size-[50%] p-0 text-black"/>
+        </div>
         <div className="flex flex-col gap-3 text-center">
           <div className="font-semibold text-lg">Team</div>
           <div className="text-sm text-secondary">

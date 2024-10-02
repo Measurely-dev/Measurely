@@ -79,11 +79,12 @@ export default function MetricDropdown(props: { children: any }) {
 function EditDialogContent() {
   return (
     <DialogContent className="shadow-sm rounded-sm">
-      <DialogHeader>
+      <DialogHeader className="static">
         <DialogTitle>Edit metric</DialogTitle>
-        <DialogDescription className="mt-1 text-[16px] text-blue-500">
-          <span className="text-[20px] text-blue-500 font-semibold mr-1">#</span>127371263321
-        </DialogDescription>
+        <div className="flex absolute -top-1.5 right-5 bg-input p-1 rounded-b-lg px-3 font-semibold font-mono">
+          #1635327
+        </div>
+        <DialogDescription className="mt-1 text-[16px] text-blue-500"></DialogDescription>
       </DialogHeader>
       <div className="flex w-full flex-col gap-3">
         <div className="flex flex-col gap-4">
