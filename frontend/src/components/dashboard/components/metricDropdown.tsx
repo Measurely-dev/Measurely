@@ -1,4 +1,5 @@
 // External and components
+import MetricInformations from "@/app/dashboard/(loading)/(main)/metrics/metricInfo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,10 +31,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function MetricDropdown(props: { children: any }) {
+export default function MetricDropdown(props: {
+  children: any;
+  metric: any;
+  total: any;
+}) {
   return (
     <>
-      {" "}
       <Dialog>
         <AlertDialog>
           <DropdownMenu>
@@ -42,7 +46,22 @@ export default function MetricDropdown(props: { children: any }) {
               <DialogTrigger asChild>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </DialogTrigger>
-              <DropdownMenuSeparator />
+
+              {props.metric.type === 1 ? (
+                <>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem>Copy positive ID</DropdownMenuItem>
+                  <DropdownMenuItem>Copy negative ID</DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem>Copy ID</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="bg-red-500/0 hover:!bg-red-500/20 transition-all !text-red-500">
                   Delete
@@ -70,21 +89,20 @@ export default function MetricDropdown(props: { children: any }) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <EditDialogContent />
+        <EditDialogContent metric={props.metric} total={props.total} />
       </Dialog>
     </>
   );
 }
 
-function EditDialogContent() {
+function EditDialogContent(props: { metric: any; total: any }) {
   return (
     <DialogContent className="shadow-sm rounded-sm">
       <DialogHeader className="static">
         <DialogTitle>Edit metric</DialogTitle>
-        <div className="flex absolute -top-1.5 right-5 bg-input p-1 rounded-b-lg px-3 font-semibold font-mono cursor-pointer hover:text-blue-500 transition-all duration-200">
+        {/* <div className="flex absolute -top-1.5 right-5 bg-input p-1 rounded-b-lg px-3 font-semibold font-mono cursor-pointer hover:text-blue-500 transition-all duration-200">
           Copy #ID
-        </div>
-        <DialogDescription className="mt-1 text-[16px] text-blue-500"></DialogDescription>
+        </div> */}
       </DialogHeader>
       <div className="flex w-full flex-col gap-3">
         <div className="flex flex-col gap-4">
@@ -94,22 +112,47 @@ function EditDialogContent() {
               placeholder="New users, Deleted projects, Suspended accounts"
               type="email"
               className="h-11 rounded-[12px]"
+              value={props.metric.name}
             />
           </div>
-          <div className="flex w-full flex-col gap-3">
-            <Label>Base value</Label>
-            <div className="flex flex-col gap-1">
-              <Input
-                placeholder="Optional"
-                type="number"
-                className="h-11 rounded-[12px]"
-              />
-              <Label className="text-xs font-normal text-secondary leading-tight">
-                Base value stands for the value of the metric before using
-                measurely to measure the metric
-              </Label>
+          {props.metric.type !== 0 ? (
+            <>
+              <div className="flex w-full flex-col gap-3">
+                <Label>Positive value name</Label>
+                <Input
+                  placeholder="New users, Deleted projects, Suspended accounts"
+                  type="email"
+                  className="h-11 rounded-[12px]"
+                  value="Account created"
+                />
+              </div>
+              <div className="flex w-full flex-col gap-3">
+                <Label>Negative value name</Label>
+                <Input
+                  placeholder="New users, Deleted projects, Suspended accounts"
+                  type="email"
+                  className="h-11 rounded-[12px]"
+                  value="Users deleted"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex w-full flex-col gap-3">
+              <Label>Base value</Label>
+              <div className="flex flex-col gap-1">
+                <Input
+                  placeholder="Optional"
+                  type="number"
+                  className="h-11 rounded-[12px]"
+                  value={props.total}
+                />
+                <Label className="text-xs font-normal text-secondary leading-tight">
+                  Base value stands for the value of the metric before using
+                  measurely to measure the metric
+                </Label>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <div className="flex flex-row gap-2 w-full">

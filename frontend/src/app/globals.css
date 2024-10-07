@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  outline: none !important;
+}
+
 html {
   background-color: var(--background);
 }
@@ -52,16 +56,18 @@ p {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
 }
 
 @layer base {
-  
+
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;

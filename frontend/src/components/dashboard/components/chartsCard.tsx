@@ -76,6 +76,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+
+
 export function ChartsCard() {
   return (
     <Card className="border-t-0 rounded-t-none border-input">
