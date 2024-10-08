@@ -118,7 +118,7 @@ function EditDialogContent(props: { metric: any; total: any }) {
           {props.metric.type !== 0 ? (
             <>
               <div className="flex w-full flex-col gap-3">
-                <Label>Positive value name</Label>
+                <Label>Positive variable name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
                   type="email"
@@ -127,7 +127,7 @@ function EditDialogContent(props: { metric: any; total: any }) {
                 />
               </div>
               <div className="flex w-full flex-col gap-3">
-                <Label>Negative value name</Label>
+                <Label>Negative variable name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
                   type="email"
