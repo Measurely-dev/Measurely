@@ -1,12 +1,6 @@
 import LogoSvg from "@/components/global/logoSvg";
 import Link from "next/link";
-import {
-  BarChart,
-  Box,
-  CreditCard,
-  Settings,
-  Users,
-} from "react-feather";
+import { BarChart, Box, CreditCard, Settings, Users } from "react-feather";
 import DashboardNavItem from "./navItem";
 import {
   Tooltip,
@@ -18,6 +12,7 @@ import { usePathname } from "next/navigation";
 import NavbarItemChip from "./navbarItemChip";
 import { Separator } from "@/components/ui/separator";
 import { HomeIcon } from "lucide-react";
+import SettingDialog from "../../settings/settingDialog";
 
 export default function DashboardNavbar() {
   const pathname = usePathname();
@@ -36,7 +31,7 @@ export default function DashboardNavbar() {
       name: "Team",
       href: "/dashboard/team/",
       svg: <Users className="size-5" />,
-    }
+    },
   ];
   return (
     <div className="flex h-screen flex-col py-[15px] pl-5">
@@ -56,22 +51,19 @@ export default function DashboardNavbar() {
       </div>
       <div className="flex flex-col gap-[16px]">
         <NavbarItemChip />
-        <Separator className="w-6 mx-auto"/>
+        <Separator className="w-6 mx-auto" />
         <TooltipProvider delayDuration={0}>
           <Tooltip>
-            <TooltipTrigger>
-              <Link href={"/"}>
+            <SettingDialog>
+              <TooltipTrigger>
                 <div
-                  className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] hover:text-primary text-secondary items-center justify-center rounded-[12px] border text-[20px] ${
-                    pathname === "/dashobard/settings"
-                      ? "bg-accent/75"
-                      : "border-transparent bg-background hover:bg-accent/50"
-                  }`}
+                  className={`flex h-[40px] min-h-[40px] border-transparent bg-background hover:bg-accent/50 w-[45px] min-w-[45px] hover:text-primary text-secondary items-center justify-center rounded-[12px] border text-[20px]`}
                 >
                   <Settings className="size-5" />
                 </div>
-              </Link>
-            </TooltipTrigger>
+              </TooltipTrigger>
+            </SettingDialog>
+
             <TooltipContent
               side="right"
               sideOffset={8}
