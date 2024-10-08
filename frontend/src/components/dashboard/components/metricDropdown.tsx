@@ -164,21 +164,22 @@ function EditDialogContent(props: { group: Group; total: number }) {
               </div>
             </>
           ) : (
-            <div className="flex w-full flex-col gap-3">
-              <Label>Total value</Label>
-              <div className="flex flex-col gap-1">
-                <Input
-                  placeholder="Optional"
-                  type="number"
-                  className="h-11 rounded-[12px]"
-                  value={props.total}
-                />
-                <Label className="text-xs font-normal text-secondary leading-tight">
-                  Base value stands for the value of the metric before using
-                  measurely to measure the metric
-                </Label>
-              </div>
-            </div>
+            <></>
+            // <div className="flex w-full flex-col gap-3">
+            //   <Label>Total value</Label>
+            //   <div className="flex flex-col gap-1">
+            //     <Input
+            //       placeholder="Optional"
+            //       type="number"
+            //       className="h-11 rounded-[12px]"
+            //       value={props.total}
+            //     />
+            //     <Label className="text-xs font-normal text-secondary leading-tight">
+            //       Base value stands for the value of the metric before using
+            //       measurely to measure the metric
+            //     </Label>
+            //   </div>
+            // </div>
           )}
         </div>
       </div>
