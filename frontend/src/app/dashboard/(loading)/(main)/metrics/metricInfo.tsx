@@ -85,13 +85,13 @@ export default function MetricInformations(props: {
           ) : (
             <>
               <Label className="flex flex-col gap-2">
-                Positive value total (Accounts created)
+                Positive variable total (Accounts created)
                 <div className="text-green-500 font-mono text-lg">
                   -{props.total}
                 </div>
               </Label>
               <Label className="flex flex-col gap-2">
-                Negative value total (Accounts deleted)
+                Negative variable total (Accounts deleted)
                 <div className="text-red-500 font-mono text-lg">
                   +{props.total}
                 </div>
