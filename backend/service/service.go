@@ -1058,7 +1058,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request CreateMetricRequest
+	var request CreateGroupRequest
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1260,33 +1260,122 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
-	_, ok := r.Context().Value(types.USERID).(uuid.UUID)
+// func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
+// 	_, ok := r.Context().Value(types.USERID).(uuid.UUID)
+// 	if !ok {
+// 		http.Error(w, "Internal error", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	//TODO : security concern, find a way to ensure that the user has access to the specific metric
+
+// 	var request GetMetricsRequest
+
+// 	// Fetch Metrics
+// 	metrics, err := s.DB.GetMetrics(request.MetricId)
+// 	if err != nil {
+// 		log.Println(err)
+// 		http.Error(w, "Internal error", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	bytes, jerr := json.Marshal(metrics)
+// 	if jerr != nil {
+// 		http.Error(w, jerr.Error(), http.StatusContinue)
+// 		return
+// 	}
+
+// 	w.Write(bytes)
+// 	w.Header().Set("Content-Type", "application/json")
+// }
+
+func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	//TODO : security concern, find a way to ensure that the user has access to the specific metric
+	var request UpdateGroupRequest
 
-	var request GetMetricsRequest
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
 
-	// Fetch Metrics
-	metrics, err := s.DB.GetMetrics(request.MetricId)
+	// Get the application
+	_, err := s.DB.GetApplication(request.AppId, val)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Update the metric
+	err = s.DB.UpdateMetricGroup(request.GroupId, request.AppId, request.Name)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, jerr := json.Marshal(metrics)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
+
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(bytes)
-	w.Header().Set("Content-Type", "application/json")
+	var request UpdateMetricRequest
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the application
+	_, err := s.DB.GetApplication(request.AppId, val)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the metric group
+	_, err = s.DB.GetMetricGroup(request.Groupid, request.AppId)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the metric group
+	err = s.DB.UpdateMetric(request.MetricId, request.Groupid, request.Name)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 // func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {

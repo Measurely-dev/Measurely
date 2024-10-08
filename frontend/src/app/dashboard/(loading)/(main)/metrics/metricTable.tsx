@@ -144,22 +144,25 @@ const Item = (props: { group: Group; index: number }) => {
 
   const fetchMetricEvents = async (id: string): Promise<MetricEvent[]> => {
     const appid = applications?.[activeApp].id;
-    
+
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL +
-        `/events?appid=${appid}&metricid=${id}&offset=0`,
+        `/events?appid=${appid}&groupid=${props.group.id}&metricid=${id}&offset=0`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       }
     );
 
     if (res.ok) {
       try {
         const events = await res.json();
-        return events;
+        if (events !== null) {
+          return events;
+        }
       } catch (e) {
         console.log(e);
       }

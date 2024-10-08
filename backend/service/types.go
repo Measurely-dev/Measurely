@@ -94,7 +94,7 @@ type GetMetricsRequest struct {
 	MetricId uuid.UUID `json:"metricid"`
 }
 
-type CreateMetricRequest struct {
+type CreateGroupRequest struct {
 	Name      string    `json:"name"`
 	AppId     uuid.UUID `json:"appid"`
 	Type      int       `json:"type"`
@@ -106,10 +106,17 @@ type DeleteGroupRequest struct {
 	AppId   uuid.UUID `json:"appid"`
 }
 
-type ToggleMetricRequest struct {
-	MetricId uuid.UUID `json:"metricid"`
+type UpdateGroupRequest struct {
+	GroupId uuid.UUID `json:"groupid"`
+	Name    string    `json:"name"`
+	AppId   uuid.UUID `json:"appid"`
+}
+
+type UpdateMetricRequest struct {
 	AppId    uuid.UUID `json:"appid"`
-	Enabled  bool      `json:"enabled"`
+	MetricId uuid.UUID `json:"metricid"`
+	Name     string    `json:"name"`
+	Groupid  uuid.UUID `json:"groupid"`
 }
 
 type GetMetricEventsRequest struct {

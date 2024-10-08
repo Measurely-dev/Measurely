@@ -90,8 +90,9 @@ func (h *Handler) setup_api() {
 			cr.Get("/connect", h.service.HandleWebSocket)
 
 			cr.Post("/group", h.service.CreateGroup)
-			// cr.Patch("/metric", h.service.ToggleMetric)
+			cr.Patch("/group", h.service.UpdateGroup)
 			cr.Delete("/group", h.service.DeleteGroup)
+			cr.Patch("/metric", h.service.UpdateMetric)
 
 			cr.Get("/billing", h.service.ManageBilling)
 			cr.Post("/subscribe", h.service.Subscribe)

@@ -129,6 +129,23 @@ func (db *DB) GetMetricGroupCount(appid uuid.UUID) (int, error) {
 	return count, nil
 }
 
+func (db *DB) UpdateMetricGroup(groupid uuid.UUID, appid uuid.UUID, name string) error {
+	_, err := db.Conn.Exec("UPDATE metricgroups SET name = $1 WHERE id = $2 AND appid = $3", name, groupid, appid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) UpdateMetric(metricid uuid.UUID, groupid uuid.UUID, name string) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET name = $1 WHERE groupid = $2 AND id = $3", name, groupid, metricid)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
 	rows, err := db.Conn.Query("SELECT * FROM metricgroups WHERE appid = $1", appid)
 	if err != nil {
@@ -146,6 +163,12 @@ func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
 	}
 
 	return groups, nil
+}
+
+func (db *DB) GetMetricGroup(id uuid.UUID, appid uuid.UUID) (types.MetricGroup, error) {
+	var group types.MetricGroup
+	err := db.Conn.Get(&group, "SELECT * FROM metricgroups WHERE id = $1 AND appid = $2", id, appid)
+	return group, err
 }
 
 func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
@@ -167,9 +190,9 @@ func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
 	return metrics, nil
 }
 
-func (db *DB) GetMetric(id uuid.UUID, appid uuid.UUID) (types.Metric, error) {
+func (db *DB) GetMetric(id uuid.UUID, groupid uuid.UUID) (types.Metric, error) {
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1 AND appid = $2", id, appid)
+	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1 AND groupid = $2", id, groupid)
 	return metric, err
 }
 
@@ -201,13 +224,13 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, offset int) ([]types.MetricEve
 	return events, nil
 }
 
-func (db *DB) ToggleMetricGroup(id uuid.UUID, appid uuid.UUID, enabled bool) error {
-	_, err := db.Conn.Exec("UPDATE metricgroups SET enabled = $1 WHERE id = $2 AND appid = $3", enabled, id, appid)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (db *DB) ToggleMetricGroup(id uuid.UUID, appid uuid.UUID, enabled bool) error {
+// 	_, err := db.Conn.Exec("UPDATE metricgroups SET enabled = $1 WHERE id = $2 AND appid = $3", enabled, id, appid)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (db *DB) UpdateMetricTotal(id uuid.UUID, total int) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET total = $1 WHERE id = $2", total, id)

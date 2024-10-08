@@ -31,15 +31,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppsContext } from "@/dashContext";
 import { Group } from "@/types";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function MetricDropdown(props: {
   children: any;
   group: Group;
   total: number;
 }) {
-
-  const {setApplications, applications} = useContext(AppsContext)
+  const { setApplications, applications } = useContext(AppsContext);
   return (
     <>
       <Dialog>
@@ -55,14 +54,32 @@ export default function MetricDropdown(props: {
                 <>
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.group.metrics[0].id)}>Copy positive ID</DropdownMenuItem>
-                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.group.metrics[1].id)}>Copy negative ID</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigator.clipboard.writeText(props.group.metrics[0].id)
+                    }
+                  >
+                    Copy positive ID
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigator.clipboard.writeText(props.group.metrics[1].id)
+                    }
+                  >
+                    Copy negative ID
+                  </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem onClick={() => navigator.clipboard.writeText(props.group.metrics[0].id)}>Copy ID</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigator.clipboard.writeText(props.group.metrics[0].id)
+                    }
+                  >
+                    Copy ID
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
@@ -87,30 +104,39 @@ export default function MetricDropdown(props: {
               <AlertDialogCancel className="rounded-[8px] bg-white">
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90" onClick={() => {
-                fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
-                  method: "DELETE",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    appid : props.group.appid,
-                    groupid: props.group.id,
-                  }),
-                  credentials: "include",
-
-                }).then((res) => {
-                  if(res.ok && applications !== null)
-                  {
-                    alert("Metric deleted");
-                    setApplications(applications?.map((v, i) => (v.id === props.group.appid ? Object.assign({}, v, { groups: v.groups?.filter((m) => m.id !== props.group.id) }) : v)));
-                  }
-                  else{
-                    alert("Failed to delete metric");
-                  }
-                });
-
-              }}>
+              <AlertDialogAction
+                className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90"
+                onClick={() => {
+                  fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      appid: props.group.appid,
+                      groupid: props.group.id,
+                    }),
+                    credentials: "include",
+                  }).then((res) => {
+                    if (res.ok && applications !== null) {
+                      alert("Metric deleted");
+                      setApplications(
+                        applications?.map((v, i) =>
+                          v.id === props.group.appid
+                            ? Object.assign({}, v, {
+                                groups: v.groups?.filter(
+                                  (m) => m.id !== props.group.id
+                                ),
+                              })
+                            : v
+                        )
+                      );
+                    } else {
+                      alert("Failed to delete metric");
+                    }
+                  });
+                }}
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -123,6 +149,25 @@ export default function MetricDropdown(props: {
 }
 
 function EditDialogContent(props: { group: Group; total: number }) {
+  const [name, setName] = useState<string>(props.group.name);
+  const [subNames, setSubNames] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const { applications, setApplications } = useContext(AppsContext);
+
+  function areNamesEqual(names: string[]) {
+    for (let i = 0; i < names.length; i++) {
+      if (names[i] !== props.group.metrics[i].name) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  useEffect(() => {
+    setSubNames(props.group.metrics.map((m) => m.name));
+  }, [props.group]);
+
   return (
     <DialogContent className="shadow-sm rounded-sm">
       <DialogHeader className="static">
@@ -137,9 +182,10 @@ function EditDialogContent(props: { group: Group; total: number }) {
             <Label>Metric name</Label>
             <Input
               placeholder="New users, Deleted projects, Suspended accounts"
-              type="email"
+              type="text"
               className="h-11 rounded-[12px]"
-              value={props.group.name}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           {props.group.type !== 0 ? (
@@ -148,18 +194,28 @@ function EditDialogContent(props: { group: Group; total: number }) {
                 <Label>Positive name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
-                  type="email"
+                  type="text"
                   className="h-11 rounded-[12px]"
-                  value={props.group.metrics[0].name}
+                  value={subNames[0]}
+                  onChange={(e) =>
+                    setSubNames(
+                      subNames.map((v, i) => (i === 0 ? e.target.value : v))
+                    )
+                  }
                 />
               </div>
               <div className="flex w-full flex-col gap-3">
                 <Label>Negative name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
-                  type="email"
+                  type="text"
                   className="h-11 rounded-[12px]"
-                  value={props.group.metrics[1].name}
+                  value={subNames[1]}
+                  onChange={(e) =>
+                    setSubNames(
+                      subNames.map((v, i) => (i === 1 ? e.target.value : v))
+                    )
+                  }
                 />
               </div>
             </>
@@ -189,6 +245,10 @@ function EditDialogContent(props: { group: Group; total: number }) {
             type="button"
             variant="secondary"
             className="rounded-[12px] w-full"
+            onClick={() => {
+              setName(props.group.name);
+              setSubNames(props.group.metrics.map((m) => m.name));
+            }}
           >
             Cancel
           </Button>
@@ -197,6 +257,83 @@ function EditDialogContent(props: { group: Group; total: number }) {
           type="button"
           variant="default"
           className="rounded-[12px] w-full"
+          loading={loading}
+          disabled={
+            (name === props.group.name && areNamesEqual(subNames)) || loading
+          }
+          onClick={async () => {
+            setLoading(true);
+
+            let group = props.group;
+
+            let res;
+
+            if (name !== props.group.name) {
+              res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  appid: props.group.appid,
+                  groupid: props.group.id,
+                  name: name,
+                }),
+                credentials: "include",
+              });
+
+              if (res.ok && applications !== null) {
+                group = Object.assign({}, group, { name: name });
+              }
+            }
+
+            for (let i = 0; i < subNames.length; i++) {
+              if (subNames[i] !== props.group.metrics[i].name) {
+                res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/metric", {
+                  method: "PATCH",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    appid: props.group.appid,
+                    groupid: props.group.id,
+                    metricid: props.group.metrics[i].id,
+                    name: subNames[i],
+                  }),
+                  credentials: "include",
+                });
+
+                if (res.ok && applications !== null) {
+                  group = Object.assign({}, group, {
+                    metrics: group.metrics.map((metric) =>
+                      metric.id === props.group.metrics[i].id
+                        ? Object.assign({}, metric, {
+                            name: subNames[i],
+                          })
+                        : metric
+                    ),
+                  });
+                }
+              }
+            }
+
+            if (applications !== null) {
+              setApplications(
+                applications.map((v, i) =>
+                  v.id === props.group.appid
+                    ? Object.assign({}, v, {
+                        groups: v.groups?.map((g) =>
+                          g.id === props.group.id
+                            ? Object.assign({}, g, group)
+                            : g
+                        ),
+                      })
+                    : v
+                )
+              );
+            }
+            setLoading(false);
+          }}
         >
           Update
         </Button>

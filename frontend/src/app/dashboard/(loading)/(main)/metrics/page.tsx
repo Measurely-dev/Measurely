@@ -25,6 +25,7 @@ import MetricTable from "./metricTable";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useContext, useEffect, useState } from "react";
 import { AppsContext } from "@/dashContext";
+import { loadMetricsGroups } from "@/utils";
 
 export default function DashboardMetrics() {
   const { applications,setApplications, activeApp } = useContext(AppsContext);
@@ -34,25 +35,7 @@ export default function DashboardMetrics() {
 
   useEffect(() => {
     if (applications?.[activeApp].groups === null) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + "/metric-groups?appid=" + applications?.[activeApp].id, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      }).then(res => {
-        if (res.ok)
-        {
-          return res.json();
-        } else {
-          return [];
-        }
-      }).then(json => {
-        if (json === null)
-        {
-          json = []
-        }
-        console.log(json)
+      loadMetricsGroups(applications[activeApp].id).then((json) => {
         setApplications(applications.map((v, i) => (i === activeApp ? Object.assign({}, v, { groups: json }): v)));
       })
     }

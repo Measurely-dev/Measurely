@@ -1,7 +1,6 @@
 "use client";
 import { ChartsCard } from "@/components/dashboard/components/chartsCard";
 import MetricStats from "@/components/dashboard/components/metricStats";
-import ProfileCard from "@/components/dashboard/components/profileCard";
 import DashboardContentContainer from "@/components/dashboard/container/container";
 import {
   Breadcrumb,
@@ -11,15 +10,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { UserContext } from "@/dashContext";
-import { useContext } from "react";
 
 export default function DashboardHomePage() {
-  const { user } = useContext(UserContext);
-
-  function Capitalize(str: string) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
   return (
     <DashboardContentContainer className="w-full flex pb-[15px] mt-0 pt-[15px]">
       <Breadcrumb>

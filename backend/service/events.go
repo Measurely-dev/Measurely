@@ -63,6 +63,11 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
+	groupid, err := uuid.Parse(r.URL.Query().Get("groupid"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -77,8 +82,16 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get Group
+	_, err = s.DB.GetMetricGroup(groupid, appid)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
 	// Get Metric
-	_, err = s.DB.GetMetric(metricid, appid)
+	_, err = s.DB.GetMetric(metricid, groupid)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)

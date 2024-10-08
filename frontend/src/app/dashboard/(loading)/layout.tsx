@@ -4,7 +4,6 @@ import { AppsContext, UserContext } from "@/dashContext";
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LogoSvg from "@/components/global/logoSvg";
-import { Progress } from "@/components/ui/progress";
 
 export default function DashboardContentLayout({
   children,
@@ -13,7 +12,6 @@ export default function DashboardContentLayout({
 }>) {
   const { applications, setApplications } = useContext(AppsContext);
   const { user, setUser } = useContext(UserContext);
-  const [barPercent, setBarPercent] = useState<number>(0);
 
   const router = useRouter();
 

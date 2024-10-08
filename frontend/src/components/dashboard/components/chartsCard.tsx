@@ -32,8 +32,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Box } from "react-feather";
+import { AppsContext } from "@/dashContext";
+import { loadMetricsGroups } from "@/utils";
+import { Group } from "@/types";
 
 export const description = "A simple area chart";
 
@@ -46,29 +49,6 @@ const chartData = [
   { month: "June", desktop: 214 },
 ];
 
-const metrics = [
-  {
-    value: "new-accounts",
-    label: "Accounts created",
-  },
-  {
-    value: "deleted-account",
-    label: "Account deleted",
-  },
-  {
-    value: "new-transfer",
-    label: "New transfer",
-  },
-  {
-    value: "pending-notifications",
-    label: "Pending notifications",
-  },
-  {
-    value: "new-messages",
-    label: "New messages",
-  },
-];
-
 const chartConfig = {
   desktop: {
     label: "Desktop",
@@ -76,12 +56,29 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-
-
 export function ChartsCard() {
+  const { applications, setApplications, activeApp } = useContext(AppsContext);
+  const [activeGroup, setActiveGroup] = useState(0);
+
+  useEffect(() => {
+    if (applications?.[activeApp].groups === null) {
+      loadMetricsGroups(applications[activeApp].id).then((json) => {
+        setApplications(
+          applications.map((v, i) =>
+            i === activeApp ? Object.assign({}, v, { groups: json }) : v
+          )
+        );
+      });
+    }
+  }, [activeApp]);
+
   return (
     <Card className="border-t-0 rounded-t-none border-input">
-      {Header()}
+      <Header
+        activeGroup={activeGroup}
+        setActiveGroup={setActiveGroup}
+        groups={applications?.[activeApp].groups ?? []}
+      />
       <CardContent className="flex flex-row gap-5">
         {/* Chart 1 */}
         <div className="flex flex-col gap-4 w-[50%] bg-accent p-5 rounded-xl pt-5 pb-0">
@@ -173,7 +170,12 @@ export function ChartsCard() {
   );
 }
 
-function Header() {
+function Header(props: {
+  activeGroup: number;
+  setActiveGroup: React.Dispatch<React.SetStateAction<number>>;
+  groups: Group[];
+}) {
+  const [open, setOpen] = useState(false);
   return (
     <CardHeader className="flex flex-row justify-between">
       <div className="flex gap-1 flex-col">
@@ -182,67 +184,106 @@ function Header() {
           Showing total visitors for the last month
         </CardDescription>
       </div>
-      <MetricsDropdown />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-[200px] justify-between rounded-[12px]"
+          >
+            {props.groups.length > 0
+              ? props.groups.find((group, i) => i === props.activeGroup)?.name
+              : "Select metric..."}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0 rounded-[12px] overflow-hidden border shadow-md">
+          <Command>
+            <CommandInput placeholder="Search metric..." />
+            <CommandList>
+              <CommandEmpty>No metric found.</CommandEmpty>
+              <CommandGroup>
+                {props.groups.map((group, i) => (
+                  <CommandItem
+                    key={group.id}
+                    className="rounded-[10px]"
+                    onSelect={() => {
+                      props.setActiveGroup(i);
+                      setOpen(false);
+                    }}
+                  >
+                    {i === props.activeGroup ? (
+                      <Check className={cn("mr-2 h-4 w-4 stroke-[3px]")} />
+                    ) : (
+                      <Box className={cn("mr-2 h-4 w-4 text-blue-500")} />
+                    )}
+
+                    {group.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </CardHeader>
   );
 }
 
-function MetricsDropdown() {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("new-accounts");
+// function MetricsDropdown(props: {
+//   activeGroup: number;
+//   setActiveGroup: React.Dispatch<React.SetStateAction<number>>;
+//   groups: Group[];
+// }) {
+//   const [open, setOpen] = useState(false);
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between rounded-[12px]"
-        >
-          {value
-            ? metrics.find((metric) => metric.value === value)?.label
-            : "Select metric..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0 rounded-[12px] overflow-hidden border shadow-md">
-        <Command>
-          <CommandInput placeholder="Search metric..." />
-          <CommandList>
-            <CommandEmpty>No metric found.</CommandEmpty>
-            <CommandGroup>
-              {metrics.map((metric) => (
-                <CommandItem
-                  key={metric.value}
-                  value={metric.value}
-                  className="rounded-[10px]"
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "new-accounts" : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  {value === metric.value ? (
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4 stroke-[3px]",
-                      )}
-                    />
-                  ) : (
-                    <Box
-                      className={cn(
-                        "mr-2 h-4 w-4 text-blue-500",
-                      )}
-                    />
-                  )}
+//   return (
+//     <Popover open={open} onOpenChange={setOpen}>
+//       <PopoverTrigger asChild>
+//         <Button
+//           variant="outline"
+//           role="combobox"
+//           aria-expanded={open}
+//           className="w-[200px] justify-between rounded-[12px]"
+//         >
+//           {value
+//             ? metrics.find((metric) => metric.value === value)?.label
+//             : "Select metric..."}
+//           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+//         </Button>
+//       </PopoverTrigger>
+//       <PopoverContent className="w-[200px] p-0 rounded-[12px] overflow-hidden border shadow-md">
+//         <Command>
+//           <CommandInput placeholder="Search metric..." />
+//           <CommandList>
+//             <CommandEmpty>No metric found.</CommandEmpty>
+//             <CommandGroup>
+//               {metrics.map((metric) => (
+//                 <CommandItem
+//                   key={metric.value}
+//                   value={metric.value}
+//                   className="rounded-[10px]"
+//                   onSelect={(currentValue) => {
+//                     setValue(
+//                       currentValue === value ? "new-accounts" : currentValue
+//                     );
+//                     setOpen(false);
+//                   }}
+//                 >
+//                   {value === metric.value ? (
+//                     <Check className={cn("mr-2 h-4 w-4 stroke-[3px]")} />
+//                   ) : (
+//                     <Box className={cn("mr-2 h-4 w-4 text-blue-500")} />
+//                   )}
 
-                  {metric.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
+//                   {metric.label}
+//                 </CommandItem>
+//               ))}
+//             </CommandGroup>
+//           </CommandList>
+//         </Command>
+//       </PopoverContent>
+//     </Popover>
+//   );
+// }
