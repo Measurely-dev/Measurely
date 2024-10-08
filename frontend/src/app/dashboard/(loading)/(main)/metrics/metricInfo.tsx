@@ -87,7 +87,7 @@ export default function MetricInformations(props: {
                 </div>
               </Label>
               <Label className="flex flex-col gap-2 xl:text-end capitalize">
-                Negative varibale total ({props.group.metrics[1].name})
+                Negative variable total ({props.group.metrics[1].name})
                 <div className="text-red-500 font-mono text-lg">
                   +{props.total}
                 </div>

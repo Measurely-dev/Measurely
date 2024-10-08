@@ -60,7 +60,7 @@ export default function MetricDropdown(props: {
                   <DropdownMenuItem
                     onClick={() => {
                       navigator.clipboard.writeText(props.group.metrics[0].id);
-                      toast.success("Copied Positive Varibale ID");
+                      toast.success("Copied Positive Variable ID");
                     }}
                   >
                     Copy positive ID
@@ -68,7 +68,7 @@ export default function MetricDropdown(props: {
                   <DropdownMenuItem
                     onClick={() => {
                       navigator.clipboard.writeText(props.group.metrics[1].id);
-                      toast.success("Copied Negative Varibale ID");
+                      toast.success("Copied Negative Variable ID");
                     }}
                   >
                     Copy negative ID

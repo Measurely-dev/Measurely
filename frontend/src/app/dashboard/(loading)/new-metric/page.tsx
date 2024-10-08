@@ -295,7 +295,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
             </div>
 
             <Label className="flex flex-col gap-3">
-              Varibale naming
+              Variable naming
               <Select
                 defaultValue={"auto"}
                 onValueChange={(e) => {
