@@ -80,14 +80,14 @@ export default function MetricInformations(props: {
             <></>
           ) : (
             <div className="flex flex-col gap-2 xl:flex-row xl:justify-between">
-              <Label className="flex flex-col gap-2">
-                {props.group.metrics[0].name}
+              <Label className="flex flex-col gap-2 capitalize">
+                Positive variable total ({props.group.metrics[0].name})
                 <div className="text-green-500 font-mono text-lg">
                   -{props.total}
                 </div>
               </Label>
-              <Label className="flex flex-col gap-2 xl:text-end">
-                {props.group.metrics[0].name}
+              <Label className="flex flex-col gap-2 xl:text-end capitalize">
+                Negative varibale total ({props.group.metrics[1].name})
                 <div className="text-red-500 font-mono text-lg">
                   +{props.total}
                 </div>
@@ -124,6 +124,7 @@ export default function MetricInformations(props: {
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent hideLabel />}
+                  labelClassName="!min-w-[200px]"
                 />
                 <Area
                   dataKey="total"
@@ -144,10 +145,10 @@ export default function MetricInformations(props: {
                   label: props.group.metrics[0].name,
                   color: "green",
                 },
-                negative : {
+                negative: {
                   label: props.group.metrics[1].name,
                   color: "red",
-                }
+                },
               }}
             >
               <AreaChart
@@ -169,6 +170,7 @@ export default function MetricInformations(props: {
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent indicator="dot" />}
+                  labelClassName="!min-w-[200px]"
                 />
                 <Area
                   dataKey="positive"

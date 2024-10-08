@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { AppsContext } from "@/dashContext";
 import { Group } from "@/types";
 import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function MetricDropdown(props: {
   children: any;
@@ -39,9 +40,11 @@ export default function MetricDropdown(props: {
   total: number;
 }) {
   const { setApplications, applications } = useContext(AppsContext);
+  const [open, setOpen] = useState(false);
+
   return (
     <>
-      <Dialog>
+      <Dialog onOpenChange={(e) => setOpen(e)} open={open}>
         <AlertDialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
@@ -55,16 +58,18 @@ export default function MetricDropdown(props: {
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem
-                    onClick={() =>
-                      navigator.clipboard.writeText(props.group.metrics[0].id)
-                    }
+                    onClick={() => {
+                      navigator.clipboard.writeText(props.group.metrics[0].id);
+                      toast.success("Copied Positive Varibale ID");
+                    }}
                   >
                     Copy positive ID
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() =>
-                      navigator.clipboard.writeText(props.group.metrics[1].id)
-                    }
+                    onClick={() => {
+                      navigator.clipboard.writeText(props.group.metrics[1].id);
+                      toast.success("Copied Negative Varibale ID");
+                    }}
                   >
                     Copy negative ID
                   </DropdownMenuItem>
@@ -74,9 +79,10 @@ export default function MetricDropdown(props: {
               ) : (
                 <>
                   <DropdownMenuItem
-                    onClick={() =>
-                      navigator.clipboard.writeText(props.group.metrics[0].id)
-                    }
+                    onClick={() => {
+                      navigator.clipboard.writeText(props.group.metrics[0].id);
+                      toast.success("Copied Metric ID");
+                    }}
                   >
                     Copy ID
                   </DropdownMenuItem>
@@ -142,17 +148,24 @@ export default function MetricDropdown(props: {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <EditDialogContent group={props.group} total={props.total} />
+        <EditDialogContent
+          group={props.group}
+          total={props.total}
+          setOpen={setOpen}
+        />
       </Dialog>
     </>
   );
 }
 
-function EditDialogContent(props: { group: Group; total: number }) {
+function EditDialogContent(props: {
+  group: Group;
+  total: number;
+  setOpen: (value: any) => void;
+}) {
   const [name, setName] = useState<string>(props.group.name);
   const [subNames, setSubNames] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-
   const { applications, setApplications } = useContext(AppsContext);
 
   function areNamesEqual(names: string[]) {
@@ -221,21 +234,6 @@ function EditDialogContent(props: { group: Group; total: number }) {
             </>
           ) : (
             <></>
-            // <div className="flex w-full flex-col gap-3">
-            //   <Label>Total value</Label>
-            //   <div className="flex flex-col gap-1">
-            //     <Input
-            //       placeholder="Optional"
-            //       type="number"
-            //       className="h-11 rounded-[12px]"
-            //       value={props.total}
-            //     />
-            //     <Label className="text-xs font-normal text-secondary leading-tight">
-            //       Base value stands for the value of the metric before using
-            //       measurely to measure the metric
-            //     </Label>
-            //   </div>
-            // </div>
           )}
         </div>
       </div>
@@ -263,7 +261,6 @@ function EditDialogContent(props: { group: Group; total: number }) {
           }
           onClick={async () => {
             setLoading(true);
-
             let group = props.group;
 
             let res;
@@ -333,6 +330,7 @@ function EditDialogContent(props: { group: Group; total: number }) {
               );
             }
             setLoading(false);
+            props.setOpen(false);
           }}
         >
           Update
