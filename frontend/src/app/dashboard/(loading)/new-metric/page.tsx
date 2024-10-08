@@ -205,7 +205,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                 return;
               }
 
-              fetch(process.env.NEXT_PUBLIC_API_URL + "/metric", {
+              fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -386,7 +386,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
                 return;
               }
 
-              fetch(process.env.NEXT_PUBLIC_API_URL + "/metric", {
+              fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

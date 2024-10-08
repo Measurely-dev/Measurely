@@ -101,9 +101,9 @@ type CreateMetricRequest struct {
 	BaseValue int       `json:"basevalue"`
 	Metrics   []string  `json:"metrics"`
 }
-type DeleteMetricRequest struct {
-	MetricId uuid.UUID `json:"metricid"`
-	AppId    uuid.UUID `json:"appid"`
+type DeleteGroupRequest struct {
+	GroupId uuid.UUID `json:"groupid"`
+	AppId   uuid.UUID `json:"appid"`
 }
 
 type ToggleMetricRequest struct {

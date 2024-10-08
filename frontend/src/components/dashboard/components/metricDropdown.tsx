@@ -1,3 +1,4 @@
+"use client";
 // External and components
 import MetricInformations from "@/app/dashboard/(loading)/(main)/metrics/metricInfo";
 import {
@@ -30,12 +31,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppsContext } from "@/dashContext";
+import { Group } from "@/types";
+import { useContext } from "react";
 
 export default function MetricDropdown(props: {
   children: any;
-  metric: any;
-  total: any;
+  metric: Group;
+  total: number;
 }) {
+
+  const {setApplications, applications} = useContext(AppsContext)
   return (
     <>
       <Dialog>
@@ -51,14 +57,14 @@ export default function MetricDropdown(props: {
                 <>
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem>Copy positive ID</DropdownMenuItem>
-                  <DropdownMenuItem>Copy negative ID</DropdownMenuItem>
+                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.metric.metrics[0].id)}>Copy positive ID</DropdownMenuItem>
+                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.metric.metrics[1].id)}>Copy negative ID</DropdownMenuItem>
 
                   <DropdownMenuSeparator />
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem>Copy ID</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigator.clipboard.writeText(props.metric.metrics[0].id)}>Copy ID</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
@@ -83,7 +89,30 @@ export default function MetricDropdown(props: {
               <AlertDialogCancel className="rounded-[8px] bg-white">
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90">
+              <AlertDialogAction className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90" onClick={() => {
+                fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
+                  method: "DELETE",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    appid : props.metric.appid,
+                    groupid: props.metric.id,
+                  }),
+                  credentials: "include",
+
+                }).then((res) => {
+                  if(res.ok && applications !== null)
+                  {
+                    alert("Metric deleted");
+                    setApplications(applications?.map((v, i) => (v.id === props.metric.appid ? Object.assign({}, v, { groups: v.groups?.filter((m) => m.id !== props.metric.id) }) : v)));
+                  }
+                  else{
+                    alert("Failed to delete metric");
+                  }
+                });
+
+              }}>
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -95,7 +124,7 @@ export default function MetricDropdown(props: {
   );
 }
 
-function EditDialogContent(props: { metric: any; total: any }) {
+function EditDialogContent(props: { metric: Group; total: number }) {
   return (
     <DialogContent className="shadow-sm rounded-sm">
       <DialogHeader className="static">

@@ -89,9 +89,9 @@ func (h *Handler) setup_api() {
 			cr.Get("/events", h.service.GetMetricEvents)
 			cr.Get("/connect", h.service.HandleWebSocket)
 
-			cr.Post("/metric", h.service.CreateMetric)
-			cr.Patch("/metric", h.service.ToggleMetric)
-			cr.Delete("/metric", h.service.DeleteMetric)
+			cr.Post("/group", h.service.CreateGroup)
+			// cr.Patch("/metric", h.service.ToggleMetric)
+			cr.Delete("/group", h.service.DeleteGroup)
 
 			cr.Get("/billing", h.service.ManageBilling)
 			cr.Post("/subscribe", h.service.Subscribe)

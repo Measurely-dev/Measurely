@@ -78,7 +78,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
           group.name.toLowerCase().includes(props.search.toLowerCase())
         ) ?? []
     );
-  }, [activeApp, props.filter, props.search]);
+  }, [activeApp, props.filter, props.search, applications]);
 
   return (
     <div className="flex flex-col gap-[15px]">
@@ -233,7 +233,7 @@ const Item = (props: { group: Group; index: number }) => {
           {formattedDate(props.group.created)}
         </div>
         <div className="h-full flex justify-end items-center w-full">
-          <MetricDropdown metric={props.group} total={total}>
+          <MetricDropdown metric={props.group} total={total ?? 0}>
             <Button
               className="rounded-[12px] !bg-transparent z-20"
               variant={"secondary"}

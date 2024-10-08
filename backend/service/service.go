@@ -1050,7 +1050,7 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
+func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
@@ -1167,14 +1167,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
+func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	var request DeleteMetricRequest
+	var request DeleteGroupRequest
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1192,7 +1192,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the metric
-	err = s.DB.DeleteMetricGroup(request.MetricId, request.AppId)
+	err = s.DB.DeleteMetricGroup(request.GroupId, request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1259,6 +1259,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 }
+
 func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	_, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
@@ -1288,63 +1289,63 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
-	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
+// func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
+// 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+// 	if !ok {
+// 		http.Error(w, "Internal error", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	var request ToggleMetricRequest
+// 	var request ToggleMetricRequest
 
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
+// 	// Try to unmarshal the request body
+// 	jerr := json.NewDecoder(r.Body).Decode(&request)
+// 	if jerr != nil {
+// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
+// 		return
+// 	}
 
-	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, val)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
+// 	// Get the application
+// 	_, err := s.DB.GetApplication(request.AppId, val)
+// 	if err != nil {
+// 		log.Println(err)
+// 		http.Error(w, "Internal error", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	if request.Enabled {
-		// Get the user
-		user, gerr := s.DB.GetUserById(val)
-		if gerr != nil {
-			log.Println(gerr)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
+// 	if request.Enabled {
+// 		// Get the user
+// 		user, gerr := s.DB.GetUserById(val)
+// 		if gerr != nil {
+// 			log.Println(gerr)
+// 			http.Error(w, "Internal error", http.StatusInternalServerError)
+// 			return
+// 		}
 
-		count, err := s.DB.GetMetricGroupCount(request.AppId)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
+// 		count, err := s.DB.GetMetricGroupCount(request.AppId)
+// 		if err != nil {
+// 			log.Println(err)
+// 			http.Error(w, "Internal error", http.StatusInternalServerError)
+// 			return
+// 		}
 
-		plan, _ := s.GetPlan(user.CurrentPlan)
-		if count >= plan.MetricPerAppLimit {
-			http.Error(w, "You have reached your limit", http.StatusBadRequest)
-			return
-		}
-	}
+// 		plan, _ := s.GetPlan(user.CurrentPlan)
+// 		if count >= plan.MetricPerAppLimit {
+// 			http.Error(w, "You have reached your limit", http.StatusBadRequest)
+// 			return
+// 		}
+// 	}
 
-	// Toggle the metric
-	err = s.DB.ToggleMetricGroup(request.MetricId, request.AppId, request.Enabled)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
+// 	// Toggle the metric
+// 	err = s.DB.ToggleMetricGroup(request.MetricId, request.AppId, request.Enabled)
+// 	if err != nil {
+// 		log.Println(err)
+// 		http.Error(w, "Internal error", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	w.WriteHeader(http.StatusOK)
-}
+// 	w.WriteHeader(http.StatusOK)
+// }
 
 func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

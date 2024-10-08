@@ -8,6 +8,8 @@ export interface Application {
 }
 
 export interface Group{
+  id : string;
+  appid : string;
   name: string;
   metrics : Metric[];
   created: Date;
