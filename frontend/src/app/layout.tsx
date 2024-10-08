@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={GeistSans.className + " " + GeistMono.variable }>{children}</body>
-      <Toaster richColors theme="light" />
+      <Toaster richColors theme="light" closeButton  />
     </html>
   );
 }

@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useContext } from "react";
 import { ArrowUpRight } from "react-feather";
+import SettingDialog from "../../settings/settingDialog";
 
 function Capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -86,7 +87,7 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
             });
           }}
         >
-          <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
+          <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal bg-red-500/0 hover:!bg-red-500/20 transition-all !text-red-500">
             Log out
             {/* Dropdown menu shortcut */}
             <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>

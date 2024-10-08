@@ -51,8 +51,8 @@ export default function ApplicationsChip() {
               key={i}
               className="flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 hover:bg-accent/75"
               onClick={() => {
-                setActiveApp(i)
-                setOpen(false)
+                setActiveApp(i);
+                setOpen(false);
               }}
             >
               <div className="flex flex-row items-center justify-center gap-2">
@@ -66,16 +66,18 @@ export default function ApplicationsChip() {
                 </Avatar>
                 <div className="text-[14px] font-medium">{app.name}</div>
               </div>
-              <CheckIcon className={`size-4 ${activeApp === i ? "" : "hidden"}`} />
+              <CheckIcon
+                className={`size-4 ${activeApp === i ? "" : "hidden"}`}
+              />
             </div>
           );
         })}
         <Link href={"/dashboard/new-app"}>
           <Button
             variant={"secondary"}
-            className="mt-1 flex w-full items-center justify-start gap-2 rounded-xl bg-accent/75 px-2 text-[14px] font-normal"
+            className="mt-1 flex w-full items-center justify-start gap-2 rounded-xl bg-accent/75 px-2 text-[14px] font-medium"
           >
-            <PlusIcon className="ml-1 mr-1 size-4 stroke-2" />
+            <PlusIcon className="size-6" />
             New Application
           </Button>
         </Link>

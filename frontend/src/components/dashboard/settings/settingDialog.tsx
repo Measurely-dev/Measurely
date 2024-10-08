@@ -4,8 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard, Home, Key, Stars, User } from "lucide-react";
 import { ReactNode, useState } from "react";
 import SettingGeneralPage from "./settingPages/general";
-import { Box } from "react-feather";
-import { CubeIcon } from "@radix-ui/react-icons";
+import { Hexagon } from "react-feather";
 
 export default function SettingDialog(props: { children: ReactNode }) {
   const [page, setPage] = useState("general");
@@ -26,9 +25,9 @@ export default function SettingDialog(props: { children: ReactNode }) {
       value: "api",
     },
     {
-      name: "Metrics",
-      icon: <Box className="size-4 text-blue-500" />,
-      value: "metrics",
+      name: "Applications",
+      icon: <Hexagon className="size-4 text-blue-500" />,
+      value: "applications",
     },
     {
       name: "Payment",
