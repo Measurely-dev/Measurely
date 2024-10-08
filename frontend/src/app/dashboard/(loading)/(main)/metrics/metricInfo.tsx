@@ -17,14 +17,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Group } from "@/types";
 
 const multiData = [
-  { month: "January", Positive: 186, Negative: 80 },
-  { month: "February", Positive: 305, Negative: 200 },
-  { month: "March", Positive: 237, Negative: 120 },
-  { month: "April", Positive: 73, Negative: 190 },
-  { month: "May", Positive: 209, Negative: 130 },
-  { month: "June", Positive: 214, Negative: 140 },
+  { month: "January", positive: 186, negative: 80 },
+  { month: "February", positive: 305, negative: 200 },
+  { month: "March", positive: 237, negative: 120 },
+  { month: "April", positive: 73, negative: 190 },
+  { month: "May", positive: 209, negative: 130 },
+  { month: "June", positive: 214, negative: 140 },
 ];
 
 const basicData = [
@@ -36,32 +37,17 @@ const basicData = [
   { month: "June", total: 214 },
 ];
 
-const chartConfig = {
-  positive: {
-    label: "Positive",
-    color: "green",
-  },
-  negative: {
-    label: "Negative",
-    color: "red",
-  },
-  total: {
-    label: "Total",
-    color: "skyblue",
-  },
-} satisfies ChartConfig;
-
 export default function MetricInformations(props: {
   children: ReactNode;
-  metric: any;
-  total: any;
+  group: Group;
+  total: number;
 }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="!shadow-none !ring ring-input !rounded-[16px] !min-w-[60%] max-h-[95%]">
         <DialogHeader className="static ">
-          <DialogTitle className="!text-xl">{props.metric.name}</DialogTitle>
+          <DialogTitle className="!text-xl">{props.group.name}</DialogTitle>
           <DialogClose className="absolute right-5 top-3">
             <Button
               type="button"
@@ -74,7 +60,7 @@ export default function MetricInformations(props: {
           </DialogClose>
         </DialogHeader>
         <div className="flex flex-col gap-4">
-          {props.metric.type !== 1 ? (
+          {props.group.type !== 1 ? (
             <Label className="flex flex-col gap-2">
               Total
               <div className="font-mono text-lg bg-accent flex rounded-[12px] justify-center px-4 items-center p-2">
@@ -90,18 +76,18 @@ export default function MetricInformations(props: {
             </Label>
           )}
 
-          {props.metric.type !== 1 ? (
+          {props.group.type !== 1 ? (
             <></>
           ) : (
             <div className="flex flex-col gap-2 xl:flex-row xl:justify-between">
               <Label className="flex flex-col gap-2">
-                Positive variable total (Accounts created)
+                {props.group.metrics[0].name}
                 <div className="text-green-500 font-mono text-lg">
                   -{props.total}
                 </div>
               </Label>
               <Label className="flex flex-col gap-2 xl:text-end">
-                Negative variable total (Accounts deleted)
+                {props.group.metrics[0].name}
                 <div className="text-red-500 font-mono text-lg">
                   +{props.total}
                 </div>
@@ -109,9 +95,16 @@ export default function MetricInformations(props: {
             </div>
           )}
         </div>
-        {props.metric.type !== 1 ? (
+        {props.group.type === 0 ? (
           <>
-            <ChartContainer config={chartConfig}>
+            <ChartContainer
+              config={{
+                total: {
+                  label: props.group.name,
+                  color: "skyblue",
+                },
+              }}
+            >
               <AreaChart
                 accessibilityLayer
                 data={basicData}
@@ -145,7 +138,18 @@ export default function MetricInformations(props: {
           </>
         ) : (
           <>
-            <ChartContainer config={chartConfig}>
+            <ChartContainer
+              config={{
+                positive: {
+                  label: props.group.metrics[0].name,
+                  color: "green",
+                },
+                negative : {
+                  label: props.group.metrics[1].name,
+                  color: "red",
+                }
+              }}
+            >
               <AreaChart
                 accessibilityLayer
                 data={multiData}
@@ -167,7 +171,7 @@ export default function MetricInformations(props: {
                   content={<ChartTooltipContent indicator="dot" />}
                 />
                 <Area
-                  dataKey="Positive"
+                  dataKey="positive"
                   type="natural"
                   fill="lime"
                   fillOpacity={0.4}
@@ -175,7 +179,7 @@ export default function MetricInformations(props: {
                   stackId="a"
                 />
                 <Area
-                  dataKey="Negative"
+                  dataKey="negative"
                   type="natural"
                   fill="red"
                   fillOpacity={0.4}

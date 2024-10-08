@@ -182,12 +182,12 @@ function Header() {
           Showing total visitors for the last month
         </CardDescription>
       </div>
-      {metricsDropdown()}
+      <MetricsDropdown />
     </CardHeader>
   );
 }
 
-function metricsDropdown() {
+function MetricsDropdown() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("new-accounts");
 

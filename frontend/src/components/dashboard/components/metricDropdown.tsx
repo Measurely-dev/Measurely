@@ -1,6 +1,5 @@
 "use client";
 // External and components
-import MetricInformations from "@/app/dashboard/(loading)/(main)/metrics/metricInfo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +16,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -37,7 +35,7 @@ import { useContext } from "react";
 
 export default function MetricDropdown(props: {
   children: any;
-  metric: Group;
+  group: Group;
   total: number;
 }) {
 
@@ -53,18 +51,18 @@ export default function MetricDropdown(props: {
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </DialogTrigger>
 
-              {props.metric.type === 1 ? (
+              {props.group.type === 1 ? (
                 <>
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.metric.metrics[0].id)}>Copy positive ID</DropdownMenuItem>
-                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.metric.metrics[1].id)}>Copy negative ID</DropdownMenuItem>
+                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.group.metrics[0].id)}>Copy positive ID</DropdownMenuItem>
+                  <DropdownMenuItem  onClick={() => navigator.clipboard.writeText(props.group.metrics[1].id)}>Copy negative ID</DropdownMenuItem>
 
                   <DropdownMenuSeparator />
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem onClick={() => navigator.clipboard.writeText(props.metric.metrics[0].id)}>Copy ID</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigator.clipboard.writeText(props.group.metrics[0].id)}>Copy ID</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
@@ -96,8 +94,8 @@ export default function MetricDropdown(props: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    appid : props.metric.appid,
-                    groupid: props.metric.id,
+                    appid : props.group.appid,
+                    groupid: props.group.id,
                   }),
                   credentials: "include",
 
@@ -105,7 +103,7 @@ export default function MetricDropdown(props: {
                   if(res.ok && applications !== null)
                   {
                     alert("Metric deleted");
-                    setApplications(applications?.map((v, i) => (v.id === props.metric.appid ? Object.assign({}, v, { groups: v.groups?.filter((m) => m.id !== props.metric.id) }) : v)));
+                    setApplications(applications?.map((v, i) => (v.id === props.group.appid ? Object.assign({}, v, { groups: v.groups?.filter((m) => m.id !== props.group.id) }) : v)));
                   }
                   else{
                     alert("Failed to delete metric");
@@ -118,13 +116,13 @@ export default function MetricDropdown(props: {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <EditDialogContent metric={props.metric} total={props.total} />
+        <EditDialogContent group={props.group} total={props.total} />
       </Dialog>
     </>
   );
 }
 
-function EditDialogContent(props: { metric: Group; total: number }) {
+function EditDialogContent(props: { group: Group; total: number }) {
   return (
     <DialogContent className="shadow-sm rounded-sm">
       <DialogHeader className="static">
@@ -141,33 +139,33 @@ function EditDialogContent(props: { metric: Group; total: number }) {
               placeholder="New users, Deleted projects, Suspended accounts"
               type="email"
               className="h-11 rounded-[12px]"
-              value={props.metric.name}
+              value={props.group.name}
             />
           </div>
-          {props.metric.type !== 0 ? (
+          {props.group.type !== 0 ? (
             <>
               <div className="flex w-full flex-col gap-3">
-                <Label>Positive variable name</Label>
+                <Label>Positive name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
                   type="email"
                   className="h-11 rounded-[12px]"
-                  value="Account created"
+                  value={props.group.metrics[0].name}
                 />
               </div>
               <div className="flex w-full flex-col gap-3">
-                <Label>Negative variable name</Label>
+                <Label>Negative name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
                   type="email"
                   className="h-11 rounded-[12px]"
-                  value="Users deleted"
+                  value={props.group.metrics[1].name}
                 />
               </div>
             </>
           ) : (
             <div className="flex w-full flex-col gap-3">
-              <Label>Base value</Label>
+              <Label>Total value</Label>
               <div className="flex flex-col gap-1">
                 <Input
                   placeholder="Optional"

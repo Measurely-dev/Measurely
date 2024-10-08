@@ -203,7 +203,7 @@ const Item = (props: { group: Group; index: number }) => {
 
   return (
     <div className="relative">
-      <MetricInformations metric={props.group} total={total}>
+      <MetricInformations group={props.group} total={total ?? 0}>
         <div className="transition-all duration-200 absolute w-full h-full rounded-[12px] cursor-pointer z-10 hover:bg-accent opacity-50" />
       </MetricInformations>
       <div
@@ -233,7 +233,7 @@ const Item = (props: { group: Group; index: number }) => {
           {formattedDate(props.group.created)}
         </div>
         <div className="h-full flex justify-end items-center w-full">
-          <MetricDropdown metric={props.group} total={total ?? 0}>
+          <MetricDropdown group={props.group} total={total ?? 0}>
             <Button
               className="rounded-[12px] !bg-transparent z-20"
               variant={"secondary"}

@@ -66,7 +66,7 @@ export default function ApplicationsChip() {
                 </Avatar>
                 <div className="text-[14px] font-medium">{app.name}</div>
               </div>
-              <CheckIcon className={`size-4 ${"" ? "" : "hidden"}`} />
+              <CheckIcon className={`size-4 ${activeApp === i ? "" : "hidden"}`} />
             </div>
           );
         })}
