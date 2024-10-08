@@ -1,6 +1,5 @@
 "use client";
 
-import ErrorMsg from "@/components/dashboard/components/error";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,7 @@ import { AppsContext } from "@/dashContext";
 import { useRouter } from "next/navigation";
 import { Dispatch, useContext, useState } from "react";
 import { Camera } from "react-feather";
+import { toast } from "sonner";
 
 const maxSize = 500 * 1024;
 
@@ -21,8 +21,6 @@ export default function NewApp() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-
-  const [error, setError] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
 
   const router = useRouter();
@@ -48,7 +46,7 @@ export default function NewApp() {
       .then((res) => {
         if (!res.ok) {
           res.text().then((text) => {
-            setError(text);
+            toast.error(text);
             setLoading(false);
           });
         } else {
@@ -78,7 +76,7 @@ export default function NewApp() {
             });
         }
 
-        json.groups = null
+        json.groups = null;
         setApplications((apps) => [...(apps ?? []), json]);
         setActiveApp(applications?.length ?? 0);
         router.push("/dashboard");
@@ -123,11 +121,10 @@ export default function NewApp() {
               disabled={loading || name === ""}
               onClick={() => {
                 setLoading(true);
-                setError("");
 
                 if (file !== null) {
                   if (file.size > maxSize) {
-                    setError("The image is too large. Max 500KB");
+                    toast.error("The image is too large, MAX 500KB");
                     setLoading(false);
                     return;
                   }
@@ -141,8 +138,6 @@ export default function NewApp() {
               Create application
             </Button>
             {/* </Link> */}
-
-          <ErrorMsg error={error}/>
           </div>
         </ContentContainer>
       </WebContainer>
@@ -207,7 +202,7 @@ function Inputs(props: {
       </div>
       {/* Description */}
       <Label className="flex flex-col gap-2">
-        Description
+        Description (optional)
         <Textarea
           value={props.description}
           onChange={(e) => props.setDescription(e.target.value)}

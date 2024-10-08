@@ -27,13 +27,12 @@ import { EyeClosedIcon } from "@radix-ui/react-icons";
 import { ReactNode, useContext, useEffect, useState } from "react";
 import { Eye } from "react-feather";
 import { AppsContext } from "@/dashContext";
-import ErrorMsg from "./error";
+import { toast } from "sonner";
 
 export default function ApiDialog(props: { children: ReactNode }) {
   const [view, setView] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState<string>("");
 
   const { applications, activeApp, setApplications } = useContext(AppsContext);
   useEffect(() => {
@@ -134,7 +133,6 @@ export default function ApiDialog(props: { children: ReactNode }) {
                   className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90"
                   onClick={() => {
                     setApiKey(null);
-                    setError("");
                     fetch(process.env.NEXT_PUBLIC_API_URL + "/rand-apikey", {
                       method: "PATCH",
                       headers: {
@@ -149,7 +147,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
                         if (res.ok === true) {
                           return res.text();
                         } else {
-                          setError(
+                          toast.error(
                             "Failed to generate a new API KEY. Try again later."
                           );
                         }
@@ -157,7 +155,7 @@ export default function ApiDialog(props: { children: ReactNode }) {
                       .then((data) => {
                         if (data !== null && applications !== null) {
                           setApiKey(data as string);
-
+                          toast.success('API key succesfully randomized')
                           setApplications(
                             applications?.map((v, i) =>
                               i === activeApp
@@ -177,7 +175,6 @@ export default function ApiDialog(props: { children: ReactNode }) {
             </AlertDialogContent>
           </AlertDialog>
         </DialogFooter>
-        <ErrorMsg error={error} />
       </DialogContent>
     </Dialog>
   );

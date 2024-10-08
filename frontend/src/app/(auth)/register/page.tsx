@@ -6,11 +6,11 @@ import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Register() {
   const searchParams = useSearchParams();
 
-  const [error, set_error] = useState("");
   const [loading, set_loading] = useState(false);
 
   const router = useRouter();
@@ -47,17 +47,15 @@ export default function Register() {
           ]}
           button="Create your account"
           btn_loading={loading}
-          error={error}
           action={async (formdata) => {
             set_loading(true);
-            set_error("");
 
             const email = formdata.get("email");
             const first_name = formdata.get("first_name");
             const last_name = formdata.get("last_name");
 
             if (email === "" || first_name === "" || last_name === "") {
-              set_error("Please fill in all fields");
+              toast.error("Please fill in all fields");
               set_loading(false);
               return;
             }
@@ -76,7 +74,7 @@ export default function Register() {
               .then((res) => {
                 if (!res.ok) {
                   res.text().then((text) => {
-                    set_error(text);
+                    toast.error(text);
                   });
                 } else {
                   router.push(

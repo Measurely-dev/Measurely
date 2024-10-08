@@ -1,5 +1,4 @@
 "use client";
-import ErrorMsg from "@/components/dashboard/components/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,7 @@ import { AppsContext } from "@/dashContext";
 import { GroupType } from "@/types";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
+import { toast } from "sonner";
 
 export default function NewMetric() {
   const [step, setStep] = useState(1);
@@ -138,8 +138,6 @@ function BasicStep(props: { setStep: (props: number) => void }) {
   const [baseValue, setBaseValue] = useState(0);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
   const { applications, setApplications, activeApp } = useContext(AppsContext);
   const router = useRouter();
 
@@ -199,9 +197,8 @@ function BasicStep(props: { setStep: (props: number) => void }) {
             className="rounded-[12px] w-full"
             onClick={() => {
               setLoading(true);
-              setError("");
               if (name === "") {
-                setError("Name cannot be empty");
+                toast.error("Name cannot be empty");
                 return;
               }
 
@@ -222,7 +219,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                 .then((res) => {
                   if (!res.ok) {
                     res.text().then((text) => {
-                      setError(text);
+                      toast.error(text);
                     });
                   } else {
                     return res.json();
@@ -236,7 +233,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                   ) {
                     return;
                   }
-
+                  toast.success('Metric was succesfully created')
                   setApplications(
                     applications?.map((v, i) =>
                       i === activeApp
@@ -260,8 +257,6 @@ function BasicStep(props: { setStep: (props: number) => void }) {
             Create
           </Button>
         </div>
-
-        <ErrorMsg error={error} />
       </div>
     </div>
   );
@@ -274,7 +269,6 @@ function DualStep(props: { setStep: (props: number) => void }) {
   const [namingType, setNamingType] = useState("auto");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const { applications, setApplications, activeApp } = useContext(AppsContext);
   const router = useRouter();
@@ -380,9 +374,8 @@ function DualStep(props: { setStep: (props: number) => void }) {
             className="rounded-[12px] w-full"
             onClick={() => {
               setLoading(true);
-              setError("");
               if (name === "") {
-                setError("Name cannot be empty");
+                toast.error("Please enter a name");
                 return;
               }
 
@@ -403,7 +396,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
                 .then((res) => {
                   if (!res.ok) {
                     res.text().then((text) => {
-                      setError(text);
+                      toast.error(text);
                     });
                   } else {
                     return res.json();
@@ -441,8 +434,6 @@ function DualStep(props: { setStep: (props: number) => void }) {
             Create
           </Button>
         </div>
-
-      <ErrorMsg error={error}/>
       </div>
     </div>
   );

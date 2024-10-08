@@ -58,7 +58,7 @@ function Navbar(props: {
   settings: Array<any>;
 }) {
   return (
-    <div className="h-full bg-background/70 backdrop-blur-md min-w-[230px] border-r border-input pt-8 px-2">
+    <div className="h-full bg-accent min-w-[230px] border-r border-input pt-8 px-2">
       <div className="text-secondary font-medium text-xs ml-4">Settings</div>
       <div className="flex gap-2 flex-col mt-3">
         {props.settings.map((item, i) => {
@@ -92,10 +92,10 @@ function Content(props: {
     }
   }
   return (
-    <div className="w-full h-full bg-white p-8 pl-10 flex flex-col gap-5">
+    <div className="w-full h-full bg-white p-8 pt-11 pl-10 flex flex-col gap-5">
       <div className="text-2xl font-semibold">
-        {props.settings.map((setting, i) => {
-          return setting.value === props.page ? setting.name : "";
+        {props.settings.map((setting) => {
+          return setting.value === props.page ? setting.name : undefined;
         })}
       </div>
       <Separator />

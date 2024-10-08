@@ -125,7 +125,7 @@ export default function MetricDropdown(props: {
                     credentials: "include",
                   }).then((res) => {
                     if (res.ok && applications !== null) {
-                      alert("Metric deleted");
+                      toast.success("Metric succesfully deleted");
                       setApplications(
                         applications?.map((v, i) =>
                           v.id === props.group.appid
@@ -138,7 +138,7 @@ export default function MetricDropdown(props: {
                         )
                       );
                     } else {
-                      alert("Failed to delete metric");
+                      toast.error("Failed to delete metric");
                     }
                   });
                 }}
@@ -331,6 +331,7 @@ function EditDialogContent(props: {
             }
             setLoading(false);
             props.setOpen(false);
+            toast.success('Metric succesfully edited')
           }}
         >
           Update
