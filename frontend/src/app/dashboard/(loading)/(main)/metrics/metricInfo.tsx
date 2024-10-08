@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ReactNode } from "react";
-import { Check, ChevronsUpDown, TrendingUp } from "lucide-react";
+import { Check, ChevronsUpDown, TrendingUp, X } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   ChartConfig,
@@ -47,7 +47,7 @@ const chartConfig = {
   },
   total: {
     label: "Total",
-    color: "grey",
+    color: "skyblue",
   },
 } satisfies ChartConfig;
 
@@ -59,9 +59,19 @@ export default function MetricInformations(props: {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="!shadow-none !rounded-[12px]">
+      <DialogContent className="!shadow-none !ring ring-input !rounded-[16px] !min-w-[60%] max-h-[95%]">
         <DialogHeader className="static ">
           <DialogTitle className="!text-xl">{props.metric.name}</DialogTitle>
+          <DialogClose className="absolute right-5 top-3">
+            <Button
+              type="button"
+              size={"icon"}
+              variant="secondary"
+              className="rounded-[12px]"
+            >
+              <X />
+            </Button>
+          </DialogClose>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           {props.metric.type !== 1 ? (
@@ -83,20 +93,20 @@ export default function MetricInformations(props: {
           {props.metric.type !== 1 ? (
             <></>
           ) : (
-            <>
+            <div className="flex flex-col gap-2 xl:flex-row xl:justify-between">
               <Label className="flex flex-col gap-2">
                 Positive variable total (Accounts created)
                 <div className="text-green-500 font-mono text-lg">
                   -{props.total}
                 </div>
               </Label>
-              <Label className="flex flex-col gap-2">
+              <Label className="flex flex-col gap-2 xl:text-end">
                 Negative variable total (Accounts deleted)
                 <div className="text-red-500 font-mono text-lg">
                   +{props.total}
                 </div>
               </Label>
-            </>
+            </div>
           )}
         </div>
         {props.metric.type !== 1 ? (
@@ -124,10 +134,10 @@ export default function MetricInformations(props: {
                 />
                 <Area
                   dataKey="total"
-                  type='natural'
-                  fill="grey"
-                  fillOpacity={0.6}
-                  stroke="grey"
+                  type="natural"
+                  fill="skyblue"
+                  fillOpacity={0.5}
+                  stroke="skyblue"
                   radius={8}
                 />
               </AreaChart>
@@ -176,18 +186,6 @@ export default function MetricInformations(props: {
             </ChartContainer>
           </>
         )}
-
-        <div className="flex flex-row gap-2 w-full">
-          <DialogClose className="w-full">
-            <Button
-              type="button"
-              variant="secondary"
-              className="rounded-[12px] w-full"
-            >
-              Close
-            </Button>
-          </DialogClose>
-        </div>
       </DialogContent>
     </Dialog>
   );
