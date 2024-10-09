@@ -41,8 +41,7 @@ export default function Help() {
       color: "",
       text: "black",
       icon: (
-        <div className="font-mono font-medium text-[20px] text-primary flex felx-row gap-2 items-center">
-          <HelpCircle />
+        <div className="font-mono !text-[18px] text-primary font-bold flex felx-row gap-2 items-center">
           Contact us
         </div>
       ),
@@ -55,9 +54,6 @@ export default function Help() {
         <Card className="w-[525px] mx-auto my-auto !rounded-2xl !p-0 border-none !pb-20">
           <CardHeader className="!m-0 p-0">
             <CardTitle className="text-2xl"> Do you need help?</CardTitle>
-            <CardDescription>
-              Advanced features to help you scale any business without limits.
-            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-row gap-2 w-full !p-0 mt-5">
             {help.map((help, i) => {

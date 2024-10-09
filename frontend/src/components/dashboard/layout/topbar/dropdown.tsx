@@ -11,10 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserContext } from "@/dashContext";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useContext } from "react";
 import { ArrowUpRight } from "react-feather";
-import SettingDialog from "../../settings/settingDialog";
 
 function Capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -36,9 +36,7 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
           </DropdownMenuLabel>
           <DropdownMenuLabel className="py-0 text-xs font-normal text-secondary">
             {user?.email === "" ? (
-              <div
-                className="cursor hover:text-blue-500 cursor-pointer select-none"
-              >
+              <div className="cursor hover:text-blue-500 cursor-pointer select-none">
                 Add your email in the settings
               </div>
             ) : (
@@ -55,9 +53,11 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
             <ArrowUpRight className="h-3 w-3" />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
-          Support
-        </DropdownMenuItem>
+        <Link href="/help">
+          <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
+            Support
+          </DropdownMenuItem>
+        </Link>
         <DropdownMenuSeparator />
         <button
           className="w-full"
