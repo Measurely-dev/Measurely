@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserContext } from "@/dashContext";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useContext } from "react";
 import { ArrowUpRight } from "react-feather";
@@ -37,24 +36,16 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
           </DropdownMenuLabel>
           <DropdownMenuLabel className="py-0 text-xs font-normal text-secondary">
             {user?.email === "" ? (
-              <Link
-                href="/dashboard/settings"
-                className="cursor hover:text-blue-500"
+              <div
+                className="cursor hover:text-blue-500 cursor-pointer select-none"
               >
                 Add your email in the settings
-              </Link>
+              </div>
             ) : (
               user?.email
             )}
           </DropdownMenuLabel>
         </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          {/* Menu item */}
-          <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
-            Settings
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
         {/* Separator */}
         <DropdownMenuSeparator />
         {/* Menu item */}
@@ -64,13 +55,8 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
             <ArrowUpRight className="h-3 w-3" />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
-        {/* Separator */}
-        <DropdownMenuSeparator />
         <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal">
           Support
-          <DropdownMenuShortcut>
-            <ArrowUpRight className="h-3 w-3" />
-          </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <button

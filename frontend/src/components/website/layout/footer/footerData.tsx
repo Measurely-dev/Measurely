@@ -2,7 +2,6 @@ export const footerData = [
   { title: "Home", href: "/home" },
   { title: "Documentation", href: "/docs" },
   { title: "Pricing", href: "/pricing" },
-  { title: "Introduction", href: "/docs/intro" },
   { title: "Getting started", href: "/docs/started" },
   { title: "Installation", href: "/docs/installation" },
   { title: "Terms of service", href: "/terms" },

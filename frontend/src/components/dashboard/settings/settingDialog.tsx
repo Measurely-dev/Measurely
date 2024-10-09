@@ -1,10 +1,16 @@
 "use client";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Home, Key, Stars, User } from "lucide-react";
+import { CreditCard, Home, Key, Stars, User, X } from "lucide-react";
 import { ReactNode, useState } from "react";
 import SettingGeneralPage from "./settingPages/general";
 import { Hexagon } from "react-feather";
+import { Button } from "@/components/ui/button";
 
 export default function SettingDialog(props: { children: ReactNode }) {
   const [page, setPage] = useState("general");
@@ -45,6 +51,16 @@ export default function SettingDialog(props: { children: ReactNode }) {
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="flex flex-row gap-0 max-h-[70%] h-[70%] min-w-[80%] ring-1 ring-input !rounded-xl !shadow-none bg-transparent !p-0 overflow-hidden">
         <Navbar page={page} setPage={setPage} settings={settings} />
+        <DialogClose className="absolute right-8 top-11">
+          <Button
+            type="button"
+            size={"icon"}
+            variant="secondary"
+            className="rounded-[12px]"
+          >
+            <X />
+          </Button>
+        </DialogClose>
         <Content page={page} setPage={setPage} settings={settings} />
       </DialogContent>
     </Dialog>
