@@ -24,7 +24,7 @@ export default function ApplicationsChip() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] ${
+          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${
             open ? "bg-accent" : ""
           }`}
         >
@@ -49,7 +49,7 @@ export default function ApplicationsChip() {
           return (
             <div
               key={i}
-              className="flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 hover:bg-accent/75"
+              className="flex w-full cursor-pointer select-none flex-row items-center capitalize justify-between rounded-xl p-2 py-1.5 hover:bg-accent/75"
               onClick={() => {
                 setActiveApp(i);
                 setOpen(false);
