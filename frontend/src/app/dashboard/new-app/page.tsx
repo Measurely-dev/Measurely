@@ -10,9 +10,9 @@ import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import Footer from "@/components/website/layout/footer/footer";
 import { AppsContext } from "@/dashContext";
+import { Image } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dispatch, useContext, useState } from "react";
-import { Camera } from "react-feather";
 import { toast } from "sonner";
 
 const maxSize = 500 * 1024;
@@ -93,7 +93,7 @@ export default function NewApp() {
         )}
         <ContentContainer className="flex h-full items-center justify-center">
           {/* /Breadcrumb */}
-          <div className="mx-auto flex w-[500px] flex-col gap-6 border p-6 rounded-3xl bg-accent/35">
+          <div className="mx-auto flex w-[500px] flex-col gap-6 rounded-3xl">
             <div className="flex flex-col gap-[5px]">
               <div className="text-xl font-medium">
                 {applications === null
@@ -164,7 +164,7 @@ function Inputs(props: {
           <Label className="relative h-full w-full cursor-pointer">
             <AvatarImage className="rounded-[16px]" src={reader} />
             <AvatarFallback className="!rounded-[16px] w-full h-full">
-              <Camera className="text-secondary" />
+              <Image className="text-secondary" />
             </AvatarFallback>
             <Input
               onChange={(event) => {
@@ -200,16 +200,6 @@ function Inputs(props: {
           />
         </Label>
       </div>
-      {/* Description */}
-      <Label className="flex flex-col gap-2">
-        Description (optional)
-        <Textarea
-          value={props.description}
-          onChange={(e) => props.setDescription(e.target.value)}
-          className="min-h-[120px] resize-none rounded-[12px] border-none bg-accent"
-          placeholder="Description..."
-        />
-      </Label>
     </div>
   );
 }
