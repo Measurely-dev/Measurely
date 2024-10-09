@@ -26,12 +26,7 @@ export default function SettingDialog(props: { children: ReactNode }) {
       value: "profile",
     },
     {
-      name: "API",
-      icon: <Key className="size-4 text-blue-500" />,
-      value: "api",
-    },
-    {
-      name: "Applications",
+      name: "Apps & API",
       icon: <Hexagon className="size-4 text-blue-500" />,
       value: "applications",
     },

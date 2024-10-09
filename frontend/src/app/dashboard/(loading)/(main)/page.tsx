@@ -55,9 +55,9 @@ export default function DashboardHomePage() {
             value: "+12",
           },
           {
-            title: "Metric payload",
-            description: "this month",
-            value: "-42",
+            title: "Team members",
+            description: "Accros this application",
+            value: "1",
           }
         ]}
       />
