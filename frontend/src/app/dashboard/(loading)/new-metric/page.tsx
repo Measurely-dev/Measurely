@@ -427,6 +427,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
                   router.push("/dashboard/metrics");
                 })
                 .finally(() => {
+                  toast.success('Metric was succesfully created')
                   setLoading(false);
                 });
             }}
