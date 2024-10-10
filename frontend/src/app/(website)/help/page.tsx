@@ -1,13 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
-import { ArrowUpRight, HelpCircle } from "react-feather";
+import { ArrowUpRight } from "react-feather";
 
 export default function Help() {
   const help = [
