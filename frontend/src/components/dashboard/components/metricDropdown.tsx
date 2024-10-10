@@ -96,7 +96,7 @@ export default function MetricDropdown(props: {
               </AlertDialogTrigger>
             </DropdownMenuContent>
           </DropdownMenu>
-          <AlertDialogContent className="border border-red-500 bg-red-500/30 backdrop-blur-3xl">
+          <AlertDialogContent className="border border-destructive bg-red-500/30 backdrop-blur-3xl">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-red-200">
                 Are you absolutely sure?
