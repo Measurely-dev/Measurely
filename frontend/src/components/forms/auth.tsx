@@ -127,19 +127,20 @@ export default function AuthForm(props: {
         )}
 
         <div className="flex flex-col gap-[20px]">
-          {props.form.map((input, i) => (
-            <div className="flex flex-col gap-[5px]" key={i}>
-              <Label className="text-sm">{input.label}</Label>
-              <Input
-                type={input.type}
-                name={input.name}
-                defaultValue={input.default}
-                placeholder={input.placeholder}
-                className="rounded-[6px] bg-background py-2"
-              />
-            </div>
-          ))}
-
+          {props.form.map((input, i) => {
+            return (
+              <div className="flex flex-col gap-[5px]" key={i}>
+                <Label className="text-sm">{input.label}</Label>
+                <Input
+                  type={input.type}
+                  name={input.name}
+                  defaultValue={input.default}
+                  placeholder={input.placeholder}
+                  className="rounded-[8px] bg-background py-2"
+                />
+              </div>
+            );
+          })}
           <Button
             className="rounded-[8px]"
             type="submit"
