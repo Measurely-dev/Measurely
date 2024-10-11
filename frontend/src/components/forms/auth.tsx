@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { MutableRefObject, useRef } from "react";
 
 export default function AuthForm(props: {
   title: string;
@@ -19,41 +19,47 @@ export default function AuthForm(props: {
   action: (formdata: FormData) => void;
 }) {
   const router = useRouter();
+  const [isDisabled, setIsDisabled] = useState(true);
   const ref = useRef<HTMLFormElement | null>(null);
+
+  // Function to check if any form fields are empty
+  function checkFormValidity() {
+    const formElement = ref.current;
+    if (!formElement) return true;
+    const formData = new FormData(formElement);
+
+    for (let i = 0; i < props.form.length; i++) {
+      if (!formData.get(props.form[i].name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Update the disabled state whenever the form changes
+  useEffect(() => {
+    const formElement = ref.current;
+    if (!formElement) return;
+
+    const handleInputChange = () => {
+      setIsDisabled(checkFormValidity());
+    };
+
+    // Add event listeners to form inputs
+    const inputs = formElement.querySelectorAll("input");
+    inputs.forEach((input) => {
+      input.addEventListener("input", handleInputChange);
+    });
+
+    // Remove event listeners when the component unmounts
+    return () => {
+      inputs.forEach((input) => {
+        input.removeEventListener("input", handleInputChange);
+      });
+    };
+  }, []);
+
   const providers = [
-    // {
-    //   name: 'Google',
-    //   svg: (
-    //     <>
-    //       <svg
-    //         className='size-6'
-    //         fill='none'
-    //         aria-hidden='true'
-    //         focusable='false'
-    //         viewBox='0 0 32 32'
-    //         xmlns='http://www.w3.org/2000/svg'
-    //       >
-    //         {' '}
-    //         <path
-    //           fill='#4285F4'
-    //           d='M30.363 16.337c0-.987-.088-1.925-.238-2.837H16v5.637h8.087c-.362 1.85-1.424 3.413-3 4.476v3.75h4.826c2.825-2.613 4.45-6.463 4.45-11.026Z'
-    //         ></path>{' '}
-    //         <path
-    //           fill='#34A853'
-    //           d='M16 31c4.05 0 7.438-1.35 9.913-3.637l-4.826-3.75c-1.35.9-3.062 1.45-5.087 1.45-3.912 0-7.225-2.638-8.413-6.2H2.612v3.862C5.075 27.625 10.137 31 16 31Z'
-    //         ></path>{' '}
-    //         <path
-    //           fill='#FBBC05'
-    //           d='M7.588 18.863A8.704 8.704 0 0 1 7.112 16c0-1 .175-1.963.476-2.863V9.275H2.612a14.826 14.826 0 0 0 0 13.45l4.976-3.863Z'
-    //         ></path>{' '}
-    //         <path
-    //           fill='#EA4335'
-    //           d='M16 6.938c2.212 0 4.188.762 5.75 2.25l4.275-4.276C23.438 2.487 20.05 1 16 1 10.137 1 5.075 4.375 2.612 9.275l4.975 3.862c1.188-3.562 4.5-6.2 8.413-6.2Z'
-    //         ></path>
-    //       </svg>
-    //     </>
-    //   ),
-    // },
     {
       name: "Github",
       action: () => {
@@ -80,26 +86,14 @@ export default function AuthForm(props: {
     },
   ];
 
-  function isDisabled(reference: MutableRefObject<HTMLFormElement | null>) {
-    if (!reference) return true;
-    if(!reference.current) return true;
-    const formdata = new FormData(reference.current);
-    for (let i = 0; i < props.form.length; i++) {
-      if (formdata.get(props.form[i].name) === "") {
-        return true;
-      }
-    }
-    return false;
-  }
-
   return (
     <form
       className="flex min-h-screen w-full items-center justify-center"
       ref={ref}
       onSubmit={(e) => {
         e.preventDefault();
-        const fromdata = new FormData(e.currentTarget);
-        props.action(fromdata);
+        const formData = new FormData(e.currentTarget);
+        props.action(formData);
       }}
     >
       <div className="flex w-[500px] flex-col gap-[10px] rounded-[30px] bg-accent p-[30px]">
@@ -108,12 +102,11 @@ export default function AuthForm(props: {
         >
           {props.title}
         </div>
-        {props.description ? (
+        {props.description && (
           <div className="mb-5 text-sm">{props.description}</div>
-        ) : (
-          <></>
         )}
-        {props.providers ? (
+
+        {props.providers && (
           <div className="flex flex-col gap-[10px]">
             {providers.map((provider, i) => {
               return (
@@ -131,42 +124,39 @@ export default function AuthForm(props: {
               Or
             </div>
           </div>
-        ) : (
-          <></>
         )}
+
         <div className="flex flex-col gap-[20px]">
-          {props.form.map((input, i) => {
-            return (
-              <div className="flex flex-col gap-[5px]" key={i}>
-                <Label className="text-sm">{input.label}</Label>
-                <Input
-                  type={input.type}
-                  name={input.name}
-                  defaultValue={input.default}
-                  placeholder={input.placeholder}
-                  className="rounded-[6px] bg-background py-2"
-                />
-              </div>
-            );
-          })}
+          {props.form.map((input, i) => (
+            <div className="flex flex-col gap-[5px]" key={i}>
+              <Label className="text-sm">{input.label}</Label>
+              <Input
+                type={input.type}
+                name={input.name}
+                defaultValue={input.default}
+                placeholder={input.placeholder}
+                className="rounded-[6px] bg-background py-2"
+              />
+            </div>
+          ))}
+
           <Button
             className="rounded-[8px]"
             type="submit"
-            disabled={isDisabled(ref) || props.btn_loading}
+            disabled={isDisabled || props.btn_loading}
             loading={props.btn_loading}
           >
             {props.button}
           </Button>
-          {props.forgot_password ? (
+
+          {props.forgot_password && (
             <Link className="text-sm text-secondary" href={"/reset"}>
-              {" "}
-              Forgot password ?{" "}
+              Forgot password?
             </Link>
-          ) : (
-            <></>
           )}
         </div>
-        {props.policies ? (
+
+        {props.policies && (
           <div className="mt-5 flex flex-col items-center justify-center gap-2 text-center">
             <div className="text-sm">
               By continuing, you agree to our policies
@@ -177,8 +167,6 @@ export default function AuthForm(props: {
               <Link href="/">Privacy policy</Link>
             </div>
           </div>
-        ) : (
-          <></>
         )}
       </div>
     </form>

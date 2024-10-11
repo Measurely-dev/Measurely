@@ -6,7 +6,7 @@ export default async function Home() {
   return (
     <WebContainer>
       <ShowcaseLandingSection type='default' />
-      <BentoUiSection type='default' />
+      <BentoUiSection />
     </WebContainer>
   );
 }

@@ -29,29 +29,6 @@ export default function Actions(props: {
             </Link>
           </div>
         );
-      case 'waitlist':
-        return (
-          <div className='flex flex-row gap-2'>
-            <Link href='/sign-in'>
-              <Button
-                variant='outline'
-                size={'sm'}
-                className='h-fit rounded-xl px-4 py-[10px] font-medium'
-              >
-                Sign in
-              </Button>
-            </Link>
-            <Link href='/waitlist'>
-              <Button
-                variant='default'
-                size={'sm'}
-                className='h-full rounded-xl border-primary px-4 py-[10px] font-medium'
-              >
-                Join waitlist
-              </Button>
-            </Link>
-          </div>
-        );
       case 'logged':
         return (
           <div className='flex flex-row gap-2'>

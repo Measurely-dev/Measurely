@@ -8,7 +8,6 @@ import LogoSvg from "@/components/global/logoSvg";
 export default function Footer(props: {
   border: boolean;
   bg: "default" | "secondary";
-  type: "default" | "waitlist";
 }) {
   return (
     <footer
@@ -22,9 +21,9 @@ export default function Footer(props: {
           <div className="flex gap-2 items-center text-sm text-secondary">
             <LogoSvg className="size-10" />© 2024
           </div>
-          <Link href="/waitlist">
+          <Link href="/register">
             <WebButton>
-              {props.type === "default" ? "Get started" : "Join waitlist"}
+             Get started
             </WebButton>
           </Link>{" "}
         </div>

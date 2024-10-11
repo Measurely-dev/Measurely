@@ -3,7 +3,6 @@ import WebButton from "./button";
 
 export default function WebFooterHeader(props: {
   className?: string;
-  type: "default" | "waitlist";
 }) {
   return (
     <div
@@ -15,9 +14,9 @@ export default function WebFooterHeader(props: {
       <div className="text-2xl text-secondary max-md:text-xl max-sm:text-base">
       Join the developers who trust Measurely for real-time<br/> insights and seamless integration.
       </div>
-      <Link href="/waitlist">
+      <Link href="/register">
         <WebButton>
-          {props.type === "waitlist" ? "Join waitlist for free" : "Get started"}
+         Get started
         </WebButton>
       </Link>
     </div>

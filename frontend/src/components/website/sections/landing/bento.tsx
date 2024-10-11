@@ -8,9 +8,7 @@ import ContentContainer from '../../containers/content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
 import SubscriptionUiSection from './sucscriptions';
 
-export default function BentoUiSection(props: {
-  type: 'default' | 'waitlist';
-}) {
+export default function BentoUiSection() {
   const [is_client, set_is_client] = useState(false);
   const [window_width, set_window_width] = useState(0);
 
@@ -98,7 +96,7 @@ export default function BentoUiSection(props: {
             description='Seamlessly connect with your existing tools and workflows.'
           />
         </div>
-        <WebFooterHeader type={props.type} className='mt-[170px]' />
+        <WebFooterHeader className='mt-[170px]' />
       </ContentContainer>
     </div>
   );

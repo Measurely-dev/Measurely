@@ -19,9 +19,9 @@ export default function ShowcaseLandingSection(props: {
         <span className="font-mono bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 text-transparent bg-clip-text animate-gradient">Measurely</span> tracks what matters,
         <br /> grow with confidence.
       </div>
-      <Link href="/waitlist">
+      <Link href="/register">
         <WebButton className="mt-8">
-          {props.type === "waitlist" ? "Join waitlist" : "Get started"}
+         Get started
         </WebButton>
       </Link>
       <Card5 className="absolute -left-16 -top-8 rotate-[9deg] max-lg:hidden" />
