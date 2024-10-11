@@ -74,38 +74,38 @@ export default function Password() {
               last_name === ""
             ) {
               toast.error("Please fill in all fields");
+              set_loading(false);
               return;
             }
 
             if (password !== retype) {
               toast.error("The passwords must be the same");
-            } else {
-              fetch(process.env.NEXT_PUBLIC_API_URL + "/register", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                  email: email,
-                  firstname: first_name,
-                  lastname: last_name,
-                  password: password,
-                }),
-              })
-                .then((res) => {
-                  if (!res.ok) {
-                    res.text().then((text) => {
-                      toast.error(text);
-                    });
-                  } else {
-                    router.push("/dashboard");
-                  }
-                })
-                .finally(() => {
-                  set_loading(false);
-                });
+              set_loading(false);
+              return;
             }
+
+            fetch(process.env.NEXT_PUBLIC_API_URL + "/register", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                email: email,
+                firstname: first_name,
+                lastname: last_name,
+                password: password,
+              }),
+            }).then((res) => {
+              if (!res.ok) {
+                res.text().then((text) => {
+                  toast.error(text);
+                });
+                set_loading(false);
+              } else {
+                router.push("/dashboard");
+              }
+            });
           }}
         />
       </ContentContainer>

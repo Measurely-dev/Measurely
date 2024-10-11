@@ -76,17 +76,13 @@ export default function Register() {
                   res.text().then((text) => {
                     toast.error(text);
                   });
+                  set_loading(false)
                 } else {
                   router.push(
                     `/password?email=${email}&first_name=${first_name}&last_name=${last_name}`
                   );
                 }
               })
-              .finally(() => {
-                set_loading(false);
-              });
-
-            set_loading(false);
           }}
           policies
         />

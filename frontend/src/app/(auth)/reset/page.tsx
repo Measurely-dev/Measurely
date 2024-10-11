@@ -48,6 +48,8 @@ export default function PasswordReset() {
               const email = form.get("email");
               if (email === "") {
                 toast.error("Email is required");
+                setLoading(false);
+                return;
               }
 
               fetch(process.env.NEXT_PUBLIC_API_URL + "/forgot-password", {
@@ -65,14 +67,12 @@ export default function PasswordReset() {
                     res.text().then((text) => {
                       toast.error(text);
                     });
+                    setLoading(false)
                   } else {
                     setEmail(email?.toString() ?? "");
                     set_view(1);
                   }
                 })
-                .finally(() => {
-                  setLoading(false);
-                });
             }}
           />
         ) : (
@@ -131,13 +131,11 @@ export default function PasswordReset() {
                     res.text().then((text) => {
                       toast.error(text);
                     });
+                    setLoading(false);
                   } else {
                     set_view(5);
                   }
                 })
-                .finally(() => {
-                  setLoading(false);
-                });
             }}
           />
         ) : (

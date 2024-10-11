@@ -52,6 +52,7 @@ export default function SignIn() {
 
             if (password === "" || email === "") {
               toast.error("Please enter email and password");
+              setLoading(false)
               return;
             }
 
@@ -72,13 +73,11 @@ export default function SignIn() {
                   res.text().then((text) => {
                     toast.error(text);
                   });
+                  setLoading(false)
                 } else {
                   router.push("/dashboard");
                 }
               })
-              .finally(() => {
-                setLoading(false);
-              });
           }}
         />
       </ContentContainer>
