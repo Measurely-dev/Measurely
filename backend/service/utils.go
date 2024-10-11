@@ -55,7 +55,8 @@ func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Co
 	cookie := http.Cookie{
 		Name:     "measurely-session",
 		Value:    encrypted,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
+		Domain:   "measurely.dev",
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
@@ -83,7 +84,7 @@ func (s *Service) SendEmail(to string, fields MailFields) error {
 	}
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", "logtracetest@gmail.com")
+	m.SetHeader("From", "Info@measurely.dev")
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", fields.Subject)
 	m.SetBody("text/html", buffer.String())

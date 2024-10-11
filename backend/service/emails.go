@@ -49,15 +49,12 @@ func (s *Service) ProcessEmails() {
 }
 
 func (s *Service) ScheduleEmail(request SendEmailRequest) error {
-	// UNCOMMENT WHEN RELEASE
+	bytes, jerr := json.Marshal(request)
+	if jerr != nil {
+		return jerr
+	}
+	if err := s.redisClient.RPush(s.redisCtx, "emails:send", bytes).Err(); err != nil {
+		return err
+	}
 	return nil
-
-	// bytes, jerr := json.Marshal(request)
-	// if jerr != nil {
-	// 	return jerr
-	// }
-	// if err := s.redisClient.RPush(s.redisCtx, "emails:send", bytes).Err(); err != nil {
-	// 	return err
-	// }
-	// return nil
 }
