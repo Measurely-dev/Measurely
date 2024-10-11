@@ -40,7 +40,7 @@ export default function PasswordReset() {
                 type: "email",
               },
             ]}
-            button="Contine"
+            button="Send"
             btn_loading={loading}
             action={(form) => {
               setLoading(true);
