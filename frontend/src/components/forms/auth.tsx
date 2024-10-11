@@ -144,7 +144,7 @@ export default function AuthForm(props: {
                   name={input.name}
                   defaultValue={input.default}
                   placeholder={input.placeholder}
-                  className="rounded-[6px] bg-background py-2"
+                  className="rounded-[8px] bg-background py-2"
                 />
               </div>
             );
