@@ -22,7 +22,7 @@ import (
 func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error ", http.StatusInternalServerError)
 		return
 	}
 
