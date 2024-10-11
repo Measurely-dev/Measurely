@@ -294,7 +294,7 @@ func (db *DB) GetApplications(userid uuid.UUID) ([]types.Application, error) {
 	var apps []types.Application
 	for rows.Next() {
 		var app types.Application
-		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Description, &app.Image)
+		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Image)
 		if err != nil {
 			return []types.Application{}, err
 		}
@@ -315,7 +315,7 @@ func (db *DB) GetApplicationByName(userid uuid.UUID, name string) (types.Applica
 }
 func (db *DB) CreateApplication(app types.Application) (types.Application, error) {
 	var new_app types.Application
-	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name, description) VALUES ($1, $2, $3, $4) RETURNING *", app.UserId, app.ApiKey, app.Name, app.Description).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Description, &new_app.Image)
+	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", app.UserId, app.ApiKey, app.Name).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Image)
 	if err != nil {
 		return new_app, err
 	}

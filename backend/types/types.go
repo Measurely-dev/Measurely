@@ -44,12 +44,11 @@ type User struct {
 }
 
 type Application struct {
-	Id          uuid.UUID `json:"id"`
-	ApiKey      string    `json:"apikey"`
-	UserId      uuid.UUID `json:"userid"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Image       string    `json:"image"`
+	Id     uuid.UUID `json:"id"`
+	ApiKey string    `json:"apikey"`
+	UserId uuid.UUID `json:"userid"`
+	Name   string    `json:"name"`
+	Image  string    `json:"image"`
 }
 
 type MetricGroup struct {

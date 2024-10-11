@@ -2,7 +2,6 @@ export interface Application {
   id: string;
   apikey : string;
   name: string;
-  description: string;
   image: string;
   groups: null | Group[]
 }

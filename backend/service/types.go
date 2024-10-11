@@ -61,8 +61,7 @@ type DeleteAccountRequest struct {
 }
 
 type CreateApplicationRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name string `json:"name"`
 }
 
 type UpdateApplicationImageRequest struct {

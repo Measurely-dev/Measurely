@@ -922,10 +922,9 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_app, err := s.DB.CreateApplication(types.Application{
-		ApiKey:      api_key,
-		Name:        request.Name,
-		Description: request.Description,
-		UserId:      val,
+		ApiKey: api_key,
+		Name:   request.Name,
+		UserId: val,
 	})
 	if err != nil {
 		log.Println(err)
