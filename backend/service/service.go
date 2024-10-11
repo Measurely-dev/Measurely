@@ -518,6 +518,8 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
+		Domain:   "measurely.dev",
+		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   true,
