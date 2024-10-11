@@ -5,12 +5,17 @@ import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function SignIn() {
   const params = useSearchParams();
 
-  const [error, setError] = useState(params.get("error") ?? "");
+  useEffect(() => {
+    if (params.get("error") !== null) {
+      toast.error(params.get("error") as string);
+    }
+  }, []);
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -39,16 +44,14 @@ export default function SignIn() {
           button="Sign in"
           forgot_password
           btn_loading={loading}
-          error={error}
           action={(form) => {
             setLoading(true);
-            setError('');
 
             const password = form.get("password");
             const email = form.get("email");
 
             if (password === "" || email === "") {
-              setError("Please enter email and password");
+              toast.error("Please enter email and password");
               return;
             }
 
@@ -67,7 +70,7 @@ export default function SignIn() {
               .then((res) => {
                 if (!res.ok) {
                   res.text().then((text) => {
-                    setError(text);
+                    toast.error(text);
                   });
                 } else {
                   router.push("/dashboard");

@@ -4,15 +4,13 @@ import AuthForm from "@/components/forms/auth";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
-import { Router } from "lucide-react";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { json } from "stream/consumers";
+import { toast } from "sonner";
 
 export default function Password() {
   const searchParams = useSearchParams();
 
-  const [error, set_error] = useState("");
   const [loading, set_loading] = useState(false);
   const [back_query, set_back_query] = useState("");
 
@@ -58,11 +56,9 @@ export default function Password() {
             },
           ]}
           button="Continue"
-          error={error}
           btn_loading={loading}
           action={async (formdata) => {
             set_loading(true);
-            set_error("");
 
             const email = searchParams.get("email")?.toString() ?? "";
             const first_name = searchParams.get("first_name")?.toString() ?? "";
@@ -77,12 +73,12 @@ export default function Password() {
               first_name === "" ||
               last_name === ""
             ) {
-              set_error("Please fill in all fields");
+              toast.error("Please fill in all fields");
               return;
             }
 
             if (password !== retype) {
-              set_error("The passwords must be the same");
+              toast.error("The passwords must be the same");
             } else {
               fetch(process.env.NEXT_PUBLIC_API_URL + "/register", {
                 method: "POST",
@@ -100,7 +96,7 @@ export default function Password() {
                 .then((res) => {
                   if (!res.ok) {
                     res.text().then((text) => {
-                      set_error(text);
+                      toast.error(text);
                     });
                   } else {
                     router.push("/dashboard");

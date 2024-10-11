@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useRouter } from "next/navigation";
-import { propagateServerField } from "next/dist/server/lib/render-server";
+import { MutableRefObject, useRef } from "react";
 
 export default function AuthForm(props: {
   title: string;
@@ -15,11 +15,11 @@ export default function AuthForm(props: {
   button: string;
   forgot_password?: boolean;
   policies?: boolean;
-  error?: string;
   btn_loading?: boolean;
   action: (formdata: FormData) => void;
 }) {
   const router = useRouter();
+  const ref = useRef<HTMLFormElement | null>(null);
   const providers = [
     // {
     //   name: 'Google',
@@ -79,9 +79,23 @@ export default function AuthForm(props: {
       ),
     },
   ];
+
+  function isDisabled(reference: MutableRefObject<HTMLFormElement | null>) {
+    if (!reference) return true;
+    if(!reference.current) return true;
+    const formdata = new FormData(reference.current);
+    for (let i = 0; i < props.form.length; i++) {
+      if (formdata.get(props.form[i].name) === "") {
+        return true;
+      }
+    }
+    return false;
+  }
+
   return (
     <form
       className="flex min-h-screen w-full items-center justify-center"
+      ref={ref}
       onSubmit={(e) => {
         e.preventDefault();
         const fromdata = new FormData(e.currentTarget);
@@ -138,6 +152,7 @@ export default function AuthForm(props: {
           <Button
             className="rounded-[8px]"
             type="submit"
+            disabled={isDisabled(ref) || props.btn_loading}
             loading={props.btn_loading}
           >
             {props.button}

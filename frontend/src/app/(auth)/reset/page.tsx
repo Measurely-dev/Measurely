@@ -6,12 +6,12 @@ import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function PasswordReset() {
   const searchParams = useSearchParams();
   const [view, set_view] = useState(6); // 0 : email input, 1 : sent email , 2 : password input, 3 : fail, 5 : success, 6 : loading
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
@@ -41,15 +41,13 @@ export default function PasswordReset() {
               },
             ]}
             button="Contine"
-            error={error}
             btn_loading={loading}
             action={(form) => {
               setLoading(true);
-              setError("");
 
               const email = form.get("email");
               if (email === "") {
-                setError("Email is required");
+                toast.error("Email is required");
               }
 
               fetch(process.env.NEXT_PUBLIC_API_URL + "/forgot-password", {
@@ -65,7 +63,7 @@ export default function PasswordReset() {
                 .then((res) => {
                   if (!res.ok) {
                     res.text().then((text) => {
-                      setError(text);
+                      toast.error(text);
                     });
                   } else {
                     setEmail(email?.toString() ?? "");
@@ -102,21 +100,19 @@ export default function PasswordReset() {
             ]}
             button="Reset"
             btn_loading={loading}
-            error={error}
             action={(form) => {
               setLoading(true);
-              setError("");
 
               const password = form.get("password");
               const retype = form.get("retype");
 
               if (password === "" || retype === "") {
-                setError("Please enter password");
+                toast.error("Password is required");
                 return;
               }
 
               if (retype !== password) {
-                setError("Passwords do not match");
+                toast.error("Passwords do not match");
                 return;
               }
 
@@ -133,7 +129,7 @@ export default function PasswordReset() {
                 .then((res) => {
                   if (!res.ok) {
                     res.text().then((text) => {
-                      setError(text);
+                      toast.error(text);
                     });
                   } else {
                     set_view(5);
