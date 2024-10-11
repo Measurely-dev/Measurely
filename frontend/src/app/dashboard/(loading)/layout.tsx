@@ -1,7 +1,7 @@
 "use client";
 
 import { AppsContext, UserContext } from "@/dashContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LogoSvg from "@/components/global/logoSvg";
 
@@ -10,7 +10,7 @@ export default function DashboardContentLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { applications, setApplications } = useContext(AppsContext);
+  const { applications, setApplications, setActiveApp } = useContext(AppsContext);
   const { user, setUser } = useContext(UserContext);
 
   const router = useRouter();
@@ -70,10 +70,10 @@ export default function DashboardContentLayout({
             json[i].groups = null;
           }
           setApplications(json);
+          setActiveApp(parseInt(localStorage.getItem("activeApp") ?? "0"));
         });
     }
   }, []);
-
 
   return (
     <>

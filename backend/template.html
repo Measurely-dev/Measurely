@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        height: 100vh;
+        width: 100vw;
+        display: table;
+        margin: 0;
+      }
+
+      .content {
+        width: 500px;
+        height: fit-content;
+        background-color: #ffffff;
+        padding: 20px 20px;
+        margin: 0 auto;
+      }
+
+      .header {
+        width: 100%;
+        color: #ffffff;
+        margin-bottom: 30px;
+        display: table;
+      }
+
+      .logo {
+        display: table-cell;
+        background-color: #09090B;
+        width: 30px;
+        height: 45px;
+      }
+
+      .title {
+        display: table-cell;
+        font-family: "Montserrat Alternates", sans-serif;
+        font-weight: 700;
+        font-size: 2em;
+      }
+
+      section {
+        margin-top: 50px;
+      }
+
+      .subject {
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 2em;
+        width: 75%;
+        color: #09090B;
+        text-align: left;
+      }
+
+      .footer {
+        width: 100%;
+        text-align: center;
+        padding: 50px 0;
+        color: #ffffff;
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        font-size: 1em;
+        opacity: 70%;
+      }
+
+      .text {
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        font-size: 1.5em;
+        color: #09090B;
+        width: 90%;
+        text-align: left;
+      }
+
+      .button {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .button-cmp {
+        background-color: #09090B;
+        text-decoration: none;
+        padding: 7px 20px;
+        border-radius: 10px;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 1.2em;
+        color: #ffffff;
+        transition: all 0.2s;
+        display: inline-block;
+      }
+
+      @media screen and (max-width: 373px) {
+        .title {
+          font-size: 1.5em;
+        }
+        .subject {
+          font-size: 1.5em;
+        }
+
+        .text {
+          font-size: 1.2em;
+        }
+
+        .button {
+          font-size: 1em;
+        }
+
+        .footer {
+          font-size: 0.9em;
+        }
+      }
+
+      @media screen and (max-width: 567px) {
+        .content {
+          width: 400px;
+        }
+      }
+
+      @media screen and (max-width: 459px) {
+        .content {
+          width: 350px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="content">
+      <table class="header" cellspacing="0" cellpadding="0">
+        <tr>
+          <td class="logo"></td>
+          <td>
+            <h1 class="title">Measurely</h1>
+          </td>
+        </tr>
+      </table>
+
+      {{ if ne .Subject ""}}
+      <section>
+        <h1 class="subject">{{ .Subject }}</h1>
+      </section>
+      {{ end }} {{ if ne .Content ""}}
+      <section>
+        <p class="text">{{ .Content }}</p>
+      </section>
+      {{ end }} {{ if ne .Link ""}}
+      <section class="button">
+        <a href="{{ .Link }}" class="button-cmp">{{ .ButtonTitle }}</a>
+      </section>
+      {{ end }}
+
+      <div class="footer">
+        <h4 class="copyright">Copyright © 2024 - All rights reserved</h4>
+      </div>
+    </div>
+  </body>
+</html>

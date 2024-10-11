@@ -49,7 +49,7 @@ func New() Service {
 	block_key := []byte(os.Getenv("BLOCK_KEY"))
 	securecookie := securecookie.New(hash_key, block_key)
 
-	dialer := gomail.NewDialer("smtp.gmail.com", 587, "logtracetest", os.Getenv("APP_PWD"))
+	dialer := gomail.NewDialer("smtp.gmail.com", 587, "Info@measurely.dev", os.Getenv("APP_PWD"))
 	if dialer == nil {
 		log.Fatalln("Failed to create dialer")
 	}
@@ -516,15 +516,18 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
-	cookie := http.Cookie{
+	var cookie http.Cookie = http.Cookie{
 		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
-		Domain:   "measurely.dev",
-		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   true,
+	}
+
+	if os.Getenv("ENVIRONMENT") == "production" {
+		cookie.Domain = "measurely.dev"
+		cookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, &cookie)

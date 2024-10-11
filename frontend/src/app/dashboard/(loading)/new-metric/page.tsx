@@ -98,7 +98,7 @@ export default function NewMetric() {
           )}
         </ContentContainer>
       </WebContainer>
-      <Footer border bg="secondary" type="default" />
+      <Footer border bg="secondary"  />
     </div>
   );
 }

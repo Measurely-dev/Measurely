@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	netmail "net/mail"
+	"os"
 	"strconv"
 	"text/template"
 	"time"
@@ -52,15 +53,18 @@ func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Co
 		return http.Cookie{}, err
 	}
 
-	cookie := http.Cookie{
+	var cookie http.Cookie = http.Cookie{
 		Name:     "measurely-session",
 		Value:    encrypted,
-		SameSite: http.SameSiteNoneMode,
-		Domain:   "measurely.dev",
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
 		Expires:  time.Now().Add(72 * time.Hour),
+	}
+
+	if os.Getenv("ENVIRONMENT") == "production" {
+		cookie.Domain = "measurely.dev"
+		cookie.SameSite = http.SameSiteNoneMode
 	}
 
 	return cookie, nil

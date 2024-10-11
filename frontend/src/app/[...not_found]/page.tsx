@@ -21,7 +21,7 @@ export default function NotFound() {
           </div>
         </ContentContainer>
       </WebContainer>
-      <Footer bg="default" type="default" border={false} />
+      <Footer bg="default"  border={false} />
     </div>
   );
 }

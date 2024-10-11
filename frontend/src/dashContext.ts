@@ -8,7 +8,7 @@ export interface UserContextType {
 
 export interface AppsContextType {
   applications: Application[] | null;
-  setApplications: Dispatch<React.SetStateAction<Application[] | null>>; 
+  setApplications: Dispatch<React.SetStateAction<Application[] | null>>;
   activeApp: number;
   setActiveApp: Dispatch<React.SetStateAction<number>>;
 }
@@ -20,6 +20,6 @@ export const UserContext = createContext<UserContextType>({
 export const AppsContext = createContext<AppsContextType>({
   applications: null,
   setApplications: () => {},
-  activeApp: 0,
+  activeApp: -1,
   setActiveApp: () => {},
 });

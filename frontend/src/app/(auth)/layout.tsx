@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
       <div className='min-h-screen w-screen'>{children}</div>
-      <Footer bg='secondary' type='default' border={false} />
+      <Footer bg='secondary' border={false} />
     </div>
   );
 }

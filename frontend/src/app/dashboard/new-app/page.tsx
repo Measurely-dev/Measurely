@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import AuthNavbar from "@/components/website/layout/authNav/navbar";
@@ -27,8 +26,6 @@ export default function NewApp() {
 
   const { setActiveApp, applications, setApplications } =
     useContext(AppsContext);
-
-  console.log(applications);
 
   function createApp() {
     fetch(process.env.NEXT_PUBLIC_API_URL + "/application", {
@@ -79,6 +76,7 @@ export default function NewApp() {
         json.groups = null;
         setApplications((apps) => [...(apps ?? []), json]);
         setActiveApp(applications?.length ?? 0);
+        localStorage.setItem("activeApp", (applications?.length ?? 0).toString());
         router.push("/dashboard");
       });
   }
@@ -141,7 +139,7 @@ export default function NewApp() {
           </div>
         </ContentContainer>
       </WebContainer>
-      <Footer border bg="secondary" type="default" />
+      <Footer border bg="secondary"/>
     </div>
   );
 }
