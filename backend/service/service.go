@@ -266,8 +266,6 @@ func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
 		githubClientID,
 	)
 
-	log.Println("Redirect URL: ", redirectURL)
-
 	http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 }
 
