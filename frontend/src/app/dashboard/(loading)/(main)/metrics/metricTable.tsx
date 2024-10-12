@@ -118,7 +118,7 @@ const Item = (props: { group: Group; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const [total, setTotal] = useState<number | null>(null);
 
-  const { applications, activeApp } = useContext(AppsContext);
+  const { applications, activeApp, setApplications } = useContext(AppsContext);
 
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
@@ -144,7 +144,7 @@ const Item = (props: { group: Group; index: number }) => {
 
   const fetchMetricEvents = async (id: string): Promise<MetricEvent[]> => {
     const appid = applications?.[activeApp].id;
-
+    console.log("fetching metric events");
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL +
         `/events?appid=${appid}&groupid=${props.group.id}&metricid=${id}&offset=0`,
@@ -180,20 +180,72 @@ const Item = (props: { group: Group; index: number }) => {
     let daily = 0;
     if (props.group.type === GroupType.Base) {
       setTotal(props.group.metrics[0].total);
-      const events = await fetchMetricEvents(props.group.metrics[0].id);
+      const metric = props.group.metrics[0];
+      const events =
+        props.group.metrics[0].events
+          ? props.group.metrics[0].events
+          : await fetchMetricEvents(props.group.metrics[0].id);
       for (let i = 0; i < events.length; i++) {
         daily += events[i].value;
       }
+      metric.events = events;
+
+      if (applications !== null) {
+        setApplications(
+          applications?.map((app) => {
+            if (app.id === props.group.appid) {
+              return Object.assign({}, app, {
+                groups: app.groups?.map((g) => {
+                  if (g.id === props.group.id) {
+                    return Object.assign({}, g, {
+                      metrics: [metric],
+                    });
+                  }
+                }),
+              });
+            } else return app;
+          })
+        );
+      }
     } else if (props.group.type === GroupType.Dual) {
       setTotal(props.group.metrics[0].total - props.group.metrics[1].total);
-      const pos = await fetchMetricEvents(props.group.metrics[0].id);
-      const neg = await fetchMetricEvents(props.group.metrics[1].id);
+      const metric_pos = props.group.metrics[0];
+      const metric_neg = props.group.metrics[1];
+      const pos =
+        props.group.metrics[0].events
+          ? props.group.metrics[0].events
+          : await fetchMetricEvents(props.group.metrics[0].id);
+      const neg =
+        props.group.metrics[1].events
+          ? props.group.metrics[1].events
+          : await fetchMetricEvents(props.group.metrics[1].id);
 
       for (let i = 0; i < pos.length; i++) {
         daily += pos[i].value;
       }
       for (let i = 0; i < neg.length; i++) {
         daily -= neg[i].value;
+      }
+
+      metric_pos.events = pos;
+      metric_neg.events = neg;
+
+      if (applications !== null) {
+        setApplications(
+          applications?.map((app) => {
+            if (app.id === props.group.appid) {
+              return Object.assign({}, app, {
+                groups: app.groups?.map((g) => {
+                  if (g.id === props.group.id) {
+                    return Object.assign({}, g, {
+                      metrics: [metric_pos, metric_neg],
+                    });
+                  }
+                }),
+              });
+            } else return app;
+          })
+        );
       }
     }
 

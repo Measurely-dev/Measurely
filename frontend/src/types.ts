@@ -20,6 +20,7 @@ export interface Metric {
   id : string;
   name: string;
   total: number;
+  events : MetricEvent[];
 }
 
 export interface MetricEvent {
