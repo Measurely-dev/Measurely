@@ -10,7 +10,8 @@ export default function DashboardContentLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { applications, setApplications, setActiveApp } = useContext(AppsContext);
+  const { applications, setApplications, setActiveApp } =
+    useContext(AppsContext);
   const { user, setUser } = useContext(UserContext);
 
   const router = useRouter();
@@ -54,15 +55,14 @@ export default function DashboardContentLayout({
       })
         .then((res) => {
           if (!res.ok) {
-            res.text().then((text) => {
-              router.push("/error?message=" + text);
-            });
+            return [];
           } else {
             return res.json();
           }
         })
         .then((json) => {
-          if (json === null || json.length === 0) {
+          if (json === null) json = [];
+          if (json.length === 0) {
             router.push("/dashboard/new-app");
             return;
           }

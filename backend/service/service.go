@@ -266,7 +266,7 @@ func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
 		githubClientID,
 	)
 
-	log.Println(redirectURL)
+	log.Println("Redirect URL: ", redirectURL)
 
 	http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 }
@@ -525,7 +525,7 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 	}
 
-	if os.Getenv("ENVIRONMENT") == "production" {
+	if os.Getenv("ENV") == "production" {
 		cookie.Domain = "measurely.dev"
 		cookie.SameSite = http.SameSiteNoneMode
 	}

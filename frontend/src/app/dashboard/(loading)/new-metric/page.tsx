@@ -98,7 +98,7 @@ export default function NewMetric() {
           )}
         </ContentContainer>
       </WebContainer>
-      <Footer border bg="secondary"  />
+      <Footer border bg="secondary" />
     </div>
   );
 }
@@ -149,114 +149,118 @@ function BasicStep(props: { setStep: (props: number) => void }) {
           We&apos;ll fill the billing details automatically if we find the
           company.
         </div>
-        <div className="flex w-full flex-col gap-3">
-          <div className="flex flex-col gap-4 my-2">
-            <div className="flex w-full flex-col gap-3">
-              <Label>Metric name</Label>
-              <Input
-                placeholder="New users, Deleted projects, Suspended accounts"
-                type="email"
-                className="h-11 rounded-[12px]"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="flex w-full flex-col gap-3">
-              <Label>Base value</Label>
-              <div className="flex flex-col gap-1">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setLoading(true);
+            if (name === "") {
+              toast.error("Please enter a name");
+              setLoading(false)
+              return;
+            }
+
+            fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                name: name,
+                basevalue: baseValue,
+                type: GroupType.Base,
+                appid: applications?.[activeApp].id,
+                metrics: ["default"],
+              }),
+            })
+              .then((res) => {
+                if (!res.ok) {
+                  res.text().then((text) => {
+                    toast.error(text);
+                    setLoading(false)
+                  });
+                } else {
+                  return res.json();
+                }
+              })
+              .then((json) => {
+                if (
+                  json === null ||
+                  applications?.[activeApp].groups === null ||
+                  applications === null
+                ) {
+                  return;
+                }
+                setApplications(
+                  applications?.map((v, i) =>
+                    i === activeApp
+                      ? Object.assign({}, v, {
+                          groups: [
+                            ...(applications[activeApp].groups ?? []),
+                            json,
+                          ],
+                        })
+                      : v
+                  )
+                );
+
+                toast.success("Metric was succesfully created");
+                router.push("/dashboard/metrics");
+              })
+
+          }}
+        >
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex flex-col gap-4 my-2">
+              <div className="flex w-full flex-col gap-3">
+                <Label>Metric name</Label>
                 <Input
-                  placeholder="optional"
-                  type="number"
-                  value={baseValue}
-                  onChange={(e) => setBaseValue(Number(e.target.value))}
+                  placeholder="New users, Deleted projects, Suspended accounts"
+                  type="email"
                   className="h-11 rounded-[12px]"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
-                <Label className="text-xs font-normal text-secondary leading-tight">
-                  Base value stands for the value of the metric before using
-                  measurely to measure the metric
-                </Label>
+              </div>
+              <div className="flex w-full flex-col gap-3">
+                <Label>Base value</Label>
+                <div className="flex flex-col gap-1">
+                  <Input
+                    placeholder="optional"
+                    type="number"
+                    value={baseValue}
+                    onChange={(e) => setBaseValue(Number(e.target.value))}
+                    className="h-11 rounded-[12px]"
+                  />
+                  <Label className="text-xs font-normal text-secondary leading-tight">
+                    Base value stands for the value of the metric before using
+                    measurely to measure the metric
+                  </Label>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-row gap-2 w-full">
-          <Button
-            type="button"
-            variant="secondary"
-            className="rounded-[12px] w-full"
-            onClick={() => props.setStep(1)}
-          >
-            Back
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            loading={loading}
-            disabled={name === "" || loading}
-            className="rounded-[12px] w-full"
-            onClick={() => {
-              setLoading(true);
-              if (name === "") {
-                toast.error("Name cannot be empty");
-                return;
-              }
-
-              fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                  name: name,
-                  basevalue: baseValue,
-                  type: GroupType.Base,
-                  appid: applications?.[activeApp].id,
-                  metrics: ["default"],
-                }),
-              })
-                .then((res) => {
-                  if (!res.ok) {
-                    res.text().then((text) => {
-                      toast.error(text);
-                    });
-                  } else {
-                    return res.json();
-                  }
-                })
-                .then((json) => {
-                  if (
-                    json === null ||
-                    applications?.[activeApp].groups === null ||
-                    applications === null
-                  ) {
-                    return;
-                  }
-                  toast.success('Metric was succesfully created')
-                  setApplications(
-                    applications?.map((v, i) =>
-                      i === activeApp
-                        ? Object.assign({}, v, {
-                            groups: [
-                              ...(applications[activeApp].groups ?? []),
-                              json,
-                            ],
-                          })
-                        : v
-                    )
-                  );
-
-                  router.push("/dashboard/metrics");
-                })
-                .finally(() => {
-                  setLoading(false);
-                });
-            }}
-          >
-            Create
-          </Button>
-        </div>
+          <div className="flex flex-row gap-2 w-full">
+            <Button
+              type="button"
+              variant="secondary"
+              className="rounded-[12px] w-full"
+              onClick={() => props.setStep(1)}
+            >
+              Back
+            </Button>
+            <Button
+              type="submit"
+              variant="default"
+              loading={loading}
+              disabled={name === "" || loading}
+              className="rounded-[12px] w-full"
+            >
+              Create
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -275,167 +279,170 @@ function DualStep(props: { setStep: (props: number) => void }) {
 
   return (
     <div className="mx-auto flex w-[500px] flex-col gap-6">
-      <div className="flex flex-col gap-[5px]">
-        <div className="text-xl font-medium">Dual metric</div>
-        <div className="text-sm text-secondary">
-          We&apos;ll fill the billing details automatically if we find the
-          company.
-        </div>
-        <div className="flex w-full flex-col gap-3">
-          <div className="flex flex-col gap-4 my-2">
-            <div className="flex w-full flex-col gap-3">
-              <Label>Metric name</Label>
-              <Input
-                placeholder="Accounts, Transfers"
-                type="email"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-11 rounded-[12px]"
-              />
-            </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setLoading(true);
+          if (name === "") {
+            toast.error("Please enter a name");
+            setLoading(false);
+            return;
+          }
 
-            <Label className="flex flex-col gap-3">
-              Variable naming
-              <Select
-                defaultValue={"auto"}
-                onValueChange={(e) => {
-                  setNamingType(e);
-                  if (e === "manual") {
-                    setNamePos("");
-                    setNameNeg("");
-                  } else {
-                    setNamePos("added");
-                    setNameNeg("removed");
-                  }
-                }}
-              >
-                <SelectTrigger className="border h-11">
-                  <SelectValue placeholder="Select a type of naming" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value={"auto"}>Automatic</SelectItem>
-                    <SelectItem value={"manual"}>Manual</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Label>
-            {namingType === "auto" ? (
-              <></>
-            ) : (
-              <>
-                <Separator className="my-2" />
-                <div className="flex w-full flex-col gap-3">
-                  <Label>Positive variable name</Label>
-                  <Input
-                    placeholder="Account created, transfer sent"
-                    type="email"
-                    className="h-11 rounded-[12px]"
-                    value={namePos}
-                    onChange={(e) => {
-                      setNamePos(e.target.value);
-                    }}
-                  />
-                </div>
-
-                <div className="flex w-full flex-col gap-3">
-                  <Label>Negative variable name</Label>
-                  <Input
-                    placeholder="Account deleted, transfer kept"
-                    type="email"
-                    className="h-11 rounded-[12px]"
-                    value={nameNeg}
-                    onChange={(e) => {
-                      setNameNeg(e.target.value);
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-row gap-2 w-full">
-          <Button
-            type="button"
-            variant="secondary"
-            className="rounded-[12px] w-full"
-            onClick={() => props.setStep(1)}
-          >
-            Back
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            loading={loading}
-            disabled={
-              loading || name === "" || namePos === "" || nameNeg === ""
-            }
-            className="rounded-[12px] w-full"
-            onClick={() => {
-              setLoading(true);
-              if (name === "") {
-                toast.error("Please enter a name");
+          fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              name: name,
+              basevalue: 0,
+              type: GroupType.Dual,
+              appid: applications?.[activeApp].id,
+              metrics: [namePos, nameNeg],
+            }),
+          })
+            .then((res) => {
+              if (!res.ok) {
+                res.text().then((text) => {
+                  toast.error(text);
+                  setLoading(false);
+                });
+              } else {
+                return res.json();
+              }
+            })
+            .then((json) => {
+              if (
+                json === null ||
+                applications?.[activeApp].groups === null ||
+                applications === null
+              ) {
                 return;
               }
 
-              fetch(process.env.NEXT_PUBLIC_API_URL + "/group", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                  name: name,
-                  basevalue: 0,
-                  type: GroupType.Dual,
-                  appid: applications?.[activeApp].id,
-                  metrics: [namePos, nameNeg],
-                }),
-              })
-                .then((res) => {
-                  if (!res.ok) {
-                    res.text().then((text) => {
-                      toast.error(text);
-                    });
-                  } else {
-                    return res.json();
-                  }
-                })
-                .then((json) => {
-                  if (
-                    json === null ||
-                    applications?.[activeApp].groups === null ||
-                    applications === null
-                  ) {
-                    return;
-                  }
+              setApplications(
+                applications?.map((v, i) =>
+                  i === activeApp
+                    ? Object.assign({}, v, {
+                        groups: [
+                          ...(applications[activeApp].groups ?? []),
+                          json,
+                        ],
+                      })
+                    : v
+                )
+              );
 
-                  setApplications(
-                    applications?.map((v, i) =>
-                      i === activeApp
-                        ? Object.assign({}, v, {
-                            groups: [
-                              ...(applications[activeApp].groups ?? []),
-                              json,
-                            ],
-                          })
-                        : v
-                    )
-                  );
+              toast.success("Metric was succesfully created");
+              router.push("/dashboard/metrics");
+            });
+        }}
+      >
+        <div className="flex flex-col gap-[5px]">
+          <div className="text-xl font-medium">Dual metric</div>
+          <div className="text-sm text-secondary">
+            We&apos;ll fill the billing details automatically if we find the
+            company.
+          </div>
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex flex-col gap-4 my-2">
+              <div className="flex w-full flex-col gap-3">
+                <Label>Metric name</Label>
+                <Input
+                  placeholder="Accounts, Transfers"
+                  type="email"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-11 rounded-[12px]"
+                />
+              </div>
 
-                  router.push("/dashboard/metrics");
-                })
-                .finally(() => {
-                  toast.success('Metric was succesfully created')
-                  setLoading(false);
-                });
-            }}
-          >
-            Create
-          </Button>
+              <Label className="flex flex-col gap-3">
+                Variable naming
+                <Select
+                  defaultValue={"auto"}
+                  onValueChange={(e) => {
+                    setNamingType(e);
+                    if (e === "manual") {
+                      setNamePos("");
+                      setNameNeg("");
+                    } else {
+                      setNamePos("added");
+                      setNameNeg("removed");
+                    }
+                  }}
+                >
+                  <SelectTrigger className="border h-11">
+                    <SelectValue placeholder="Select a type of naming" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value={"auto"}>Automatic</SelectItem>
+                      <SelectItem value={"manual"}>Manual</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Label>
+              {namingType === "auto" ? (
+                <></>
+              ) : (
+                <>
+                  <Separator className="my-2" />
+                  <div className="flex w-full flex-col gap-3">
+                    <Label>Positive variable name</Label>
+                    <Input
+                      placeholder="Account created, transfer sent"
+                      type="email"
+                      className="h-11 rounded-[12px]"
+                      value={namePos}
+                      onChange={(e) => {
+                        setNamePos(e.target.value);
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex w-full flex-col gap-3">
+                    <Label>Negative variable name</Label>
+                    <Input
+                      placeholder="Account deleted, transfer kept"
+                      type="email"
+                      className="h-11 rounded-[12px]"
+                      value={nameNeg}
+                      onChange={(e) => {
+                        setNameNeg(e.target.value);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-row gap-2 w-full">
+            <Button
+              type="button"
+              variant="secondary"
+              className="rounded-[12px] w-full"
+              onClick={() => props.setStep(1)}
+            >
+              Back
+            </Button>
+            <Button
+              type="submit"
+              variant="default"
+              loading={loading}
+              disabled={
+                loading || name === "" || namePos === "" || nameNeg === ""
+              }
+              className="rounded-[12px] w-full"
+            >
+              Create
+            </Button>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

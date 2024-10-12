@@ -22,7 +22,6 @@ CREATE TABLE Applications (
     ApiKey TEXT NOT NULL UNIQUE,
     UserId UUID NOT NULL,
     Name TEXT NOT NULL,
-    Description TEXT NULL,
     Image TEXT NOT NULL DEFAULT '',
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );

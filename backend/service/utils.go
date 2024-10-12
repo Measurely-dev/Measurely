@@ -62,7 +62,7 @@ func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Co
 		Expires:  time.Now().Add(72 * time.Hour),
 	}
 
-	if os.Getenv("ENVIRONMENT") == "production" {
+	if os.Getenv("ENV") == "production" {
 		cookie.Domain = "measurely.dev"
 		cookie.SameSite = http.SameSiteNoneMode
 	}

@@ -68,15 +68,15 @@ export default function NewApp() {
                 json.image = "app_" + json.id;
               }
             })
-            .finally(() => {
-              setLoading(false);
-            });
         }
 
         json.groups = null;
         setApplications((apps) => [...(apps ?? []), json]);
         setActiveApp(applications?.length ?? 0);
-        localStorage.setItem("activeApp", (applications?.length ?? 0).toString());
+        localStorage.setItem(
+          "activeApp",
+          (applications?.length ?? 0).toString()
+        );
         router.push("/dashboard");
       });
   }
@@ -90,56 +90,59 @@ export default function NewApp() {
           <AuthNavbar href="/dashboard" button="Dashboard" />
         )}
         <ContentContainer className="flex h-full items-center justify-center">
-          {/* /Breadcrumb */}
-          <div className="mx-auto flex w-[500px] flex-col gap-6 rounded-3xl">
-            <div className="flex flex-col gap-[5px]">
-              <div className="text-xl font-medium">
-                {applications === null
-                  ? "Create your first application"
-                  : "Create application"}
-              </div>
-              <div className="text-sm text-secondary">
-                We&apos;ll fill the billing details automatically if we find the
-                company.
-              </div>
-            </div>
-            {/* Inputs */}
-            <Inputs
-              name={name}
-              setName={setName}
-              description={description}
-              setDescription={setDescription}
-              file={file}
-              setFile={setFile}
-            />
-            {/* Continu btn */}
-            <Button
-              className="w-full rounded-[12px]"
-              loading={loading}
-              disabled={loading || name === ""}
-              onClick={() => {
-                setLoading(true);
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setLoading(true);
 
-                if (file !== null) {
-                  if (file.size > maxSize) {
-                    toast.error("The image is too large, MAX 500KB");
-                    setLoading(false);
-                    return;
-                  }
-
-                  createApp();
-                } else {
-                  createApp();
+              if (file !== null) {
+                if (file.size > maxSize) {
+                  toast.error("The image is too large, MAX 500KB");
+                  setLoading(false);
+                  return;
                 }
-              }}
-            >
-              Create application
-            </Button>
-            {/* </Link> */}
-          </div>
+              }
+
+              createApp();
+            }}
+          >
+            {/* /Breadcrumb */}
+            <div className="mx-auto flex w-[500px] flex-col gap-6 rounded-3xl">
+              <div className="flex flex-col gap-[5px]">
+                <div className="text-xl font-medium">
+                  {applications === null
+                    ? "Create your first application"
+                    : "Create application"}
+                </div>
+                <div className="text-sm text-secondary">
+                  We&apos;ll fill the billing details automatically if we find
+                  the company.
+                </div>
+              </div>
+              {/* Inputs */}
+              <Inputs
+                name={name}
+                setName={setName}
+                description={description}
+                setDescription={setDescription}
+                file={file}
+                setFile={setFile}
+              />
+              {/* Continu btn */}
+              <Button
+                className="w-full rounded-[12px]"
+                type="submit"
+                loading={loading}
+                disabled={loading || name === ""}
+              >
+                Create application
+              </Button>
+              {/* </Link> */}
+            </div>
+          </form>
         </ContentContainer>
       </WebContainer>
-      <Footer border bg="secondary"/>
+      <Footer border bg="secondary" />
     </div>
   );
 }
