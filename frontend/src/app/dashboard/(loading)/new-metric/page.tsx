@@ -216,7 +216,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                 <Label>Metric name</Label>
                 <Input
                   placeholder="New users, Deleted projects, Suspended accounts"
-                  type="email"
+                  type="text"
                   className="h-11 rounded-[12px]"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -352,7 +352,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
                 <Label>Metric name</Label>
                 <Input
                   placeholder="Accounts, Transfers"
-                  type="email"
+                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="h-11 rounded-[12px]"
@@ -394,7 +394,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
                     <Label>Positive variable name</Label>
                     <Input
                       placeholder="Account created, transfer sent"
-                      type="email"
+                      type="text"
                       className="h-11 rounded-[12px]"
                       value={namePos}
                       onChange={(e) => {
