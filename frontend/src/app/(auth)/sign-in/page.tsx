@@ -11,14 +11,16 @@ import { toast } from "sonner";
 export default function SignIn() {
   const params = useSearchParams();
 
-  useEffect(() => {
-    if (params.get("error") !== null) {
-      toast.error(params.get("error") as string);
-    }
-  }, []);
-
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (params.get("error") !== null) {
+      setTimeout(() => {
+        toast.error(params.get("error") as string);
+      })
+    }
+  }, []);
 
   return (
     <WebContainer>
@@ -52,7 +54,7 @@ export default function SignIn() {
 
             if (password === "" || email === "") {
               toast.error("Please enter email and password");
-              setLoading(false)
+              setLoading(false);
               return;
             }
 
@@ -67,17 +69,16 @@ export default function SignIn() {
                 email: email,
                 password: password,
               }),
-            })
-              .then((res) => {
-                if (!res.ok) {
-                  res.text().then((text) => {
-                    toast.error(text);
-                  });
-                  setLoading(false)
-                } else {
-                  router.push("/dashboard");
-                }
-              })
+            }).then((res) => {
+              if (!res.ok) {
+                res.text().then((text) => {
+                  toast.error(text);
+                });
+                setLoading(false);
+              } else {
+                router.push("/dashboard");
+              }
+            });
           }}
         />
       </ContentContainer>
