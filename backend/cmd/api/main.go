@@ -20,11 +20,6 @@ func main() {
 		}
 	}
 
-	log.Println(os.Getenv("ORIGIN"))
-	log.Println(os.Getenv("GITHUB_CLIENT_ID"))
-	log.Println(os.Getenv("GITHUB_SECRET"))
-	log.Println(os.Getenv("DATABASE_URL"))
-
 	service := service.New()
 	service.SetupSharedVariables()
 
