@@ -34,7 +34,7 @@ export default function SignIn() {
               label: "Email",
               name: "email",
               placeholder: "Email",
-              type: "text",
+              type: "email",
             },
             {
               label: "Password",

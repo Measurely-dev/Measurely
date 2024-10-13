@@ -42,7 +42,7 @@ export default function Register() {
               name: "email",
               default: searchParams.get("email") ?? "",
               placeholder: "Email",
-              type: "text",
+              type: "email",
             },
           ]}
           button="Create your account"
