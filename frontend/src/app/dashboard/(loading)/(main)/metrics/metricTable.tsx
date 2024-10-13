@@ -7,7 +7,6 @@ import { AlertCircle, Box, MoreHorizontal, Trash } from "react-feather";
 import { formatDistanceToNow } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import MetricDropdown from "@/components/dashboard/components/metricDropdown";
-import { Filter, Search } from "lucide-react";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
 
@@ -144,7 +143,6 @@ const Item = (props: { group: Group; index: number }) => {
 
   const fetchMetricEvents = async (id: string): Promise<MetricEvent[]> => {
     const appid = applications?.[activeApp].id;
-    console.log("fetching metric events");
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL +
         `/events?appid=${appid}&groupid=${props.group.id}&metricid=${id}&offset=0`,
@@ -173,7 +171,6 @@ const Item = (props: { group: Group; index: number }) => {
 
   const load = async () => {
     if (props.group.metrics.length === 0) {
-      alert("no metrics found");
       return;
     }
 
@@ -182,9 +179,9 @@ const Item = (props: { group: Group; index: number }) => {
       setTotal(props.group.metrics[0].total);
       const metric = props.group.metrics[0];
       const events =
-        props.group.metrics[0].events
-          ? props.group.metrics[0].events
-          : await fetchMetricEvents(props.group.metrics[0].id);
+        metric.events
+          ? metric.events
+          : await fetchMetricEvents(metric.id);
       for (let i = 0; i < events.length; i++) {
         daily += events[i].value;
       }
@@ -200,7 +197,7 @@ const Item = (props: { group: Group; index: number }) => {
                     return Object.assign({}, g, {
                       metrics: [metric],
                     });
-                  }
+                  } else return g;
                 }),
               });
             } else return app;
@@ -240,7 +237,7 @@ const Item = (props: { group: Group; index: number }) => {
                     return Object.assign({}, g, {
                       metrics: [metric_pos, metric_neg],
                     });
-                  }
+                  } else return g;
                 }),
               });
             } else return app;
