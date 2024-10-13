@@ -3,22 +3,18 @@ import { Button } from "@/components/ui/button";
 import { AppsContext } from "@/dashContext";
 import { Group, GroupType, MetricEvent } from "@/types";
 import { useContext, useEffect, useState } from "react";
-import { AlertCircle, Box, MoreHorizontal, Trash } from "react-feather";
+import { AlertCircle, Box, MoreHorizontal } from "react-feather";
 import { formatDistanceToNow } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
 import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
 
 const formattedDate = (date : Date) => {
   try {
-    // Convert the date to a specific timezone (e.g., UTC)
-    const utcDate = new Date(date);
-    const zonedDate = toZonedTime(utcDate, "UTC"); // Change 'UTC' to any specific timezone if needed
-    return formatDistanceToNow(zonedDate, { addSuffix: true });
+    return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
     console.error("Date formatting error:", error);
-    return "Invalid Date"; // Fallback if date formatting fails
+    return "Invalid Date"; 
   }
 };
 
