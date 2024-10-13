@@ -10,10 +10,10 @@ import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
 
-const formattedDate = (dateString: any) => {
+const formattedDate = (date : Date) => {
   try {
     // Convert the date to a specific timezone (e.g., UTC)
-    const utcDate = new Date(dateString);
+    const utcDate = new Date(date);
     const zonedDate = toZonedTime(utcDate, "UTC"); // Change 'UTC' to any specific timezone if needed
     return formatDistanceToNow(zonedDate, { addSuffix: true });
   } catch (error) {
