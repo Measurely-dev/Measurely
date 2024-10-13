@@ -407,7 +407,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
                     <Label>Negative variable name</Label>
                     <Input
                       placeholder="Account deleted, transfer kept"
-                      type="email"
+                      type="text"
                       className="h-11 rounded-[12px]"
                       value={nameNeg}
                       onChange={(e) => {
