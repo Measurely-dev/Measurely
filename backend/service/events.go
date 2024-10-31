@@ -11,24 +11,39 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 )
 
 func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
-	var request CreateMetricEventRequest
+	apikey := chi.URLParam(r, "apikey")
+	metricid, err := uuid.Parse(chi.URLParam(r, "metricid"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+	}
 
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		log.Println(jerr)
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if !s.RateAllow(apikey) {
+		http.Error(w, "You have exceeded the rate limit, 100 metric eventsper second", http.StatusServiceUnavailable)
 		return
 	}
 
-	if !s.RateAllow(request.ApplicationApiKey) {
-		http.Error(w, "You have exceeded the rate limit, 100 metric eventsper second", http.StatusServiceUnavailable)
+	type Value struct {
+		Value int `json:"value"`
+	}
+
+	var value Value
+
+	err = json.NewDecoder(r.Body).Decode(&value)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	request := CreateMetricEventRequest{
+		ApplicationApiKey: apikey,
+		MetricId:          metricid,
+		Value:             value.Value,
 	}
 
 	logKey := "events:process"
@@ -116,16 +131,20 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+// This function update the total value for the the metric group and creates a summery for the day.
 func (s *Service) UpdateMeterTotal() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		<-ticker.C
-
 		keys, err := s.redisClient.Keys(s.redisCtx, "metric:*:add").Result()
 		if err != nil {
 			log.Println("Failed to scan Redis keys:", err)
+			continue
+		}
+
+		if len(keys) == 0 {
 			continue
 		}
 
@@ -142,13 +161,28 @@ func (s *Service) UpdateMeterTotal() {
 			counts[metricid] = count
 		}
 
-		// report to stripe
+		if err := s.redisClient.Del(s.redisCtx, keys...).Err(); err != nil {
+			fmt.Println("Error deleting keys:", err)
+			continue
+		}
+
 		for metricid, count := range counts {
 			if count == 0 {
 				continue
 			}
 
-			s.DB.UpdateMetricTotal(uuid.MustParse(metricid), count)
+			parsedmetricid, err := uuid.Parse(metricid)
+			if err != nil {
+				log.Println("Failed to parse the metric id.")
+				return
+			}
+
+			s.DB.UpdateMetricTotal(parsedmetricid, count)
+			s.DB.CreateDailyMetricSummary(types.DailyMetricSummary{
+				Id:       metricid + strconv.Itoa(time.Now().Year()) + strconv.Itoa(time.Now().Day()) + time.Now().Month().String(),
+				MetricId: parsedmetricid,
+				Value:    count,
+			})
 
 			redisKeyOverage := fmt.Sprintf("metric:%s:add", metricid)
 			oerr := s.redisClient.Set(s.redisCtx, redisKeyOverage, 0, 0).Err()
@@ -160,7 +194,7 @@ func (s *Service) UpdateMeterTotal() {
 }
 
 func (s *Service) StoreMetricEvents() {
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -290,7 +324,7 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 				return err
 			}
 
-			s.redisClient.Set(s.redisCtx, request.ApplicationApiKey, bytes, 1*time.Minute)
+			s.redisClient.Set(s.redisCtx, request.ApplicationApiKey, bytes, 5*time.Minute)
 
 			val = string(bytes)
 
@@ -299,7 +333,7 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 			// Lock not acquired, wait and try again
 			retryCount := 0
 			maxRetries := 100
-			retryDelay := 10 * time.Millisecond
+			retryDelay := 50 * time.Millisecond
 
 			for retryCount < maxRetries {
 				time.Sleep(retryDelay)
@@ -327,21 +361,16 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 	}
 
 	// Check if the metric is disabled
-	var metricid uuid.UUID
+	var metricid uuid.UUID = request.MetricId
 	exists := false
 	for _, metric := range cache.Metrics {
 		if metric.Id == request.MetricId {
-
 			for _, group := range cache.MetricGroups {
 				if group.Id == metric.GroupId {
 					exists = true
-					if !group.Enabled {
-						return errors.New("metric is disabled")
-					}
 					break
 				}
 			}
-
 			break
 		}
 	}
@@ -362,8 +391,8 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 
 	// Create the log
 	new_event := types.MetricEvent{
-		Date:  request.Date,
-		Value: request.Value,
+		MetricId: metricid,
+		Value:    request.Value,
 	}
 
 	eventKey := "events:store"

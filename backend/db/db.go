@@ -30,18 +30,12 @@ func (d *DB) Close() error {
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
 	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, provider, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.Provider, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.Provider, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image)
-	if err != nil {
-		return new_user, err
-	}
-	return new_user, nil
+	return new_user, err
 }
 
 func (db *DB) DeleteUser(id uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM users WHERE id = $1", id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) GetUserByEmail(email string) (types.User, error) {
@@ -63,86 +57,60 @@ func (db *DB) GetUserByCustomerId(cusId string) (types.User, error) {
 
 func (db *DB) UpdateUserPassword(id uuid.UUID, password string) error {
 	_, err := db.Conn.Exec("UPDATE users SET password = $1 WHERE id = $2", password, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) UpdateUserPlan(id uuid.UUID, plan sql.Null[string]) error {
 	_, err := db.Conn.Exec("UPDATE users SET currentplan = $1 WHERE id = $2", plan, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 	_, err := db.Conn.Exec("UPDATE users SET image = $1 WHERE id = $2", image, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
 	err := db.Conn.QueryRow("INSERT INTO metrics (groupid, name, total) VALUES ($1, $2, $3) RETURNING *", metric.GroupId, metric.Name, metric.Total).Scan(&new_metric.Id, &new_metric.GroupId, &new_metric.Name, &new_metric.Total)
-	if err != nil {
-		return new_metric, err
-	}
-	return new_metric, nil
+	return new_metric, err
 }
 
 func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, date, value) VALUES (:metricid, :date, :value)", events)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value) VALUES (:metricid, :value)", events)
+	return err
+}
+
+func (db *DB) CreateDailyMetricSummary(summary types.DailyMetricSummary) error {
+	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (id, metricid, value) VALUES (:id, :metricid, :value) ON CONFLICT (id) DO UPDATE SET value = metricdailysummary.value + EXCLUDED.value`, summary)
+	return err
 }
 
 func (db *DB) CreateMetricGroup(group types.MetricGroup) (types.MetricGroup, error) {
 	var new_group types.MetricGroup
-	err := db.Conn.QueryRow("INSERT INTO metricgroups (appid, type, name, enabled) VALUES ($1, $2, $3, $4) RETURNING *", group.AppId, group.Type, group.Name, group.Enabled).Scan(&new_group.Id, &new_group.AppId, &new_group.Type, &new_group.Name, &new_group.Enabled, &new_group.Created)
-	if err != nil {
-		return new_group, err
-	}
-	return new_group, nil
+	err := db.Conn.QueryRow("INSERT INTO metricgroups (appid, type, name) VALUES ($1, $2, $3) RETURNING *", group.AppId, group.Type, group.Name).Scan(&new_group.Id, &new_group.AppId, &new_group.Type, &new_group.Name, &new_group.Created)
+	return new_group, err
 }
 
 func (db *DB) DeleteMetricGroup(metricid uuid.UUID, appid uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM metricgroups WHERE id = $1 AND appid = $2", metricid, appid)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) GetMetricGroupCount(appid uuid.UUID) (int, error) {
-	var count int
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metricgroups WHERE appid = $1 AND enabled = true", appid)
-
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
+	var count int = 0
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metricgroups WHERE appid = $1", appid)
+	return count, err
 }
 
 func (db *DB) UpdateMetricGroup(groupid uuid.UUID, appid uuid.UUID, name string) error {
 	_, err := db.Conn.Exec("UPDATE metricgroups SET name = $1 WHERE id = $2 AND appid = $3", name, groupid, appid)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) UpdateMetric(metricid uuid.UUID, groupid uuid.UUID, name string) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET name = $1 WHERE groupid = $2 AND id = $3", name, groupid, metricid)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 
 }
 
@@ -155,7 +123,7 @@ func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
 	var groups []types.MetricGroup
 	for rows.Next() {
 		var group types.MetricGroup
-		err := rows.Scan(&group.Id, &group.AppId, &group.Type, &group.Name, &group.Enabled, &group.Created)
+		err := rows.Scan(&group.Id, &group.AppId, &group.Type, &group.Name, &group.Created)
 		if err != nil {
 			return []types.MetricGroup{}, err
 		}
@@ -197,12 +165,9 @@ func (db *DB) GetMetric(id uuid.UUID, groupid uuid.UUID) (types.Metric, error) {
 }
 
 func (db *DB) GetMetricCount(groupid uuid.UUID) (int, error) {
-	var count int
+	var count int = 0
 	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE groupid = $1", groupid)
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
+	return count, err
 }
 
 func (db *DB) GetMetricEvents(metricid uuid.UUID, offset int) ([]types.MetricEvent, error) {
@@ -224,65 +189,37 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, offset int) ([]types.MetricEve
 	return events, nil
 }
 
-// func (db *DB) ToggleMetricGroup(id uuid.UUID, appid uuid.UUID, enabled bool) error {
-// 	_, err := db.Conn.Exec("UPDATE metricgroups SET enabled = $1 WHERE id = $2 AND appid = $3", enabled, id, appid)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
 func (db *DB) UpdateMetricTotal(id uuid.UUID, total int) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET total = $1 WHERE id = $2", total, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND appid = $2", id, appid)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) GetApplication(id uuid.UUID, userid uuid.UUID) (types.Application, error) {
 	var app types.Application
 	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE id = $1 AND userid = $2", id, userid)
-	if err != nil {
-		return app, err
-	}
-
-	return app, nil
+	return app, err
 }
 
 func (db *DB) UpdateApplicationImage(id uuid.UUID, image string) error {
 	_, err := db.Conn.Exec("UPDATE applications SET image = $1 WHERE id = $2", image, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) GetApplicationCountByUser(userid uuid.UUID) (int, error) {
-	var count int
+	var count int = 0
 	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM applications WHERE userid = $1", userid)
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
+	return count, err
 }
 
 func (db *DB) GetApplicationByApi(key string) (types.Application, error) {
 	var app types.Application
 	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE apikey = $1", key)
-	if err != nil {
-		return app, err
-	}
-
-	return app, nil
+	return app, err
 }
 
 func (db *DB) GetApplications(userid uuid.UUID) ([]types.Application, error) {
@@ -307,70 +244,44 @@ func (db *DB) GetApplications(userid uuid.UUID) ([]types.Application, error) {
 func (db *DB) GetApplicationByName(userid uuid.UUID, name string) (types.Application, error) {
 	var app types.Application
 	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE userid = $1 AND name = $2", userid, name)
-	if err != nil {
-		return app, err
-	}
-
-	return app, nil
+	return app, err
 }
 func (db *DB) CreateApplication(app types.Application) (types.Application, error) {
 	var new_app types.Application
 	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", app.UserId, app.ApiKey, app.Name).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Image)
-	if err != nil {
-		return new_app, err
-	}
-	return new_app, nil
+	return new_app, err
 }
 
 func (db *DB) UpdateApplicationApiKey(id uuid.UUID, apikey string) error {
 	_, err := db.Conn.Exec("UPDATE applications SET apikey = $1 WHERE id = $2", apikey, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) DeleteApplication(id uuid.UUID, userid uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM applications WHERE id = $1 AND userid = $2", id, userid)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) CreateAccountRecovery(userid uuid.UUID, code string) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
 	err := db.Conn.QueryRow("INSERT INTO accountrecovery (userid, code) VALUES ($1, $2) RETURNING *", userid, code).Scan(&account_recovery.UserId, &account_recovery.Code, &account_recovery.Id)
-	if err != nil {
-		return account_recovery, err
-	}
-
-	return account_recovery, nil
+	return account_recovery, err
 }
 func (db *DB) GetAccountRecovery(code string) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
 	err := db.Conn.Get(&account_recovery, "SELECT * FROM accountrecovery WHERE code = $1", code)
-	if err != nil {
-		return account_recovery, err
-	}
-	return account_recovery, nil
+	return account_recovery, err
 }
 
 func (db *DB) GetAccountRecoveryByUserId(userid uuid.UUID) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
 	err := db.Conn.Get(&account_recovery, "SELECT * FROM accountrecovery WHERE userid = $1", userid)
-	if err != nil {
-		return account_recovery, err
-	}
-	return account_recovery, nil
+	return account_recovery, err
 }
 
 func (db *DB) DeleteAccountRecovery(code string) error {
 	_, err := db.Conn.Exec("DELETE FROM accountrecovery WHERE code = $1", code)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) CreateFeedback(feedback types.Feedback) error {
@@ -407,10 +318,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 func (db *DB) CreatePlan(plan types.Plan) error {
 	timeframes := IntArrayToString(plan.TimeFrames)
 	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, timeframes) VALUES ($1, $2, $3, $4, $5, $6)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, timeframes)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {

@@ -34,7 +34,6 @@ CREATE TABLE MetricGroups (
     AppId UUID NOT NULL,
     Type INT NOT NULL,
     Name TEXT NOT NULL UNIQUE,
-    Enabled BOOLEAN NOT NULL DEFAULT false,
     Created TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
@@ -54,14 +53,22 @@ CREATE INDEX idx_metrics_app_id ON Metrics (GroupId, Id);
 CREATE TABLE MetricEvents (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     MetricId UUID NOT NULL,
-    Date TIMESTAMP NOT NULL,
-    Type INT NOT NULL,
+    Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Value INT NOT NULL,
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
 
 CREATE INDEX idx_metrics_events_metricid_id ON MetricEvents (MetricId);
+
+-- Create Metric daily summary table 
+CREATE TABLE MetricDailySummary (
+    Id TEXT PRIMARY KEY,
+    MetricId UUID NOT NULL,
+    Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    VALUE INT NOT NULL,
+    FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
+);
 
 
 -- Create Account Recovery table
@@ -75,7 +82,7 @@ CREATE TABLE AccountRecovery (
 -- Create Feedback table
 CREATE TABLE Feedbacks (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    Date TIMESTAMP NOT NULL,
+    Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Email TEXT NOT NULL,
     Content TEXT NOT NULL
 );
