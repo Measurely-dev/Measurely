@@ -83,7 +83,14 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+
+	start, err := time.Parse("2006-01-02", r.URL.Query().Get("start"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	end, err := time.Parse("2006-01-02", r.URL.Query().Get("end"))
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
@@ -113,17 +120,28 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get the metric events
-	metrics, err := s.DB.GetMetricEvents(metricid, offset)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+	var bytes []byte
+	if end == start {
+		// get the metric events
+		metrics, err := s.DB.GetMetricEvents(metricid, start)
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+
+		bytes, err = json.Marshal(metrics)
+	} else {
+		metricevents, err := s.DB.GetDailyMetricSummary(metricid, start, end)
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+
+		bytes, err = json.Marshal(metricevents)
 	}
 
-	bytes, jerr := json.Marshal(metrics)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusContinue)
 		return
 	}
 
@@ -411,8 +429,8 @@ func (s *Service) RateAllow(key string) bool {
 	now := time.Now()
 	bucketKey := fmt.Sprintf("rate_limit:%s", key)
 	refillKey := fmt.Sprintf("rate_limit_refill:%s", key)
-	bucketSize := 100
-	refillRate := time.Second
+	bucketSize := 15
+	refillRate := time.Minute
 
 	// Get the current token count and last refill time
 	tokenCount, err1 := s.redisClient.Get(s.redisCtx, bucketKey).Int()
