@@ -84,22 +84,32 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, err := time.Parse("2006-01-02", r.URL.Query().Get("start"))
+	mil, err := strconv.Atoi(r.URL.Query().Get("start"))
+	seconds := int64(mil) / 1000
+	nano := (int64(mil) % 1000) * int64(time.Millisecond)
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	end, err := time.Parse("2006-01-02", r.URL.Query().Get("end"))
+	start := time.Unix(seconds, nano)
+	log.Println(start)
+
+	mil, err = strconv.Atoi(r.URL.Query().Get("end"))
+	seconds = int64(mil) / 1000
+	nano = (int64(mil) % 1000) * int64(time.Millisecond)
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
+
+	end := time.Unix(seconds, nano)
+
+	forcedaily := r.URL.Query().Get("daily")
 
 	// Get application
 	_, err = s.DB.GetApplication(appid, val)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -107,7 +117,6 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	// Get Group
 	_, err = s.DB.GetMetricGroup(groupid, appid)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -115,13 +124,12 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	// Get Metric
 	_, err = s.DB.GetMetric(metricid, groupid)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	var bytes []byte
-	if end == start {
+	if end == start && forcedaily != "1" {
 		// get the metric events
 		metrics, err := s.DB.GetMetricEvents(metricid, start)
 		if err != nil {
@@ -130,6 +138,10 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		}
 
 		bytes, err = json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	} else {
 		metricevents, err := s.DB.GetDailyMetricSummary(metricid, start, end)
 		if err != nil {
@@ -137,12 +149,13 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		bytes, err = json.Marshal(metricevents)
-	}
+		log.Println(metricevents[0].Value)
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusContinue)
-		return
+		bytes, err = json.Marshal(metricevents)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	w.Write(bytes)

@@ -181,7 +181,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, day time.Time) ([]types.Metric
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.Date, &event.Value, &event.MetricId)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.Date, &event.Value)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
