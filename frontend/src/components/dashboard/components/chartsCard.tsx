@@ -179,9 +179,9 @@ function Header(props: {
   return (
     <CardHeader className="flex flex-row justify-between">
       <div className="flex gap-1 flex-col">
-        <CardTitle>Basic metrics Charts</CardTitle>
+        <CardTitle>0 New Users</CardTitle>
         <CardDescription>
-          Showing total visitors for the last month
+          Metric value for the last month
         </CardDescription>
       </div>
       <Popover open={open} onOpenChange={setOpen}>
@@ -230,60 +230,3 @@ function Header(props: {
     </CardHeader>
   );
 }
-
-// function MetricsDropdown(props: {
-//   activeGroup: number;
-//   setActiveGroup: React.Dispatch<React.SetStateAction<number>>;
-//   groups: Group[];
-// }) {
-//   const [open, setOpen] = useState(false);
-
-//   return (
-//     <Popover open={open} onOpenChange={setOpen}>
-//       <PopoverTrigger asChild>
-//         <Button
-//           variant="outline"
-//           role="combobox"
-//           aria-expanded={open}
-//           className="w-[200px] justify-between rounded-[12px]"
-//         >
-//           {value
-//             ? metrics.find((metric) => metric.value === value)?.label
-//             : "Select metric..."}
-//           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-//         </Button>
-//       </PopoverTrigger>
-//       <PopoverContent className="w-[200px] p-0 rounded-[12px] overflow-hidden border shadow-md">
-//         <Command>
-//           <CommandInput placeholder="Search metric..." />
-//           <CommandList>
-//             <CommandEmpty>No metric found.</CommandEmpty>
-//             <CommandGroup>
-//               {metrics.map((metric) => (
-//                 <CommandItem
-//                   key={metric.value}
-//                   value={metric.value}
-//                   className="rounded-[10px]"
-//                   onSelect={(currentValue) => {
-//                     setValue(
-//                       currentValue === value ? "new-accounts" : currentValue
-//                     );
-//                     setOpen(false);
-//                   }}
-//                 >
-//                   {value === metric.value ? (
-//                     <Check className={cn("mr-2 h-4 w-4 stroke-[3px]")} />
-//                   ) : (
-//                     <Box className={cn("mr-2 h-4 w-4 text-blue-500")} />
-//                   )}
-
-//                   {metric.label}
-//                 </CommandItem>
-//               ))}
-//             </CommandGroup>
-//           </CommandList>
-//         </Command>
-//       </PopoverContent>
-//     </Popover>
-//   );
-// }
