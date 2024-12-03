@@ -18,6 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Group } from "@/types";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const multiData = [
   { month: "January", positive: 186, negative: 80 },
@@ -47,7 +48,14 @@ export default function MetricInformations(props: {
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="!shadow-none !ring ring-input !rounded-[16px] !min-w-[60%] max-h-[95%]">
         <DialogHeader className="static ">
-          <DialogTitle className="!text-xl">{props.group.name}</DialogTitle>
+          <DialogTitle className="!text-xl items-center flex flex-row gap-5">
+            {props.group.name}
+            <div>
+              <div className="font-mono w-fit text-[16px] bg-accent flex rounded-[12px] justify-center px-2 items-center p-1">
+                {props.total}
+              </div>
+            </div>
+          </DialogTitle>
           <DialogClose className="absolute right-5 top-3">
             <Button
               type="button"
@@ -60,22 +68,6 @@ export default function MetricInformations(props: {
           </DialogClose>
         </DialogHeader>
         <div className="flex flex-col gap-4">
-          {props.group.type !== 1 ? (
-            <Label className="flex flex-col gap-2">
-              Total
-              <div className="font-mono text-lg bg-accent flex rounded-[12px] justify-center px-4 items-center p-2">
-                {props.total}
-              </div>
-            </Label>
-          ) : (
-            <Label className="flex flex-col gap-2">
-              Total
-              <div className="font-mono text-lg bg-green-500/20 text-green-500 flex rounded-[12px] justify-center px-4 items-center p-2">
-                {props.total}
-              </div>
-            </Label>
-          )}
-
           {props.group.type !== 1 ? (
             <></>
           ) : (
@@ -95,6 +87,7 @@ export default function MetricInformations(props: {
             </div>
           )}
         </div>
+        <DatePicker />
         {props.group.type === 0 ? (
           <>
             <ChartContainer
@@ -104,6 +97,7 @@ export default function MetricInformations(props: {
                   color: "skyblue",
                 },
               }}
+              className="bg-accent rounded-[12px] p-3"
             >
               <AreaChart
                 accessibilityLayer
@@ -150,6 +144,7 @@ export default function MetricInformations(props: {
                   color: "red",
                 },
               }}
+              className="bg-accent rounded-[12px] p-3"
             >
               <AreaChart
                 accessibilityLayer

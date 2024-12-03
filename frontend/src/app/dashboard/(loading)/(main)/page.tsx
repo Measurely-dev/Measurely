@@ -27,14 +27,6 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      {/* <ProfileCard
-        className="mt-5"
-        email={user?.email ?? "exemple@domain.com"}
-        firstName={Capitalize(user?.firstname ?? "Unknown")}
-        lastName={Capitalize(user?.lastname ?? "")}
-        image={user?.image ?? ""}
-        profileType="Owner"
-      /> */}
       {/* Project stats */}
       <MetricStats
         className="mt-5"
@@ -58,7 +50,7 @@ export default function DashboardHomePage() {
             title: "Team members",
             description: "Accros this application",
             value: "1",
-          }
+          },
         ]}
       />
       {/* Charts card (2 charts) */}
