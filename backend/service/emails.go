@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+
 func (s *Service) ProcessEmails() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
