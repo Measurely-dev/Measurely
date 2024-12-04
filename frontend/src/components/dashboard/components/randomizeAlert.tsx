@@ -10,22 +10,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { AppsContext } from "@/dashContext";
 import { ReactNode, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function RandomizeAlert(props: { children: ReactNode }) {
-  const [apiKey, setApiKey] = useState<string | null>(null);
+export default function RandomizeAlert(props: { children: ReactNode; app?: string; }) {
   const { applications, activeApp, setApplications } = useContext(AppsContext);
-
+  const [apiIndex, setApiIndex] = useState<any>(undefined)
   useEffect(() => {
-    if (applications !== null) {
-      if (applications[activeApp].apikey !== null) {
-        setApiKey(applications[activeApp].apikey);
-      }
+    if (props.app !== null && applications !== null) {
+      setApiIndex(applications.findIndex((app) => app.name === props.app))
     }
-  }, [activeApp]);
+  });
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
@@ -46,14 +42,13 @@ export default function RandomizeAlert(props: { children: ReactNode }) {
           <AlertDialogAction
             className="border rounded-[8px] border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90"
             onClick={() => {
-              setApiKey(null);
               fetch(process.env.NEXT_PUBLIC_API_URL + "/rand-apikey", {
                 method: "PATCH",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  appid: applications?.[activeApp].id,
+                  appid: applications?.[apiIndex].id,
                 }),
                 credentials: "include",
               })
@@ -68,7 +63,6 @@ export default function RandomizeAlert(props: { children: ReactNode }) {
                 })
                 .then((data) => {
                   if (data !== null && applications !== null) {
-                    setApiKey(data as string);
                     toast.success("API key succesfully randomized");
                     setApplications(
                       applications?.map((v, i) =>

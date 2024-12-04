@@ -16,10 +16,14 @@ import { EyeClosedIcon } from "@radix-ui/react-icons";
 import { ReactNode, useContext, useEffect, useState } from "react";
 import { Eye } from "react-feather";
 import { AppsContext } from "@/dashContext";
-import { toast } from "sonner";
 import { X } from "lucide-react";
+import RandomizeAlert from "./randomizeAlert";
 
-export default function ApiDialog(props: { children: ReactNode }) {
+export default function ApiDialog(props: {
+  children: ReactNode;
+  randomize?: boolean | false;
+  app?: string;
+}) {
   const [view, setView] = useState(false);
   const [copied, setCopied] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -29,6 +33,12 @@ export default function ApiDialog(props: { children: ReactNode }) {
     if (applications !== null) {
       if (applications[activeApp].apikey !== null) {
         setApiKey(applications[activeApp].apikey);
+      }
+    }
+    if (props.app !== null && applications !== null) {
+      const appIndex = applications.findIndex((app) => app.name === props.app);
+      if (appIndex !== -1 && applications[appIndex].apikey !== null) {
+        setApiKey(applications[appIndex].apikey);
       }
     }
   }, [activeApp]);
@@ -60,9 +70,8 @@ export default function ApiDialog(props: { children: ReactNode }) {
             </Label>
             <Button
               id="link"
-              className={`rounded-[8px] rounded-r-none border-r-0  ${
-                view ? "" : "text-secondary"
-              }`}
+              className={`rounded-[8px] rounded-r-none border-r-0  ${view ? "" : "text-secondary"
+                }`}
               variant={"outline"}
               onClick={() => {
                 if (apiKey !== null) {
@@ -75,10 +84,10 @@ export default function ApiDialog(props: { children: ReactNode }) {
               {copied
                 ? "Copied!"
                 : apiKey !== null
-                ? view
-                  ? apiKey
-                  : "Click to copy"
-                : "LOADING..."}
+                  ? view
+                    ? apiKey
+                    : "Click to copy"
+                  : "LOADING..."}
             </Button>
           </div>
           <Button
@@ -95,6 +104,16 @@ export default function ApiDialog(props: { children: ReactNode }) {
             )}
           </Button>
         </div>
+        {props.randomize ? (
+          <RandomizeAlert app={props?.app}>
+            <Button
+              className="rounded-[12px]"
+              variant={"destructiveOutline"}
+            >
+              Randomize key
+            </Button>
+          </RandomizeAlert>
+        ) : undefined}
       </DialogContent>
     </Dialog>
   );
