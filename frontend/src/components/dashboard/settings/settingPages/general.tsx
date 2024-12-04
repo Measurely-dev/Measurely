@@ -8,24 +8,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
-import {
-  AtSignIcon,
-  BellIcon,
-  EyeOffIcon,
-  MonitorIcon,
-  MoonIcon,
-  SunIcon,
-  TextIcon,
-} from "lucide-react";
+import { AtSignIcon, BellIcon, EyeOffIcon } from "lucide-react";
 import SettingCard from "../../components/settingCard";
 import { Label } from "@/components/ui/label";
 
@@ -90,101 +74,27 @@ export default function SettingGeneralPage() {
       />
 
       <SettingCard
-        title="Apparence"
-        description="Choose your preferred theme and font size."
-        content={
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">Theme</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose between light and dark mode.
-                </p>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <SunIcon className="h-4 w-4 mr-2" />
-                    Light
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup value="light">
-                    <DropdownMenuRadioItem value="light">
-                      <SunIcon className="h-4 w-4 mr-2" />
-                      Light
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="dark">
-                      <MoonIcon className="h-4 w-4 mr-2" />
-                      Dark
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="system">
-                      <MonitorIcon className="h-4 w-4 mr-2" />
-                      System
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">Font Size</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Adjust the font size to your preference.
-                </p>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <TextIcon className="h-4 w-4 mr-2" />
-                    Medium
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup value="medium">
-                    <DropdownMenuRadioItem value="small">
-                      Small
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="medium">
-                      Medium
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="large">
-                      Large
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        }
-      />
-
-      <SettingCard
-        title="Privacy"
-        description="Manage your privacy settings."
+        title="Danger zone"
+        danger
+        description="Be careful, each action could be dangerous."
         content={
           <div className="gap-4 flex flex-col">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  Share Usage Data
+                  Delete account
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Help us improve the product by sharing anonymous usage data.
-                </p>
-              </div>
-              <Switch id="share-usage-data" />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">
-                  Allow Third-Party Cookies
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Enable third-party cookies for personalized content.
+                <p className="text-sm text-red-500 dark:text-red-400">
+                  This action will delete this account forever.
                 </p>
               </div>
-              <Switch id="third-party-cookies" />
+              <Button
+                variant={"destructiveOutline"}
+                size={"sm"}
+                className="rounded-[12px]"
+              >
+                Delete account
+              </Button>
             </div>
           </div>
         }

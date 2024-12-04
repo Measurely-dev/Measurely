@@ -11,6 +11,8 @@ import { ReactNode, useState } from "react";
 import SettingGeneralPage from "./settingPages/general";
 import { Hexagon } from "react-feather";
 import { Button } from "@/components/ui/button";
+import SettingAppsPage from "./settingPages/apps-api";
+import SettingPaymentPage from "./settingPages/payment";
 
 export default function SettingDialog(props: { children: ReactNode }) {
   const [page, setPage] = useState("general");
@@ -29,11 +31,6 @@ export default function SettingDialog(props: { children: ReactNode }) {
       name: "Payment",
       icon: <CreditCard className="size-4 text-blue-500" />,
       value: "payment",
-    },
-    {
-      name: "My plan",
-      icon: <Stars className="size-4 text-blue-500" />,
-      value: "plan",
     },
   ];
   return (
@@ -94,6 +91,10 @@ function Content(props: {
     switch (props.page) {
       case "general":
         return <SettingGeneralPage />;
+      case "applications":
+        return <SettingAppsPage />;
+      case "payment":
+        return <SettingPaymentPage />;
     }
   }
   return (

@@ -15,13 +15,18 @@ const SettingCard = (props: {
   content: ReactNode;
   btn?: string | undefined;
   action?: (value: any) => void;
+  danger?: boolean | false;
 }) => {
   return (
-    <Card>
-      <div className={`p-6 ${props.btn !== undefined ? "" : "pb-6"}`}>
+    <Card className={props.danger ? "border-red-500/40" : ""}>
+      <div
+        className={`p-6 ${props.danger ? "text-red-500" : ""} ${props.btn !== undefined ? "" : "pb-6"} ${props.danger ? "border-red-500 bg-red-500/10 rounded-[15px]" : ""}`}
+      >
         <CardHeader className="p-0 mb-4">
           <CardTitle>{props.title}</CardTitle>
-          <CardDescription>{props.description}</CardDescription>
+          <CardDescription className={props.danger ? "text-red-500" : ""}>
+            {props.description}
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">{props.content}</CardContent>
       </div>
