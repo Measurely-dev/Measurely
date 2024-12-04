@@ -67,26 +67,6 @@ export default function MetricInformations(props: {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          {props.group.type !== 1 ? (
-            <></>
-          ) : (
-            <div className="flex flex-col gap-2 xl:flex-row xl:justify-between">
-              <Label className="flex flex-col gap-2 capitalize">
-                Positive variable total ({props.group.metrics[0].name})
-                <div className="text-green-500 font-mono text-lg">
-                  -{props.total}
-                </div>
-              </Label>
-              <Label className="flex flex-col gap-2 xl:text-end capitalize">
-                Negative variable total ({props.group.metrics[1].name})
-                <div className="text-red-500 font-mono text-lg">
-                  +{props.total}
-                </div>
-              </Label>
-            </div>
-          )}
-        </div>
         <DatePicker />
         {props.group.type === 0 ? (
           <>
@@ -132,7 +112,23 @@ export default function MetricInformations(props: {
             </ChartContainer>
           </>
         ) : (
-          <>
+          <div className="bg-accent rounded-[12px] p-3">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2 xl:flex-row xl:justify-between">
+                <Label className="flex flex-col gap-2 capitalize">
+                  Positive variable total ({props.group.metrics[0].name})
+                  <div className="text-green-500 font-mono text-lg">
+                    -{props.total}
+                  </div>
+                </Label>
+                <Label className="flex flex-col gap-2 xl:text-end capitalize">
+                  Negative variable total ({props.group.metrics[1].name})
+                  <div className="text-red-500 font-mono text-lg">
+                    +{props.total}
+                  </div>
+                </Label>
+              </div>
+            </div>
             <ChartContainer
               config={{
                 positive: {
@@ -144,7 +140,6 @@ export default function MetricInformations(props: {
                   color: "red",
                 },
               }}
-              className="bg-accent rounded-[12px] p-3"
             >
               <AreaChart
                 accessibilityLayer
@@ -170,22 +165,24 @@ export default function MetricInformations(props: {
                 <Area
                   dataKey="positive"
                   type="natural"
+                  strokeOpacity={0.6}
                   fill="lime"
-                  fillOpacity={0.4}
+                  fillOpacity={0.2}
                   stroke="lime"
                   stackId="a"
                 />
                 <Area
                   dataKey="negative"
                   type="natural"
+                  strokeOpacity={0.6}
                   fill="red"
-                  fillOpacity={0.4}
+                  fillOpacity={0.2}
                   stroke="red"
                   stackId="a"
                 />
               </AreaChart>
             </ChartContainer>
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>

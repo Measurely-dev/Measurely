@@ -21,11 +21,6 @@ export default function SettingDialog(props: { children: ReactNode }) {
       value: "general",
     },
     {
-      name: "Profile",
-      icon: <User className="size-4 text-blue-500" />,
-      value: "profile",
-    },
-    {
       name: "Apps & API",
       icon: <Hexagon className="size-4 text-blue-500" />,
       value: "applications",
@@ -102,13 +97,12 @@ function Content(props: {
     }
   }
   return (
-    <div className="w-full h-full bg-white p-8 pt-11 pl-10 flex flex-col gap-5">
-      <div className="text-2xl font-semibold">
+    <div className="w-full h-full overflow-y-scroll bg-white p-8 pt-11 pl-10 flex flex-col gap-5">
+      <div className="text-2xl font-semibold mb-3">
         {props.settings.map((setting) => {
           return setting.value === props.page ? setting.name : undefined;
         })}
       </div>
-      <Separator />
       {content()}
     </div>
   );
