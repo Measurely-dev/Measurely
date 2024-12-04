@@ -43,7 +43,7 @@ export default function SettingDialog(props: { children: ReactNode }) {
             type="button"
             size={"icon"}
             variant="secondary"
-            className="rounded-[12px]"
+            className="rounded-[12px] border"
           >
             <X />
           </Button>
