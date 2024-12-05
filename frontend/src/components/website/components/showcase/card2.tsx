@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ShowcaseCursor from "./cursor";
-import { CheckIcon } from "lucide-react";
 
 export default function Card2(props: { className?: string }) {
   return (

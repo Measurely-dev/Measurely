@@ -5,8 +5,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { CreditCard, Home, Key, Stars, User, X } from "lucide-react";
+import { CreditCard, Home, X } from "lucide-react";
 import { ReactNode, useState } from "react";
 import SettingGeneralPage from "./settingPages/general";
 import { Hexagon } from "react-feather";

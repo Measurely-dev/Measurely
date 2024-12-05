@@ -75,10 +75,10 @@ export default function ApplicationsChip() {
         })}
         <Link href={"/dashboard/new-app"}>
           <Button
-            variant={"secondary"}
-            className="mt-1 flex w-full items-center justify-start gap-2 rounded-xl bg-accent/75 px-2 text-[14px] font-medium"
+            variant={"default"}
+            className="mt-1 flex w-full items-center gap-1 rounded-[12px] text-[14px] font-medium"
           >
-            <PlusIcon className="size-6" />
+            <PlusIcon className="size-5" />
             New Application
           </Button>
         </Link>

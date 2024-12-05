@@ -1,15 +1,11 @@
 import React from "react";
-import SettingCard from "../../components/settingCard";
 import { Button } from "@/components/ui/button";
 import { useContext, useEffect, useState } from "react";
 import { AppsContext } from "@/dashContext";
-import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ApiDialog from "../../components/apiDialog";
 import Empty from "../../components/empty";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import EditDialogContent from "../../components/EditDialogContent";
-import { Group, GroupType } from "@/types";
+import { DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "react-feather";
 import Link from "next/link";
 

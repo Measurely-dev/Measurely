@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import WebChip from "@/components/website/components/chip";
-import { User, Users } from "lucide-react";
+import { Users } from "lucide-react";
 export default function TeamPage() {
   return (
     <DashboardContentContainer className="w-full flex pb-10 mt-0 h-[calc(100vh-15px-50px)]">

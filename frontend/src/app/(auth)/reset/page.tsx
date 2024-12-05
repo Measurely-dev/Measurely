@@ -20,7 +20,7 @@ export default function PasswordReset() {
     } else {
       set_view(0);
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <WebContainer>

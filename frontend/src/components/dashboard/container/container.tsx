@@ -1,4 +1,3 @@
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ReactNode } from 'react';
 
 export default function DashboardContentContainer(props: {

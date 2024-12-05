@@ -1,4 +1,3 @@
-import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import WebButton from "../../components/button";
 import { footerData } from "./footerData";
@@ -27,7 +26,7 @@ export default function Footer(props: {
             </WebButton>
           </Link>{" "}
         </div>
-        <div className="flex w-full justify-between max-md:flex-col">
+        <div className="flex w-full justify-between max-md:grid max-md:grid-cols-2 max-md:gap-5">
             {footerData.map((link, i) => {
               return <FooterLink href={link.href} key={i} name={link.title} />;
             })}

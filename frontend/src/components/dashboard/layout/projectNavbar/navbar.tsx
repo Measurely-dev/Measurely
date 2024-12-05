@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useContext, useEffect, useState } from 'react';
 
 export default function ProjectNavbar() {
   const pathname = usePathname();

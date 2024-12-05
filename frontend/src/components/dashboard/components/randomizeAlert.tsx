@@ -15,7 +15,7 @@ import { ReactNode, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function RandomizeAlert(props: { children: ReactNode; app?: string; }) {
-  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  const { applications, setApplications } = useContext(AppsContext);
   const [apiIndex, setApiIndex] = useState<any>(undefined)
   useEffect(() => {
     if (props.app !== null && applications !== null) {

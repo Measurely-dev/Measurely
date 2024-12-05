@@ -4,10 +4,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DiscordLogoIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { BookOpen, MessageCircle, MessageSquare } from "react-feather";
+import { BookOpen } from "react-feather";
 
 export default function NavbarItemChip() {
   const itemList = [

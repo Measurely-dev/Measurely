@@ -32,7 +32,7 @@ export default function Password() {
     } else {
       redirect("/register");
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <WebContainer>

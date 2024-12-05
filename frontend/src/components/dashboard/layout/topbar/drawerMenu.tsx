@@ -1,11 +1,6 @@
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
@@ -14,28 +9,20 @@ import { Button } from "@/components/ui/button";
 import {
   Book,
   Code,
-  Home,
   LogOut,
-  Menu,
-  MessageSquare,
   Plus,
   Settings,
   User,
 } from "react-feather";
-import FeedbackPopover from "../../components/feedbackPopover";
 
-import AvatarDropdown from "./dropdown";
-import ApplicationsChip from "./application";
 import Link from "next/link";
 import { ReactNode, useContext } from "react";
 import { UserContext } from "@/dashContext";
 import ApiDialog from "../../components/apiDialog";
 import { Separator } from "@/components/ui/separator";
-import { HomeIcon } from "lucide-react";
 import { navItem } from "../navbar/navbar";
 import { DialogClose } from "@/components/ui/dialog";
 import { usePathname } from "next/navigation";
-import { GearIcon } from "@radix-ui/react-icons";
 import SettingDialog from "../../settings/settingDialog";
 import { useRouter } from "next/navigation";
 export const DrawerMenu = (props: { image: any; children: ReactNode }) => {

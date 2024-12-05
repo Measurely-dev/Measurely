@@ -2,7 +2,6 @@ import ShowcaseCursor from "@/components/website/components/showcase/cursor";
 import WebContainer from "@/components/website/containers/container";
 import ContentContainer from "@/components/website/containers/content";
 import Footer from "@/components/website/layout/footer/footer";
-import Navbar from "@/components/website/layout/header/navbar";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 

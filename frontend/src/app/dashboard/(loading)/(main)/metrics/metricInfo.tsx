@@ -9,10 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ReactNode } from "react";
-import { Check, ChevronsUpDown, TrendingUp, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,

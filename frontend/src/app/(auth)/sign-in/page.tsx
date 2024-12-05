@@ -20,7 +20,7 @@ export default function SignIn() {
         toast.error(params.get("error") as string);
       });
     }
-  }, []);
+  }, [params]);
 
   return (
     <WebContainer>

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AppsContext } from "@/dashContext";
 import { Group } from "@/types";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { toast } from "sonner";
 import EditDialogContent from "./EditDialogContent";
 

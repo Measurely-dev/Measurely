@@ -1,6 +1,6 @@
 import LogoSvg from "@/components/global/logoSvg";
 import Link from "next/link";
-import { BarChart, Box, CreditCard, Settings, Users } from "react-feather";
+import { Box, Settings, Users } from "react-feather";
 import DashboardNavItem from "./navItem";
 import {
   Tooltip,
