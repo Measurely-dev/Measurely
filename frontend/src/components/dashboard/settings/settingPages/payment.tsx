@@ -16,7 +16,7 @@ export default function SettingPaymentPage() {
           </div>
         </div>
         <Button className="rounded-[12px]"  variant={"default"}>
-          View plan
+          View plans
         </Button>
       </div>
     </>

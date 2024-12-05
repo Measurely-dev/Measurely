@@ -20,7 +20,7 @@ export default function SettingGeneralPage() {
               Email
               <Input placeholder="Email" defaultValue="name@domain.com" />
             </Label>
-            <Button variant={"secondary"} className="rounded-[12px] w-fit">
+            <Button variant={"secondary"} className="rounded-[12px] ml-auto w-fit">
               Change pasword
             </Button>
           </form>

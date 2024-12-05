@@ -23,7 +23,7 @@ export default function SettingDialog(props: { children: ReactNode }) {
       value: "general",
     },
     {
-      name: "Apps & API",
+      name: "Applications",
       icon: <Hexagon className="size-4 text-blue-500" />,
       value: "applications",
     },

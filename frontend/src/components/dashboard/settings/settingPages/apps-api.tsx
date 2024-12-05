@@ -10,71 +10,89 @@ import Empty from "../../components/empty";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import EditDialogContent from "../../components/EditDialogContent";
 import { Group, GroupType } from "@/types";
+import { Plus } from "react-feather";
+import Link from "next/link";
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);
+  const [sortedApplications, setSortedApplications] = useState<any>([]);
+
+  useEffect(() => {
+    if (applications?.length !== 0 && applications !== null) {
+      const sorted = [
+        ...applications.filter(
+          (app) => app.name === applications[activeApp]?.name,
+        ),
+        ...applications.filter(
+          (app) => app.name !== applications[activeApp]?.name,
+        ),
+      ];
+      setSortedApplications(sorted);
+    }
+  }, [applications, activeApp]);
+
   return (
     <div>
-      <SettingCard
-        title="My applications"
-        description="This is a list of all the applications that you created or are apart of."
-        content={
-          <div className="flex flex-col gap-4">
-            {applications?.length === 0 ? (
-              <Empty>No app found</Empty>
-            ) : (
-              applications?.map((app, i: any) => {
-                return (
-                  <div
-                    key={i}
-                    className={`hover:bg-accent p-2 rounded-[16px] ${applications?.[activeApp]?.name === app.name ? "bg-accent border-input border hover:bg-accent" : ""}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-row gap-2 items-center">
-                        <Avatar className="size-10 border rounded-[12px] bg-accent">
-                          <AvatarImage
-                            src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app?.image}`}
-                          />
-                          <AvatarFallback>
-                            {app?.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium leading-none">
-                            {app?.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-row gap-2 items-center">
-                        <ApiDialog randomize app={app?.name}>
-                          <Button
-                            variant={"outline"}
-                            size={"sm"}
-                            className="rounded-[12px]"
-                          >
-                            Api key
-                          </Button>
-                        </ApiDialog>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant={"default"}
-                              size={"sm"}
-                              className="rounded-[12px]"
-                            >
-                              Edit
-                            </Button>
-                          </DialogTrigger>
-                        </Dialog>
-                      </div>
+      <Link href={'/dashboard/new-app'}>
+      <Button variant={"secondary"} className="rounded-[12px] w-full mb-5">
+        <Plus className="mr-1 size-5" />
+        Create application
+      </Button>
+      </Link>
+      <div className="flex flex-col gap-4">
+        {sortedApplications.length === 0 ? (
+          <Empty>No app found</Empty>
+        ) : (
+          sortedApplications.map((app: any, i: any) => {
+            return (
+              <div
+                key={i}
+                className={`hover:bg-accent p-1 pr-2 rounded-[16px] ${applications !== null ? (app.name === applications[activeApp]?.name ? "bg-accent" : "") : undefined}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-row gap-2 items-center">
+                    <Avatar className="size-10 border rounded-[12px] bg-accent">
+                      <AvatarImage
+                        src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app?.image}`}
+                      />
+                      <AvatarFallback>
+                        {app?.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium leading-none">
+                        {app?.name}
+                      </p>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-        }
-      />
+                  <div className="flex flex-row gap-2 items-center">
+                    <ApiDialog randomize app={app?.name}>
+                      <Button
+                        variant={"outline"}
+                        size={"sm"}
+                        className="rounded-[12px]"
+                      >
+                        Api key
+                      </Button>
+                    </ApiDialog>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant={"default"}
+                          size={"sm"}
+                          className="rounded-[12px]"
+                        >
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
