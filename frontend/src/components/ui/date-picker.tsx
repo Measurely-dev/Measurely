@@ -17,9 +17,9 @@ import {
 export function DatePicker({
   className,
 }: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
+  const [date, setDate] = React.useState<DateRange | undefined>({ 
+    from: new Date(new Date().getTime()),
+    to: new Date(new Date().getTime()),
   });
 
   return (
@@ -35,15 +35,11 @@ export function DatePicker({
             )}
           >
             <CalendarIcon className="size-4 mr-2" />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
-                </>
-              ) : (
-                format(date.from, "LLL dd, y")
-              )
+            {date?.from && date.to ? (
+              <>
+                {format(date.from, "LLL dd, y")} -{" "}
+                {format(date.to, "LLL dd, y")}
+              </>
             ) : (
               <span>Pick a date</span>
             )}
@@ -53,10 +49,12 @@ export function DatePicker({
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}
             numberOfMonths={2}
+            disabled={(date) =>
+              date > new Date() || date < new Date("1900-01-01")
+            }
           />
         </PopoverContent>
       </Popover>
