@@ -107,7 +107,7 @@ export default function NewApp() {
             }}
           >
             {/* /Breadcrumb */}
-            <div className="mx-auto flex w-[500px] flex-col gap-6 rounded-3xl">
+            <div className="mx-auto flex w-full max-md:max-w-[95%] max-w-[500px] flex-col gap-6 rounded-3xl">
               <div className="flex flex-col gap-[5px]">
                 <div className="text-xl font-medium">
                   {applications === null

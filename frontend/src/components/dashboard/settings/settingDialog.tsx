@@ -36,14 +36,14 @@ export default function SettingDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="flex flex-row gap-0 max-h-[70%] h-[70%] min-w-[80%] ring-1 ring-input !rounded-xl !shadow-none bg-transparent !p-0 overflow-hidden">
+      <DialogContent className="flex max-md:min-h-[95%] max-md:flex-col max-lg:min-w-[95%] max-md:max-w-[95%] flex-row gap-0 max-h-[70%] h-[70%] min-w-[80%] ring-1 ring-input !rounded-xl !shadow-none bg-transparent !p-0 overflow-hidden">
         <Navbar page={page} setPage={setPage} settings={settings} />
-        <DialogClose className="absolute right-8 top-11">
+        <DialogClose className="absolute right-8 top-11 max-md:top-4 max-md:right-4">
           <Button
             type="button"
             size={"icon"}
             variant="secondary"
-            className="rounded-[12px] border"
+            className="rounded-[12px] border max-md:bg-background"
           >
             <X />
           </Button>
@@ -60,7 +60,7 @@ function Navbar(props: {
   settings: Array<any>;
 }) {
   return (
-    <div className="h-full bg-accent min-w-[230px] border-r border-input pt-8 px-2">
+    <div className="h-full bg-accent min-w-[230px] max-md:min-w-none border-r border-input pt-8 px-2 max-md:h-fit max-md:pb-4 max-md:border-b">
       <div className="text-secondary font-medium text-xs ml-4">Settings</div>
       <div className="flex gap-2 flex-col mt-3">
         {props.settings.map((item, i) => {
@@ -98,7 +98,7 @@ function Content(props: {
     }
   }
   return (
-    <div className="w-full h-full overflow-y-scroll bg-white p-8 pt-11 pl-10 flex flex-col gap-5">
+    <div className="w-full h-full overflow-y-scroll bg-white p-8 pt-11 pl-10 flex flex-col gap-5 max-md:px-4">
       <div className="text-2xl font-semibold mb-3">
         {props.settings.map((setting) => {
           return setting.value === props.page ? setting.name : undefined;

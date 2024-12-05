@@ -12,7 +12,7 @@ import WebChip from "@/components/website/components/chip";
 import { User, Users } from "lucide-react";
 export default function TeamPage() {
   return (
-    <DashboardContentContainer className="w-full flex pb-[15px]  mt-0 h-[calc(100vh-15px-50px)] pt-[15px]">
+    <DashboardContentContainer className="w-full flex pb-10 mt-0 h-[calc(100vh-15px-50px)]">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -38,7 +38,7 @@ export default function TeamPage() {
             <br/>
             your invoices and see your outstanding balance.
           </div>
-          <Button className="mt-4 w-fit rounded-xl mx-auto">Request feature</Button>
+          <Button className="mt-4 mb-10 w-fit rounded-xl mx-auto">Request feature</Button>
         </div>
       </div>
     </DashboardContentContainer>

@@ -60,11 +60,11 @@ export default function DashboardMetrics() {
           <div>LOADING...</div>
         ) : (
           <div className="flex w-full flex-col gap-[10px]">
-            <div className="flex w-full flex-row gap-[10px]">
+            <div className="flex w-full flex-row max-md:flex-col gap-[10px]">
               <SearchComponent search={search} setSearch={setSearch}/>
               <FiltersComponent filter={filter} setFilter={setFilter}/>
               <Link href={"/dashboard/new-metric"}>
-                <Button className="h-full gap-[8px] rounded-[12px]">
+                <Button className="h-full max-md:w-full gap-[8px] rounded-[12px]">
                   <Plus className="size-[16px]" />
                   Add metric
                 </Button>
@@ -91,7 +91,7 @@ export default function DashboardMetrics() {
 function FiltersComponent(props : {filter : string, setFilter : Dispatch<SetStateAction<string>>}) {
   return (
     <Select value={props.filter} onValueChange={props.setFilter}>
-      <SelectTrigger className="w-[220px] min-w-[220px] bg-accent">
+      <SelectTrigger className="w-[220px] min-w-[220px] max-md:w-full bg-accent">
         <SelectValue placeholder="Select filter" />
       </SelectTrigger>
       <SelectContent>
@@ -113,7 +113,7 @@ function SearchComponent(props : {
     <div className="flex w-full flex-row items-center gap-[0px] rounded-[12px] bg-accent pl-[12px]">
       <Search className="size-[18px] text-secondary" />
       <Input
-        className="px-0!ring-0 h-[40px] w-full rounded-none border-none bg-transparent"
+        className="px-0 !ring-0 h-[40px] w-full rounded-none border-none bg-transparent"
         placeholder="Search metric..."
         value={props.search}
         onChange={(e) => props.setSearch(e.target.value)}

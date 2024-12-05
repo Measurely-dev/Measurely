@@ -8,6 +8,8 @@ import { formatDistanceToNow } from "date-fns";
 import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 
 const formattedDate = (date: Date) => {
   try {
@@ -101,11 +103,11 @@ export default function MetricTable(props: { search: string; filter: string }) {
 }
 function Header() {
   return (
-    <div className="grid w-full grid-cols-[1.4fr,1.1fr,200px,175px,75px] gap-[10px] rounded-[12px] bg-accent px-5 py-3 text-xs uppercase text-secondary">
+    <div className="grid w-full max-lg:hidden grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] bg-accent px-5 py-3 text-xs uppercase text-secondary">
       <div>metric</div>
       <div>total value</div>
       <div>daily update</div>
-      <div className="text-end">Created At</div>
+      <div className="text-end">Created</div>
     </div>
   );
 }
@@ -252,19 +254,36 @@ const Item = (props: { group: Group; index: number }) => {
         <div className="transition-all duration-200 absolute w-full h-full rounded-[12px] cursor-pointer z-10 hover:bg-accent opacity-50" />
       </MetricInformations>
       <div
-        className={`grid h-[50px] w-full z select-none grid-cols-[1.4fr,1.1fr,200px,175px,75px] gap-[10px] rounded-[12px] px-5 relative`}
+        className={`grid h-[50px] w-full max-lg:grid max-lg:py-4 max-lg:grid-cols-3 max-sm:p-3 max-lg:h-fit select-none grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] px-5 relative`}
       >
-        <div className="flex flex-row items-center gap-[10px] text-[15px] ">
+        <div className="flex flex-row items-center gap-[10px] max-lg:col-span-2 text-[15px] ">
           <div className="bg-accent p-2 rounded-full border border-input/50">
             <Box className="size-5 text-blue-500" />
           </div>
-          <></>
           {props.group.name}
         </div>
-        <div className="my-auto line-clamp-1 h-fit w-full text-[15px] place-items-center items-center font-mono">
+
+        <div className="h-full flex justify-end items-center w-full col-span-1 lg:hidden">
+          <MetricDropdown group={props.group} total={total ?? 0}>
+            <Button
+              className="rounded-[12px] !bg-transparent z-20"
+              variant={"secondary"}
+              size={"icon"}
+            >
+              <MoreHorizontal />
+            </Button>
+          </MetricDropdown>
+        </div>
+        <Separator
+          orientation="horizontal"
+          className="my-2 lg:hidden col-span-3"
+        />
+        <div className="my-auto max-lg:flex-col max-lg:place-items-start max-lg:gap-2 max-lg:flex line-clamp-1 h-fit w-full text-[15px] place-items-center items-center font-mono">
+          <Label className="md:hidden font-sans font-[600]">Total value</Label>
           {total === null ? "LOADING..." : total}
         </div>
-        <div className="flex items-center">
+        <div className="flex max-lg:flex-col max-lg:gap-2 items-center max-lg:place-items-start">
+          <Label className="lg:hidden">Daily value</Label>
           <Badge
             className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${todayBadgeColor(
               dailyUpdate,
@@ -274,10 +293,11 @@ const Item = (props: { group: Group; index: number }) => {
             {dailyUpdate === null ? "LOADING..." : dailyUpdate}
           </Badge>
         </div>
-        <div className="flex items-center text-sm text-secondary justify-end font-light">
+        <div className="flex items-center max-lg:flex-col max-lg:gap-2 max-lg:place-items-start text-sm text-secondary justify-end font-light">
+          <Label className="lg:hidden text-primary">Created</Label>
           {formattedDate(props.group.created)}
         </div>
-        <div className="h-full flex justify-end items-center w-full">
+        <div className="h-full flex justify-end items-center w-full max-lg:hidden">
           <MetricDropdown group={props.group} total={total ?? 0}>
             <Button
               className="rounded-[12px] !bg-transparent z-20"

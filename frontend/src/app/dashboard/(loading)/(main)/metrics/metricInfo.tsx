@@ -46,7 +46,7 @@ export default function MetricInformations(props: {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="!shadow-none !ring ring-input !rounded-[16px] !min-w-[60%] max-h-[95%]">
+      <DialogContent className="max-md:max-w-[95%] max-md: !shadow-none !ring ring-input !rounded-[16px] !min-w-[60%] max-h-[95%]">
         <DialogHeader className="static ">
           <DialogTitle className="!text-xl items-center flex flex-row gap-5">
             {props.group.name}

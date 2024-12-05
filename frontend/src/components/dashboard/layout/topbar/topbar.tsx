@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Code, MessageSquare, Plus, User } from "react-feather";
+import { Code, Menu, MessageSquare, Plus, User } from "react-feather";
 import FeedbackPopover from "../../components/feedbackPopover";
 
 import AvatarDropdown from "./dropdown";
@@ -11,6 +11,9 @@ import Link from "next/link";
 import { useContext } from "react";
 import { UserContext } from "@/dashContext";
 import ApiDialog from "../../components/apiDialog";
+import { DrawerMenu } from "./drawerMenu";
+import LogoSvg from "@/components/global/logoSvg";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
@@ -18,26 +21,33 @@ export default function DashboardTopbar() {
   return (
     <div className="flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]">
       <div className="flex h-[40px] w-full flex-row items-center justify-between">
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-4">
+          <Link href="/" className="md:hidden">
+              <LogoSvg className="size-[35px]" />
+          </Link>
+          <Separator className="h-[20px] md:hidden" orientation="vertical"/>
           <ApplicationsChip />
-          <ApiDialog>
-            <Button
-              size={"sm"}
-              variant={"secondary"}
-              className="h-6 rounded-full gap-1.5"
-            >
-              <Code className="size-4" />
-              Api key
-            </Button>
-          </ApiDialog>
+          <div className="max-sm:hidden">
+            <ApiDialog>
+              <Button
+                size={"sm"}
+                variant={"secondary"}
+                className="h-6 rounded-full gap-1.5"
+              >
+                <Code className="size-4" />
+                Api key
+              </Button>
+            </ApiDialog>
+          </div>
         </div>
-        <div className="flex flex-row gap-[12px]">
+        <div className="flex flex-row gap-[12px] max-md:hidden">
           <Link href={"/dashboard/new-metric"}>
             <Button className="h-[35px] gap-[8px] rounded-[12px]">
               <Plus className="size-[16px]" />
               Create metric
             </Button>
           </Link>
+          <div className="max-lg:hidden">
           <FeedbackPopover>
             <Button
               className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
@@ -47,15 +57,7 @@ export default function DashboardTopbar() {
               Feedback
             </Button>
           </FeedbackPopover>
-          {/* <InboxPopover>
-            <Button
-              className="size-[35px] rounded-[12px] text-secondary hover:text-primary"
-              variant="secondary"
-              size="icon"
-            >
-              <Bell className="size-1/2" />
-            </Button>
-          </InboxPopover> */}
+          </div>
           <AvatarDropdown>
             <Avatar className="size-[35px] cursor-pointer text-secondary hover:text-primary">
               <AvatarImage
@@ -63,12 +65,17 @@ export default function DashboardTopbar() {
                 className="rounded-full"
               />
               <AvatarFallback>
-                {" "}
                 <User className="size-1/2" />
               </AvatarFallback>
             </Avatar>
           </AvatarDropdown>
         </div>
+
+        <DrawerMenu
+          image={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`}
+        >
+          <Menu className="size-5" />
+        </DrawerMenu>
       </div>
     </div>
   );

@@ -62,7 +62,7 @@ export default function NewMetric() {
         <ContentContainer className="flex h-full items-center justify-center">
           {step === 1 ? (
             <>
-              <div className="mx-auto flex w-[500px] flex-col gap-6">
+              <div className="mx-auto flex w-full max-w-[500px] flex-col gap-6">
                 <div className="flex flex-col gap-[5px]">
                   <div className="text-xl font-medium">Choose metric type </div>
                   <div className="text-sm text-secondary">

@@ -46,8 +46,8 @@ export default function ApiDialog(props: {
   return (
     <Dialog onOpenChange={() => setView(false)}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="shadow-none border border-input !rounded-xl">
-        <DialogHeader>
+      <DialogContent className="shadow-none border max-md:max-w-[95%] border-input !rounded-xl">
+        <DialogHeader className="max-md:text-start">
           <DialogTitle>API KEY</DialogTitle>
           <DialogDescription>
             Anyone who has this key will be able to use it.

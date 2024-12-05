@@ -45,13 +45,13 @@ export function DatePicker({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 bg-background rounded-[12px]" align="start">
           <Calendar
             initialFocus
             mode="range"
             selected={date}
             onSelect={setDate}
-            numberOfMonths={2}
+            numberOfMonths={1}
             disabled={(date) =>
               date > new Date() || date < new Date("1900-01-01")
             }

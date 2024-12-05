@@ -79,9 +79,9 @@ export function ChartsCard() {
         setActiveGroup={setActiveGroup}
         groups={applications?.[activeApp].groups ?? []}
       />
-      <CardContent className="flex flex-row gap-5">
+      <CardContent className="flex flex-row gap-5 max-md:flex-col">
         {/* Chart 1 */}
-        <div className="flex flex-col gap-4 w-[50%] bg-accent p-5 rounded-xl pt-5 pb-0">
+        <div className="flex flex-col gap-4 w-[100%] bg-accent p-5 rounded-xl pt-5 pb-0">
           <ChartContainer config={chartConfig}>
             <BarChart accessibilityLayer data={chartData}>
               <CartesianGrid vertical={false} />
@@ -105,7 +105,7 @@ export function ChartsCard() {
               />
             </BarChart>
           </ChartContainer>
-          <CardFooter>
+          <CardFooter className="max-sm:hidden">
             <div className="flex w-full items-start gap-2 text-sm">
               <div className="grid gap-2">
                 <div className="flex items-center gap-2 font-medium leading-none">
@@ -120,7 +120,7 @@ export function ChartsCard() {
           </CardFooter>
         </div>
         {/* Chart 2 */}
-        <div className="flex flex-col gap-4 w-[50%] bg-accent p-5 rounded-xl pt-5 pb-0">
+        <div className="flex flex-col gap-4 w-[100%] bg-accent p-5 rounded-xl pt-5 pb-0">
           <ChartContainer config={chartConfig}>
             <AreaChart
               accessibilityLayer
@@ -151,7 +151,7 @@ export function ChartsCard() {
               />
             </AreaChart>
           </ChartContainer>
-          <CardFooter>
+          <CardFooter className="max-sm:hidden">
             <div className="flex w-full items-start gap-2 text-sm">
               <div className="grid gap-2">
                 <div className="flex items-center gap-2 font-medium leading-none">
@@ -177,7 +177,7 @@ function Header(props: {
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <CardHeader className="flex flex-row justify-between">
+    <CardHeader className="flex flex-row max-sm:flex-col max-sm:gap-3 justify-between">
       <div className="flex gap-1 flex-col">
         <CardTitle>0 New Users</CardTitle>
         <CardDescription>

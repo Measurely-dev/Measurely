@@ -12,6 +12,17 @@ export default function SettingGeneralPage() {
         description="Used to identify your account."
         content={
           <form className="flex flex-col gap-4">
+            <div className="flex flex-row gap-2 w-full max-md:flex-col max-md:gap-4">
+              <Label className="flex flex-col gap-2 w-full">
+                First Name
+                <Input placeholder="John" defaultValue="John" />
+              </Label>
+
+              <Label className="flex flex-col gap-2 w-full">
+                Last name
+                <Input placeholder="Doe" defaultValue="Doe" />
+              </Label>
+            </div>
             <Label className="flex flex-col gap-2">
               Username
               <Input placeholder="Username" defaultValue="username" />
@@ -20,7 +31,10 @@ export default function SettingGeneralPage() {
               Email
               <Input placeholder="Email" defaultValue="name@domain.com" />
             </Label>
-            <Button variant={"secondary"} className="rounded-[12px] ml-auto w-fit">
+            <Button
+              variant={"secondary"}
+              className="rounded-[12px] ml-auto w-fit"
+            >
               Change pasword
             </Button>
           </form>
@@ -94,11 +108,7 @@ export default function SettingGeneralPage() {
                   </p>
                 </div>
               </div>
-              <Button
-                variant={"ghost"}
-                size={"sm"}
-                className="rounded-[12px]"
-              >
+              <Button variant={"ghost"} size={"sm"} className="rounded-[12px]">
                 Disconnect
               </Button>
             </div>

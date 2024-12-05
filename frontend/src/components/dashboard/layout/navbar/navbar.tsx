@@ -14,25 +14,25 @@ import { Separator } from "@/components/ui/separator";
 import { HomeIcon } from "lucide-react";
 import SettingDialog from "../../settings/settingDialog";
 
+export const navItem = [
+  {
+    name: "Overview",
+    href: "/dashboard/",
+    svg: <HomeIcon className="size-5" />,
+  },
+  {
+    name: "Metrics",
+    href: "/dashboard/metrics/",
+    svg: <Box className="size-5" />,
+  },
+  {
+    name: "Team",
+    href: "/dashboard/team/",
+    svg: <Users className="size-5" />,
+  },
+];
 export default function DashboardNavbar() {
   const pathname = usePathname();
-  const navItem = [
-    {
-      name: "Overview",
-      href: "/dashboard/",
-      svg: <HomeIcon className="size-5" />,
-    },
-    {
-      name: "Metrics",
-      href: "/dashboard/metrics/",
-      svg: <Box className="size-5" />,
-    },
-    {
-      name: "Team",
-      href: "/dashboard/team/",
-      svg: <Users className="size-5" />,
-    },
-  ];
   return (
     <div className="flex h-screen flex-col py-[15px] pl-5">
       <Link href="/">

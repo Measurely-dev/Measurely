@@ -75,8 +75,6 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
         >
           <DropdownMenuItem className="rounded-xl p-2 px-3 text-sm font-normal bg-red-500/0 hover:!bg-red-500/20 transition-all !text-red-500">
             Log out
-            {/* Dropdown menu shortcut */}
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>
         </button>
       </DropdownMenuContent>
