@@ -41,7 +41,7 @@ export default function ApiDialog(props: {
         setApiKey(applications[appIndex].apikey);
       }
     }
-  }, [activeApp]);
+  }, [activeApp, applications]);
 
   return (
     <Dialog onOpenChange={() => setView(false)}>

@@ -42,9 +42,6 @@ export default function EditDialogContent(props: {
     <DialogContent className="shadow-sm rounded-sm">
       <DialogHeader className="static">
         <DialogTitle>Edit metric</DialogTitle>
-        {/* <div className="flex absolute -top-1.5 right-5 bg-input p-1 rounded-b-lg px-3 font-semibold font-mono cursor-pointer hover:text-blue-500 transition-all duration-200">
-          Copy #ID
-        </div> */}
       </DialogHeader>
       <form
         onSubmit={async (e) => {

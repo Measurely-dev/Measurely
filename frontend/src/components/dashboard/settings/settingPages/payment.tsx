@@ -15,10 +15,15 @@ export default function SettingPaymentPage() {
             You can unlock limits by upgrading to the next plan.
           </div>
         </div>
-        <Button className="rounded-[12px]"  variant={"default"}>
+        <Button className="rounded-[12px]" variant={"default"}>
           View plans
         </Button>
       </div>
+      <SettingCard
+        title="Manage payment"
+        description="To manage your payment methods and plans please go on stripe."
+        content={<Button className="rounded-[12px] w-full" variant={'default'}>Manage payment</Button>}
+      />
     </>
   );
 }

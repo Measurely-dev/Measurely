@@ -9,12 +9,12 @@ import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
 
-const formattedDate = (date : Date) => {
+const formattedDate = (date: Date) => {
   try {
     return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
     console.error("Date formatting error:", error);
-    return "Invalid Date"; 
+    return "Invalid Date";
   }
 };
 
@@ -70,8 +70,8 @@ export default function MetricTable(props: { search: string; filter: string }) {
           }
         })
         .filter((group) =>
-          group.name.toLowerCase().includes(props.search.toLowerCase())
-        ) ?? []
+          group.name.toLowerCase().includes(props.search.toLowerCase()),
+        ) ?? [],
     );
   }, [activeApp, props.filter, props.search, applications]);
 
@@ -148,7 +148,7 @@ const Item = (props: { group: Group; index: number }) => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-      }
+      },
     );
 
     if (res.ok) {
@@ -174,10 +174,9 @@ const Item = (props: { group: Group; index: number }) => {
     if (props.group.type === GroupType.Base) {
       setTotal(props.group.metrics[0].total);
       const metric = props.group.metrics[0];
-      const events =
-        metric.events
-          ? metric.events
-          : await fetchMetricEvents(metric.id);
+      const events = metric.events
+        ? metric.events
+        : await fetchMetricEvents(metric.id);
       for (let i = 0; i < events.length; i++) {
         daily += events[i].value;
       }
@@ -197,21 +196,19 @@ const Item = (props: { group: Group; index: number }) => {
                 }),
               });
             } else return app;
-          })
+          }),
         );
       }
     } else if (props.group.type === GroupType.Dual) {
       setTotal(props.group.metrics[0].total - props.group.metrics[1].total);
       const metric_pos = props.group.metrics[0];
       const metric_neg = props.group.metrics[1];
-      const pos =
-        props.group.metrics[0].events
-          ? props.group.metrics[0].events
-          : await fetchMetricEvents(props.group.metrics[0].id);
-      const neg =
-        props.group.metrics[1].events
-          ? props.group.metrics[1].events
-          : await fetchMetricEvents(props.group.metrics[1].id);
+      const pos = props.group.metrics[0].events
+        ? props.group.metrics[0].events
+        : await fetchMetricEvents(props.group.metrics[0].id);
+      const neg = props.group.metrics[1].events
+        ? props.group.metrics[1].events
+        : await fetchMetricEvents(props.group.metrics[1].id);
 
       for (let i = 0; i < pos.length; i++) {
         daily += pos[i].value;
@@ -237,7 +234,7 @@ const Item = (props: { group: Group; index: number }) => {
                 }),
               });
             } else return app;
-          })
+          }),
         );
       }
     }
@@ -270,7 +267,7 @@ const Item = (props: { group: Group; index: number }) => {
         <div className="flex items-center">
           <Badge
             className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${todayBadgeColor(
-              dailyUpdate
+              dailyUpdate,
             )}}`}
           >
             {todayBadgeSign(dailyUpdate)}

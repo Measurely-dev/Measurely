@@ -66,7 +66,7 @@ export default function RandomizeAlert(props: { children: ReactNode; app?: strin
                     toast.success("API key succesfully randomized");
                     setApplications(
                       applications?.map((v, i) =>
-                        i === activeApp
+                        i === apiIndex
                           ? Object.assign({}, v, {
                               apiKey: data,
                             })

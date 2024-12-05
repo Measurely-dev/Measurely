@@ -33,11 +33,11 @@ export default function SettingAppsPage() {
 
   return (
     <div>
-      <Link href={'/dashboard/new-app'}>
-      <Button variant={"secondary"} className="rounded-[12px] w-full mb-5">
-        <Plus className="mr-1 size-5" />
-        Create application
-      </Button>
+      <Link href={"/dashboard/new-app"}>
+        <Button variant={"secondary"} className="rounded-[12px] w-full mb-5">
+          <Plus className="mr-1 size-5" />
+          Create application
+        </Button>
       </Link>
       <div className="flex flex-col gap-4">
         {sortedApplications.length === 0 ? (
@@ -75,17 +75,15 @@ export default function SettingAppsPage() {
                         Api key
                       </Button>
                     </ApiDialog>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant={"default"}
-                          size={"sm"}
-                          className="rounded-[12px]"
-                        >
-                          Edit
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant={"default"}
+                        size={"sm"}
+                        className="rounded-[12px]"
+                      >
+                        Edit
+                      </Button>
+                    </DialogTrigger>
                   </div>
                 </div>
               </div>
