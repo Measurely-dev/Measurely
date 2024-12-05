@@ -45,11 +45,11 @@ export default function Help() {
   return (
     <WebContainer>
       <ContentContainer className="min-h-screen">
-        <Card className="w-[525px] mx-auto my-auto !rounded-2xl !p-0 border-none !pb-20">
+        <Card className="w-full mx-auto my-auto !rounded-2xl !p-0 border-none !pb-20">
           <CardHeader className="!m-0 p-0">
             <CardTitle className="text-2xl"> Do you need help?</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-row gap-2 w-full !p-0 mt-5">
+          <CardContent className="flex flex-row max-md:flex-col gap-2 w-full !p-0 mt-5">
             {help.map((help, i) => {
               return (
                 <div

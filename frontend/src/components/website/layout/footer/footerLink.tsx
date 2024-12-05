@@ -8,7 +8,7 @@ export default function FooterLink(props: {
   return (
     <Link
       href={props.href}
-      className='w-auto max-w-fit text-secondary rounded-lg px-2 py-0.5 text-sm transition-all duration-150 hover:bg-accent hover:text-primary'
+      className='w-auto max-md:max-w-full max-md:mb-1 max-w-fit text-secondary rounded-lg px-2 py-0.5 text-sm transition-all duration-150 hover:bg-accent hover:text-primary'
     >
       {props.name}
     </Link>

@@ -8,11 +8,11 @@ export default function AuthNavbar(props: {
   href: any;
 }) {
   return (
-    <div className="absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3">
+    <div className="absolute z-10 ml-[40px] max-md:px-5 max-md:mt-[20px] max-md:ml-[0px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3">
       <Link href="/home">
         <div className="flex cursor-pointer items-center gap-[10px]">
           <LogoSvg className="size-8" />
-          <div className="text-sm font-semibold">Measurably</div>
+          <div className="text-sm font-semibold max-md:hidden">Measurably</div>
         </div>
       </Link>
       {props.button === null ? null : (
@@ -34,11 +34,11 @@ export function AuthNavbarButton(props: {
   onClick: () => void;
 }) {
   return (
-    <div className="absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3">
+    <div className="absolute z-10 ml-[40px] max-md:ml-[0px] max-md:px-5 max-md:mt-[20px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3">
       <Link href="/">
         <div className="flex cursor-pointer items-center gap-[10px]">
           <LogoSvg className="size-8" />
-          <div className="text-sm font-semibold">Measurably</div>
+          <div className="text-sm font-semibold max-md:hidden">Measurably</div>
         </div>
       </Link>
       <Separator className="h-5" orientation="vertical" />

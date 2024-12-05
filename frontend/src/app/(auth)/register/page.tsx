@@ -17,7 +17,9 @@ export default function Register() {
 
   return (
     <WebContainer>
-      <AuthNavbar href="/sign-in" button="Sign in" />
+      <div className="max-md:mb-[50px]">
+        <AuthNavbar href="/sign-in" button="Sign in" />
+      </div>
       <ContentContainer>
         <AuthForm
           title="Create an account"
@@ -70,19 +72,18 @@ export default function Register() {
                 type: 1,
               }),
               credentials: "include",
-            })
-              .then((res) => {
-                if (!res.ok) {
-                  res.text().then((text) => {
-                    toast.error(text);
-                  });
-                  set_loading(false)
-                } else {
-                  router.push(
-                    `/password?email=${email}&first_name=${first_name}&last_name=${last_name}`
-                  );
-                }
-              })
+            }).then((res) => {
+              if (!res.ok) {
+                res.text().then((text) => {
+                  toast.error(text);
+                });
+                set_loading(false);
+              } else {
+                router.push(
+                  `/password?email=${email}&first_name=${first_name}&last_name=${last_name}`,
+                );
+              }
+            });
           }}
           policies
         />

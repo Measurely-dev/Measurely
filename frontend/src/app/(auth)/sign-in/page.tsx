@@ -18,13 +18,15 @@ export default function SignIn() {
     if (params.get("error") !== null) {
       setTimeout(() => {
         toast.error(params.get("error") as string);
-      })
+      });
     }
   }, []);
 
   return (
     <WebContainer>
-      <AuthNavbar href="/register" button="Create an account" />
+      <div className="max-md:mb-[20px]">
+        <AuthNavbar href="/register" button="Create an account" />
+      </div>
       <ContentContainer>
         <AuthForm
           title="Hey friend! Welcome back"

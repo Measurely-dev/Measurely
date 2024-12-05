@@ -16,7 +16,7 @@ export default function PricingCardsSection() {
         }
         description="Find the plan the best suited for your application"
       />
-      <div className="mt-[70px] grid grid-cols-3 gap-[10px]">
+      <div className="mt-[70px] grid grid-cols-3 max-md:grid-cols-1 gap-[10px]">
         <WebPricingCard
           recurrence="month"
           name="Free"

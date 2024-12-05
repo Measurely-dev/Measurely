@@ -15,7 +15,7 @@ export default function SubscriptionUiSection() {
         }
         description=""
       />
-      <div className="mt-[20px] grid grid-cols-3 gap-[10px]">
+      <div className="mt-[20px] grid grid-cols-3 max-md:grid-cols-1 gap-[10px]">
         <WebPricingCard
           recurrence="month"
           name="Free"
