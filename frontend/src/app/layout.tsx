@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={GeistSans.className + " " + GeistMono.variable }>{children}</body>
       <Toaster richColors theme="light" closeButton  />
     </html>
