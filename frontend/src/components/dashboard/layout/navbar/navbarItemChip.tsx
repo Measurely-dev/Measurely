@@ -12,7 +12,7 @@ export default function NavbarItemChip() {
   const itemList = [
     {
       label: "Docs",
-      href: "https://discord.com/",
+      href: "/docs/getting-started/introduction",
       icon: <BookOpen className="size-[18px]" />,
     },
   ];

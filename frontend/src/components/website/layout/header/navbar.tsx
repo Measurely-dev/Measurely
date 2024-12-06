@@ -16,7 +16,7 @@ export default function Navbar(props: {
   const links: any = [
     {
       name: "Documentation",
-      href: "/Docs",
+      href: "/docs/getting-started/introduction",
     },
     {
       name: "Pricing",

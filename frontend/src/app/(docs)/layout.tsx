@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/docs/navbar";
 import './docs.css'
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "AriaDocsLite - Template",
@@ -13,9 +14,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const headersList = headers();
+  const is_authentificated = headersList.get('is-authentificated');
   return (
     <>
-      <Navbar />
+      <Navbar is_authenticated={is_authentificated}/>
       <div className="sm:container mx-auto w-[88vw] h-auto">
         {children}
       </div>

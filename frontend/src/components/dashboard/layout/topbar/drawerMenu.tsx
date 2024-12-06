@@ -85,13 +85,15 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
             </Button>
           </ApiDialog>
         </div>
-        <Button
-          className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
-          variant="secondary"
-        >
-          <Book className="size-[16px]" />
-          Documentation
-        </Button>
+        <Link href={'/docs/getting-started/introduction'}>
+          <Button
+            className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
+            variant="secondary"
+          >
+            <Book className="size-[16px]" />
+            Documentation
+          </Button>
+        </Link>
         <SettingDialog>
           <Button
             className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"

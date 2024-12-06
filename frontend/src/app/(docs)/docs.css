@@ -58,15 +58,6 @@
     @apply bg-background text-foreground;
   }
 }
-h2{
-  font-size: 20px;
-  font-weight: 500;
-  margin-bottom:10px;
-  margin-top:20px;
-}
-h1{
-  margin-bottom: 24px;
-}
 .prose {
   margin: 0 !important;
 }

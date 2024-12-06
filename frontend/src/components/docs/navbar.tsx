@@ -2,6 +2,8 @@ import Link from "next/link";
 import Anchor from "./anchor";
 import { SheetLeftbar } from "./leftbar";
 import { page_routes } from "@/lib/routes-config";
+import { Button } from "../ui/button";
+import { headers } from "next/headers";
 
 export const NAVLINKS = [
   {
@@ -14,7 +16,7 @@ export const NAVLINKS = [
   },
 ];
 
-export function Navbar() {
+export function Navbar(props: {is_authenticated: any}) {
   return (
     <nav className="w-full h-16 border-b border-accent/80 sticky top-0 z-50 backdrop-filter backdrop-blur-xl bg-opacity-5">
       <div className="sm:container h-full max-sm:px-3 flex items-center justify-between ">
@@ -52,6 +54,21 @@ export function Navbar() {
             })}
           </div>
         </div>
+        {
+          props.is_authenticated === 'true' ?
+            <Link href={'/dashboard'}>
+              <Button className="rounded-[12px]">Dashboard</Button>
+            </Link>
+            :
+            <div className="flex flex-row gap-2 items-center">
+              <Link href={'/sign-in'}>
+                <Button className="rounded-[12px]" variant={'outline'}>Log in</Button>
+              </Link>
+              <Link href={'/register'}>
+                <Button className="rounded-[12px]">Get started</Button>
+              </Link>
+            </div>
+        }
 
         <SheetLeftbar />
       </div>
