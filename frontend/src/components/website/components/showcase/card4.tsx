@@ -18,7 +18,7 @@ export default function Card4(props: { className?: string }) {
         <div className="flex aspect-square h-[60px] items-center justify-center rounded-full border border-blue-400 bg-blue-400/10 text-blue-400">
           <CheckIcon className="size-8 !stroke-[0.5]" />
         </div>
-        New project created
+        New metric created
       </div>
       <CardHeader className="flex flex-row items-center p-5">
         <div className="flex w-full flex-col gap-1">

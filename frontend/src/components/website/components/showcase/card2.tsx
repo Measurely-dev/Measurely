@@ -28,7 +28,7 @@ export default function Card2(props: { className?: string }) {
       <CardHeader className="p-0">
         <CardTitle>New metric</CardTitle>
         <CardDescription className="text-xs">
-          By creating a metrtic, you create a new data value that we store for
+          By creating a metric, you create a new value that we store for
           you
         </CardDescription>
       </CardHeader>
@@ -65,9 +65,9 @@ export default function Card2(props: { className?: string }) {
             </SelectTrigger>
             <SelectContent className="rotate-[7deg] max-lg:rotate-0">
               <SelectGroup>
-                <SelectItem value="high">Number</SelectItem>
-                <SelectItem value="medium">Value</SelectItem>
-                <SelectItem value="low">String</SelectItem>
+                <SelectItem value="high">Basic</SelectItem>
+                <SelectItem value="medium">Dual variable metric</SelectItem>
+                <SelectItem value="low">Multi-metric</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
