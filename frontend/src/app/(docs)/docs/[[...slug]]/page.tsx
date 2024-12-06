@@ -21,7 +21,7 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
           <p className="-mt-4 text-muted-foreground text-[16.5px]">
             {res.frontmatter.description}
           </p>
-          <div>{res.content}</div>
+          <div className="mt-5">{res.content}</div>
         </Typography>
       </div>
       <Toc path={pathName} />

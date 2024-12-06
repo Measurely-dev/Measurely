@@ -17,8 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={GeistSans.className + " " + GeistMono.variable }>{children}</body>
-      <Toaster richColors theme="light" closeButton  />
+      <body className={GeistSans.className + " " + GeistMono.variable}>{children}
+        <Toaster richColors theme="light" closeButton />
+      </body>
     </html>
   );
 }

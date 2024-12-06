@@ -14,13 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div
-      suppressHydrationWarning
-    >
+    <>
       <Navbar />
       <div className="sm:container mx-auto w-[88vw] h-auto">
         {children}
       </div>
-    </div>
+    </>
   );
 }
