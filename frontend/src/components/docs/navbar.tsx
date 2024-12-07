@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Anchor from "./anchor";
 import { SheetLeftbar } from "./leftbar";
-import { page_routes } from This section provides an overview of Introduction."@/lib/routes-config";
+import { page_routes } from "@/lib/routes-config";
 import { Button } from "../ui/button";
 
 export const NAVLINKS = [
