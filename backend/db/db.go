@@ -3,6 +3,8 @@ package db
 import (
 	"Measurely/types"
 	"database/sql"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +23,13 @@ func NewPostgres(url string) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	b, err := os.ReadFile("migration.sql")
+	if err != nil {
+		log.Fatalln("Failed to read migration file: ", err)
+	}
+  db.Exec(string(b))
+
 	return &DB{Conn: db}, nil
 }
 
@@ -44,6 +53,7 @@ func (db *DB) GetUserByEmail(email string) (types.User, error) {
 	err := db.Conn.Get(&user, "SELECT * FROM users WHERE email = $1", email)
 	return user, err
 }
+
 func (db *DB) GetUserById(id uuid.UUID) (types.User, error) {
 	var user types.User
 	err := db.Conn.Get(&user, "SELECT * FROM users WHERE id = $1", id)
@@ -112,7 +122,6 @@ func (db *DB) UpdateMetricGroup(groupid uuid.UUID, appid uuid.UUID, name string)
 func (db *DB) UpdateMetric(metricid uuid.UUID, groupid uuid.UUID, name string) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET name = $1 WHERE groupid = $2 AND id = $3", name, groupid, metricid)
 	return err
-
 }
 
 func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
@@ -269,6 +278,7 @@ func (db *DB) GetApplicationByName(userid uuid.UUID, name string) (types.Applica
 	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE userid = $1 AND name = $2", userid, name)
 	return app, err
 }
+
 func (db *DB) CreateApplication(app types.Application) (types.Application, error) {
 	var new_app types.Application
 	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", app.UserId, app.ApiKey, app.Name).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Image)
@@ -290,6 +300,7 @@ func (db *DB) CreateAccountRecovery(userid uuid.UUID, code string) (types.Accoun
 	err := db.Conn.QueryRow("INSERT INTO accountrecovery (userid, code) VALUES ($1, $2) RETURNING *", userid, code).Scan(&account_recovery.UserId, &account_recovery.Code, &account_recovery.Id)
 	return account_recovery, err
 }
+
 func (db *DB) GetAccountRecovery(code string) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
 	err := db.Conn.Get(&account_recovery, "SELECT * FROM accountrecovery WHERE code = $1", code)

@@ -26,7 +26,6 @@ CREATE TABLE Applications (
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_apikey_id ON applications (ApiKey);
 
 -- Create Metric Group table
 CREATE TABLE MetricGroups (
@@ -39,7 +38,7 @@ CREATE TABLE MetricGroups (
 );
 
 -- Create Metrics table
-CREATE TABLE Metrics(
+CREATE TABLE IF NOT EXISTS Metrics(
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     GroupId UUID NOT NULL,
     Name TEXT NOT NULL,
@@ -47,10 +46,9 @@ CREATE TABLE Metrics(
     FOREIGN KEY (GroupId) REFERENCES MetricGroups(Id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_metrics_app_id ON Metrics (GroupId, Id);
 
 -- Create Metric events table
-CREATE TABLE MetricEvents (
+CREATE TABLE IF NOT EXISTS MetricEvents (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     MetricId UUID NOT NULL,
     Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -59,10 +57,8 @@ CREATE TABLE MetricEvents (
 );
 
 
-CREATE INDEX idx_metrics_events_metricid_id ON MetricEvents (MetricId);
-
 -- Create Metric daily summary table 
-CREATE TABLE MetricDailySummary (
+CREATE TABLE IF NOT EXISTS MetricDailySummary (
     Id TEXT PRIMARY KEY,
     MetricId UUID NOT NULL,
     Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -72,7 +68,7 @@ CREATE TABLE MetricDailySummary (
 
 
 -- Create Account Recovery table
-CREATE TABLE AccountRecovery (
+CREATE TABLE IF NOT EXISTS AccountRecovery (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Code TEXT NOT NULL UNIQUE,
     UserId UUID NOT NULL,
@@ -80,7 +76,7 @@ CREATE TABLE AccountRecovery (
 );
 
 -- Create Feedback table
-CREATE TABLE Feedbacks (
+CREATE TABLE IF NOT EXISTS Feedbacks (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Email TEXT NOT NULL,
@@ -88,7 +84,7 @@ CREATE TABLE Feedbacks (
 );
 
 -- Create Plan table 
-CREATE TABLE Plans (
+CREATE TABLE IF NOT EXISTS Plans (
     Identifier TEXT NOT NULL UNIQUE,
     Name TEXT NOT NULL,
     Price TEXT NOT NULL,
@@ -96,3 +92,8 @@ CREATE TABLE Plans (
     MetricPerAppLimit INT NOT NULL,
     TimeFrames TEXT NOT NULL
 );
+
+
+CREATE INDEX IF NOT EXISTS idx_metrics_events_metricid_id ON MetricEvents (MetricId);
+CREATE INDEX IF NOT EXISTS idx_metrics_app_id ON Metrics (GroupId, Id);
+CREATE INDEX IF NOT EXISTS idx_apikey_id ON applications (ApiKey);
