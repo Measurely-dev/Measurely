@@ -279,7 +279,7 @@ const Item = (props: { group: Group; index: number }) => {
           className="my-2 lg:hidden col-span-3"
         />
         <div className="my-auto max-lg:flex-col max-lg:place-items-start max-lg:gap-2 max-lg:flex line-clamp-1 h-fit w-full text-[15px] place-items-center items-center font-mono">
-          <Label className="md:hidden font-sans font-[600]">Total value</Label>
+          <Label className="lg:hidden !font-sans font-semibold text-blue-500">Total value</Label>
           {total === null ? "LOADING..." : total}
         </div>
         <div className="flex max-lg:flex-col max-lg:gap-2 items-center max-lg:place-items-start">
