@@ -87,7 +87,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         </div>
         <Link href={'/docs/getting-started/introduction'}>
           <Button
-            className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
+            className="h-[35px] w-full gap-[8px] rounded-[12px] text-secondary hover:text-primary"
             variant="secondary"
           >
             <Book className="size-[16px]" />
