@@ -56,7 +56,6 @@ type MetricGroup struct {
 	AppId   uuid.UUID `json:"appid"`
 	Name    string    `json:"name"`
 	Type    int       `json:"type"`
-	Enabled bool      `json:"enabled"`
 	Created time.Time `json:"created"`
 }
 
@@ -99,4 +98,11 @@ type AuthCookie struct {
 	UserId       uuid.UUID `json:"userId"`
 	Email        string    `json:"email"`
 	CreationDate time.Time `json:"creationDate"`
+}
+
+type DailyMetricSummary struct {
+	Id       string    `json:"id"`
+	Date     time.Time `json:"date"`
+	MetricId uuid.UUID `json:"metricid"`
+	Value    int       `json:"value"`
 }

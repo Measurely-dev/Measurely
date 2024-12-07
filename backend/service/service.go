@@ -1097,7 +1097,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, val)
+	app, err := s.DB.GetApplication(request.AppId, val)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1121,19 +1121,17 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	plan, _ := s.GetPlan(user.CurrentPlan)
-	var enabled bool
+
 	if count >= plan.MetricPerAppLimit {
-		enabled = false
-	} else {
-		enabled = true
+		http.Error(w, "You have reached the limit of metrics for this app", http.StatusUnauthorized)
+		return
 	}
 
 	// Create the metric
 	group, err := s.DB.CreateMetricGroup(types.MetricGroup{
-		Name:    request.Name,
-		AppId:   request.AppId,
-		Type:    request.Type,
-		Enabled: enabled,
+		Name:  request.Name,
+		AppId: request.AppId,
+		Type:  request.Type,
 	})
 
 	if err != nil {
@@ -1166,6 +1164,9 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return
 	}
+
+	// remove the redis cache
+	s.redisClient.Del(s.redisCtx, app.ApiKey)
 
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")

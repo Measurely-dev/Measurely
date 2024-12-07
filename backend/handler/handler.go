@@ -35,6 +35,7 @@ func (h *Handler) Start(port string) error {
 	go h.service.ProcessMetricEvents()
 	go h.service.ProcessEmails()
 	go h.service.StoreMetricEvents()
+	go h.service.UpdateMeterTotal()
 
 	defer h.service.CleanUp()
 
@@ -61,7 +62,7 @@ func (h *Handler) setup_api() {
 
 		r.Post("/feedback", h.service.SendFeedback)
 
-		r.Post("/{apikey}/{metric}", h.service.CreateMetricEvent)
+		r.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
 		r.HandleFunc("/webhook", h.service.Webhook)
 		r.HandleFunc("/github-callback", h.service.GithubCallback)
 
