@@ -4,7 +4,7 @@ export const footerData = [
   { title: "Documentation", href: "/docs/getting-started/introduction" },
   { title: "Installation", href: "/docs/getting-started/installation" },
   { title: "Quickstart", href: "/docs/getting-started/installation/quickstart" },
-  { title: "Terms of service", href: "/terms" },
+  { title: "Terms", href: "/terms" },
   { title: "Privacy policy", href: "/privacy" },
   { title: "Help", href: "/help" },
 ];

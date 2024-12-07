@@ -17,7 +17,7 @@ export default function RootLayout({
   const is_authentificated = headersList.get('is-authentificated');
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
-      <Navbar type={is_authentificated === 'true' ? 'logged' : 'waitlist'} />
+      <Navbar type={'default'} />
       <div className='min-h-screen w-screen'>{children}</div>
       <Footer bg='secondary' border={false} />
     </div>
