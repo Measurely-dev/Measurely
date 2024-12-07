@@ -40,3 +40,5 @@ next-env.d.ts
 
 # ds store
 .DS.Store
+
+dump.rdb
