@@ -36,7 +36,7 @@ export default function SubLink({
       Comp
     )
   ) : (
-    <h4 className="font-semibold sm:text-sm text-primary">{title}</h4>
+    <h4 className="font-semibold text-sm text-primary">{title}</h4>
   );
 
   if (!items) {
@@ -66,7 +66,7 @@ export default function SubLink({
         <CollapsibleContent>
           <div
             className={cn(
-              "flex flex-col items-start sm:text-sm dark:text-neutral-300/85 text-neutral-800 ml-0.5 mt-2.5 gap-3",
+              "flex flex-col items-start text-sm dark:text-neutral-300/85 text-neutral-800 ml-0.5 mt-2.5 gap-3",
               level > 0 && "pl-4 border-l ml-1"
             )}
           >

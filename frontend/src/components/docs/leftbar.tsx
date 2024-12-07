@@ -9,6 +9,7 @@ import {
 import { Button } from "../ui/button";
 import { AlignLeftIcon } from "lucide-react";
 import DocsMenu from "./docs-menu";
+import Link from "next/link";
 
 export function Leftbar() {
   return (
@@ -28,13 +29,16 @@ export function SheetLeftbar() {
           <AlignLeftIcon className="w-5 h-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex flex-col gap-4 px-0" side="left">
+      <SheetContent className="flex max-sm:w-[95%] flex-col gap-4 px-5 " side="left">
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetHeader>
-          <h2 className="font-extrabold text-start px-8">Menu</h2>
+          <h2 className="font-extrabold text-start">Menu</h2>
         </SheetHeader>
         <ScrollArea className="flex flex-col gap-4">
-          <div className="mx-2 px-5">
+        <Link href={'/register'}>
+          <Button className="rounded-[12px] w-full">Get started</Button>
+        </Link>
+          <div className="mx-2">
             <DocsMenu isSheet />
           </div>
         </ScrollArea>

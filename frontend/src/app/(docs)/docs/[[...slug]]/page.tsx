@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getDocsForSlug } from "@/lib/markdown";
 import { Typography } from "@/components/docs/typography";
 import { Metadata } from "next";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type PageProps = {
   params: { slug: string[] };
@@ -12,7 +14,13 @@ type PageProps = {
 export default async function DocsPage({ params: { slug = [] } }: PageProps) {
   const pathName = slug.join("/");
   const res = await getDocsForSlug(pathName);
-  if (!res) return <></>;
+  if (!res) return <div className="w-full h-[calc(100vh-70px)] items-center justify-center flex flex-col gap-4">
+    <div className="text-6xl font-mono font-semibold">Docs</div>
+    <div className="text-secondary text-xl">Couldn't be found</div>
+    <Link href={'/docs/getting-started/introduction'}>
+      <Button className="rounded-[12px] mt-5 text-lg h-[45px]" size={"lg"}>Back to docs</Button>
+    </Link>
+  </div>;
   return (
     <div className="flex items-start gap-14">
       <div className="flex-[3] py-10">

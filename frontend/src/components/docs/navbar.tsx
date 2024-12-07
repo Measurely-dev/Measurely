@@ -40,7 +40,6 @@ export function Navbar() {
             </svg>
             Measurely
           </Link>
-
           <div className="md:flex hidden items-center gap-5 text-sm font-medium text-muted-foreground">
             {NAVLINKS.map((item) => {
               return (
@@ -57,9 +56,9 @@ export function Navbar() {
             })}
           </div>
         </div>
-            <Link href={'/register'}>
-              <Button className="rounded-[12px]">Get started</Button>
-            </Link>
+        <Link href={'/register'} className="max-md:hidden">
+          <Button className="rounded-[12px]">Get started</Button>
+        </Link>
         <SheetLeftbar />
       </div>
     </nav>
