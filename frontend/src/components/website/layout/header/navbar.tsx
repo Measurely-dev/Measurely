@@ -55,10 +55,9 @@ export default function Navbar(props: {
           </DrawerClose>
           {links.map((link: { name: string; href: string }, i: any) => {
             return (
-              <DrawerClose asChild>
+              <DrawerClose asChild key={i}>
                 <Link
                   href={link.href}
-                  key={i}
                   className='cursor-pointer rounded-[12px] bg-accent p-2 px-4 text-sm transition-all duration-300 hover:pl-6 hover:opacity-80'
                 >
                   {link.name}

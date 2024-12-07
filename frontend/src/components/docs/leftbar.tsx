@@ -1,11 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+
+
 import { Button } from '../ui/button';
 import { AlignLeftIcon } from 'lucide-react';
 import DocsMenu from './docs-menu';
@@ -13,7 +8,6 @@ import Link from 'next/link';
 import {
   Drawer,
   DrawerContent,
-  DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from '../ui/drawer';

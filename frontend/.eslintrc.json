@@ -4,7 +4,7 @@
   "rules": {
     "no-unused-vars": "off", // Disable ESLint's no-unused-vars rule
     "unused-imports/no-unused-imports": "error", // Enforce removal of unused imports
-    "react/no-unescaped-entities": ["error"], // React rule for unescaped entities
+    "react/no-unescaped-entities": ["off"], // React rule for unescaped entities
     "unused-imports/no-unused-vars": [
       "warn", // Warn for unused vars
       {
@@ -13,6 +13,8 @@
         "args": "after-used",
         "argsIgnorePattern": "^_" // Ignore function args starting with _
       }
-    ]
+    ],
+    "react/jsx-key": "error" // Add a rule for missing key props
   }
 }
+

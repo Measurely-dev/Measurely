@@ -41,7 +41,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
 
         {navItem?.map((item, i) => {
           return (
-            <DialogClose asChild>
+            <DialogClose asChild key={i}>
               <Link href={item.href}>
                 <Button
                   key={i}

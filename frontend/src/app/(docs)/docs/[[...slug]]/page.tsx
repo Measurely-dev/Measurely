@@ -1,6 +1,5 @@
 import Toc from '@/components/docs/toc';
 import { page_routes } from '@/lib/routes-config';
-import { notFound } from 'next/navigation';
 import { getDocsForSlug } from '@/lib/markdown';
 import { Typography } from '@/components/docs/typography';
 import { Metadata } from 'next';
