@@ -16,7 +16,7 @@
   overflow-x: auto;
 }
 
-pre>code {
+.docs pre>code {
   display: grid;
   max-width: inherit !important;
   padding: 14px 0 !important;
@@ -24,6 +24,7 @@ pre>code {
   border-radius:12px;
   margin-top:5px;
   margin-bottom:5px;
+  overflow-x:scroll;
 }
 
 .code-line {
