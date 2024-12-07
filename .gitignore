@@ -37,3 +37,6 @@ backend/uploads
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ds store
+.DS.Store
