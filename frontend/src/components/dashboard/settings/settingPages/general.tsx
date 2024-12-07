@@ -23,20 +23,42 @@ export default function SettingGeneralPage() {
                 <Input placeholder='Doe' defaultValue='Doe' />
               </Label>
             </div>
-            <Label className='flex flex-col gap-2'>
-              Username
-              <Input placeholder='Username' defaultValue='username' />
-            </Label>
+          </form>
+        }
+        btn='Save'
+      />
+
+      <SettingCard
+        title='Email'
+        description='This accounts main email.'
+        content={
+          <form className='flex flex-col gap-4'>
             <Label className='flex flex-col gap-2'>
               Email
               <Input placeholder='Email' defaultValue='name@domain.com' />
             </Label>
-            <Button
-              variant={'secondary'}
-              className='ml-auto w-fit rounded-[12px]'
-            >
-              Change pasword
-            </Button>
+          </form>
+        }
+        btn='Save'
+      />
+
+      <SettingCard
+        title='Password'
+        description='The key protecting this account.'
+        content={
+          <form className='flex flex-col gap-4'>
+            <Label className='flex flex-col gap-2'>
+              Current password
+              <Input placeholder='Current password' />
+            </Label>
+            <Label className='flex flex-col gap-2'>
+              New password
+              <Input placeholder='New password' />
+            </Label>
+            <Label className='flex flex-col gap-2'>
+              Confirm new password
+              <Input placeholder='Confirm new password' />
+            </Label>
           </form>
         }
         btn='Save'
