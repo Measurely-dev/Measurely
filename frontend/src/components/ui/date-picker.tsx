@@ -13,17 +13,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Dispatch, SetStateAction } from 'react';
 
-export function DatePicker({
-  className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(new Date().getTime()),
-    to: new Date(new Date().getTime()),
-  });
+export function DatePicker(props : {date : DateRange | undefined, setDate : Dispatch<SetStateAction<DateRange | undefined>>}) {
+
+
 
   return (
-    <div className={cn('grid gap-2', className)}>
+    <div className={'grid gap-2'}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -31,14 +28,14 @@ export function DatePicker({
             variant={'secondary'}
             className={cn(
               'w-fit justify-start rounded-[12px] px-4 text-left font-normal',
-              !date && 'text-muted-foreground',
+              !props.date && 'text-muted-foreground',
             )}
           >
             <CalendarIcon className='mr-2 size-4' />
-            {date?.from && date.to ? (
+            {props.date?.from && props.date.to ? (
               <>
-                {format(date.from, 'LLL dd, y')} -{' '}
-                {format(date.to, 'LLL dd, y')}
+                {format(props.date.from, 'LLL dd, y')} -{' '}
+                {format(props.date.to, 'LLL dd, y')}
               </>
             ) : (
               <span>Pick a date</span>
@@ -52,8 +49,8 @@ export function DatePicker({
           <Calendar
             initialFocus
             mode='range'
-            selected={date}
-            onSelect={setDate}
+            selected={props.date}
+            onSelect={props.setDate}
             numberOfMonths={1}
             disabled={(date) =>
               date > new Date() || date < new Date('1900-01-01')

@@ -84,26 +84,17 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mil, err := strconv.Atoi(r.URL.Query().Get("start"))
-	seconds := int64(mil) / 1000
-	nano := (int64(mil) % 1000) * int64(time.Millisecond)
-	if err != nil {
+	start, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST",r.URL.Query().Get("start"))
+  if err != nil {
+    http.Error(w, "Bad Request", http.StatusBadRequest)
+    return
+  }
+
+  end, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("end"))
+		if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-
-	start := time.Unix(seconds, nano)
-	log.Println(start)
-
-	mil, err = strconv.Atoi(r.URL.Query().Get("end"))
-	seconds = int64(mil) / 1000
-	nano = (int64(mil) % 1000) * int64(time.Millisecond)
-	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	end := time.Unix(seconds, nano)
 
 	forcedaily := r.URL.Query().Get("daily")
 
@@ -149,8 +140,8 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println(metricevents[0].Value)
-
+  
+    log.Println(len(metricevents))
 		bytes, err = json.Marshal(metricevents)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

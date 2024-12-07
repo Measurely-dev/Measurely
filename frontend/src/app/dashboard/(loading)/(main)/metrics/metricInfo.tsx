@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ReactNode } from 'react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 import {
@@ -16,8 +16,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Group } from '@/types';
+import { Group, GroupType } from '@/types';
 import { DatePicker } from '@/components/ui/date-picker';
+import { AppsContext } from '@/dashContext';
+import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 
 const multiData = [
   { month: 'January', positive: 186, negative: 80 },
@@ -37,11 +40,146 @@ const basicData = [
   { month: 'June', total: 214 },
 ];
 
+interface Basic {
+  date: string;
+  total: number;
+}
+
+interface Multi {
+  time: string;
+  positive: number;
+  negative: number;
+}
+
 export default function MetricInformations(props: {
   children: ReactNode;
   group: Group;
   total: number;
 }) {
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(new Date().getTime()),
+    to: new Date(new Date().getTime()),
+  });
+  const [dataOne, setDataOne] = useState<Map<Date, number> | null>(null);
+  const [dataTwo, setDataTwo] = useState<Map<Date, number> | null>(null);
+  const { applications, activeApp } = useContext(AppsContext);
+
+  const loadData = () => {
+    let map2 = new Map<Date, number>();
+    let map1 = new Map<Date, number>();
+    if (!date?.from || !date.to) {
+      return;
+    }
+
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${props.group.id}&metricid=${props.group.metrics[0].id}&appid=${applications?.[activeApp].id}&start=${date?.from?.toUTCString()}&end=${date?.to?.toUTCString()}`,
+      { method: 'GET', credentials: 'include' },
+    )
+      .then((resp) => {
+        if (!resp.ok) {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        } else {
+          return resp.json();
+        }
+      })
+      .then((json) => {
+        if (json === null || json === undefined) {
+          map1.set(date.from ?? new Date(), 0);
+          map1.set(date.to ?? new Date(), 0);
+        } else {
+          for (let i = 0; i < json.length; i++) {
+            const eventDate = new Date(json.date);
+            if (map1.get(eventDate)) {
+              map1.set(eventDate, map1.get(eventDate) + json.value);
+            } else {
+              map1.set(eventDate, json.value);
+            }
+          }
+        }
+
+        setDataOne(map1);
+      });
+    if (props.group.type === GroupType.Dual) {
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${props.group.id}&metricid=${props.group.metrics[1].id}&appid=${applications?.[activeApp].id}&start=${date?.from?.toUTCString()}&end=${date?.to?.toUTCString()}`,
+        { method: 'GET', credentials: 'include' },
+      )
+        .then((resp) => {
+          if (!resp.ok) {
+            resp.text().then((text) => {
+              toast.error(text);
+            });
+          } else {
+            return resp.json();
+          }
+        })
+        .then((json) => {
+          if (json === null || json === undefined) {
+            map2.set(date.from ?? new Date(), 0);
+            map2.set(date.to ?? new Date(), 0);
+          } else {
+            for (let i = 0; i < json.length; i++) {
+              const eventDate = new Date(json.date);
+              if (map2.get(eventDate)) {
+                map2.set(eventDate, map2.get(eventDate) + json.value);
+              } else {
+                map2.set(eventDate, json.value);
+              }
+            }
+          }
+
+          setDataTwo(map2);
+        });
+    }
+  };
+
+  const mapToArray = (map: Map<any, any>, name: string = 'value') => {
+    let array: any[] = [];
+    map.keys().forEach((key) => {
+      array.push({ date: key, [name]: map.get(key) });
+    });
+
+    return array;
+  };
+
+  const multiMapsToArray = (map1: Map<any, any>, map2: Map<any, any>) => {
+    // Create a Set to track all unique dates
+    const uniqueDates = new Set<string>();
+
+    // Add keys from both maps to the uniqueDates Set
+    map1.keys().forEach((key) => uniqueDates.add(key));
+    map2.keys().forEach((key) => uniqueDates.add(key));
+
+    // Prepare the result array
+    const array: any[] = [];
+
+    // Populate the result array
+    uniqueDates.forEach((date) => {
+      array.push({
+        date: date,
+        positive: map1.get(date) || 0, // Use 0 if the key doesn't exist in positiveMap
+        negative: map2.get(date) || 0, // Use 0 if the key doesn't exist in negativeMap
+      });
+    });
+
+    return array;
+  };
+
+  const dateToXAxis = (dateToParse: Date) => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    if (date?.from?.toString() === date?.to?.toString()) {
+      return dateToParse.getHours().toString();
+    } else {
+      return days[dateToParse.getDay()];
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [date]);
+
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
@@ -66,7 +204,7 @@ export default function MetricInformations(props: {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <DatePicker />
+        <DatePicker date={date} setDate={setDate} />
         {props.group.type === 0 ? (
           <>
             <ChartContainer
@@ -80,7 +218,7 @@ export default function MetricInformations(props: {
             >
               <AreaChart
                 accessibilityLayer
-                data={basicData}
+                data={mapToArray(dataOne ?? new Map())}
                 margin={{
                   left: 12,
                   right: 12,
@@ -88,11 +226,11 @@ export default function MetricInformations(props: {
               >
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey='month'
+                  dataKey='date'
                   tickLine={false}
                   tickMargin={10}
                   axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
+                  tickFormatter={(value: Date) => dateToXAxis(value)}
                 />
                 <ChartTooltip
                   cursor={false}
@@ -100,7 +238,7 @@ export default function MetricInformations(props: {
                   labelClassName='!min-w-[200px]'
                 />
                 <Area
-                  dataKey='total'
+                  dataKey='value'
                   type='natural'
                   fill='skyblue'
                   fillOpacity={0.5}
@@ -142,7 +280,10 @@ export default function MetricInformations(props: {
             >
               <AreaChart
                 accessibilityLayer
-                data={multiData}
+                data={multiMapsToArray(
+                  dataOne ?? new Map(),
+                  dataTwo ?? new Map(),
+                )}
                 margin={{
                   left: 12,
                   right: 12,
@@ -150,11 +291,11 @@ export default function MetricInformations(props: {
               >
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey='month'
+                  dataKey='date'
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tickFormatter={(value) => value.slice(0, 3)}
+                  tickFormatter={(value: Date) => dateToXAxis(value)}
                 />
                 <ChartTooltip
                   cursor={false}
@@ -162,7 +303,7 @@ export default function MetricInformations(props: {
                   labelClassName='!min-w-[200px]'
                 />
                 <Area
-                  dataKey='positive'
+                  dataKey='postive'
                   type='natural'
                   strokeOpacity={0.6}
                   fill='lime'
