@@ -28,7 +28,7 @@ func NewPostgres(url string) (*DB, error) {
 	if err != nil {
 		log.Fatalln("Failed to read migration file: ", err)
 	}
-  db.Exec(string(b))
+	db.Exec(string(b))
 
 	return &DB{Conn: db}, nil
 }
@@ -333,7 +333,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 	for rows.Next() {
 		var plan types.Plan
 		var timeframes string
-		err := rows.Scan(&plan.Price, &plan.Identifier, &plan.Name, &plan.AppLimit, &plan.MetricPerAppLimit, &timeframes)
+		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &timeframes)
 		if err != nil {
 			return []types.Plan{}, err
 		}

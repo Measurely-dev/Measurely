@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Measurely/types"
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
@@ -12,8 +13,6 @@ import (
 	"strconv"
 	"text/template"
 	"time"
-
-	"Measurely/types"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
@@ -131,8 +130,8 @@ func (s *Service) GetRate(name string) int {
 	return result
 }
 
-func (s *Service) GetPlan(name string) (types.Plan, bool) {
-	key := fmt.Sprintf("plan:%s", name)
+func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
+	key := fmt.Sprintf("plan:%s", identifier)
 	val, err := s.redisClient.Get(s.redisCtx, key).Result()
 	if err != nil {
 		return types.Plan{}, false

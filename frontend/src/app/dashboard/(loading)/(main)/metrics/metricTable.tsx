@@ -8,6 +8,8 @@ import { formatDistanceToNow } from "date-fns";
 import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
+import { Separator } from "@radix-ui/react-separator";
+import { Label } from "recharts";
 
 const formattedDate = (date: Date) => {
   try {

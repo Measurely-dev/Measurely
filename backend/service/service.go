@@ -151,8 +151,9 @@ func (s *Service) SetupSharedVariables() {
 		}
 
 		key := fmt.Sprintf("plan:%s", plan.Identifier)
-		s.redisClient.Set(s.redisCtx, key, bytes, 0)
-
+    if err := s.redisClient.Set(s.redisCtx, key, bytes, 0).Err(); err != nil {
+      log.Fatalln("Failed to update plans in redis: ", err)
+    }
 	}
 }
 
@@ -1122,6 +1123,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	plan, _ := s.GetPlan(user.CurrentPlan)
 
+  log.Println(count, plan.MetricPerAppLimit)
 	if count >= plan.MetricPerAppLimit {
 		http.Error(w, "You have reached the limit of metrics for this app", http.StatusUnauthorized)
 		return
