@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { AlignLeftIcon } from "lucide-react";
 import DocsMenu from "./docs-menu";
 import Link from "next/link";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/drawer";
 
 export function Leftbar() {
   return (
@@ -23,17 +24,14 @@ export function Leftbar() {
 
 export function SheetLeftbar() {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <Drawer>
+      <DrawerTrigger asChild>
         <Button variant="ghost" size="icon" className="md:hidden flex">
           <AlignLeftIcon className="w-5 h-5" />
         </Button>
-      </SheetTrigger>
-      <SheetContent className="flex max-sm:w-[95%] flex-col gap-4 px-5 " side="left">
-        <SheetTitle className="sr-only">Menu</SheetTitle>
-        <SheetHeader>
-          <h2 className="font-extrabold text-start">Menu</h2>
-        </SheetHeader>
+      </DrawerTrigger>
+      <DrawerContent className="flex flex-col gap-4 px-5">
+        <DrawerTitle className="sr-only !text-2xl">Menu</DrawerTitle>
         <ScrollArea className="flex flex-col gap-4">
         <Link href={'/register'}>
           <Button className="rounded-[12px] w-full">Get started</Button>
@@ -42,7 +40,7 @@ export function SheetLeftbar() {
             <DocsMenu isSheet />
           </div>
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }

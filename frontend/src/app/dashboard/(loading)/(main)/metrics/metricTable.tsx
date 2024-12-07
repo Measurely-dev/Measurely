@@ -251,10 +251,10 @@ const Item = (props: { group: Group; index: number }) => {
   return (
     <div className="relative">
       <MetricInformations group={props.group} total={total ?? 0}>
-        <div className="transition-all duration-200 absolute w-full h-full rounded-[12px] cursor-pointer z-10 hover:bg-accent opacity-50" />
+        <div className="transition-all duration-200 absolute w-full h-full max-lg:rounded-l-none rounded-[12px] cursor-pointer z-10 hover:bg-accent opacity-60" />
       </MetricInformations>
       <div
-        className={`grid h-[50px] w-full max-lg:grid max-lg:py-4 max-lg:grid-cols-3 max-sm:p-3 max-lg:h-fit select-none grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] px-5 relative`}
+        className={`grid h-[50px] w-full max-lg:border-l max-lg:rounded-l-none max-lg:border-blue-500 max-lg:grid max-lg:py-4 max-lg:grid-cols-3 max-sm:p-3 max-lg:h-fit select-none grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] px-5 relative`}
       >
         <div className="flex flex-row items-center gap-[10px] max-lg:col-span-2 text-[15px] ">
           <div className="bg-accent p-2 rounded-full border border-input/50">

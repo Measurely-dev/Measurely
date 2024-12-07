@@ -36,15 +36,23 @@ export default function Navbar(props: {
         <Links links={links} />
       </div>
       <div className="max-md:hidden">
-      {/* Actions group */}
-      <Actions type={props.type} />
+        {/* Actions group */}
+        <Actions type={props.type} />
       </div>
       <Drawer>
         <DrawerTrigger className="md:hidden">
           <Menu className="size-5 mr-2" />
         </DrawerTrigger>
         <DrawerContent className="flex flex-col gap-2 px-10 !pt-0 py-10">
-          <div className="h-8 w-full"/>
+          <div className="h-8 w-full" />
+          <DrawerClose asChild>
+            <Link
+              href={'/home'}
+              className="p-2 text-sm bg-accent rounded-[12px] px-4 hover:pl-6 hover:opacity-80 transition-all duration-300 cursor-pointer"
+            >
+              Home
+            </Link>
+          </DrawerClose>
           {links.map((link: { name: string; href: string }, i: any) => {
             return (
               <DrawerClose asChild>

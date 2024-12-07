@@ -8,7 +8,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { usePathname } from "next/navigation";
 import NavbarItemChip from "./navbarItemChip";
 import { Separator } from "@/components/ui/separator";
 import { HomeIcon } from "lucide-react";
@@ -32,7 +31,6 @@ export const navItem = [
   },
 ];
 export default function DashboardNavbar() {
-  const pathname = usePathname();
   return (
     <div className="flex h-screen flex-col py-[15px] pl-5">
       <Link href="/">

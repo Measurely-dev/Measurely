@@ -11,11 +11,11 @@ export default function ShowcaseLandingSection(props: {
   type: "default" | "waitlist";
 }) {
   return (
-    <div className="relative flex h-screen min-h-[780px] max-md:pt-[23vh] w-screen flex-col items-center pt-[30vh]">
+    <div className="relative flex h-screen min-h-[780px] max-lg:pt-[20vh] max-md:pt-[23vh] w-screen flex-col items-center pt-[30vh]">
       <WebChip color="default" href="/">
         <span className="mr-1 font-medium">Measurably</span> is the new way
       </WebChip>
-      <div className="mt-5 w-[90%] text-center text-6xl font-semibold max-sm:text-4xl leading-[1.15] tracking-normal max-md:text-5xl max-lg:text-5xl">
+      <div className="mt-5 w-[90%] text-center max-lg:px-0 text-6xl font-semibold max-sm:text-4xl leading-[1.15] tracking-normal max-md:text-5xl max-lg:text-5xl">
         <span className="font-mono bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 text-transparent bg-clip-text animate-gradient">Measurely</span> tracks what matters,
         <br className="max-md:hidden" /> grow with confidence.
       </div>
