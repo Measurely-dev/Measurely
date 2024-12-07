@@ -1,30 +1,30 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AppsContext } from "@/dashContext";
-import { Group, GroupType, MetricEvent } from "@/types";
-import { useContext, useEffect, useState } from "react";
-import { AlertCircle, Box, MoreHorizontal } from "react-feather";
-import { formatDistanceToNow } from "date-fns";
-import MetricDropdown from "@/components/dashboard/components/metricDropdown";
-import Empty from "@/components/dashboard/components/empty";
-import MetricInformations from "./metricInfo";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { AppsContext } from '@/dashContext';
+import { Group, GroupType, MetricEvent } from '@/types';
+import { useContext, useEffect, useState } from 'react';
+import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
+import { formatDistanceToNow } from 'date-fns';
+import MetricDropdown from '@/components/dashboard/components/metricDropdown';
+import Empty from '@/components/dashboard/components/empty';
+import MetricInformations from './metricInfo';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 const formattedDate = (date: Date) => {
   try {
     return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
-    console.error("Date formatting error:", error);
-    return "Invalid Date";
+    console.error('Date formatting error:', error);
+    return 'Invalid Date';
   }
 };
 
 function sortbyDate(a: Group, b: Group, order: string): number {
   if (a.created < b.created) {
-    return order === "new" ? 1 : -1;
+    return order === 'new' ? 1 : -1;
   } else if (a.created > b.created) {
-    return order === "new" ? -1 : 1;
+    return order === 'new' ? -1 : 1;
   } else {
     return 0;
   }
@@ -63,9 +63,9 @@ export default function MetricTable(props: { search: string; filter: string }) {
     setGroups(
       applications?.[activeApp].groups
         ?.sort((a, b) => {
-          if (props.filter === "new" || props.filter === "old") {
+          if (props.filter === 'new' || props.filter === 'old') {
             return sortbyDate(a, b, props.filter);
-          } else if (props.filter === "total") {
+          } else if (props.filter === 'total') {
             return sortByTotal(a, b);
           } else {
             return 0;
@@ -78,15 +78,15 @@ export default function MetricTable(props: { search: string; filter: string }) {
   }, [activeApp, props.filter, props.search, applications]);
 
   return (
-    <div className="flex flex-col gap-[15px]">
+    <div className='flex flex-col gap-[15px]'>
       {/* Header component for the table UI */}
       <Header />
-      <div className="flex flex-col gap-2">
+      <div className='flex flex-col gap-2'>
         {/* Items components */}
         {groups.length === 0 ? (
           <Empty>
-            <AlertCircle className="size-10" />
-            <div className="flex flex-col items-center gap-3 text-center">
+            <AlertCircle className='size-10' />
+            <div className='flex flex-col items-center gap-3 text-center'>
               No metric found with that name
             </div>
           </Empty>
@@ -103,11 +103,11 @@ export default function MetricTable(props: { search: string; filter: string }) {
 }
 function Header() {
   return (
-    <div className="grid w-full max-lg:hidden grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] bg-accent px-5 py-3 text-xs uppercase text-secondary">
+    <div className='grid w-full grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] bg-accent px-5 py-3 text-xs uppercase text-secondary max-lg:hidden'>
       <div>metric</div>
       <div>total value</div>
       <div>daily update</div>
-      <div className="text-end">Created</div>
+      <div className='text-end'>Created</div>
     </div>
   );
 }
@@ -119,22 +119,22 @@ const Item = (props: { group: Group; index: number }) => {
 
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
-      return "";
+      return '';
     } else {
       if (v > 0) {
-        return "bg-green-100 text-green-600";
+        return 'bg-green-100 text-green-600';
       } else {
-        return "bg-red-100 text-red-600";
+        return 'bg-red-100 text-red-600';
       }
     }
   };
 
   const todayBadgeSign = (v: number | null) => {
     if (v === null || v === 0 || v < 0) {
-      return "";
+      return '';
     } else {
       if (v > 0) {
-        return "+";
+        return '+';
       }
     }
   };
@@ -145,11 +145,11 @@ const Item = (props: { group: Group; index: number }) => {
       process.env.NEXT_PUBLIC_API_URL +
         `/events?appid=${appid}&groupid=${props.group.id}&metricid=${id}&offset=0`,
       {
-        method: "GET",
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        credentials: "include",
+        credentials: 'include',
       },
     );
 
@@ -249,60 +249,62 @@ const Item = (props: { group: Group; index: number }) => {
   }, []);
 
   return (
-    <div className="relative">
+    <div className='relative'>
       <MetricInformations group={props.group} total={total ?? 0}>
-        <div className="transition-all duration-200 absolute w-full h-full max-lg:rounded-l-none rounded-[12px] cursor-pointer z-10 hover:bg-accent opacity-60" />
+        <div className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none' />
       </MetricInformations>
       <div
-        className={`grid h-[50px] w-full max-lg:border-l max-lg:rounded-l-none max-lg:border-blue-500 max-lg:grid max-lg:py-4 max-lg:grid-cols-3 max-sm:p-3 max-lg:h-fit select-none grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] px-5 relative`}
+        className={`relative grid h-[50px] w-full select-none grid-cols-[1.4fr,1.5fr,200px,175px,75px] gap-[10px] rounded-[12px] px-5 max-lg:grid max-lg:h-fit max-lg:grid-cols-3 max-lg:rounded-l-none max-lg:border-l max-lg:border-blue-500 max-lg:py-4 max-sm:p-3`}
       >
-        <div className="flex flex-row items-center gap-[10px] max-lg:col-span-2 text-[15px] ">
-          <div className="bg-accent p-2 rounded-full border border-input/50">
-            <Box className="size-5 text-blue-500" />
+        <div className='flex flex-row items-center gap-[10px] text-[15px] max-lg:col-span-2'>
+          <div className='rounded-full border border-input/50 bg-accent p-2'>
+            <Box className='size-5 text-blue-500' />
           </div>
           {props.group.name}
         </div>
 
-        <div className="h-full flex justify-end items-center w-full col-span-1 lg:hidden">
+        <div className='col-span-1 flex h-full w-full items-center justify-end lg:hidden'>
           <MetricDropdown group={props.group} total={total ?? 0}>
             <Button
-              className="rounded-[12px] !bg-transparent z-20"
-              variant={"secondary"}
-              size={"icon"}
+              className='z-20 rounded-[12px] !bg-transparent'
+              variant={'secondary'}
+              size={'icon'}
             >
               <MoreHorizontal />
             </Button>
           </MetricDropdown>
         </div>
         <Separator
-          orientation="horizontal"
-          className="my-2 lg:hidden col-span-3"
+          orientation='horizontal'
+          className='col-span-3 my-2 lg:hidden'
         />
-        <div className="my-auto max-lg:flex-col max-lg:place-items-start max-lg:gap-2 max-lg:flex line-clamp-1 h-fit w-full text-[15px] place-items-center items-center font-mono">
-          <Label className="lg:hidden !font-sans font-semibold text-blue-500">Total value</Label>
-          {total === null ? "LOADING..." : total}
+        <div className='my-auto line-clamp-1 h-fit w-full place-items-center items-center font-mono text-[15px] max-lg:flex max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
+          <Label className='!font-sans font-semibold text-blue-500 lg:hidden'>
+            Total value
+          </Label>
+          {total === null ? 'LOADING...' : total}
         </div>
-        <div className="flex max-lg:flex-col max-lg:gap-2 items-center max-lg:place-items-start">
-          <Label className="lg:hidden">Daily value</Label>
+        <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
+          <Label className='lg:hidden'>Daily value</Label>
           <Badge
             className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${todayBadgeColor(
               dailyUpdate,
             )}}`}
           >
             {todayBadgeSign(dailyUpdate)}
-            {dailyUpdate === null ? "LOADING..." : dailyUpdate}
+            {dailyUpdate === null ? 'LOADING...' : dailyUpdate}
           </Badge>
         </div>
-        <div className="flex items-center max-lg:flex-col max-lg:gap-2 max-lg:place-items-start text-sm text-secondary justify-end font-light">
-          <Label className="lg:hidden text-primary">Created</Label>
+        <div className='flex items-center justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
+          <Label className='text-primary lg:hidden'>Created</Label>
           {formattedDate(props.group.created)}
         </div>
-        <div className="h-full flex justify-end items-center w-full max-lg:hidden">
+        <div className='flex h-full w-full items-center justify-end max-lg:hidden'>
           <MetricDropdown group={props.group} total={total ?? 0}>
             <Button
-              className="rounded-[12px] !bg-transparent z-20"
-              variant={"secondary"}
-              size={"icon"}
+              className='z-20 rounded-[12px] !bg-transparent'
+              variant={'secondary'}
+              size={'icon'}
             >
               <MoreHorizontal />
             </Button>

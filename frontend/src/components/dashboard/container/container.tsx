@@ -5,7 +5,9 @@ export default function DashboardContentContainer(props: {
   className?: string;
 }) {
   return (
-    <div className={`flex flex-col pr-[15px] mt-5 pb-[15px] ${props.className}`}>
+    <div
+      className={`mt-5 flex flex-col pb-[15px] pr-[15px] ${props.className}`}
+    >
       {props.children}
     </div>
   );

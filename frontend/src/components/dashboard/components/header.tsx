@@ -10,7 +10,7 @@ export default function Header(props: {
       className={`flex w-full items-center justify-between gap-12 ${props.className}`}
     >
       <div className='flex flex-col gap-[5px]'>
-        <div className={`text-base text- font-medium ${props.titleClassName}`}>
+        <div className={`text- text-base font-medium ${props.titleClassName}`}>
           {props.title}
         </div>
         {props.description ? (

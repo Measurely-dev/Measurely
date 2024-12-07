@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import AuthForm from "@/components/forms/auth";
-import WebContainer from "@/components/website/containers/container";
-import ContentContainer from "@/components/website/containers/content";
-import AuthNavbar from "@/components/website/layout/authNav/navbar";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
+import AuthForm from '@/components/forms/auth';
+import WebContainer from '@/components/website/containers/container';
+import ContentContainer from '@/components/website/containers/content';
+import AuthNavbar from '@/components/website/layout/authNav/navbar';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function Register() {
   const searchParams = useSearchParams();
@@ -17,61 +17,61 @@ export default function Register() {
 
   return (
     <WebContainer>
-      <div className="max-md:mb-[50px]">
-        <AuthNavbar href="/sign-in" button="Sign in" />
+      <div className='max-md:mb-[50px]'>
+        <AuthNavbar href='/sign-in' button='Sign in' />
       </div>
       <ContentContainer>
         <AuthForm
-          title="Create an account"
+          title='Create an account'
           providers={true}
           form={[
             {
-              label: "First name",
-              name: "first_name",
-              default: searchParams.get("first_name") ?? "",
-              placeholder: "First name",
-              type: "text",
+              label: 'First name',
+              name: 'first_name',
+              default: searchParams.get('first_name') ?? '',
+              placeholder: 'First name',
+              type: 'text',
             },
             {
-              label: "Last name",
-              name: "last_name",
-              default: searchParams.get("last_name") ?? "",
-              placeholder: "Last name",
-              type: "text",
+              label: 'Last name',
+              name: 'last_name',
+              default: searchParams.get('last_name') ?? '',
+              placeholder: 'Last name',
+              type: 'text',
             },
             {
-              label: "Email ",
-              name: "email",
-              default: searchParams.get("email") ?? "",
-              placeholder: "Email",
-              type: "email",
+              label: 'Email ',
+              name: 'email',
+              default: searchParams.get('email') ?? '',
+              placeholder: 'Email',
+              type: 'email',
             },
           ]}
-          button="Create your account"
+          button='Create your account'
           btn_loading={loading}
           action={async (formdata) => {
             set_loading(true);
 
-            const email = formdata.get("email");
-            const first_name = formdata.get("first_name");
-            const last_name = formdata.get("last_name");
+            const email = formdata.get('email');
+            const first_name = formdata.get('first_name');
+            const last_name = formdata.get('last_name');
 
-            if (email === "" || first_name === "" || last_name === "") {
-              toast.error("Please fill in all fields");
+            if (email === '' || first_name === '' || last_name === '') {
+              toast.error('Please fill in all fields');
               set_loading(false);
               return;
             }
 
-            fetch(process.env.NEXT_PUBLIC_API_URL + "/email-valid", {
-              method: "POST",
+            fetch(process.env.NEXT_PUBLIC_API_URL + '/email-valid', {
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
               body: JSON.stringify({
                 email: email,
                 type: 1,
               }),
-              credentials: "include",
+              credentials: 'include',
             }).then((res) => {
               if (!res.ok) {
                 res.text().then((text) => {

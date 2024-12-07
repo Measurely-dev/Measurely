@@ -1,5 +1,5 @@
-import { createContext, Dispatch } from "react";
-import { Application, User } from "./types";
+import { createContext, Dispatch } from 'react';
+import { Application, User } from './types';
 
 export interface UserContextType {
   user: User | null;

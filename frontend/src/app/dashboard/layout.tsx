@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { AppsContext, UserContext } from "@/dashContext";
-import { useState } from "react";
-import { Application, User } from "@/types";
+import { AppsContext, UserContext } from '@/dashContext';
+import { useState } from 'react';
+import { Application, User } from '@/types';
 
 export default function DashboardContentLayout({
   children,

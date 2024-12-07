@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { EachRoute } from "@/lib/routes-config";
-import Anchor from "./anchor";
+import { EachRoute } from '@/lib/routes-config';
+import Anchor from './anchor';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
-import { SheetClose } from "@/components/ui/sheet";
-import { Button } from "../ui/button";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+import { SheetClose } from '@/components/ui/sheet';
+import { Button } from '../ui/button';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 export default function SubLink({
   title,
@@ -24,7 +24,7 @@ export default function SubLink({
   const [isOpen, setIsOpen] = useState(level == 0);
 
   const Comp = (
-    <Anchor activeClassName="text-primary font-semibold" href={href}>
+    <Anchor activeClassName='text-primary font-semibold' href={href}>
       {title}
     </Anchor>
   );
@@ -36,38 +36,38 @@ export default function SubLink({
       Comp
     )
   ) : (
-    <h4 className="font-semibold text-sm text-primary">{title}</h4>
+    <h4 className='text-sm font-semibold text-primary'>{title}</h4>
   );
 
   if (!items) {
-    return <div className="flex flex-col">{titleOrLink}</div>;
+    return <div className='flex flex-col'>{titleOrLink}</div>;
   }
 
   return (
-    <div className="flex flex-col gap-1 w-full">
+    <div className='flex w-full flex-col gap-1'>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           {titleOrLink}
           <CollapsibleTrigger asChild>
             <Button
-              className="ml-auto mr-3.5 h-6 w-6"
-              variant="link"
-              size="icon"
+              className='ml-auto mr-3.5 h-6 w-6'
+              variant='link'
+              size='icon'
             >
               {!isOpen ? (
-                <ChevronRight className="h-[0.9rem] w-[0.9rem]" />
+                <ChevronRight className='h-[0.9rem] w-[0.9rem]' />
               ) : (
-                <ChevronDown className="h-[0.9rem] w-[0.9rem]" />
+                <ChevronDown className='h-[0.9rem] w-[0.9rem]' />
               )}
-              <span className="sr-only">Toggle</span>
+              <span className='sr-only'>Toggle</span>
             </Button>
           </CollapsibleTrigger>
         </div>
         <CollapsibleContent>
           <div
             className={cn(
-              "flex flex-col items-start text-sm dark:text-neutral-300/85 text-neutral-800 ml-0.5 mt-2.5 gap-3",
-              level > 0 && "pl-4 border-l ml-1"
+              'ml-0.5 mt-2.5 flex flex-col items-start gap-3 text-sm text-neutral-800 dark:text-neutral-300/85',
+              level > 0 && 'ml-1 border-l pl-4',
             )}
           >
             {items?.map((innerLink) => {

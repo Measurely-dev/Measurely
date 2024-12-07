@@ -1,11 +1,8 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge } from '@/components/ui/badge';
 
-
-export default function ApplicationType(props: {type: any}) {
+export default function ApplicationType(props: { type: any }) {
   const render = () => {
-    switch (
-      props.type
-    ) {
+    switch (props.type) {
       case 'Hobby':
         return (
           <Badge className='pointer-events-none rounded-full bg-green-500/10 font-medium text-green-500 shadow-none'>
@@ -20,14 +17,14 @@ export default function ApplicationType(props: {type: any}) {
             Plus plan
           </Badge>
         );
-      case "Pro":
+      case 'Pro':
         return (
           <Badge className='pointer-events-none rounded-full bg-purple-500/10 font-medium text-purple-500 shadow-none'>
             <span className='-ml-0.5 mr-2 size-1.5 shrink-0 rounded-full bg-current'></span>
             Pro plan
           </Badge>
         );
-      case "Custom":
+      case 'Custom':
         return (
           <Badge className='pointer-events-none rounded-full bg-purple-500/10 font-medium text-red-500 shadow-none'>
             <span className='-ml-0.5 mr-2 size-1.5 shrink-0 rounded-full bg-current'></span>

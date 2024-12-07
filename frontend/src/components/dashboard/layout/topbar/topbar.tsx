@@ -1,71 +1,71 @@
-"use client";
+'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Code, Menu, MessageSquare, Plus, User } from "react-feather";
-import FeedbackPopover from "../../components/feedbackPopover";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Code, Menu, MessageSquare, Plus, User } from 'react-feather';
+import FeedbackPopover from '../../components/feedbackPopover';
 
-import AvatarDropdown from "./dropdown";
-import ApplicationsChip from "./application";
-import Link from "next/link";
-import { useContext } from "react";
-import { UserContext } from "@/dashContext";
-import ApiDialog from "../../components/apiDialog";
-import { DrawerMenu } from "./drawerMenu";
-import LogoSvg from "@/components/global/logoSvg";
-import { Separator } from "@/components/ui/separator";
+import AvatarDropdown from './dropdown';
+import ApplicationsChip from './application';
+import Link from 'next/link';
+import { useContext } from 'react';
+import { UserContext } from '@/dashContext';
+import ApiDialog from '../../components/apiDialog';
+import { DrawerMenu } from './drawerMenu';
+import LogoSvg from '@/components/global/logoSvg';
+import { Separator } from '@/components/ui/separator';
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
 
   return (
-    <div className="flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]">
-      <div className="flex h-[40px] w-full flex-row items-center justify-between">
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/" className="md:hidden">
-              <LogoSvg className="size-[35px]" />
+    <div className='flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]'>
+      <div className='flex h-[40px] w-full flex-row items-center justify-between'>
+        <div className='flex items-center justify-center gap-4'>
+          <Link href='/' className='md:hidden'>
+            <LogoSvg className='size-[35px]' />
           </Link>
-          <Separator className="h-[20px] md:hidden" orientation="vertical"/>
+          <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ApplicationsChip />
-          <div className="max-sm:hidden">
+          <div className='max-sm:hidden'>
             <ApiDialog>
               <Button
-                size={"sm"}
-                variant={"secondary"}
-                className="h-6 rounded-full gap-1.5"
+                size={'sm'}
+                variant={'secondary'}
+                className='h-6 gap-1.5 rounded-full'
               >
-                <Code className="size-4" />
+                <Code className='size-4' />
                 Api key
               </Button>
             </ApiDialog>
           </div>
         </div>
-        <div className="flex flex-row gap-[12px] max-md:hidden">
-          <Link href={"/dashboard/new-metric"}>
-            <Button className="h-[35px] gap-[8px] rounded-[12px]">
-              <Plus className="size-[16px]" />
+        <div className='flex flex-row gap-[12px] max-md:hidden'>
+          <Link href={'/dashboard/new-metric'}>
+            <Button className='h-[35px] gap-[8px] rounded-[12px]'>
+              <Plus className='size-[16px]' />
               Create metric
             </Button>
           </Link>
-          <div className="max-lg:hidden">
-          <FeedbackPopover>
-            <Button
-              className="h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary"
-              variant="secondary"
-            >
-              <MessageSquare className="size-[16px]" />
-              Feedback
-            </Button>
-          </FeedbackPopover>
+          <div className='max-lg:hidden'>
+            <FeedbackPopover>
+              <Button
+                className='h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary'
+                variant='secondary'
+              >
+                <MessageSquare className='size-[16px]' />
+                Feedback
+              </Button>
+            </FeedbackPopover>
           </div>
           <AvatarDropdown>
-            <Avatar className="size-[35px] cursor-pointer text-secondary hover:text-primary">
+            <Avatar className='size-[35px] cursor-pointer text-secondary hover:text-primary'>
               <AvatarImage
                 src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`}
-                className="rounded-full"
+                className='rounded-full'
               />
               <AvatarFallback>
-                <User className="size-1/2" />
+                <User className='size-1/2' />
               </AvatarFallback>
             </Avatar>
           </AvatarDropdown>
@@ -74,7 +74,7 @@ export default function DashboardTopbar() {
         <DrawerMenu
           image={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`}
         >
-          <Menu className="size-5" />
+          <Menu className='size-5' />
         </DrawerMenu>
       </div>
     </div>

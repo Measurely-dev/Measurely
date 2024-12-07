@@ -14,9 +14,13 @@ export default function FeedbackPopover(props: { children: any }) {
           placeholder='Tell us what you think...'
           className='h-20 resize-none'
         />
-        <div className='w-full justify-end items-end flex'>
+        <div className='flex w-full items-end justify-end'>
           {' '}
-          <Button className='mt-2 rounded-[12px] w-full' variant={'default'} size={'sm'}>
+          <Button
+            className='mt-2 w-full rounded-[12px]'
+            variant={'default'}
+            size={'sm'}
+          >
             Send
           </Button>
         </div>

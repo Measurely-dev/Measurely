@@ -1,4 +1,4 @@
-import DashboardWrapper from "./wrapper";
+import DashboardWrapper from './wrapper';
 
 export default function DashboardContentLayout({
   children,

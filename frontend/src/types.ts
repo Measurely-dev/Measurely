@@ -1,32 +1,32 @@
 export interface Application {
   id: string;
-  apikey : string;
+  apikey: string;
   name: string;
   image: string;
-  groups: null | Group[]
+  groups: null | Group[];
 }
 
-export interface Group{
-  id : string;
-  appid : string;
+export interface Group {
+  id: string;
+  appid: string;
   name: string;
-  metrics : Metric[];
+  metrics: Metric[];
   created: Date;
-  enabled : boolean;
-  type : number;
+  enabled: boolean;
+  type: number;
 }
 
 export interface Metric {
-  id : string;
+  id: string;
   name: string;
   total: number;
-  events : MetricEvent[];
+  events: MetricEvent[];
 }
 
 export interface MetricEvent {
   id: string;
   date: Date;
-  value : number;
+  value: number;
 }
 
 export interface User {
@@ -46,5 +46,5 @@ export interface Plan {
 
 export enum GroupType {
   Base,
-  Dual
+  Dual,
 }

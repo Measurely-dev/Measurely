@@ -1,22 +1,18 @@
 {
   "extends": ["next/core-web-vitals"],
-  "plugins": [
-    "unused-imports",
-    "react"
-  ],
+  "plugins": ["unused-imports", "react"],
   "rules": {
-    "no-unused-vars": "off",  // Disable ESLint's no-unused-vars rule
-    "unused-imports/no-unused-imports": "error",  // Enforce removal of unused imports
-    "react/no-unescaped-entities": ["error"],  // React rule for unescaped entities
+    "no-unused-vars": "off", // Disable ESLint's no-unused-vars rule
+    "unused-imports/no-unused-imports": "error", // Enforce removal of unused imports
+    "react/no-unescaped-entities": ["error"], // React rule for unescaped entities
     "unused-imports/no-unused-vars": [
-      "warn",  // Warn for unused vars
+      "warn", // Warn for unused vars
       {
         "vars": "all",
-        "varsIgnorePattern": "^_",  // Ignore vars starting with _
+        "varsIgnorePattern": "^_", // Ignore vars starting with _
         "args": "after-used",
-        "argsIgnorePattern": "^_"  // Ignore function args starting with _
+        "argsIgnorePattern": "^_" // Ignore function args starting with _
       }
     ]
   }
 }
-

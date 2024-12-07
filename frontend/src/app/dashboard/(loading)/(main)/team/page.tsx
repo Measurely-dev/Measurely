@@ -1,4 +1,4 @@
-import DashboardContentContainer from "@/components/dashboard/container/container";
+import DashboardContentContainer from '@/components/dashboard/container/container';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,17 +6,17 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import WebChip from "@/components/website/components/chip";
-import { Users } from "lucide-react";
+} from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import WebChip from '@/components/website/components/chip';
+import { Users } from 'lucide-react';
 export default function TeamPage() {
   return (
-    <DashboardContentContainer className="w-full flex pb-10 mt-0 h-[calc(100vh-15px-50px)]">
+    <DashboardContentContainer className='mt-0 flex h-[calc(100vh-15px-50px)] w-full pb-10'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className="pointer-events-none">
+            <BreadcrumbLink className='pointer-events-none'>
               Dashboard
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -26,19 +26,21 @@ export default function TeamPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="h-fit mt-24 w-fit mx-auto flex flex-col justify-center items-center gap-4">
-        <WebChip color="default">Coming soon</WebChip>
-        <div className="w-[100%] aspect-[16/7] border rounded-xl mb-4 flex justify-center items-center">
-          <Users className="size-[50%] p-0 text-black"/>
+      <div className='mx-auto mt-24 flex h-fit w-fit flex-col items-center justify-center gap-4'>
+        <WebChip color='default'>Coming soon</WebChip>
+        <div className='mb-4 flex aspect-[16/7] w-[100%] items-center justify-center rounded-xl border'>
+          <Users className='size-[50%] p-0 text-black' />
         </div>
-        <div className="flex flex-col gap-3 text-center">
-          <div className="font-semibold text-lg">Team</div>
-          <div className="text-sm text-secondary">
+        <div className='flex flex-col gap-3 text-center'>
+          <div className='text-lg font-semibold'>Team</div>
+          <div className='text-sm text-secondary'>
             Create web-based invoices in seconds. Have an easy overview of all
-            <br/>
+            <br />
             your invoices and see your outstanding balance.
           </div>
-          <Button className="mt-4 mb-10 w-fit rounded-xl mx-auto">Request feature</Button>
+          <Button className='mx-auto mb-10 mt-4 w-fit rounded-xl'>
+            Request feature
+          </Button>
         </div>
       </div>
     </DashboardContentContainer>

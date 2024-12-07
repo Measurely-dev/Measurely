@@ -1,54 +1,54 @@
-import LogoSvg from "@/components/global/logoSvg";
-import Link from "next/link";
-import Actions from "./actions";
-import Links from "./links";
+import LogoSvg from '@/components/global/logoSvg';
+import Link from 'next/link';
+import Actions from './actions';
+import Links from './links';
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Menu } from "react-feather";
+} from '@/components/ui/drawer';
+import { Menu } from 'react-feather';
 
 export default function Navbar(props: {
-  type: "default" | "logged" | "waitlist";
+  type: 'default' | 'logged' | 'waitlist';
 }) {
   const links: any = [
     {
-      name: "Documentation",
-      href: "/docs/getting-started/introduction",
+      name: 'Documentation',
+      href: '/docs/getting-started/introduction',
     },
     {
-      name: "Pricing",
-      href: "/pricing",
+      name: 'Pricing',
+      href: '/pricing',
     },
   ];
   return (
-    <div className="fixed top-5 z-50 max-md:w-[80%] max-md:justify-between flex items-center gap-6 rounded-[20px] border border-background bg-accent/75 px-3 py-2 pl-4 backdrop-blur-xl">
+    <div className='fixed top-5 z-50 flex items-center gap-6 rounded-[20px] border border-background bg-accent/75 px-3 py-2 pl-4 backdrop-blur-xl max-md:w-[80%] max-md:justify-between'>
       {/* Logo */}
-      <Link href="/home">
-        <div className="size-8">
+      <Link href='/home'>
+        <div className='size-8'>
           <LogoSvg />
         </div>
       </Link>
       {/* Links */}
-      <div className="max-md:hidden">
+      <div className='max-md:hidden'>
         <Links links={links} />
       </div>
-      <div className="max-md:hidden">
+      <div className='max-md:hidden'>
         {/* Actions group */}
         <Actions type={props.type} />
       </div>
       <Drawer>
-        <DrawerTrigger className="md:hidden">
-          <Menu className="size-5 mr-2" />
+        <DrawerTrigger className='md:hidden'>
+          <Menu className='mr-2 size-5' />
         </DrawerTrigger>
-        <DrawerContent className="flex flex-col gap-2 px-10 !pt-0 py-10">
-          <div className="h-8 w-full" />
+        <DrawerContent className='flex flex-col gap-2 px-10 py-10 !pt-0'>
+          <div className='h-8 w-full' />
           <DrawerClose asChild>
             <Link
               href={'/home'}
-              className="p-2 text-sm bg-accent rounded-[12px] px-4 hover:pl-6 hover:opacity-80 transition-all duration-300 cursor-pointer"
+              className='cursor-pointer rounded-[12px] bg-accent p-2 px-4 text-sm transition-all duration-300 hover:pl-6 hover:opacity-80'
             >
               Home
             </Link>
@@ -59,7 +59,7 @@ export default function Navbar(props: {
                 <Link
                   href={link.href}
                   key={i}
-                  className="p-2 text-sm bg-accent rounded-[12px] px-4 hover:pl-6 hover:opacity-80 transition-all duration-300 cursor-pointer"
+                  className='cursor-pointer rounded-[12px] bg-accent p-2 px-4 text-sm transition-all duration-300 hover:pl-6 hover:opacity-80'
                 >
                   {link.name}
                 </Link>

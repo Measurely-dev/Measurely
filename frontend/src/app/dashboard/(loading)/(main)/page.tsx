@@ -1,7 +1,7 @@
-"use client";
-import { ChartsCard } from "@/components/dashboard/components/chartsCard";
-import MetricStats from "@/components/dashboard/components/metricStats";
-import DashboardContentContainer from "@/components/dashboard/container/container";
+'use client';
+import { ChartsCard } from '@/components/dashboard/components/chartsCard';
+import MetricStats from '@/components/dashboard/components/metricStats';
+import DashboardContentContainer from '@/components/dashboard/container/container';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,15 +9,15 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from '@/components/ui/breadcrumb';
 
 export default function DashboardHomePage() {
   return (
-    <DashboardContentContainer className="w-full flex pb-[15px] mt-0 pt-[15px]">
+    <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className="pointer-events-none">
+            <BreadcrumbLink className='pointer-events-none'>
               Dashboard
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -29,27 +29,27 @@ export default function DashboardHomePage() {
       </Breadcrumb>
       {/* Project stats */}
       <MetricStats
-        className="mt-5"
+        className='mt-5'
         stats={[
           {
-            title: "Number of metric",
-            description: "Across this application",
-            value: "+25",
+            title: 'Number of metric',
+            description: 'Across this application',
+            value: '+25',
           },
           {
-            title: "Number of dual metric",
-            description: "Across this application",
-            value: "+13",
+            title: 'Number of dual metric',
+            description: 'Across this application',
+            value: '+13',
           },
           {
-            title: "Number of basic metric",
-            description: "Across this application",
-            value: "+12",
+            title: 'Number of basic metric',
+            description: 'Across this application',
+            value: '+12',
           },
           {
-            title: "Team members",
-            description: "Accros this application",
-            value: "1",
+            title: 'Team members',
+            description: 'Accros this application',
+            value: '1',
           },
         ]}
       />

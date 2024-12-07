@@ -7,7 +7,11 @@ interface WebPricingCardProps {
   description: string;
   price: number | 'custom';
   recurrence: 'forever' | 'month';
-  target: 'very small teams' | 'growing teams' | 'scaling businesses' | 'large organizations';
+  target:
+    | 'very small teams'
+    | 'growing teams'
+    | 'scaling businesses'
+    | 'large organizations';
   list: Array<any>;
   button?: string;
   [key: string]: any; // Accept any additional props
@@ -36,9 +40,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
           <div className='text-3xl font-semibold leading-none'>Custom</div>
         ) : (
           <>
-            <div className='text-3xl font-semibold leading-none'>
-              ${price}
-            </div>
+            <div className='text-3xl font-semibold leading-none'>${price}</div>
             <div className='text-xs text-secondary'>
               {recurrence === 'month' ? 'USD per month' : 'forever'}
             </div>
@@ -46,9 +48,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         )}
       </div>
       <div className='mt-5 flex flex-col gap-[10px]'>
-        <div className='mb-[10px] text-sm font-semibold'>
-          For {target}
-        </div>
+        <div className='mb-[10px] text-sm font-semibold'>For {target}</div>
         {list.map((listItem, i) => {
           return (
             <div className='flex flex-row items-center gap-[10px]' key={i}>
@@ -63,13 +63,11 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         })}
       </div>
       {button ? (
-        <Button className='mt-[30px] w-fit rounded-[12px]'>
-          {button}
-        </Button>
+        <Button className='mt-[30px] w-fit rounded-[12px]'>{button}</Button>
       ) : (
         <></>
       )}
     </div>
   );
-}
+};
 export default WebPricingCard;

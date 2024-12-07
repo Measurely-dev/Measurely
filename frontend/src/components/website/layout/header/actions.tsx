@@ -8,12 +8,12 @@ export default function Actions(props: {
     switch (props.type) {
       case 'default':
         return (
-          <div className='flex flex-row max-md:flex-col gap-2'>
+          <div className='flex flex-row gap-2 max-md:flex-col'>
             <Link href='/sign-in'>
               <Button
                 variant='outline'
                 size={'sm'}
-                className='h-fit rounded-xl px-4 py-[10px] max-md:w-full font-medium'
+                className='h-fit rounded-xl px-4 py-[10px] font-medium max-md:w-full'
               >
                 Sign in
               </Button>
@@ -22,7 +22,7 @@ export default function Actions(props: {
               <Button
                 variant='default'
                 size={'sm'}
-                className='h-full rounded-xl border-primary px-4 max-md:w-full py-[10px] font-medium'
+                className='h-full rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full'
               >
                 Get started
               </Button>
@@ -36,7 +36,7 @@ export default function Actions(props: {
               <Button
                 variant='default'
                 size={'sm'}
-                className='h-full rounded-xl border-primary max-md:w-full px-4 py-[10px] font-medium'
+                className='h-full rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full'
               >
                 Dashboard
               </Button>

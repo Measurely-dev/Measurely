@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Check, ChevronsUpDown, TrendingUp } from "lucide-react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Check, ChevronsUpDown, TrendingUp } from 'lucide-react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import {
   Card,
@@ -10,15 +10,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/chart';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -26,33 +26,33 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from '@/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { useContext, useEffect, useState } from "react";
-import { Box } from "react-feather";
-import { AppsContext } from "@/dashContext";
-import { loadMetricsGroups } from "@/utils";
-import { Group } from "@/types";
+} from '@/components/ui/popover';
+import { useContext, useEffect, useState } from 'react';
+import { Box } from 'react-feather';
+import { AppsContext } from '@/dashContext';
+import { loadMetricsGroups } from '@/utils';
+import { Group } from '@/types';
 
-export const description = "A simple area chart";
+export const description = 'A simple area chart';
 
 const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
+  { month: 'January', desktop: 186 },
+  { month: 'February', desktop: 305 },
+  { month: 'March', desktop: 237 },
+  { month: 'April', desktop: 73 },
+  { month: 'May', desktop: 209 },
+  { month: 'June', desktop: 214 },
 ];
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
+    label: 'Desktop',
+    color: 'hsl(var(--chart-1))',
   },
 } satisfies ChartConfig;
 
@@ -65,28 +65,28 @@ export function ChartsCard() {
       loadMetricsGroups(applications[activeApp].id).then((json) => {
         setApplications(
           applications.map((v, i) =>
-            i === activeApp ? Object.assign({}, v, { groups: json }) : v
-          )
+            i === activeApp ? Object.assign({}, v, { groups: json }) : v,
+          ),
         );
       });
     }
   }, [activeApp]);
 
   return (
-    <Card className="border-t-0 rounded-t-none border-input">
+    <Card className='rounded-t-none border-t-0 border-input'>
       <Header
         activeGroup={activeGroup}
         setActiveGroup={setActiveGroup}
         groups={applications?.[activeApp].groups ?? []}
       />
-      <CardContent className="flex flex-row gap-5 max-md:flex-col">
+      <CardContent className='flex flex-row gap-5 max-md:flex-col'>
         {/* Chart 1 */}
-        <div className="flex flex-col gap-4 w-[100%] bg-accent p-5 rounded-xl pt-5 pb-0">
+        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
           <ChartContainer config={chartConfig}>
             <BarChart accessibilityLayer data={chartData}>
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="month"
+                dataKey='month'
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
@@ -97,22 +97,22 @@ export function ChartsCard() {
                 content={<ChartTooltipContent hideLabel />}
               />
               <Bar
-                dataKey="desktop"
-                fill="red"
+                dataKey='desktop'
+                fill='red'
                 fillOpacity={0.6}
-                stroke="red"
+                stroke='red'
                 radius={8}
               />
             </BarChart>
           </ChartContainer>
-          <CardFooter className="max-sm:hidden">
-            <div className="flex w-full items-start gap-2 text-sm">
-              <div className="grid gap-2">
-                <div className="flex items-center gap-2 font-medium leading-none">
-                  Trending up by 5.2% this month{" "}
-                  <TrendingUp className="h-4 w-4" />
+          <CardFooter className='max-sm:hidden'>
+            <div className='flex w-full items-start gap-2 text-sm'>
+              <div className='grid gap-2'>
+                <div className='flex items-center gap-2 font-medium leading-none'>
+                  Trending up by 5.2% this month{' '}
+                  <TrendingUp className='h-4 w-4' />
                 </div>
-                <div className="flex items-center gap-2 leading-none text-muted-foreground">
+                <div className='flex items-center gap-2 leading-none text-muted-foreground'>
                   January - June 2024
                 </div>
               </div>
@@ -120,7 +120,7 @@ export function ChartsCard() {
           </CardFooter>
         </div>
         {/* Chart 2 */}
-        <div className="flex flex-col gap-4 w-[100%] bg-accent p-5 rounded-xl pt-5 pb-0">
+        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
           <ChartContainer config={chartConfig}>
             <AreaChart
               accessibilityLayer
@@ -132,7 +132,7 @@ export function ChartsCard() {
             >
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="month"
+                dataKey='month'
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -140,25 +140,25 @@ export function ChartsCard() {
               />
               <ChartTooltip
                 cursor={false}
-                content={<ChartTooltipContent indicator="dot" hideLabel />}
+                content={<ChartTooltipContent indicator='dot' hideLabel />}
               />
               <Area
-                dataKey="desktop"
-                type="linear"
-                fill="blue"
+                dataKey='desktop'
+                type='linear'
+                fill='blue'
                 fillOpacity={0.5}
-                stroke="blue"
+                stroke='blue'
               />
             </AreaChart>
           </ChartContainer>
-          <CardFooter className="max-sm:hidden">
-            <div className="flex w-full items-start gap-2 text-sm">
-              <div className="grid gap-2">
-                <div className="flex items-center gap-2 font-medium leading-none">
-                  Trending up by 5.2% this month{" "}
-                  <TrendingUp className="h-4 w-4" />
+          <CardFooter className='max-sm:hidden'>
+            <div className='flex w-full items-start gap-2 text-sm'>
+              <div className='grid gap-2'>
+                <div className='flex items-center gap-2 font-medium leading-none'>
+                  Trending up by 5.2% this month{' '}
+                  <TrendingUp className='h-4 w-4' />
                 </div>
-                <div className="flex items-center gap-2 leading-none text-muted-foreground">
+                <div className='flex items-center gap-2 leading-none text-muted-foreground'>
                   January - June 2024
                 </div>
               </div>
@@ -177,46 +177,44 @@ function Header(props: {
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <CardHeader className="flex flex-row max-sm:flex-col max-sm:gap-3 justify-between">
-      <div className="flex gap-1 flex-col">
+    <CardHeader className='flex flex-row justify-between max-sm:flex-col max-sm:gap-3'>
+      <div className='flex flex-col gap-1'>
         <CardTitle>0 New Users</CardTitle>
-        <CardDescription>
-          Metric value for the last month
-        </CardDescription>
+        <CardDescription>Metric value for the last month</CardDescription>
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
-            role="combobox"
+            variant='outline'
+            role='combobox'
             aria-expanded={open}
-            className="w-[200px] justify-between rounded-[12px]"
+            className='w-[200px] justify-between rounded-[12px]'
           >
             {props.groups.length > 0
               ? props.groups.find((group, i) => i === props.activeGroup)?.name
-              : "Select metric..."}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              : 'Select metric...'}
+            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0 rounded-[12px] overflow-hidden border shadow-md">
+        <PopoverContent className='w-[200px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
           <Command>
-            <CommandInput placeholder="Search metric..." />
+            <CommandInput placeholder='Search metric...' />
             <CommandList>
               <CommandEmpty>No metric found.</CommandEmpty>
               <CommandGroup>
                 {props.groups.map((group, i) => (
                   <CommandItem
                     key={group.id}
-                    className="rounded-[10px]"
+                    className='rounded-[10px]'
                     onSelect={() => {
                       props.setActiveGroup(i);
                       setOpen(false);
                     }}
                   >
                     {i === props.activeGroup ? (
-                      <Check className={cn("mr-2 h-4 w-4 stroke-[3px]")} />
+                      <Check className={cn('mr-2 h-4 w-4 stroke-[3px]')} />
                     ) : (
-                      <Box className={cn("mr-2 h-4 w-4 text-blue-500")} />
+                      <Box className={cn('mr-2 h-4 w-4 text-blue-500')} />
                     )}
 
                     {group.name}

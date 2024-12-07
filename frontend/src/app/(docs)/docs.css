@@ -1,13 +1,13 @@
 .prose {
   margin: 0 !important;
 }
-.docs h2{
+.docs h2 {
   font-size: 20px;
   font-weight: 500;
-  margin-bottom:10px;
-  margin-top:20px;
+  margin-bottom: 10px;
+  margin-top: 20px;
 }
-.docs h1{
+.docs h1 {
   margin-bottom: 24px;
 }
 .docs pre {
@@ -16,15 +16,15 @@
   overflow-x: auto;
 }
 
-.docs pre>code {
+.docs pre > code {
   display: grid;
   max-width: inherit !important;
   padding: 14px 0 !important;
   background-color: hsl(var(--accent));
-  border-radius:12px;
-  margin-top:5px;
-  margin-bottom:5px;
-  overflow-x:scroll;
+  border-radius: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  overflow-x: scroll;
 }
 
 .code-line {
@@ -42,7 +42,6 @@
   font-size: 13.5px;
   text-align: right;
 }
-
 
 .highlight-line {
   @apply dark:bg-neutral-800/90;
@@ -137,7 +136,6 @@
   /* Soft Orange */
 }
 
-
 .rehype-code-title {
   @apply px-2;
   @apply -mb-8;
@@ -151,6 +149,6 @@
   font-family: var(--font-code) !important;
 }
 
-.highlight-comp>code {
+.highlight-comp > code {
   background-color: transparent !important;
 }

@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import WebContainer from "@/components/website/containers/container";
-import ContentContainer from "@/components/website/containers/content";
-import AuthNavbar from "@/components/website/layout/authNav/navbar";
-import Footer from "@/components/website/layout/footer/footer";
-import { AppsContext } from "@/dashContext";
-import { Image } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Dispatch, useContext, useState } from "react";
-import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import WebContainer from '@/components/website/containers/container';
+import ContentContainer from '@/components/website/containers/content';
+import AuthNavbar from '@/components/website/layout/authNav/navbar';
+import Footer from '@/components/website/layout/footer/footer';
+import { AppsContext } from '@/dashContext';
+import { Image } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Dispatch, useContext, useState } from 'react';
+import { toast } from 'sonner';
 
 const maxSize = 500 * 1024;
 
 export default function NewApp() {
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+  const [name, setName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
 
   const router = useRouter();
@@ -28,12 +28,12 @@ export default function NewApp() {
     useContext(AppsContext);
 
   function createApp() {
-    fetch(process.env.NEXT_PUBLIC_API_URL + "/application", {
-      method: "POST",
+    fetch(process.env.NEXT_PUBLIC_API_URL + '/application', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      credentials: "include",
+      credentials: 'include',
       body: JSON.stringify({
         name: name,
         description: description,
@@ -53,43 +53,42 @@ export default function NewApp() {
       .then((json) => {
         if (file !== null) {
           const formData = new FormData();
-          formData.append("file", file);
+          formData.append('file', file);
 
           fetch(
-            process.env.NEXT_PUBLIC_FILE_URL + "/app-upload?appid=" + json.id,
+            process.env.NEXT_PUBLIC_FILE_URL + '/app-upload?appid=' + json.id,
             {
-              method: "POST",
-              credentials: "include",
+              method: 'POST',
+              credentials: 'include',
               body: formData,
+            },
+          ).then((res) => {
+            if (res.ok) {
+              json.image = 'app_' + json.id;
             }
-          )
-            .then((res) => {
-              if (res.ok) {
-                json.image = "app_" + json.id;
-              }
-            })
+          });
         }
 
         json.groups = null;
         setApplications((apps) => [...(apps ?? []), json]);
         setActiveApp(applications?.length ?? 0);
         localStorage.setItem(
-          "activeApp",
-          (applications?.length ?? 0).toString()
+          'activeApp',
+          (applications?.length ?? 0).toString(),
         );
-        router.push("/dashboard");
+        router.push('/dashboard');
       });
   }
 
   return (
-    <div className="flex flex-col">
-      <WebContainer className="h-[100vh] w-[100vw]">
+    <div className='flex flex-col'>
+      <WebContainer className='h-[100vh] w-[100vw]'>
         {applications === null ? (
-          <AuthNavbar href="" button={null} />
+          <AuthNavbar href='' button={null} />
         ) : (
-          <AuthNavbar href="/dashboard" button="Dashboard" />
+          <AuthNavbar href='/dashboard' button='Dashboard' />
         )}
-        <ContentContainer className="flex h-full items-center justify-center">
+        <ContentContainer className='flex h-full items-center justify-center'>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -97,7 +96,7 @@ export default function NewApp() {
 
               if (file !== null) {
                 if (file.size > maxSize) {
-                  toast.error("The image is too large, MAX 500KB");
+                  toast.error('The image is too large, MAX 500KB');
                   setLoading(false);
                   return;
                 }
@@ -107,14 +106,14 @@ export default function NewApp() {
             }}
           >
             {/* /Breadcrumb */}
-            <div className="mx-auto flex w-full max-md:max-w-[95%] max-w-[500px] flex-col gap-6 rounded-3xl">
-              <div className="flex flex-col gap-[5px]">
-                <div className="text-xl font-medium">
+            <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6 rounded-3xl max-md:max-w-[95%]'>
+              <div className='flex flex-col gap-[5px]'>
+                <div className='text-xl font-medium'>
                   {applications === null
-                    ? "Create your first application"
-                    : "Create application"}
+                    ? 'Create your first application'
+                    : 'Create application'}
                 </div>
-                <div className="text-sm text-secondary">
+                <div className='text-sm text-secondary'>
                   We&apos;ll fill the billing details automatically if we find
                   the company.
                 </div>
@@ -130,10 +129,10 @@ export default function NewApp() {
               />
               {/* Continu btn */}
               <Button
-                className="w-full rounded-[12px]"
-                type="submit"
+                className='w-full rounded-[12px]'
+                type='submit'
                 loading={loading}
-                disabled={loading || name === ""}
+                disabled={loading || name === ''}
               >
                 Create application
               </Button>
@@ -142,7 +141,7 @@ export default function NewApp() {
           </form>
         </ContentContainer>
       </WebContainer>
-      <Footer border bg="secondary" />
+      <Footer border bg='secondary' />
     </div>
   );
 }
@@ -158,14 +157,14 @@ function Inputs(props: {
   const [reader, setReader] = useState<any>(null);
 
   return (
-    <div className="flex flex-col gap-[15px]">
+    <div className='flex flex-col gap-[15px]'>
       {/* Name */}
-      <div className="flex w-full items-center gap-5">
-        <Avatar className="relative size-[65px] cursor-pointer items-center justify-center !rounded-[16px] overflow-visible ">
-          <Label className="relative h-full w-full cursor-pointer">
-            <AvatarImage className="rounded-[16px]" src={reader} />
-            <AvatarFallback className="!rounded-[16px] w-full h-full">
-              <Image className="text-secondary" />
+      <div className='flex w-full items-center gap-5'>
+        <Avatar className='relative size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-[16px]'>
+          <Label className='relative h-full w-full cursor-pointer'>
+            <AvatarImage className='rounded-[16px]' src={reader} />
+            <AvatarFallback className='h-full w-full !rounded-[16px]'>
+              <Image className='text-secondary' />
             </AvatarFallback>
             <Input
               onChange={(event) => {
@@ -184,20 +183,20 @@ function Inputs(props: {
                 r.readAsDataURL(selectedFile);
                 props.setFile(event.target.files?.[0]);
               }}
-              type="file"
-              accept=".jpg, .jpeg, .png, .webp .svg"
-              className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+              type='file'
+              accept='.jpg, .jpeg, .png, .webp .svg'
+              className='absolute left-0 top-0 h-full w-full cursor-pointer opacity-0'
             />
           </Label>
         </Avatar>
-        <Label className="flex w-full flex-col gap-2">
+        <Label className='flex w-full flex-col gap-2'>
           Name
           <Input
             value={props.name}
-            type="text"
+            type='text'
             onChange={(e) => props.setName(e.target.value)}
-            className="h-[40px] rounded-[12px] border-none bg-accent"
-            placeholder="Name..."
+            className='h-[40px] rounded-[12px] border-none bg-accent'
+            placeholder='Name...'
           />
         </Label>
       </div>

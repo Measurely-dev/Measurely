@@ -35,10 +35,7 @@ export default function ProjectNavbar() {
     <div className='flex w-fit flex-row gap-2 rounded-[12px] bg-accent p-[4px]'>
       {tabs.map((tab, i) => {
         return (
-          <Link
-            href={tab.href}
-            key={i}
-          >
+          <Link href={tab.href} key={i}>
             <div
               className={`rounded-[10px] px-6 py-1 text-sm font-medium transition-all duration-200 ${pathname === tab.label ? 'bg-background text-primary' : 'text-secondary hover:bg-background/70'}`}
             >

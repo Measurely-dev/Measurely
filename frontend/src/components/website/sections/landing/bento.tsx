@@ -81,17 +81,21 @@ export default function BentoUiSection() {
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <WebBox
-            icon={<Gauge className='size-10 text-secondary stroke-[1]'/>}
+            icon={<Gauge className='size-10 stroke-[1] text-secondary' />}
             title='Instant Insights'
             description='Access real-time data to make quick, informed decisions.'
           />
           <WebBox
-            icon={<SparklesIcon className='size-10 text-secondary stroke-[1]'/>}
+            icon={
+              <SparklesIcon className='size-10 stroke-[1] text-secondary' />
+            }
             title='Custom Metrics'
             description='Tailor tracking to your unique needs for precise monitoring.'
           />
           <WebBox
-            icon={<LayoutGridIcon className='size-10 text-secondary stroke-[1]'/>}
+            icon={
+              <LayoutGridIcon className='size-10 stroke-[1] text-secondary' />
+            }
             title='Effortless Integration'
             description='Seamlessly connect with your existing tools and workflows.'
           />

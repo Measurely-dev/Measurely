@@ -4,7 +4,7 @@ export default function TermsContent() {
   return (
     <>
       <h2>Terms of Service for Measurely</h2>
-      <Separator className="my-5" />
+      <Separator className='my-5' />
       <br />
       <p>
         Welcome to Measurely! By accessing or using our service, you agree to
@@ -46,12 +46,12 @@ export default function TermsContent() {
       <br />
       <h3>User Responsibilities</h3>
       <br />
-      <p>
-        By using Measurely, you agree not to:
-      </p>
-      <ul className="list-inside list-disc">
+      <p>By using Measurely, you agree not to:</p>
+      <ul className='list-inside list-disc'>
         <li>Use the service to spam or send unauthorized messages.</li>
-        <li>Engage in illegal activities or use the service for unlawful purposes.</li>
+        <li>
+          Engage in illegal activities or use the service for unlawful purposes.
+        </li>
         <li>Interfere with or disrupt the Measurely platform or servers.</li>
       </ul>
       <p>
@@ -63,9 +63,9 @@ export default function TermsContent() {
       <h3>Payment</h3>
       <br />
       <p>
-        All payments for Measurely are processed through Stripe. Different
-        plans are available for purchase, and payment terms will be displayed
-        at checkout. Measurely does not offer refunds.
+        All payments for Measurely are processed through Stripe. Different plans
+        are available for purchase, and payment terms will be displayed at
+        checkout. Measurely does not offer refunds.
       </p>
       <br />
       <br />
@@ -105,4 +105,3 @@ export default function TermsContent() {
     </>
   );
 }
-

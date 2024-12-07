@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import AuthForm from "@/components/forms/auth";
-import WebContainer from "@/components/website/containers/container";
-import ContentContainer from "@/components/website/containers/content";
-import AuthNavbar from "@/components/website/layout/authNav/navbar";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import AuthForm from '@/components/forms/auth';
+import WebContainer from '@/components/website/containers/container';
+import ContentContainer from '@/components/website/containers/content';
+import AuthNavbar from '@/components/website/layout/authNav/navbar';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function SignIn() {
   const params = useSearchParams();
@@ -15,58 +15,58 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (params.get("error") !== null) {
+    if (params.get('error') !== null) {
       setTimeout(() => {
-        toast.error(params.get("error") as string);
+        toast.error(params.get('error') as string);
       });
     }
   }, [params]);
 
   return (
     <WebContainer>
-      <div className="max-md:mb-[20px]">
-        <AuthNavbar href="/register" button="Create an account" />
+      <div className='max-md:mb-[20px]'>
+        <AuthNavbar href='/register' button='Create an account' />
       </div>
       <ContentContainer>
         <AuthForm
-          title="Hey friend! Welcome back"
+          title='Hey friend! Welcome back'
           providers={true}
           form={[
             {
-              label: "Email",
-              name: "email",
-              placeholder: "Email",
-              type: "email",
+              label: 'Email',
+              name: 'email',
+              placeholder: 'Email',
+              type: 'email',
             },
             {
-              label: "Password",
-              name: "password",
-              placeholder: "Password",
-              type: "password",
+              label: 'Password',
+              name: 'password',
+              placeholder: 'Password',
+              type: 'password',
             },
           ]}
-          button="Sign in"
+          button='Sign in'
           forgot_password
           btn_loading={loading}
           action={(form) => {
             setLoading(true);
 
-            const password = form.get("password");
-            const email = form.get("email");
+            const password = form.get('password');
+            const email = form.get('email');
 
-            if (password === "" || email === "") {
-              toast.error("Please enter email and password");
+            if (password === '' || email === '') {
+              toast.error('Please enter email and password');
               setLoading(false);
               return;
             }
 
             console.log(process.env.NEXT_PUBLIC_API_URL + `/login`);
             fetch(process.env.NEXT_PUBLIC_API_URL + `/login`, {
-              method: "POST",
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
-              credentials: "include",
+              credentials: 'include',
               body: JSON.stringify({
                 email: email,
                 password: password,
@@ -78,7 +78,7 @@ export default function SignIn() {
                 });
                 setLoading(false);
               } else {
-                router.push("/dashboard");
+                router.push('/dashboard');
               }
             });
           }}

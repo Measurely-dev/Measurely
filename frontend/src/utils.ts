@@ -1,13 +1,13 @@
 export async function loadMetricsGroups(appid: string) {
   const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/metric-groups?appid=" + appid,
+    process.env.NEXT_PUBLIC_API_URL + '/metric-groups?appid=' + appid,
     {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      credentials: "include",
-    }
+      credentials: 'include',
+    },
   );
   if (res.ok) {
     const json = await res.json();

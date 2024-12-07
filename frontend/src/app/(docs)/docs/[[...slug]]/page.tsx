@@ -1,35 +1,40 @@
-import Toc from "@/components/docs/toc";
-import { page_routes } from "@/lib/routes-config";
-import { notFound } from "next/navigation";
-import { getDocsForSlug } from "@/lib/markdown";
-import { Typography } from "@/components/docs/typography";
-import { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import Toc from '@/components/docs/toc';
+import { page_routes } from '@/lib/routes-config';
+import { notFound } from 'next/navigation';
+import { getDocsForSlug } from '@/lib/markdown';
+import { Typography } from '@/components/docs/typography';
+import { Metadata } from 'next';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 type PageProps = {
   params: { slug: string[] };
 };
 
 export default async function DocsPage({ params: { slug = [] } }: PageProps) {
-  const pathName = slug.join("/");
+  const pathName = slug.join('/');
   const res = await getDocsForSlug(pathName);
-  if (!res) return <div className="w-full h-[calc(100vh-70px)] items-center justify-center flex flex-col gap-4">
-    <div className="text-6xl font-mono font-semibold">Docs</div>
-    <div className="text-secondary text-xl">Couldn't be found</div>
-    <Link href={'/docs/getting-started/introduction'}>
-      <Button className="rounded-[12px] mt-5 text-lg h-[45px]" size={"lg"}>Back to docs</Button>
-    </Link>
-  </div>;
+  if (!res)
+    return (
+      <div className='flex h-[calc(100vh-70px)] w-full flex-col items-center justify-center gap-4'>
+        <div className='font-mono text-6xl font-semibold'>Docs</div>
+        <div className='text-xl text-secondary'>Couldn't be found</div>
+        <Link href={'/docs/getting-started/introduction'}>
+          <Button className='mt-5 h-[45px] rounded-[12px] text-lg' size={'lg'}>
+            Back to docs
+          </Button>
+        </Link>
+      </div>
+    );
   return (
-    <div className="flex items-start gap-14">
-      <div className="flex-[3] py-10">
+    <div className='flex items-start gap-14'>
+      <div className='flex-[3] py-10'>
         <Typography>
-          <h1 className="text-3xl -mt-2">{res.frontmatter.title}</h1>
-          <p className="-mt-4 text-muted-foreground text-[16.5px]">
+          <h1 className='-mt-2 text-3xl'>{res.frontmatter.title}</h1>
+          <p className='-mt-4 text-[16.5px] text-muted-foreground'>
             {res.frontmatter.description}
           </p>
-          <div className="mt-5">{res.content}</div>
+          <div className='mt-5'>{res.content}</div>
         </Typography>
       </div>
       <Toc path={pathName} />
@@ -38,7 +43,7 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
 }
 
 export async function generateMetadata({ params: { slug = [] } }: PageProps) {
-  const pathName = slug.join("/");
+  const pathName = slug.join('/');
   const res = await getDocsForSlug(pathName);
   if (!res) return {} as Metadata;
   const { frontmatter } = res;
@@ -50,6 +55,6 @@ export async function generateMetadata({ params: { slug = [] } }: PageProps) {
 
 export function generateStaticParams() {
   return page_routes.map((item) => ({
-    slug: item.href.split("/").slice(1),
+    slug: item.href.split('/').slice(1),
   }));
 }

@@ -1,13 +1,28 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "measurely",
+  "version": "1.0.0",
+  "description": "Measurely: A dashboard for tracking metrics with API integration.",
+  "author": [
+    "Zak-Afz",
+    "YastheGoat"
+  ],
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "clean:all": "node cleaner.js"
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/measurely-dev/measurely.git"
+  },
+  "bugs": {
+    "url": "https://github.com/measurely-dev/measurely/issues"
+  },
+  "homepage": "https://github.com/yourusername/measurely#readme",
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -55,11 +70,13 @@
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.14",
     "@types/react-dom": "^18.3.2",
+    "depcheck": "^1.4.7",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.5",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2"
   }

@@ -1,25 +1,25 @@
-import LogoSvg from "@/components/global/logoSvg";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
+import LogoSvg from '@/components/global/logoSvg';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 export default function AuthNavbar(props: {
   button: string | null;
   href: any;
 }) {
   return (
-    <div className="absolute z-10 ml-[40px] max-md:px-5 max-md:mt-[20px] max-md:ml-[0px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3">
-      <Link href="/home">
-        <div className="flex cursor-pointer items-center gap-[10px]">
-          <LogoSvg className="size-8" />
-          <div className="text-sm font-semibold max-md:hidden">Measurably</div>
+    <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
+      <Link href='/home'>
+        <div className='flex cursor-pointer items-center gap-[10px]'>
+          <LogoSvg className='size-8' />
+          <div className='text-sm font-semibold max-md:hidden'>Measurably</div>
         </div>
       </Link>
       {props.button === null ? null : (
         <>
-          <Separator className="h-5" orientation="vertical" />
+          <Separator className='h-5' orientation='vertical' />
           <Link href={`${props.href}`}>
-            <Button className="rounded-full text-sm" variant="secondary">
+            <Button className='rounded-full text-sm' variant='secondary'>
               {props.button}
             </Button>
           </Link>
@@ -34,17 +34,17 @@ export function AuthNavbarButton(props: {
   onClick: () => void;
 }) {
   return (
-    <div className="absolute z-10 ml-[40px] max-md:ml-[0px] max-md:px-5 max-md:mt-[20px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3">
-      <Link href="/">
-        <div className="flex cursor-pointer items-center gap-[10px]">
-          <LogoSvg className="size-8" />
-          <div className="text-sm font-semibold max-md:hidden">Measurably</div>
+    <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
+      <Link href='/'>
+        <div className='flex cursor-pointer items-center gap-[10px]'>
+          <LogoSvg className='size-8' />
+          <div className='text-sm font-semibold max-md:hidden'>Measurably</div>
         </div>
       </Link>
-      <Separator className="h-5" orientation="vertical" />
+      <Separator className='h-5' orientation='vertical' />
       <Button
-        className="rounded-full text-sm"
-        variant="secondary"
+        className='rounded-full text-sm'
+        variant='secondary'
         onClick={props.onClick}
       >
         {props.button}

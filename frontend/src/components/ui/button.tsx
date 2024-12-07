@@ -32,7 +32,7 @@ const buttonVariants = cva(
       variant: 'default',
       size: 'default',
     },
-  }
+  },
 );
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -44,14 +44,14 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     { className, variant, size, asChild = false, loading = false, ...props },
-    ref
+    ref,
   ) => {
     const Comp = asChild ? Slot : 'button';
     return (
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }),
-          'transition-all duration-300'
+          'transition-all duration-300',
         )}
         ref={ref}
         disabled={loading}
@@ -68,7 +68,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               strokeWidth='2'
               strokeLinecap='round'
               strokeLinejoin='round'
-              className='feather feather-loader duration-[2000s] mr-2 h-4 w-4 animate-spin'
+              className='feather feather-loader mr-2 h-4 w-4 animate-spin duration-[2000s]'
             >
               <line x1='12' y1='2' x2='12' y2='6' />
               <line x1='12' y1='18' x2='12' y2='22' />
@@ -86,7 +86,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </Comp>
     );
-  }
+  },
 );
 Button.displayName = 'Button';
 
