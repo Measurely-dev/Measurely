@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import WebContainer from '@/components/website/containers/container';
 import ContentContainer from '@/components/website/containers/content';
+import Link from 'next/link';
 import { ArrowUpRight } from 'react-feather';
 
 export default function Help() {
@@ -39,7 +40,7 @@ export default function Help() {
           Contact us
         </div>
       ),
-      link: 'https://www.discord.com',
+      link: 'mailto:info@measurely.dev',
     },
   ];
   return (
@@ -52,8 +53,9 @@ export default function Help() {
           <CardContent className='mt-5 flex w-full flex-col gap-2 !p-0'>
             {help.map((help, i) => {
               return (
-                <div
+                <Link
                   key={i}
+                  href={help.link}
                   className='group flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl bg-accent px-6 py-2.5 pr-4 transition-all duration-200 hover:opacity-80'
                   style={{ backgroundColor: help.color }}
                 >
@@ -62,7 +64,7 @@ export default function Help() {
                     className='size-5 text-white transition-all duration-200 group-hover:mr-1'
                     style={{ color: help.text }}
                   />
-                </div>
+                </Link>
               );
             })}
           </CardContent>
