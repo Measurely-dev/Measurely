@@ -22,6 +22,7 @@ import { AppsContext } from '@/dashContext';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import { dateToXAxis, mapToArray, multiMapsToArray } from '@/utils';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -135,7 +136,33 @@ export default function MetricInformations(props: {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <DatePicker date={date} setDate={setDate} />
+        <div className='flex flex-row items-center justify-between gap-2'>
+          <ToggleGroup
+            type='single'
+            defaultValue='today'
+            size={'sm'}
+            className='w-fit gap-0 divide-x rounded-[12px] border'
+          >
+            <ToggleGroupItem
+              value='today'
+              className='rounded-l-[12px] rounded-r-none'
+            >
+              D
+            </ToggleGroupItem>
+            <ToggleGroupItem value='7' className='rounded-none'>
+              7D
+            </ToggleGroupItem>
+            <ToggleGroupItem value='15' className='rounded-none'>
+              15D
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value='30'
+              className='rounded-l-none rounded-r-[12px]'
+            >
+              30D
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
         {props.group.type === 0 ? (
           <>
             <ChartContainer

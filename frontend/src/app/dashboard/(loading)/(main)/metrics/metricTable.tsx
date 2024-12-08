@@ -232,7 +232,7 @@ const Item = (props: { group: Group; index: number }) => {
           <Label className='!font-sans font-semibold text-blue-500 lg:hidden'>
             Total value
           </Label>
-          {total === null ? 'LOADING...' : total}
+          {total === null ? '0' : total}
         </div>
         <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
           <Label className='lg:hidden'>Daily value</Label>
@@ -242,7 +242,7 @@ const Item = (props: { group: Group; index: number }) => {
             )}}`}
           >
             {todayBadgeSign(dailyUpdate)}
-            {dailyUpdate === null ? 'LOADING...' : dailyUpdate}
+            {dailyUpdate === null ? '0' : dailyUpdate}
           </Badge>
         </div>
         <div className='flex items-center justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>

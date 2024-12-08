@@ -13,12 +13,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Dispatch, SetStateAction } from 'react';
 
-export function DatePicker(props : {date : DateRange | undefined, setDate : Dispatch<SetStateAction<DateRange | undefined>>}) {
-
-
-
+export function DatePicker(props: { date: any; setDate: any }) {
+  const [date, setDate] = React.useState<Date>();
   return (
     <div className={'grid gap-2'}>
       <Popover>
@@ -32,14 +29,7 @@ export function DatePicker(props : {date : DateRange | undefined, setDate : Disp
             )}
           >
             <CalendarIcon className='mr-2 size-4' />
-            {props.date?.from && props.date.to ? (
-              <>
-                {format(props.date.from, 'LLL dd, y')} -{' '}
-                {format(props.date.to, 'LLL dd, y')}
-              </>
-            ) : (
-              <span>Pick a date</span>
-            )}
+            {date ? format(date, 'PPP') : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -47,11 +37,10 @@ export function DatePicker(props : {date : DateRange | undefined, setDate : Disp
           align='start'
         >
           <Calendar
+            mode='single'
+            selected={date}
+            onSelect={setDate}
             initialFocus
-            mode='range'
-            selected={props.date}
-            onSelect={props.setDate}
-            numberOfMonths={1}
             disabled={(date) =>
               date > new Date() || date < new Date('1900-01-01')
             }
