@@ -1,72 +1,168 @@
+"use client"
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AtSignIcon, BellIcon, EyeOffIcon } from 'lucide-react';
 import SettingCard from '../../components/settingCard';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { FormEvent, useContext, useState } from 'react';
+import { UserContext } from '@/dashContext';
 
 export default function SettingGeneralPage() {
+
+  const { user, setUser } = useContext(UserContext)
+  const [loadingProfile, setLoadingProfile] = useState(false)
+  const [loadingEmail, setLoadingEmail] = useState(false)
+  const [loadingPassword, setLoadingPassword] = useState(false)
+
+
+  const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const data = new FormData(e.target as HTMLFormElement)
+    const first_name = data.get("first_name")
+    const last_name = data.get("last_name")
+    if (first_name === "" || last_name === "") {
+      toast.error("All fields must be filled")
+      return
+    }
+    setLoadingProfile(true)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
+      method: "PATCH", credentials: "include", headers: {
+        'Content-Type': 'application/json'
+      }, body: JSON.stringify({ first_name, last_name })
+    }).then(resp => {
+      if (resp.status === 200) {
+        toast.success("Successfully updated first name and/or last name.")
+        setUser(Object.assign({}, user, { firstname: first_name, lastname: last_name }))
+      } else {
+        resp.text().then(text => toast.error(text))
+      }
+    }).finally(() => {
+      setLoadingProfile(false)
+    })
+  }
+
+  const handleEmailSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const data = new FormData(e.target as HTMLFormElement)
+    const email = data.get("email")
+    if (email === "") {
+      toast.error("The email field cannot be empty")
+      return
+    }
+    setLoadingEmail(true)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/email`, {
+      method: "PATCH", credentials: "include", headers: {
+        'Content-Type': 'application/json'
+      }, body: JSON.stringify({ email })
+    }).then(resp => {
+      if (resp.status === 200) {
+        toast.success("We sent you an email to confirm your request")
+      } else {
+        resp.text().then(text => toast.error(text))
+      }
+    }).finally(() => {
+      setLoadingEmail(false)
+    })
+
+  }
+
+  const handlePasswordSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const data = new FormData(e.target as HTMLFormElement)
+    const old_password = data.get("old_password")
+    const new_password = data.get("new_password")
+    const confirmed_password = data.get("confirmed_password")
+    if (old_password === "" || new_password === "" || confirmed_password === "") {
+      toast.error("All fileds must be filled")
+      return
+    }
+
+    if (confirmed_password !== new_password) {
+      toast.error("The passwords do not match")
+      return
+    }
+
+    setLoadingPassword(true)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/password`, {
+      method: "PATCH", credentials: "include", headers: {
+        'Content-Type': 'application/json'
+      }, body: JSON.stringify({ old_password, new_password })
+    }).then(resp => {
+      if (resp.status === 200) {
+        toast.success("Your password was successfully updated")
+      } else {
+        resp.text().then(text => toast.error(text))
+      }
+    }).finally(() => {
+      setLoadingPassword(false)
+    })
+  }
+
   return (
     <div className='grid gap-6'>
       <SettingCard
         title='Profile'
         description='Used to identify your account.'
+        loading={loadingProfile}
+        action={handleFirstLastNameSubmit}
         content={
-          <form className='flex flex-col gap-4'>
-            <div className='flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4'>
-              <Label className='flex w-full flex-col gap-2'>
-                First Name
-                <Input placeholder='John' defaultValue='John' />
-              </Label>
+          <div className='flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4'>
+            <Label className='flex w-full flex-col gap-2'>
+              First Name
+              <Input placeholder='John' defaultValue={user?.firstname} name="first_name" type="text" />
+            </Label>
 
-              <Label className='flex w-full flex-col gap-2'>
-                Last name
-                <Input placeholder='Doe' defaultValue='Doe' />
-              </Label>
-            </div>
-          </form>
+            <Label className='flex w-full flex-col gap-2'>
+              Last name
+              <Input placeholder='Doe' defaultValue={user?.lastname} name="last_name" type="text" />
+            </Label>
+          </div>
         }
         btn='Save'
       />
 
       <SettingCard
         title='Email'
+        loading={loadingEmail}
         description='This accounts main email.'
+        action={handleEmailSubmit}
         content={
-          <form className='flex flex-col gap-4'>
-            <Label className='flex flex-col gap-2'>
-              Email
-              <Input placeholder='Email' defaultValue='name@domain.com' />
-            </Label>
-          </form>
+          <Label className='flex flex-col gap-2'>
+            <Input placeholder='Email' defaultValue={user?.email} type="email" name="email" />
+          </Label>
         }
         btn='Save'
       />
 
       <SettingCard
         title='Password'
+        loading={loadingPassword}
         description='The key protecting this account.'
+        action={handlePasswordSubmit}
         content={
-          <form className='flex flex-col gap-4'>
+          <div>
             <Label className='flex flex-col gap-2'>
               Current password
-              <Input placeholder='Current password' />
+              <Input placeholder='Current password' name="old_password" type="password" />
             </Label>
             <Label className='flex flex-col gap-2'>
               New password
-              <Input placeholder='New password' />
+              <Input placeholder='New password' name="new_password" type="password" />
             </Label>
             <Label className='flex flex-col gap-2'>
               Confirm new password
-              <Input placeholder='Confirm new password' />
+              <Input placeholder='Confirm new password' name="confirmed_password" type="password" />
             </Label>
-          </form>
+          </div>
         }
         btn='Save'
       />
 
-      <SettingCard
+      {/* <SettingCard
         title='Notification'
         description='Choose what you want to be notified about'
+        loading={false}
+        action={() => { }}
         content={
           <div className='flex flex-col gap-2'>
             <div className='-mx-2 flex select-none items-start space-x-4 rounded-[12px] p-4 transition-all hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50'>
@@ -98,11 +194,13 @@ export default function SettingGeneralPage() {
             </div>
           </div>
         }
-      />
+      /> */}
 
       <SettingCard
         title='Providers'
         description='A list of providers connected with thsi account.'
+        loading={false}
+        action={() => { }}
         content={
           <div className='flex flex-col gap-4'>
             <div className='flex items-center justify-between'>
@@ -140,6 +238,8 @@ export default function SettingGeneralPage() {
 
       <SettingCard
         title='Danger zone'
+        loading={false}
+        action={() => { }}
         danger
         description='Be careful, each action could be dangerous.'
         content={

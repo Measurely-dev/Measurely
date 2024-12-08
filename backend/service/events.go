@@ -140,8 +140,6 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-  
-    log.Println(len(metricevents))
 		bytes, err = json.Marshal(metricevents)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

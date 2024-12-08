@@ -100,6 +100,9 @@ func (h *Handler) setup_api() {
 			cr.Post("/cancel-subscription", h.service.CancelSubscription)
 			cr.Post("/change-subscription", h.service.ChangeSubscription)
 			cr.Get("/subscription", h.service.GetCurrentSubscription)
+
+      cr.Patch("/name", h.service.UpdateFirstAndLastName)
+      cr.Patch("/password", h.service.UpdatePassword)
 		})
 
 	})

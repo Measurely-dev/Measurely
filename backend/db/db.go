@@ -66,6 +66,11 @@ func (db *DB) GetUserByCustomerId(cusId string) (types.User, error) {
 	return user, err
 }
 
+func (db *DB) UpdateUserFirstAndLastName(id uuid.UUID, firstname string, lastname string) error {
+	_, err := db.Conn.Exec("UPDATE users SET firstname = $1 , lastname = $2 WHERE id = $3", firstname, lastname, id.String())
+	return err
+}
+
 func (db *DB) UpdateUserPassword(id uuid.UUID, password string) error {
 	_, err := db.Conn.Exec("UPDATE users SET password = $1 WHERE id = $2", password, id)
 	return err

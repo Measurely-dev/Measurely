@@ -1,6 +1,8 @@
 package service
 
 import (
+	"Measurely/db"
+	"Measurely/types"
 	"bytes"
 	"context"
 	"database/sql"
@@ -13,9 +15,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"Measurely/db"
-	"Measurely/types"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -35,9 +34,11 @@ type Service struct {
 	redisCtx    context.Context
 }
 
-const defaultProcessRate = 10000
-const defaultStorageRate = 10000
-const defaultEmailRate = 10000
+const (
+	defaultProcessRate = 10000
+	defaultStorageRate = 10000
+	defaultEmailRate   = 10000
+)
 
 func New() Service {
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
@@ -86,13 +87,11 @@ func New() Service {
 }
 
 func (s *Service) SetupSharedVariables() {
-
 	defaultProcessRate := 10000
 	defaultStorageRate := 10000
 	defaultEmailRate := 10000
 
 	if _, err := s.redisClient.Get(s.redisCtx, "rate:event").Result(); err == redis.Nil {
-
 		s.redisClient.Set(s.redisCtx, "rate:event", defaultProcessRate, 0)
 	}
 
@@ -151,9 +150,9 @@ func (s *Service) SetupSharedVariables() {
 		}
 
 		key := fmt.Sprintf("plan:%s", plan.Identifier)
-    if err := s.redisClient.Set(s.redisCtx, key, bytes, 0).Err(); err != nil {
-      log.Fatalln("Failed to update plans in redis: ", err)
-    }
+		if err := s.redisClient.Set(s.redisCtx, key, bytes, 0).Err(); err != nil {
+			log.Fatalln("Failed to update plans in redis: ", err)
+		}
 	}
 }
 
@@ -254,7 +253,6 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 			ButtonTitle: "Update password",
 		},
 	})
-
 }
 
 func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
@@ -733,7 +731,6 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	w.WriteHeader(http.StatusOK)
-
 }
 
 func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
@@ -826,7 +823,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 
-	//send email
+	// send email
 	s.ScheduleEmail(SendEmailRequest{
 		To: user.Email,
 		Fields: MailFields{
@@ -834,6 +831,73 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 			Content: "Your account has been successfully deleted.",
 		},
 	})
+}
+
+func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := s.DB.UpdateUserFirstAndLastName(val, request.FirstName, request.LastName); err != nil {
+		http.Error(w, "Failed to update the user's first name and/or last name", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user, err := s.DB.GetUserById(val)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	match := CheckPasswordHash(request.OldPassword, user.Password)
+	if !match {
+		http.Error(w, "The entered password is incorrect", http.StatusUnauthorized)
+		return
+	}
+
+	hashed, err := HashPassword(request.NewPassword)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+  if err := s.DB.UpdateUserPassword(val, hashed); err != nil {
+    http.Error(w, "Internal error", http.StatusInternalServerError)
+    return
+  }
+
+  w.WriteHeader(http.StatusOK)
 }
 
 func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
@@ -989,7 +1053,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Update the app's api key
+	// Update the app's api key
 	err := s.DB.UpdateApplicationApiKey(request.AppId, api_key)
 	if err != nil {
 		log.Println(err)
@@ -1056,7 +1120,6 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
-
 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1123,7 +1186,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	plan, _ := s.GetPlan(user.CurrentPlan)
 
-  log.Println(count, plan.MetricPerAppLimit)
+	log.Println(count, plan.MetricPerAppLimit)
 	if count >= plan.MetricPerAppLimit {
 		http.Error(w, "You have reached the limit of metrics for this app", http.StatusUnauthorized)
 		return
@@ -1135,7 +1198,6 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		AppId: request.AppId,
 		Type:  request.Type,
 	})
-
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1335,7 +1397,6 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
-
 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1382,7 +1443,6 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-
 }
 
 // func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {

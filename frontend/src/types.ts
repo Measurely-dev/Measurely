@@ -34,6 +34,7 @@ export interface User {
   lastname: string;
   image: string;
   email: string;
+  provider : string;
 }
 
 export interface Plan {
