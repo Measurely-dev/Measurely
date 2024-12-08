@@ -43,7 +43,7 @@ export default function SettingAppsPage() {
             return (
               <div
                 key={i}
-                className={`rounded-[16px] p-1 pr-2 hover:bg-accent ${applications !== null ? (app.name === applications[activeApp]?.name ? 'bg-accent' : '') : undefined}`}
+                className={`rounded-[16px] p-1 pr-2 hover:bg-accent ${app.name === applications?.[activeApp]?.name ? 'bg-accent' : ''}`}
               >
                 <div className='flex items-center justify-between'>
                   <div className='flex flex-row items-center gap-2'>
@@ -62,7 +62,7 @@ export default function SettingAppsPage() {
                     </div>
                   </div>
                   <div className='flex flex-row items-center gap-2'>
-                    <ApiDialog randomize app={app?.name}>
+                    <ApiDialog randomize appId={app?.id}>
                       <Button
                         variant={'outline'}
                         size={'sm'}

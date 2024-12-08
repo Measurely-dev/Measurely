@@ -20,7 +20,7 @@ export interface Metric {
   id: string;
   name: string;
   total: number;
-  events: MetricEvent[];
+  monthly : MetricEvent[];
 }
 
 export interface MetricEvent {

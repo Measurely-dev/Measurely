@@ -16,15 +16,15 @@ import { toast } from 'sonner';
 
 export default function RandomizeAlert(props: {
   children: ReactNode;
-  app?: string;
+  appId: string;
 }) {
   const { applications, setApplications } = useContext(AppsContext);
-  const [apiIndex, setApiIndex] = useState<any>(undefined);
+  const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
   useEffect(() => {
-    if (props.app !== null && applications !== null) {
-      setApiIndex(applications.findIndex((app) => app.name === props.app));
+    if (applications !== null) {
+      setApiIndex(applications.findIndex((app) => app.id === props.appId));
     }
-  });
+  }, []);
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
@@ -34,7 +34,7 @@ export default function RandomizeAlert(props: {
             Are you absolutely sure?
           </AlertDialogTitle>
           <AlertDialogDescription className='text-red-300'>
-            This action cannot be undone. This will permanently delete your
+            This action cannot be undone. This will permanently change your
             current API KEY.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -51,7 +51,8 @@ export default function RandomizeAlert(props: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  appid: applications?.[apiIndex].id,
+                  appid:
+                    apiIndex !== undefined ? applications?.[apiIndex].id : '',
                 }),
                 credentials: 'include',
               })
@@ -65,14 +66,18 @@ export default function RandomizeAlert(props: {
                   }
                 })
                 .then((data) => {
-                  if (data !== null && applications !== null) {
+                  if (
+                    data !== null &&
+                    data !== undefined &&
+                    applications !== null
+                  ) {
                     toast.success('API key succesfully randomized');
                     setApplications(
                       applications?.map((v, i) =>
                         i === apiIndex
                           ? Object.assign({}, v, {
-                              apiKey: data,
-                            })
+                            apikey: data,
+                          })
                           : v,
                       ),
                     );

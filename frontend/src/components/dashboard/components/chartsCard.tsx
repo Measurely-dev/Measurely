@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -35,30 +34,95 @@ import {
 import { useContext, useEffect, useState } from 'react';
 import { Box } from 'react-feather';
 import { AppsContext } from '@/dashContext';
-import { loadMetricsGroups } from '@/utils';
-import { Group } from '@/types';
-
-export const description = 'A simple area chart';
-
-const chartData = [
-  { month: 'January', desktop: 186 },
-  { month: 'February', desktop: 305 },
-  { month: 'March', desktop: 237 },
-  { month: 'April', desktop: 73 },
-  { month: 'May', desktop: 209 },
-  { month: 'June', desktop: 214 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'hsl(var(--chart-1))',
-  },
-} satisfies ChartConfig;
+import { loadMetricsGroups, mapToArray, multiMapsToArray } from '@/utils';
+import { Group, GroupType } from '@/types';
+import { toast } from 'sonner';
+import MetricStats from './metricStats';
 
 export function ChartsCard() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);
   const [activeGroup, setActiveGroup] = useState(0);
+
+  const [dataOne, setDataOne] = useState<Map<Date, number> | null>(null);
+  const [dataTwo, setDataTwo] = useState<Map<Date, number> | null>(null);
+
+  const [total, setTotal] = useState(0);
+
+  const loadData = async (group: Group) => {
+    let map2 = new Map<Date, number>();
+    let map1 = new Map<Date, number>();
+    const from = new Date();
+    const to = new Date(from);
+    to.setMonth(from.getMonth() - 1);
+    let total = 0;
+
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[0].id}&appid=${applications?.[activeApp].id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+      { method: 'GET', credentials: 'include' },
+    )
+      .then((resp) => {
+        if (!resp.ok) {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        } else {
+          return resp.json();
+        }
+      })
+      .then((json) => {
+        if (json === null || json === undefined) {
+          map1.set(from ?? new Date(), 0);
+          map1.set(to ?? new Date(), 0);
+        } else {
+          for (let i = 0; i < json.length; i++) {
+            const eventDate = new Date(json.date);
+            if (map1.get(eventDate)) {
+              map1.set(eventDate, map1.get(eventDate) + json.value);
+            } else {
+              map1.set(eventDate, json.value);
+            }
+            total += json.value;
+          }
+        }
+
+        setDataOne(map1);
+      });
+    if (group.type === GroupType.Dual) {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[1].id}&appid=${applications?.[activeApp].id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+        { method: 'GET', credentials: 'include' },
+      )
+        .then((resp) => {
+          if (!resp.ok) {
+            resp.text().then((text) => {
+              toast.error(text);
+            });
+          } else {
+            return resp.json();
+          }
+        })
+        .then((json) => {
+          if (json === null || json === undefined) {
+            map2.set(from ?? new Date(), 0);
+            map2.set(to ?? new Date(), 0);
+          } else {
+            for (let i = 0; i < json.length; i++) {
+              const eventDate = new Date(json.date);
+              if (map2.get(eventDate)) {
+                map2.set(eventDate, map2.get(eventDate) + json.value);
+              } else {
+                map2.set(eventDate, json.value);
+              }
+              total += 1;
+            }
+          }
+
+          setDataTwo(map2);
+        });
+    }
+
+    setTotal(total);
+  };
 
   useEffect(() => {
     if (applications?.[activeApp].groups === null) {
@@ -69,103 +133,174 @@ export function ChartsCard() {
           ),
         );
       });
+      setActiveGroup(0);
     }
   }, [activeApp]);
 
+  const arrangeData = (
+    map1: Map<Date, number>,
+    map2: Map<Date, number> | null,
+  ) => {
+    let array = [];
+    let finalArray: any[] = [{ value: 0 }];
+    if (map2 !== null) {
+      array = multiMapsToArray(map1, map2);
+    } else array = mapToArray(map1);
+
+    let nbr = 0;
+    for (let i = 0; i < array.length; i++) {
+      if (map2 === null) {
+        finalArray[finalArray.length - 1].value += array[i].value;
+      } else {
+        finalArray[finalArray.length - 1].value +=
+          array[i].positive - array[i].negative;
+      }
+      if (nbr === 0) {
+        finalArray[finalArray.length - 1].from = array[i].date;
+      } else if (nbr === 7) {
+        finalArray[finalArray.length - 1].to = array[i].date;
+        finalArray.push({ value: 0 });
+      }
+
+      nbr++;
+    }
+
+    let total = 0;
+    for (let i = 0; i < finalArray.length; i++) {
+      total += finalArray[i].value;
+    }
+
+    return finalArray;
+  };
+
+  useEffect(() => {
+    if (applications?.[activeApp]?.groups !== null) {
+      const group = applications?.[activeApp].groups[activeGroup];
+      if (group != undefined) {
+        loadData(group);
+      }
+    }
+  }, [activeGroup]);
+
   return (
     <Card className='rounded-t-none border-t-0 border-input'>
-      <Header
-        activeGroup={activeGroup}
-        setActiveGroup={setActiveGroup}
-        groups={applications?.[activeApp].groups ?? []}
+      <MetricStats
+        className='mt-5'
+        stats={[
+          {
+            title: 'Number of metric',
+            description: 'Across this application',
+            value: applications?.[activeApp].groups?.length,
+          },
+          {
+            title: 'Number of dual metric',
+            description: 'Across this application',
+            value: applications?.[activeApp].groups?.filter(g => g.type === GroupType.Dual).length,
+          },
+          {
+            title: 'Number of basic metric',
+            description: 'Across this application',
+            value: applications?.[activeApp].groups?.filter(g => g.type === GroupType.Base).length,
+          },
+          {
+            title: 'Team members - UPCOMING',
+            description: 'Accros this application',
+            value: 'N/A',
+          },
+        ]}
       />
-      <CardContent className='flex flex-row gap-5 max-md:flex-col'>
-        {/* Chart 1 */}
-        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
-          <ChartContainer config={chartConfig}>
-            <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey='month'
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Bar
-                dataKey='desktop'
-                fill='red'
-                fillOpacity={0.6}
-                stroke='red'
-                radius={8}
-              />
-            </BarChart>
-          </ChartContainer>
-          <CardFooter className='max-sm:hidden'>
-            <div className='flex w-full items-start gap-2 text-sm'>
-              <div className='grid gap-2'>
-                <div className='flex items-center gap-2 font-medium leading-none'>
-                  Trending up by 5.2% this month{' '}
-                  <TrendingUp className='h-4 w-4' />
-                </div>
-                <div className='flex items-center gap-2 leading-none text-muted-foreground'>
-                  January - June 2024
-                </div>
-              </div>
+
+      {applications?.[activeApp].groups !== undefined &&
+        applications?.[activeApp].groups?.length! > 0 ? (
+        <>
+          <Header
+            activeGroup={activeGroup}
+            setActiveGroup={setActiveGroup}
+            groups={applications?.[activeApp].groups ?? []}
+            total={total}
+          />
+          <CardContent className='flex flex-row gap-5 max-md:flex-col'>
+            {/* Chart 1 */}
+            <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
+              <ChartContainer
+                config={{
+                  value: {
+                    label: applications?.[activeGroup].name,
+                    color: 'hsl(var(--chart-1))',
+                  },
+                }}
+              >
+                <BarChart
+                  accessibilityLayer
+                  data={arrangeData(dataOne ?? new Map(), dataTwo)}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey='date'
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
+                  <Bar
+                    dataKey='value'
+                    fill='red'
+                    fillOpacity={0.6}
+                    stroke='red'
+                    radius={8}
+                  />
+                </BarChart>
+              </ChartContainer>
             </div>
-          </CardFooter>
-        </div>
-        {/* Chart 2 */}
-        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
-          <ChartContainer config={chartConfig}>
-            <AreaChart
-              accessibilityLayer
-              data={chartData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey='month'
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator='dot' hideLabel />}
-              />
-              <Area
-                dataKey='desktop'
-                type='linear'
-                fill='blue'
-                fillOpacity={0.5}
-                stroke='blue'
-              />
-            </AreaChart>
-          </ChartContainer>
-          <CardFooter className='max-sm:hidden'>
-            <div className='flex w-full items-start gap-2 text-sm'>
-              <div className='grid gap-2'>
-                <div className='flex items-center gap-2 font-medium leading-none'>
-                  Trending up by 5.2% this month{' '}
-                  <TrendingUp className='h-4 w-4' />
-                </div>
-                <div className='flex items-center gap-2 leading-none text-muted-foreground'>
-                  January - June 2024
-                </div>
-              </div>
+            {/* Chart 2 */}
+            <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
+              <ChartContainer
+                config={{
+                  value: {
+                    label: applications?.[activeGroup].name,
+                    color: 'hsl(var(--chart-1))',
+                  },
+                }}
+              >
+                <AreaChart
+                  accessibilityLayer
+                  data={arrangeData(dataOne ?? new Map(), dataTwo)}
+                  margin={{
+                    left: 12,
+                    right: 12,
+                  }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey='date'
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator='dot' hideLabel />}
+                  />
+                  <Area
+                    dataKey='value'
+                    type='linear'
+                    fill='blue'
+                    fillOpacity={0.5}
+                    stroke='blue'
+                  />
+                </AreaChart>
+              </ChartContainer>
             </div>
-          </CardFooter>
-        </div>
-      </CardContent>
+          </CardContent>
+        </>
+      ) : (
+        <>Create your first metric</>
+      )}
     </Card>
   );
 }
@@ -174,12 +309,13 @@ function Header(props: {
   activeGroup: number;
   setActiveGroup: React.Dispatch<React.SetStateAction<number>>;
   groups: Group[];
+  total: number;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <CardHeader className='flex flex-row justify-between max-sm:flex-col max-sm:gap-3'>
       <div className='flex flex-col gap-1'>
-        <CardTitle>0 New Users</CardTitle>
+        <CardTitle>0 {props.groups[props.activeGroup]?.name}</CardTitle>
         <CardDescription>Metric value for the last month</CardDescription>
       </div>
       <Popover open={open} onOpenChange={setOpen}>
@@ -191,7 +327,7 @@ function Header(props: {
             className='w-[200px] justify-between rounded-[12px]'
           >
             {props.groups.length > 0
-              ? props.groups.find((group, i) => i === props.activeGroup)?.name
+              ? props.groups.find((_, i) => i === props.activeGroup)?.name
               : 'Select metric...'}
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>

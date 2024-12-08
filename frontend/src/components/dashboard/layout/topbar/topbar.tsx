@@ -9,7 +9,7 @@ import AvatarDropdown from './dropdown';
 import ApplicationsChip from './application';
 import Link from 'next/link';
 import { useContext } from 'react';
-import { UserContext } from '@/dashContext';
+import { AppsContext, UserContext } from '@/dashContext';
 import ApiDialog from '../../components/apiDialog';
 import { DrawerMenu } from './drawerMenu';
 import LogoSvg from '@/components/global/logoSvg';
@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
+  const {applications, activeApp} = useContext(AppsContext)
 
   return (
     <div className='flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]'>
@@ -28,7 +29,7 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ApplicationsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog>
+            <ApiDialog appId={applications?.[activeApp].id ?? ""}>
               <Button
                 size={'sm'}
                 variant={'secondary'}

@@ -1,15 +1,13 @@
 'use client';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { CreditCard, Home, X } from 'lucide-react';
+import { CreditCard, Home} from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import SettingGeneralPage from './settingPages/general';
 import { Hexagon } from 'react-feather';
-import { Button } from '@/components/ui/button';
 import SettingAppsPage from './settingPages/apps-api';
 import SettingPaymentPage from './settingPages/payment';
 

@@ -21,35 +21,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { AppsContext } from '@/dashContext';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
-
-const multiData = [
-  { month: 'January', positive: 186, negative: 80 },
-  { month: 'February', positive: 305, negative: 200 },
-  { month: 'March', positive: 237, negative: 120 },
-  { month: 'April', positive: 73, negative: 190 },
-  { month: 'May', positive: 209, negative: 130 },
-  { month: 'June', positive: 214, negative: 140 },
-];
-
-const basicData = [
-  { month: 'January', total: 186 },
-  { month: 'February', total: 305 },
-  { month: 'March', total: 237 },
-  { month: 'April', total: 73 },
-  { month: 'May', total: 209 },
-  { month: 'June', total: 214 },
-];
-
-interface Basic {
-  date: string;
-  total: number;
-}
-
-interface Multi {
-  time: string;
-  positive: number;
-  negative: number;
-}
+import { dateToXAxis, mapToArray, multiMapsToArray } from '@/utils';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -135,47 +107,6 @@ export default function MetricInformations(props: {
     }
   };
 
-  const mapToArray = (map: Map<any, any>, name: string = 'value') => {
-    let array: any[] = [];
-    map.keys().forEach((key) => {
-      array.push({ date: key, [name]: map.get(key) });
-    });
-
-    return array;
-  };
-
-  const multiMapsToArray = (map1: Map<any, any>, map2: Map<any, any>) => {
-    // Create a Set to track all unique dates
-    const uniqueDates = new Set<string>();
-
-    // Add keys from both maps to the uniqueDates Set
-    map1.keys().forEach((key) => uniqueDates.add(key));
-    map2.keys().forEach((key) => uniqueDates.add(key));
-
-    // Prepare the result array
-    const array: any[] = [];
-
-    // Populate the result array
-    uniqueDates.forEach((date) => {
-      array.push({
-        date: date,
-        positive: map1.get(date) || 0, // Use 0 if the key doesn't exist in positiveMap
-        negative: map2.get(date) || 0, // Use 0 if the key doesn't exist in negativeMap
-      });
-    });
-
-    return array;
-  };
-
-  const dateToXAxis = (dateToParse: Date) => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    if (date?.from?.toString() === date?.to?.toString()) {
-      return dateToParse.getHours().toString();
-    } else {
-      return days[dateToParse.getDay()];
-    }
-  };
-
   useEffect(() => {
     loadData();
   }, [date]);
@@ -209,7 +140,7 @@ export default function MetricInformations(props: {
           <>
             <ChartContainer
               config={{
-                total: {
+                value: {
                   label: props.group.name,
                   color: 'skyblue',
                 },
@@ -230,7 +161,13 @@ export default function MetricInformations(props: {
                   tickLine={false}
                   tickMargin={10}
                   axisLine={false}
-                  tickFormatter={(value: Date) => dateToXAxis(value)}
+                  tickFormatter={(value: Date) =>
+                    dateToXAxis(
+                      date?.from ?? new Date(),
+                      date?.to ?? new Date(),
+                      value,
+                    )
+                  }
                 />
                 <ChartTooltip
                   cursor={false}
@@ -294,8 +231,14 @@ export default function MetricInformations(props: {
                   dataKey='date'
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value: Date) => dateToXAxis(value)}
+                  tickMargin={10}
+                  tickFormatter={(value: Date) =>
+                    dateToXAxis(
+                      date?.from ?? new Date(),
+                      date?.to ?? new Date(),
+                      value,
+                    )
+                  }
                 />
                 <ChartTooltip
                   cursor={false}
