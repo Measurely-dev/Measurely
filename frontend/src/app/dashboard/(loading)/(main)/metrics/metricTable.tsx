@@ -9,7 +9,6 @@ import MetricDropdown from "@/components/dashboard/components/metricDropdown";
 import Empty from "@/components/dashboard/components/empty";
 import MetricInformations from "./metricInfo";
 import { Separator } from "@radix-ui/react-separator";
-import { Label } from "recharts";
 
 const formattedDate = (date: Date) => {
   try {
@@ -229,13 +228,13 @@ const Item = (props: { group: Group; index: number }) => {
           className='col-span-3 my-2 lg:hidden'
         />
         <div className='my-auto line-clamp-1 h-fit w-full place-items-center items-center font-mono text-[15px] max-lg:flex max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
-          <Label className='!font-sans font-semibold text-blue-500 lg:hidden'>
+          <div className='font-sans font-semibold text-blue-500 lg:hidden'>
             Total value
-          </Label>
+          </div>
           {total === null ? '0' : total}
         </div>
         <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
-          <Label className='lg:hidden'>Daily value</Label>
+          <div className='lg:hidden text-primary font-semibold text-sm'>Daily value</div>
           <Badge
             className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${todayBadgeColor(
               dailyUpdate,
@@ -246,7 +245,7 @@ const Item = (props: { group: Group; index: number }) => {
           </Badge>
         </div>
         <div className='flex items-center justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
-          <Label className='text-primary lg:hidden'>Created</Label>
+          <div className='text-primary lg:hidden text-sm font-semibold'>Created</div>
           {formattedDate(props.group.created)}
         </div>
         <div className='flex h-full w-full items-center justify-end max-lg:hidden'>
