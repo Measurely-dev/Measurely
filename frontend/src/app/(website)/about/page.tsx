@@ -49,7 +49,7 @@ export default function Pricing() {
             constantly evolving, and we have big plans for the future. From
             expanding features to building a community of data enthusiasts,
             we’re committed to growing{' '}
-            <span className='font-semibold text-blue-600'>Measurely</span>
+            <span className='font-semibold text-blue-600'>Measurely</span>{' '}
             into something extraordinary.
           </div>
           <div className='mt-20 text-4xl font-medium'>
