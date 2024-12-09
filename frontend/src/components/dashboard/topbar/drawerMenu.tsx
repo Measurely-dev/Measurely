@@ -7,12 +7,12 @@ import { Book, Code, LogOut, Plus, Settings, User } from 'react-feather';
 import Link from 'next/link';
 import { ReactNode, useContext } from 'react';
 import { UserContext } from '@/dashContext';
-import ApiDialog from '../../components/apiDialog';
+import ApiDialog from '../apiDialog';
 import { Separator } from '@/components/ui/separator';
-import { navItem } from '../navbar/navbar';
+import { navItem } from '../navbar';
 import { DialogClose } from '@/components/ui/dialog';
 import { usePathname } from 'next/navigation';
-import SettingDialog from '../../settings/settingDialog';
+import SettingDialog from '../settingDialog';
 import { useRouter } from 'next/navigation';
 export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
   const pathname = usePathname();

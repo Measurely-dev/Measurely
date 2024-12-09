@@ -1,6 +1,6 @@
 import { pricingData } from '@/components/global/pricingData';
-import WebPageHeader from '../../components/pageHeader';
-import WebPricingCard from '../../components/pricingCard';
+import WebPageHeader from '../pageHeader';
+import WebPricingCard from '../pricingCard';
 export default function SubscriptionUiSection() {
   return (
     <div className='mt-[145px] rounded-3xl bg-background p-8 pt-12'>

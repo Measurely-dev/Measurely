@@ -3,14 +3,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Code, Menu, MessageSquare, Plus, User } from 'react-feather';
-import FeedbackPopover from '../../components/feedbackPopover';
+import FeedbackPopover from '../feedbackPopover';
 
 import AvatarDropdown from './dropdown';
 import ApplicationsChip from './application';
 import Link from 'next/link';
 import { useContext } from 'react';
 import { AppsContext, UserContext } from '@/dashContext';
-import ApiDialog from '../../components/apiDialog';
+import ApiDialog from '../apiDialog';
 import { DrawerMenu } from './drawerMenu';
 import LogoSvg from '@/components/global/logoSvg';
 import { Separator } from '@/components/ui/separator';

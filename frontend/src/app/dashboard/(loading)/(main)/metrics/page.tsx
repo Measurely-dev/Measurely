@@ -1,5 +1,5 @@
 'use client';
-import DashboardContentContainer from '@/components/dashboard/container/container';
+import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,7 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import Empty from '@/components/dashboard/components/empty';
+import Empty from '@/components/dashboard/empty';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {

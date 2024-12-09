@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import WebButton from '../../components/button';
+import WebButton from './button';
 import { footerData } from './footerData';
 import FooterLink from './footerLink';
 import LogoSvg from '@/components/global/logoSvg';

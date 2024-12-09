@@ -1,5 +1,10 @@
 'use client';
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { CreditCard, Home, X } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import SettingGeneralPage from './settingPages/general';
@@ -37,7 +42,7 @@ export default function SettingDialog(props: { children: ReactNode }) {
             type='button'
             size={'icon'}
             variant='secondary'
-            className='rounded-[12px] border md:hidden max-md:bg-background'
+            className='rounded-[12px] border max-md:bg-background md:hidden'
           >
             <X />
           </Button>

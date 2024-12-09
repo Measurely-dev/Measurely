@@ -57,6 +57,6 @@ export const pricingData = [
         name: 'Priority support',
       },
     ],
-    button: 'Continue with Pro'
+    button: 'Continue with Pro',
   },
 ];

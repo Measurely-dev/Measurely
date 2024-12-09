@@ -11,7 +11,7 @@ import {
 import NavbarItemChip from './navbarItemChip';
 import { Separator } from '@/components/ui/separator';
 import { HomeIcon } from 'lucide-react';
-import SettingDialog from '../../settings/settingDialog';
+import SettingDialog from './settingDialog';
 
 export const navItem = [
   {

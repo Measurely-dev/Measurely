@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import WebBentoBox from '../../components/bentoBox';
-import WebBox from '../../components/box';
-import WebFooterHeader from '../../components/footerHeader';
-import WebTitle from '../../components/title';
-import ContentContainer from '../../containers/content';
+import WebBentoBox from '../bentoBox';
+import WebBox from '../box';
+import WebFooterHeader from '../footerHeader';
+import WebTitle from '../title';
+import ContentContainer from '../content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
 import SubscriptionUiSection from './pricing';
 

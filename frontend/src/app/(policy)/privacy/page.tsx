@@ -1,6 +1,6 @@
-import WebContainer from '@/components/website/containers/container';
-import ContentContainer from '@/components/website/containers/content';
-import PolicyWrapper from '@/components/website/containers/policy';
+import WebContainer from '@/components/website/container';
+import ContentContainer from '@/components/website/content';
+import PolicyWrapper from '@/components/website/policy';
 import PrivacyContent from './privacy';
 
 export default function Page() {

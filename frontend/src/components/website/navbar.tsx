@@ -1,7 +1,7 @@
 import LogoSvg from '@/components/global/logoSvg';
 import Link from 'next/link';
-import Actions from './actions';
-import Links from './links';
+import Actions from './navbarActions';
+import Links from './navbarLinks';
 import {
   Drawer,
   DrawerClose,

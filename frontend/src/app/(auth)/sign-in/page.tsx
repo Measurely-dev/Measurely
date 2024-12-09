@@ -1,9 +1,9 @@
 'use client';
 
-import AuthForm from '@/components/forms/auth';
-import WebContainer from '@/components/website/containers/container';
-import ContentContainer from '@/components/website/containers/content';
-import AuthNavbar from '@/components/website/layout/authNav/navbar';
+import AuthForm from '@/components/website/auth';
+import WebContainer from '@/components/website/container';
+import ContentContainer from '@/components/website/content';
+import AuthNavbar from '@/components/website/authNavbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';

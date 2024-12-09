@@ -1,8 +1,8 @@
 import React from 'react';
-import SettingCard from '../../components/settingCard';
+import SettingCard from '../settingCard';
 import { Code } from 'react-feather';
 import { Button } from '@/components/ui/button';
-import PlansDialog from '../../components/plansDialog';
+import PlansDialog from '../plansDialog';
 export default function SettingPaymentPage() {
   return (
     <>

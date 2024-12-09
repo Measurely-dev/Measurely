@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import WebContainer from '@/components/website/containers/container';
-import ContentContainer from '@/components/website/containers/content';
+import WebContainer from '@/components/website/container';
+import ContentContainer from '@/components/website/content';
 import Link from 'next/link';
 import { ArrowUpRight } from 'react-feather';
 

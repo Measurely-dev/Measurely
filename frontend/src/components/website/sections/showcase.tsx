@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import WebButton from '../../components/button';
-import WebChip from '../../components/chip';
-import Card1 from '../../components/showcase/card1';
-import Card2 from '../../components/showcase/card2';
-import Card3 from '../../components/showcase/card3';
-import Card4 from '../../components/showcase/card4';
-import Card5 from '../../components/showcase/card5';
+import WebButton from '../button';
+import WebChip from '../chip';
+import Card1 from '../showcase/card1';
+import Card2 from '../showcase/card2';
+import Card3 from '../showcase/card3';
+import Card4 from '../showcase/card4';
+import Card5 from '../showcase/card5';
 
 export default function ShowcaseLandingSection(props: {
   type: 'default' | 'waitlist';

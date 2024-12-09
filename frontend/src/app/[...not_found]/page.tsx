@@ -1,7 +1,7 @@
-import ShowcaseCursor from '@/components/website/components/showcase/cursor';
-import WebContainer from '@/components/website/containers/container';
-import ContentContainer from '@/components/website/containers/content';
-import Footer from '@/components/website/layout/footer/footer';
+import ShowcaseCursor from '@/components/website/showcase/cursor';
+import WebContainer from '@/components/website/container';
+import ContentContainer from '@/components/website/content';
+import Footer from '@/components/website/footer';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 

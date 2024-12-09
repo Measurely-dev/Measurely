@@ -1,5 +1,5 @@
-import Footer from '@/components/website/layout/footer/footer';
-import Navbar from '@/components/website/layout/header/navbar';
+import Footer from '@/components/website/footer';
+import Navbar from '@/components/website/navbar';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 

@@ -1,6 +1,6 @@
 'use client';
-import { ChartsCard } from '@/components/dashboard/components/chartsCard';
-import DashboardContentContainer from '@/components/dashboard/container/container';
+import { ChartsCard } from '@/components/dashboard/chartsCard';
+import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
   BreadcrumbItem,

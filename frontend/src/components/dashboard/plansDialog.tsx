@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import WebPricingCard from '@/components/website/components/pricingCard';
+import WebPricingCard from '@/components/website/pricingCard';
 import { X } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -16,7 +16,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='w-[95%] overflow-y-scroll max-h-[95%] min-w-[95%] rounded-sm shadow-sm'>
+      <DialogContent className='max-h-[95%] w-[95%] min-w-[95%] overflow-y-scroll rounded-sm shadow-sm'>
         <DialogHeader className='static'>
           <DialogClose className='absolute right-5 top-3'>
             <Button
@@ -29,7 +29,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <div className='grid mt-5 max-md:grid-cols-1 max-md:gap-5 max-lg:gap-1 overflow-y-scroll grid-cols-3 gap-5'>
+        <div className='mt-5 grid grid-cols-3 gap-5 overflow-y-scroll max-lg:gap-1 max-md:grid-cols-1 max-md:gap-5'>
           {pricingData.map((card, i) => {
             return (
               <WebPricingCard

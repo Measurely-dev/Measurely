@@ -1,12 +1,12 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import SettingCard from '../../components/settingCard';
+import SettingCard from '../settingCard';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dashContext';
-import DeleteAccountAlert from '../../components/deleteAccountDialog';
+import DeleteAccountAlert from '../deleteAccountDialog';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);

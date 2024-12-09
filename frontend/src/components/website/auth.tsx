@@ -146,9 +146,9 @@ export default function AuthForm(props: {
               By continuing, you agree to our policies
             </div>
             <div className='flex items-center gap-2 text-center text-sm font-semibold'>
-              <Link href='/'>Terms of use</Link>
+              <Link href='/terms'>Terms of use</Link>
               <div>•</div>
-              <Link href='/'>Privacy policy</Link>
+              <Link href='/privacy'>Privacy policy</Link>
             </div>
           </div>
         )}

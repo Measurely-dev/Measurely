@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dashContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ApiDialog from '../../components/apiDialog';
-import Empty from '../../components/empty';
+import ApiDialog from '../apiDialog';
+import Empty from '../empty';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
-import EditAppDialog from '../../components/editAppDialog';
+import EditAppDialog from '../editAppDialog';
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);

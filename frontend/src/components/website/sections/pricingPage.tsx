@@ -1,6 +1,6 @@
 import { pricingData } from '@/components/global/pricingData';
-import WebPageHeader from '../../components/pageHeader';
-import WebPricingCard from '../../components/pricingCard';
+import WebPageHeader from '../pageHeader';
+import WebPricingCard from '../pricingCard';
 
 export default function PricingCardsSection() {
   return (
@@ -18,22 +18,20 @@ export default function PricingCardsSection() {
         description='Find the plan the best suited for your application'
       />
       <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
-        {
-          pricingData.map((card, i) => {
-            return(
-              <WebPricingCard
-                key={i}
-                name={card.name}
-                description={card.description}
-                price={card.price}
-                recurrence={card.reccurence}
-                target={card.target}
-                list={card.list}
-                button={card.button}
-              />
-            )
-          })
-        }
+        {pricingData.map((card, i) => {
+          return (
+            <WebPricingCard
+              key={i}
+              name={card.name}
+              description={card.description}
+              price={card.price}
+              recurrence={card.reccurence}
+              target={card.target}
+              list={card.list}
+              button={card.button}
+            />
+          );
+        })}
       </div>
       <WebPricingCard
         recurrence='month'

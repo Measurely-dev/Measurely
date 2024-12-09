@@ -1,4 +1,4 @@
-import DashboardContentContainer from '@/components/dashboard/container/container';
+import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,7 +8,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
-import WebChip from '@/components/website/components/chip';
+import WebChip from '@/components/website/chip';
 import { Users } from 'lucide-react';
 export default function TeamPage() {
   return (

@@ -1,6 +1,6 @@
-import WebContainer from '@/components/website/containers/container';
-import ContentContainer from '@/components/website/containers/content';
-import PricingCardsSection from '@/components/website/sections/pricing/pricingCards';
+import WebContainer from '@/components/website/container';
+import ContentContainer from '@/components/website/content';
+import PricingCardsSection from '@/components/website/sections/pricingPage';
 
 export default function Pricing() {
   return (

@@ -1,5 +1,5 @@
-import WebContainer from '@/components/website/containers/container';
-import ContentContainer from '@/components/website/containers/content';
+import WebContainer from '@/components/website/container';
+import ContentContainer from '@/components/website/content';
 import StorySection from '@/components/website/sections/about/story';
 
 export default function Pricing() {

@@ -1,8 +1,8 @@
 'use client';
 
-import DashboardContent from '@/components/dashboard/layout/content/content';
-import DashboardNavbar from '@/components/dashboard/layout/navbar/navbar';
-import DashboardTopbar from '@/components/dashboard/layout/topbar/topbar';
+import DashboardContent from '@/components/dashboard/content';
+import DashboardNavbar from '@/components/dashboard/navbar';
+import DashboardTopbar from '@/components/dashboard/topbar/topbar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 export default function DashboardWrapper({ children }: { children: any }) {
   return (

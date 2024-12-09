@@ -21,7 +21,7 @@ import RandomizeAlert from './randomizeAlert';
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
-  appId: string;
+  appId?: string;
 }) {
   const [view, setView] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -100,7 +100,7 @@ export default function ApiDialog(props: {
           </Button>
         </div>
         {props.randomize ? (
-          <RandomizeAlert appId={props?.appId}>
+          <RandomizeAlert appId={props.appId || ('' as string)}>
             <Button className='rounded-[12px]' variant={'destructiveOutline'}>
               Randomize key
             </Button>

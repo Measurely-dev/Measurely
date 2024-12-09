@@ -5,8 +5,8 @@ import { Group, GroupType } from '@/types';
 import { useContext, useEffect, useState } from 'react';
 import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
-import MetricDropdown from '@/components/dashboard/components/metricDropdown';
-import Empty from '@/components/dashboard/components/empty';
+import MetricDropdown from '@/components/dashboard/metricDropdown';
+import Empty from '@/components/dashboard/empty';
 import MetricInformations from './metricInfo';
 import { Separator } from '@radix-ui/react-separator';
 
