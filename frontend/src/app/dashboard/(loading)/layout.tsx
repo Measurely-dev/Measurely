@@ -1,9 +1,9 @@
 'use client';
 
-import { AppsContext, UserContext } from '@/dashContext';
+import { AppsContext, UserContext } from '@/dash-context';
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import LogoSvg from '@/components/global/logoSvg';
+import LogoSvg from '@/components/global/logo-svg';
 
 export default function DashboardContentLayout({
   children,

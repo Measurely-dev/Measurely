@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { ReactNode, useContext, useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { Sliders, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 import {
   ChartContainer,
@@ -17,11 +17,12 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Group, GroupType } from '@/types';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import { dateToXAxis, mapToArray, multiMapsToArray } from '@/utils';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -135,7 +136,7 @@ export default function MetricInformations(props: {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <div className='flex flex-row items-center justify-between gap-2'>
+        <div className='flex flex-row w-full items-center justify-between gap-2'>
           <ToggleGroup
             type='single'
             defaultValue='today'
@@ -161,6 +162,12 @@ export default function MetricInformations(props: {
               30D
             </ToggleGroupItem>
           </ToggleGroup>
+          <AdvancedOptionsMetricDialog>
+            <Button variant={'secondary'} className='gap-2 items-center rounded-[12px] h-full'>
+              <Sliders className='size-4'/>
+              Advanced
+            </Button>
+          </AdvancedOptionsMetricDialog>
         </div>
         {props.group.type === 0 ? (
           <>

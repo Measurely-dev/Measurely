@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useState } from 'react';

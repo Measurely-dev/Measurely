@@ -14,9 +14,9 @@ import { Label } from '@/components/ui/label';
 import { EyeClosedIcon } from '@radix-ui/react-icons';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Eye } from 'react-feather';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { X } from 'lucide-react';
-import RandomizeAlert from './randomizeAlert';
+import RandomizeAlert from './randomize-alert';
 
 export default function ApiDialog(props: {
   children: ReactNode;

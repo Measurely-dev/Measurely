@@ -1,13 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { useContext, useEffect, useState } from 'react';
 import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
-import MetricDropdown from '@/components/dashboard/metricDropdown';
+import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import Empty from '@/components/dashboard/empty';
-import MetricInformations from './metricInfo';
+import MetricInformations from './metric-info';
 import { Separator } from '@radix-ui/react-separator';
 
 const formattedDate = (date: Date) => {

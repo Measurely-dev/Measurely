@@ -19,11 +19,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { Group } from '@/types';
 import { useContext, useState } from 'react';
 import { toast } from 'sonner';
-import EditMetricDialogContent from './editMetricDialogContent';
+import EditMetricDialogContent from './edit-metric-dialog-content';
 
 export default function MetricDropdown(props: {
   children: any;

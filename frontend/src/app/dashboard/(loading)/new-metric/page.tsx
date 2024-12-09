@@ -13,9 +13,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/authNavbar';
-import Footer from '@/components/website/layout/footer/footer';
-import { AppsContext } from '@/dashContext';
+import AuthNavbar from '@/components/website/auth-navbar';
+import Footer from '@/components/website/footer';
+import { AppsContext } from '@/dash-context';
 import { GroupType } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useContext, useState } from 'react';

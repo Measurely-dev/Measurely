@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useContext, useEffect, useState } from 'react';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ApiDialog from '../apiDialog';
+import ApiDialog from '../api-dialog';
 import Empty from '../empty';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
-import EditAppDialog from '../editAppDialog';
+import EditAppDialog from '../edit-app-dialog';
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);

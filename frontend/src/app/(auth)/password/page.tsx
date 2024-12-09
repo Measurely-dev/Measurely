@@ -3,7 +3,7 @@
 import AuthForm from '@/components/website/auth';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/authNavbar';
+import AuthNavbar from '@/components/website/auth-navbar';
 import { redirect, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';

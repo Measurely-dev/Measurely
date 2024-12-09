@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 

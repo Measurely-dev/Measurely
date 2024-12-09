@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { ArchiveIcon } from '@radix-ui/react-icons';
 import { Plus, Search } from 'react-feather';
-import MetricTable from './metricTable';
+import MetricTable from './metric-table';
 import Link from 'next/link';
 import {
   Dispatch,
@@ -30,7 +30,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { loadMetricsGroups } from '@/utils';
 
 export default function DashboardMetrics() {

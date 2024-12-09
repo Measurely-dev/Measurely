@@ -3,16 +3,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Code, Menu, MessageSquare, Plus, User } from 'react-feather';
-import FeedbackPopover from '../feedbackPopover';
+import FeedbackPopover from '../feedback-popover';
 
 import AvatarDropdown from './dropdown';
 import ApplicationsChip from './application';
 import Link from 'next/link';
 import { useContext } from 'react';
-import { AppsContext, UserContext } from '@/dashContext';
-import ApiDialog from '../apiDialog';
-import { DrawerMenu } from './drawerMenu';
-import LogoSvg from '@/components/global/logoSvg';
+import { AppsContext, UserContext } from '@/dash-context';
+import ApiDialog from '../api-dialog';
+import { DrawerMenu } from './drawer-menu';
+import LogoSvg from '@/components/global/logo-svg';
 import { Separator } from '@/components/ui/separator';
 
 export default function DashboardTopbar() {

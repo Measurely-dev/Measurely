@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import WebBentoBox from '../bentoBox';
+import WebBentoBox from '../bento-box';
 import WebBox from '../box';
-import WebFooterHeader from '../footerHeader';
+import WebFooterHeader from '../footer-header';
 import WebTitle from '../title';
 import ContentContainer from '../content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';

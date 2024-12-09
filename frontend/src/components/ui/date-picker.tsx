@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-export function DatePicker(props: { date: any; setDate: any }) {
+export function DatePicker() {
   const [date, setDate] = React.useState<Date>();
   return (
     <div className={'grid gap-2'}>
@@ -23,8 +23,8 @@ export function DatePicker(props: { date: any; setDate: any }) {
             id='date'
             variant={'secondary'}
             className={cn(
-              'w-fit justify-start rounded-[12px] px-4 text-left font-normal',
-              !props.date && 'text-muted-foreground',
+              'w-full justify-start rounded-[12px] px-4 text-left font-normal',
+              !date && 'text-muted-foreground',
             )}
           >
             <CalendarIcon className='mr-2 size-4' />

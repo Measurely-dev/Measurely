@@ -1,17 +1,17 @@
-import LogoSvg from '@/components/global/logoSvg';
+import LogoSvg from '@/components/global/logo-svg';
 import Link from 'next/link';
 import { Box, Settings, Users } from 'react-feather';
-import DashboardNavItem from './navItem';
+import DashboardNavItem from './nav-item';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import NavbarItemChip from './navbarItemChip';
+import NavbarItemChip from './navbar-item-chip';
 import { Separator } from '@/components/ui/separator';
 import { HomeIcon } from 'lucide-react';
-import SettingDialog from './settingDialog';
+import SettingDialog from './setting-dialog';
 
 export const navItem = [
   {

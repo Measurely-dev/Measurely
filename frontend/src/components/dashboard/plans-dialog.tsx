@@ -1,4 +1,4 @@
-import { pricingData } from '@/components/global/pricingData';
+import { pricingData } from '@/components/global/pricing-data';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import WebPricingCard from '@/components/website/pricingCard';
+import WebPricingCard from '@/components/website/pricing-card';
 import { X } from 'lucide-react';
 import { ReactNode } from 'react';
 

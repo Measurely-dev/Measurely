@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import WebButton from './button';
-import { footerData } from './footerData';
-import FooterLink from './footerLink';
-import LogoSvg from '@/components/global/logoSvg';
+import { footerData } from './footer-data';
+import FooterLink from './footer-link';
+import LogoSvg from '@/components/global/logo-svg';
 
 export default function Footer(props: {
   border: boolean;

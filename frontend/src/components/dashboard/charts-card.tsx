@@ -32,11 +32,11 @@ import {
 } from '@/components/ui/popover';
 import { useContext, useEffect, useState } from 'react';
 import { Box } from 'react-feather';
-import { AppsContext } from '@/dashContext';
+import { AppsContext } from '@/dash-context';
 import { loadMetricsGroups, mapToArray, multiMapsToArray } from '@/utils';
 import { Group, GroupType } from '@/types';
 import { toast } from 'sonner';
-import MetricStats from './metricStats';
+import MetricStats from './metric-stats';
 import Empty from './empty';
 import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';

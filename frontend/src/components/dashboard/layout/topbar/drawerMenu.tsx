@@ -6,13 +6,13 @@ import { Book, Code, LogOut, Plus, Settings, User } from 'react-feather';
 
 import Link from 'next/link';
 import { ReactNode, useContext } from 'react';
-import { UserContext } from '@/dashContext';
-import ApiDialog from '../apiDialog';
+import { UserContext } from '@/dash-context';
+import ApiDialog from '../../api-dialog';
 import { Separator } from '@/components/ui/separator';
-import { navItem } from '../navbar';
+import { navItem } from '../../navbar';
 import { DialogClose } from '@/components/ui/dialog';
 import { usePathname } from 'next/navigation';
-import SettingDialog from '../settingDialog';
+import SettingDialog from '../../settings/settingDialog';
 import { useRouter } from 'next/navigation';
 export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
   const pathname = usePathname();

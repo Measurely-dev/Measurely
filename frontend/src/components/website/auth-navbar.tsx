@@ -1,4 +1,4 @@
-import LogoSvg from '@/components/global/logoSvg';
+import LogoSvg from '@/components/global/logo-svg';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';

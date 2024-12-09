@@ -1,6 +1,6 @@
 'use client';
 
-import { AppsContext, UserContext } from '@/dashContext';
+import { AppsContext, UserContext } from '@/dash-context';
 import { useState } from 'react';
 import { Application, User } from '@/types';
 

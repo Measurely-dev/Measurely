@@ -9,7 +9,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserContext } from '@/dashContext';
+import { UserContext } from '@/dash-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext } from 'react';
