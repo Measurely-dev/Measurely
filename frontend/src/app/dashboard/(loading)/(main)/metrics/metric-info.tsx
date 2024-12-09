@@ -223,13 +223,13 @@ export default function MetricInformations(props: {
             <div className='flex flex-col gap-4'>
               <div className='flex flex-col gap-2 xl:flex-row xl:justify-between'>
                 <Label className='flex flex-col gap-2 capitalize'>
-                  Positive variable total ({props.group.metrics[0].name})
+                  {props.group.metrics[0].name}
                   <div className='font-mono text-lg text-green-500'>
                     -{props.total}
                   </div>
                 </Label>
                 <Label className='flex flex-col gap-2 capitalize xl:text-end'>
-                  Negative variable total ({props.group.metrics[1].name})
+                  {props.group.metrics[1].name}
                   <div className='font-mono text-lg text-red-500'>
                     +{props.total}
                   </div>

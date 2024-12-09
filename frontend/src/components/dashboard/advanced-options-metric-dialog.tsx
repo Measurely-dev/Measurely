@@ -22,7 +22,7 @@ export default function AdvancedOptionsMetricDialog(props: {
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className='rounded-sm shadow-sm'>
         <DialogHeader className='static'>
-          <DialogTitle>Advanced options</DialogTitle>
+          <DialogTitle>Advanced information</DialogTitle>
           <DialogDescription>
             You can see the data of a specific day here
           </DialogDescription>
