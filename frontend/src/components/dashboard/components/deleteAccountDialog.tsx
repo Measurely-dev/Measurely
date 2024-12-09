@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ReactNode, useContext, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 
 export default function DeleteAccountAlert(props: { children: ReactNode }) {
   return (

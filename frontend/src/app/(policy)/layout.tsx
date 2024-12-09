@@ -1,7 +1,6 @@
 import Footer from '@/components/website/layout/footer/footer';
 import Navbar from '@/components/website/layout/header/navbar';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
   title: 'Zway - website',
@@ -13,8 +12,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = headers();
-  const is_authentificated = headersList.get('is-authentificated');
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
       <Navbar type={'default'} />

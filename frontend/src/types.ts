@@ -20,7 +20,7 @@ export interface Metric {
   id: string;
   name: string;
   total: number;
-  monthly : MetricEvent[];
+  monthly: MetricEvent[];
 }
 
 export interface MetricEvent {
@@ -34,7 +34,7 @@ export interface User {
   lastname: string;
   image: string;
   email: string;
-  provider : string;
+  provider: string;
 }
 
 export interface Plan {

@@ -76,8 +76,8 @@ export default function RandomizeAlert(props: {
                       applications?.map((v, i) =>
                         i === apiIndex
                           ? Object.assign({}, v, {
-                            apikey: data,
-                          })
+                              apikey: data,
+                            })
                           : v,
                       ),
                     );

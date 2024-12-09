@@ -14,12 +14,11 @@ const SettingCard = (props: {
   description: string;
   content: ReactNode;
   loading: boolean;
-  action: (e: FormEvent<HTMLFormElement>) => void
+  action: (e: FormEvent<HTMLFormElement>) => void;
   btn?: string | undefined;
   danger?: boolean | false;
 }) => {
   return (
-
     <form className='flex flex-col' onSubmit={props.action}>
       <Card className={props.danger ? 'border-red-500/40' : ''}>
         <div
@@ -36,7 +35,12 @@ const SettingCard = (props: {
         </div>
         {props.btn !== undefined ? (
           <CardFooter className='border-t p-4 px-6'>
-            <Button className='w-full rounded-[12px]' type="submit" loading={props.loading} disabled={props.loading}>
+            <Button
+              className='w-full rounded-[12px]'
+              type='submit'
+              loading={props.loading}
+              disabled={props.loading}
+            >
               {props.btn}
             </Button>
           </CardFooter>

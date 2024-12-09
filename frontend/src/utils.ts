@@ -55,7 +55,7 @@ export const multiMapsToArray = (map1: Map<any, any>, map2: Map<any, any>) => {
   return array;
 };
 
-export const dateToXAxis = (from : Date, to : Date, dateToParse: Date) => {
+export const dateToXAxis = (from: Date, to: Date, dateToParse: Date) => {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   if (from.toString() === to.toString()) {
     return dateToParse.getHours().toString();

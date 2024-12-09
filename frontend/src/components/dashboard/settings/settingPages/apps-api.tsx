@@ -5,7 +5,6 @@ import { AppsContext } from '@/dashContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ApiDialog from '../../components/apiDialog';
 import Empty from '../../components/empty';
-import { DialogTrigger } from '@/components/ui/dialog';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
 import EditAppDialog from '../../components/editAppDialog';

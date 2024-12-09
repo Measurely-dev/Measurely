@@ -1,13 +1,12 @@
 'use client';
 
-import { Check, ChevronsUpDown, TrendingUp } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -168,11 +167,6 @@ export function ChartsCard() {
       nbr++;
     }
 
-    let total = 0;
-    for (let i = 0; i < finalArray.length; i++) {
-      total += finalArray[i].value;
-    }
-
     return finalArray;
   };
 
@@ -227,7 +221,7 @@ export function ChartsCard() {
           />
           <CardContent className='flex flex-row gap-5 max-md:flex-col'>
             {total === 0 ? (
-              <div className='flex w-full flex-col items-center px-5 justify-center gap-2 rounded-[12px] bg-accent py-20'>
+              <div className='flex w-full flex-col items-center justify-center gap-2 rounded-[12px] bg-accent px-5 py-20'>
                 <div className='text-3xl font-semibold'>No data</div>
                 <div className='text-md text-center text-secondary max-sm:text-sm'>
                   Theres no available data for this month

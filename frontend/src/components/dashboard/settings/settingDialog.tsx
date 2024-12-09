@@ -1,10 +1,6 @@
 'use client';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { CreditCard, Home} from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { CreditCard, Home } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import SettingGeneralPage from './settingPages/general';
 import { Hexagon } from 'react-feather';
@@ -33,7 +29,7 @@ export default function SettingDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 !shadow-none ring-1 ring-input max-lg:min-w-[95%] lg:max-w-[900px] lg:min-w-[900px] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col'>
+      <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 !shadow-none ring-1 ring-input max-lg:min-w-[95%] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col lg:min-w-[900px] lg:max-w-[900px]'>
         <Navbar page={page} setPage={setPage} settings={settings} />
         <Content page={page} setPage={setPage} settings={settings} />
       </DialogContent>
@@ -54,8 +50,9 @@ function Navbar(props: {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${props.page === item.value ? 'bg-zinc-400/15' : ''
-                }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${
+                props.page === item.value ? 'bg-zinc-400/15' : ''
+              }`}
               onClick={() => props.setPage(item.value)}
             >
               {item.icon}

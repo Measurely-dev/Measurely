@@ -1,21 +1,21 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AppsContext } from "@/dashContext";
-import { Group, GroupType } from "@/types";
-import { useContext, useEffect, useState } from "react";
-import { AlertCircle, Box, MoreHorizontal } from "react-feather";
-import { formatDistanceToNow } from "date-fns";
-import MetricDropdown from "@/components/dashboard/components/metricDropdown";
-import Empty from "@/components/dashboard/components/empty";
-import MetricInformations from "./metricInfo";
-import { Separator } from "@radix-ui/react-separator";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { AppsContext } from '@/dashContext';
+import { Group, GroupType } from '@/types';
+import { useContext, useEffect, useState } from 'react';
+import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
+import { formatDistanceToNow } from 'date-fns';
+import MetricDropdown from '@/components/dashboard/components/metricDropdown';
+import Empty from '@/components/dashboard/components/empty';
+import MetricInformations from './metricInfo';
+import { Separator } from '@radix-ui/react-separator';
 
 const formattedDate = (date: Date) => {
   try {
     return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
-    console.error("Date formatting error:", error);
-    return "Invalid Date";
+    console.error('Date formatting error:', error);
+    return 'Invalid Date';
   }
 };
 
@@ -114,7 +114,7 @@ const Item = (props: { group: Group; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const [total, setTotal] = useState<number | null>(null);
 
-  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  const { applications, activeApp } = useContext(AppsContext);
 
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
@@ -140,19 +140,19 @@ const Item = (props: { group: Group; index: number }) => {
 
   const fetchDailySummary = async (
     groupid: string,
-    metricid: string
+    metricid: string,
   ): Promise<number> => {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
         applications?.[activeApp].id
       }&groupid=${groupid}&metricid=${metricid}&start=${Date.now()}&end=${Date.now()}&daily=0`,
       {
-        method: "GET",
-        credentials: "include",
+        method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
     if (res.ok) {
       const json = await res.json();
@@ -175,17 +175,17 @@ const Item = (props: { group: Group; index: number }) => {
       setTotal(props.group.metrics[0].total);
       daily = await fetchDailySummary(
         props.group.id,
-        props.group.metrics[0].id
+        props.group.metrics[0].id,
       );
     } else if (props.group.type === GroupType.Dual) {
       setTotal(props.group.metrics[0].total - props.group.metrics[1].total);
       const pos = await fetchDailySummary(
         props.group.id,
-        props.group.metrics[0].id
+        props.group.metrics[0].id,
       );
       const neg = await fetchDailySummary(
         props.group.id,
-        props.group.metrics[1].id
+        props.group.metrics[1].id,
       );
       daily = pos - neg;
     }
@@ -203,7 +203,7 @@ const Item = (props: { group: Group; index: number }) => {
         <div className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none' />
       </MetricInformations>
       <div
-        className={`relative grid h-[50px] grid-cols-[2fr,1.5fr,1.5fr,125px,75px] w-full select-none gap-[10px] rounded-[12px] px-5 max-lg:grid max-lg:h-fit max-lg:grid-cols-3 max-lg:rounded-l-none max-lg:border-l max-lg:border-blue-500 max-lg:py-4 max-sm:p-3`}
+        className={`relative grid h-[50px] w-full select-none grid-cols-[2fr,1.5fr,1.5fr,125px,75px] gap-[10px] rounded-[12px] px-5 max-lg:grid max-lg:h-fit max-lg:grid-cols-3 max-lg:rounded-l-none max-lg:border-l max-lg:border-blue-500 max-lg:py-4 max-sm:p-3`}
       >
         <div className='flex flex-row items-center gap-[10px] text-[15px] max-lg:col-span-2'>
           <div className='rounded-full border border-input/50 bg-accent p-2'>
@@ -234,7 +234,9 @@ const Item = (props: { group: Group; index: number }) => {
           {total === null ? '0' : total}
         </div>
         <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
-          <div className='lg:hidden text-primary font-semibold text-sm'>Daily value</div>
+          <div className='text-sm font-semibold text-primary lg:hidden'>
+            Daily value
+          </div>
           <Badge
             className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${todayBadgeColor(
               dailyUpdate,
@@ -245,7 +247,9 @@ const Item = (props: { group: Group; index: number }) => {
           </Badge>
         </div>
         <div className='flex items-center justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
-          <div className='text-primary lg:hidden text-sm font-semibold'>Created</div>
+          <div className='text-sm font-semibold text-primary lg:hidden'>
+            Created
+          </div>
           {formattedDate(props.group.created)}
         </div>
         <div className='flex h-full w-full items-center justify-end max-lg:hidden'>

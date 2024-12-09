@@ -17,7 +17,6 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Group, GroupType } from '@/types';
-import { DatePicker } from '@/components/ui/date-picker';
 import { AppsContext } from '@/dashContext';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';

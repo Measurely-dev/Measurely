@@ -17,7 +17,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
-  const {applications, activeApp} = useContext(AppsContext)
+  const { applications, activeApp } = useContext(AppsContext);
 
   return (
     <div className='flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]'>
@@ -29,7 +29,7 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ApplicationsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog appId={applications?.[activeApp].id ?? ""}>
+            <ApiDialog appId={applications?.[activeApp].id ?? ''}>
               <Button
                 size={'sm'}
                 variant={'secondary'}

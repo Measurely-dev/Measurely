@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/breadcrumb';
 
 export default function DashboardHomePage() {
-
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb>
