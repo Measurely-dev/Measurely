@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"net/http"
-	"os"
-
 	"Measurely/file"
 	"Measurely/service"
+	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -78,6 +77,8 @@ func (h *Handler) setup_api() {
 
 			cr.Delete("/account", h.service.DeleteAccount)
 
+			cr.Post("/disconnect-github", h.service.DisconnectGithubProvider)
+
 			cr.Get("/user", h.service.GetUser)
 
 			cr.Get("/application", h.service.GetApplications)
@@ -99,9 +100,8 @@ func (h *Handler) setup_api() {
 			cr.Post("/change-subscription", h.service.ChangeSubscription)
 			cr.Get("/subscription", h.service.GetCurrentSubscription)
 
-      cr.Patch("/name", h.service.UpdateFirstAndLastName)
-      cr.Patch("/password", h.service.UpdatePassword)
+			cr.Patch("/name", h.service.UpdateFirstAndLastName)
+			cr.Patch("/password", h.service.UpdatePassword)
 		})
-
 	})
 }

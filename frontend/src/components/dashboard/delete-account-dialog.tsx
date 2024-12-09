@@ -43,11 +43,15 @@ export default function DeleteAccountAlert(props: { children: ReactNode }) {
                 credentials: 'include',
               }).then((resp) => {
                 if (resp.status === 200) {
-                  toast.success('Successfully deleted your account');
+                  toast.success(
+                    'Successfully deleted your account. You will now be logged out.',
+                  );
 
                   setTimeout(() => {
                     if (user?.provider === Provider.GITHUB) {
-                        router.push(`${process.env.NEXT_PUBLIC_API_URL}/use-github?type=1`)
+                      router.push(
+                        `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=1`,
+                      );
                     } else {
                       router.push('/sign-in');
                     }

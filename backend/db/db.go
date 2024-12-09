@@ -76,6 +76,11 @@ func (db *DB) UpdateUserPassword(id uuid.UUID, password string) error {
 	return err
 }
 
+func (db *DB) UpdateUserProvider(id uuid.UUID, provider int) error {
+	_, err := db.Conn.Exec("UPDATE users SET provider = $1 WHERE id = $2", provider, id)
+	return err
+}
+
 func (db *DB) UpdateUserPlan(id uuid.UUID, plan sql.Null[string]) error {
 	_, err := db.Conn.Exec("UPDATE users SET currentplan = $1 WHERE id = $2", plan, id)
 	return err

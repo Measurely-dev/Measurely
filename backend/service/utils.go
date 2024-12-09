@@ -71,6 +71,23 @@ func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Co
 	return cookie, nil
 }
 
+func DeleteCookie() http.Cookie {
+	var cookie http.Cookie = http.Cookie{
+		Name:     "measurely-session",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+	}
+
+	if os.Getenv("ENV") == "production" {
+		cookie.Domain = "measurely.dev"
+		cookie.SameSite = http.SameSiteNoneMode
+	}
+  return cookie
+}
+
 func IsUUIDValid(id string) bool {
 	_, err := uuid.Parse(id)
 	return err == nil
@@ -223,14 +240,14 @@ func RevokeUserToken(access_token string) error {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println(err)
-    return err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
 		_, err := io.ReadAll(resp.Body)
-    return err
+		return err
 	}
 
-  return nil
+	return nil
 }

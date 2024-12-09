@@ -10,6 +10,7 @@ import DeleteAccountAlert from '../delete-account-dialog';
 import { Provider } from '@/types';
 import DisconnectProviderDialog from '../disconnect-provider-dialog';
 import { Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
@@ -25,6 +26,8 @@ export default function SettingGeneralPage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
+
+  const router = useRouter()
 
   const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -142,7 +145,7 @@ export default function SettingGeneralPage() {
                 name='first_name'
                 type='text'
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) => setFirstName(e.target.value.trim())}
               />
             </Label>
 
@@ -153,7 +156,7 @@ export default function SettingGeneralPage() {
                 name='last_name'
                 type='text'
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) => setLastName(e.target.value.trim())}
               />
             </Label>
           </div>
@@ -174,7 +177,7 @@ export default function SettingGeneralPage() {
               type='email'
               name='email'
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.trim())}
             />
           </Label>
         }
@@ -189,14 +192,12 @@ export default function SettingGeneralPage() {
         }
         disabled={user?.provider === Provider.GITHUB}
         disabled_text={
-          <div className='flex flex-col gap-4 items-center justify-center'>
+          <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
             <div className='text-md max-w-[220px] text-center text-secondary'>
-              You cannot set a{' '}
-              <span className='font-semibold text-primary'>
-                password
-              </span>{' '}
-              if connected to a provider
+              You cannot update your{' '}
+              <span className='font-semibold text-primary'>password</span> when
+              connected to a provider
             </div>
           </div>
         }
@@ -211,7 +212,7 @@ export default function SettingGeneralPage() {
                 name='old_password'
                 type='password'
                 value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
+                onChange={(e) => setOldPassword(e.target.value.trim())}
               />
             </Label>
             <Label className='flex flex-col gap-2'>
@@ -221,7 +222,7 @@ export default function SettingGeneralPage() {
                 name='new_password'
                 type='password'
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => setNewPassword(e.target.value.trim())}
               />
             </Label>
             <Label className='flex flex-col gap-2'>
@@ -231,7 +232,7 @@ export default function SettingGeneralPage() {
                 name='confirmed_password'
                 type='password'
                 value={confirmedPassword}
-                onChange={(e) => setConfirmedPassword(e.target.value)}
+                onChange={(e) => setConfirmedPassword(e.target.value.trim())}
               />
             </Label>
           </div>
@@ -282,7 +283,7 @@ export default function SettingGeneralPage() {
         description='A list of providers linked to this account.'
         btn_loading={false}
         btn_disabled={false}
-        action={() => {}}
+        action={() => { }}
         content={
           <div className='flex flex-col gap-4'>
             <div className='flex items-center justify-between'>
@@ -315,6 +316,11 @@ export default function SettingGeneralPage() {
                   variant={'ghost'}
                   size={'sm'}
                   className='rounded-[12px]'
+                  onClick={() => {
+                    router.push(
+                      `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=2&email=${user.email}`,
+                    );
+                  }}
                 >
                   Connect
                 </Button>
@@ -338,7 +344,7 @@ export default function SettingGeneralPage() {
         title='Delete account'
         btn_loading={false}
         btn_disabled={false}
-        action={() => {}}
+        action={() => { }}
         danger
         description='This action will delete this account forever.'
         content={
