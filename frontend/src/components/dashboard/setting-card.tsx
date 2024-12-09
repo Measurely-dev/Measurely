@@ -16,13 +16,21 @@ const SettingCard = (props: {
   btn_loading: boolean;
   btn_disabled: boolean;
   disabled?: boolean | false;
+  disabled_text?: ReactNode;
   action?: (e: FormEvent<HTMLFormElement>) => void;
   btn?: string | undefined;
   danger?: boolean | false;
 }) => {
   return (
     <form className='flex flex-col' onSubmit={props.action}>
-      <Card className={props.danger ? 'border-red-500/40' : ''}>
+      <Card className={`${props.danger ? 'border-red-500/40' : ''} relative`}>
+        {props.disabled ? (
+          <div className='absolute left-0 top-0 z-10 h-full w-full flex flex-col items-center justify-center gap-4 rounded-[16px] bg-accent/20 backdrop-blur-lg'>
+            {props.disabled_text}
+          </div>
+        ) : (
+          <></>
+        )}
         <div
           className={`p-6 ${props.danger ? 'text-red-500' : ''} ${props.btn !== undefined ? '' : 'pb-6'} ${props.danger ? 'rounded-[15px] border-red-500 bg-red-500/10' : ''}`}
         >

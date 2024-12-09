@@ -9,6 +9,7 @@ import { UserContext } from '@/dash-context';
 import DeleteAccountAlert from '../delete-account-dialog';
 import { Provider } from '@/types';
 import DisconnectProviderDialog from '../disconnect-provider-dialog';
+import { Info } from 'lucide-react';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
@@ -188,6 +189,18 @@ export default function SettingGeneralPage() {
           oldPassword === '' || newPassword === '' || confirmedPassword === ''
         }
         disabled={user?.provider === Provider.GITHUB}
+        disabled_text={
+          <div className='flex flex-col gap-4 items-center justify-center'>
+            <Info className='size-16 text-blue-500' />
+            <div className='text-md max-w-[220px] text-center text-secondary'>
+              You cannot set a{' '}
+              <span className='font-semibold text-primary'>
+                password
+              </span>{' '}
+              if connected to a provider
+            </div>
+          </div>
+        }
         description='The key protecting this account.'
         action={handlePasswordSubmit}
         content={
@@ -270,7 +283,7 @@ export default function SettingGeneralPage() {
         description='A list of providers linked to this account.'
         btn_loading={false}
         btn_disabled={false}
-        action={() => { }}
+        action={() => {}}
         content={
           <div className='flex flex-col gap-4'>
             <div className='flex items-center justify-between'>
@@ -326,7 +339,7 @@ export default function SettingGeneralPage() {
         title='Delete account'
         btn_loading={false}
         btn_disabled={false}
-        action={() => { }}
+        action={() => {}}
         danger
         description='This action will delete this account forever.'
         content={
