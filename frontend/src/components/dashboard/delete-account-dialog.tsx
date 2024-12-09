@@ -9,9 +9,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ReactNode } from 'react';
+import { UserContext } from '@/dash-context';
+import { Provider } from '@/types';
+import { useRouter } from 'next/navigation';
+import { ReactNode, useContext } from 'react';
+import { toast } from 'sonner';
 
 export default function DeleteAccountAlert(props: { children: ReactNode }) {
+  const router = useRouter();
+  const { user } = useContext(UserContext);
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
@@ -29,7 +35,31 @@ export default function DeleteAccountAlert(props: { children: ReactNode }) {
           <AlertDialogCancel className='rounded-[8px] bg-white'>
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction className='rounded-[8px] border border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90'>
+          <AlertDialogAction
+            className='rounded-[8px] border border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90'
+            onClick={() => {
+              fetch(`${process.env.NEXT_PUBLIC_API_URL}/account`, {
+                method: 'DELETE',
+                credentials: 'include',
+              }).then((resp) => {
+                if (resp.status === 200) {
+                  toast.success('Successfully deleted your account');
+
+                  setTimeout(() => {
+                    if (user?.provider === Provider.GITHUB) {
+                        router.push(`${process.env.NEXT_PUBLIC_API_URL}/use-github?type=1`)
+                    } else {
+                      router.push('/sign-in');
+                    }
+                  }, 500);
+                } else {
+                  resp.text().then((text) => {
+                    toast.error(text);
+                  });
+                }
+              });
+            }}
+          >
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

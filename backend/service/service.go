@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -255,14 +256,25 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UseGithub(w http.ResponseWriter, r *http.Request) {
+	request_type := r.URL.Query().Get("type")
+	var state string
+	if request_type == "0" {
+		state = "auth"
+	} else if request_type == "1" {
+		state = "revoke"
+	} else {
+		http.Error(w, "Invalid request. Only type 0 and 1 allowed", http.StatusBadRequest)
+		return
+	}
+
 	// Get the environment variable
 	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
 
 	// Create the dynamic redirect URL for login
 	redirectURL := fmt.Sprintf(
-		"https://github.com/login/oauth/authorize?client_id=%s&scope=user:email",
-		githubClientID,
+		"https://github.com/login/oauth/authorize?client_id=%s&scope=user:email&state=%s",
+		githubClientID, url.QueryEscape(state),
 	)
 
 	http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
@@ -270,6 +282,7 @@ func (s *Service) LoginGithub(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
 
 	clientID := os.Getenv("GITHUB_CLIENT_ID")
 	clientSecret := os.Getenv("GITHUB_SECRET")
@@ -318,126 +331,177 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	var ghresp githubAccessTokenResponse
 	json.Unmarshal(respbody, &ghresp)
 
-	// Get request to a set URL
-	req2, reqerr := http.NewRequest(
-		"GET",
-		"https://api.github.com/user",
-		nil,
-	)
-	if reqerr != nil {
-		log.Println(reqerr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-		return
-	}
-
-	// Set the Authorization header before sending the request
-	// Authorization: token XXXXXXXXXXXXXXXXXXXXXXXXXXX
-	authorizationHeaderValue := fmt.Sprintf("Bearer %s", ghresp.AccessToken)
-	req2.Header.Set("Authorization", authorizationHeaderValue)
-
-	// Make the request
-	resp2, resperr := http.DefaultClient.Do(req2)
-	if resperr != nil {
-		log.Println(resperr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-		return
-	}
-
-	// Read the response as a byte slice
-	respbody2, _ := io.ReadAll(resp2.Body)
-
-	type UserInfo struct {
-		Email string `json:"email"`
-		Name  string `json:"name"`
-	}
-
-	var userInfo UserInfo
-	json.Unmarshal(respbody2, &userInfo)
-
-	user, err := s.DB.GetUserByEmail(userInfo.Email)
-	if err == sql.ErrNoRows {
-		stripe_params := &stripe.CustomerParams{
-			Email: stripe.String(userInfo.Email),
+	if state == "auth" {
+		// Get request to a set URL
+		req2, reqerr := http.NewRequest(
+			"GET",
+			"https://api.github.com/user",
+			nil,
+		)
+		if reqerr != nil {
+			log.Println(reqerr)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+			return
 		}
 
-		c, err := customer.New(stripe_params)
+		// Set the Authorization header before sending the request
+		// Authorization: token XXXXXXXXXXXXXXXXXXXXXXXXXXX
+		authorizationHeaderValue := fmt.Sprintf("Bearer %s", ghresp.AccessToken)
+		req2.Header.Set("Authorization", authorizationHeaderValue)
+
+		// Make the request
+		resp2, resperr := http.DefaultClient.Do(req2)
+		if resperr != nil {
+			log.Println(resperr)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+			return
+		}
+
+		// Read the response as a byte slice
+		respbody2, _ := io.ReadAll(resp2.Body)
+
+		type UserInfo struct {
+			Email string `json:"email"`
+			Name  string `json:"name"`
+		}
+
+		var userInfo UserInfo
+		json.Unmarshal(respbody2, &userInfo)
+
+		user, err := s.DB.GetUserByEmail(userInfo.Email)
+		if err == sql.ErrNoRows {
+			stripe_params := &stripe.CustomerParams{
+				Email: stripe.String(userInfo.Email),
+			}
+
+			c, err := customer.New(stripe_params)
+			if err != nil {
+				log.Println(err)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+				return
+			}
+
+			names := strings.Split(userInfo.Name, " ")
+			var first_name string = ""
+			var last_name string = ""
+			if len(names) == 0 {
+				first_name = userInfo.Email
+			} else if len(names) == 1 {
+				first_name = names[0]
+			} else if len(names) == 2 {
+				first_name = names[0]
+				last_name = names[1]
+			}
+
+			new_user := types.User{
+				Email:            userInfo.Email,
+				Password:         "",
+				Provider:         types.GITHUB,
+				FirstName:        first_name,
+				LastName:         last_name,
+				StripeCustomerId: c.ID,
+				CurrentPlan:      "starter",
+			}
+
+			user, err = s.DB.CreateUser(new_user)
+			if err != nil {
+				log.Println(err)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+				return
+			}
+
+			// send email
+			s.ScheduleEmail(SendEmailRequest{
+				To: new_user.Email,
+				Fields: MailFields{
+					Subject:     "Thank you for joining Measurely",
+					Content:     "You can now access your account's dashboard by using the following link.",
+					Link:        os.Getenv("ORIGIN") + "/dashboard",
+					ButtonTitle: "Access dashboard",
+				},
+			})
+		} else if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+			return
+		} else {
+			// send email
+			s.ScheduleEmail(SendEmailRequest{
+				To: user.Email,
+				Fields: MailFields{
+					Subject:     "A new login has been detected",
+					Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
+					Link:        os.Getenv("ORIGIN") + "/dashboard",
+					ButtonTitle: "Update password",
+				},
+			})
+		}
+
+		if user.Provider != types.GITHUB {
+			log.Println("user already exists")
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", http.StatusMovedPermanently)
+			return
+		}
+
+		cookie, err := CreateCookie(&user, s.scookie)
 		if err != nil {
 			log.Println(err)
 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
 			return
 		}
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
+	} else if state == "revoke" {
+    log.Println("revoke code running")
+		url := fmt.Sprintf("https://api.github.com/applications/%s/grant", clientID)
 
-		names := strings.Split(userInfo.Name, " ")
-		var first_name string = ""
-		var last_name string = ""
-		if len(names) == 0 {
-			first_name = userInfo.Email
-		} else if len(names) == 1 {
-			first_name = names[0]
-		} else if len(names) == 2 {
-			first_name = names[0]
-			last_name = names[1]
+		reqBody := map[string]string{
+			"access_token": ghresp.AccessToken,
 		}
+		jsonBody, _ := json.Marshal(reqBody)
 
-		new_user := types.User{
-			Email:            userInfo.Email,
-			Password:         "",
-			Provider:         types.GITHUB,
-			FirstName:        first_name,
-			LastName:         last_name,
-			StripeCustomerId: c.ID,
-			CurrentPlan:      "starter",
-		}
-
-		user, err = s.DB.CreateUser(new_user)
+    req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(jsonBody))
 		if err != nil {
-			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+      log.Println(err)
 			return
 		}
 
-		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: new_user.Email,
-			Fields: MailFields{
-				Subject:     "Thank you for joining Measurely",
-				Content:     "You can now access your account's dashboard by using the following link.",
-				Link:        os.Getenv("ORIGIN") + "/dashboard",
-				ButtonTitle: "Access dashboard",
-			},
-		})
-	} else if err != nil {
-		log.Println(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-		return
+		req.SetBasicAuth(clientID, clientSecret)
+		req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Accept", "application/vnd.github+json")
+
+    log.Println(req)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+      log.Println(err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusNoContent {
+      respBody, err := io.ReadAll(resp.Body)
+      log.Println(string(respBody), err)
+		}
+
+		var cookie http.Cookie = http.Cookie{
+			Name:     "measurely-session",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   true,
+		}
+
+		if os.Getenv("ENV") == "production" {
+			cookie.Domain = "measurely.dev"
+			cookie.SameSite = http.SameSiteNoneMode
+		}
+
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in", http.StatusMovedPermanently)
+
 	} else {
-		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: user.Email,
-			Fields: MailFields{
-				Subject:     "A new login has been detected",
-				Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
-				Link:        os.Getenv("ORIGIN") + "/dashboard",
-				ButtonTitle: "Update password",
-			},
-		})
+		w.WriteHeader(http.StatusBadRequest)
 	}
-
-	if user.Provider != types.GITHUB {
-		log.Println("user already exists")
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", http.StatusMovedPermanently)
-		return
-	}
-
-	cookie, err := CreateCookie(&user, s.scookie)
-	if err != nil {
-		log.Println(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-		return
-	}
-
-	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
 }
 
 func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
@@ -549,6 +613,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,
 		CurrentPlan: user.CurrentPlan,
+		Provider:    user.Provider,
 	}
 
 	bytes, jerr := json.Marshal(resp)
@@ -740,15 +805,6 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request DeleteAccountRequest
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
 	// Get the user
 	user, err := s.DB.GetUserById(val)
 	if err != nil {
@@ -757,19 +813,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify the Password
-	if !isPasswordValid(request.Password) {
-		http.Error(w, "Invalid password", http.StatusBadRequest)
-		return
-	}
-
-	// Check if the password is correct
-	if !CheckPasswordHash(request.Password, user.Password) {
-		http.Error(w, "Invalid password", http.StatusBadRequest)
-		return
-	}
-
-	if user.CurrentPlan != "free" {
+	if user.CurrentPlan != "starter" {
 		result := subscription.List(&stripe.SubscriptionListParams{
 			Customer: stripe.String(user.StripeCustomerId),
 		})
@@ -810,8 +854,16 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.ScheduleEmail(SendEmailRequest{
+		To: user.Email,
+		Fields: MailFields{
+			Subject: "We're sorry to see you go!",
+			Content: "Your account has been successfully deleted.",
+		},
+	})
+
 	// logout
-	cookie := http.Cookie{
+	var cookie http.Cookie = http.Cookie{
 		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
@@ -820,17 +872,13 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 	}
 
+	if os.Getenv("ENV") == "production" {
+		cookie.Domain = "measurely.dev"
+		cookie.SameSite = http.SameSiteNoneMode
+	}
+
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
-
-	// send email
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject: "We're sorry to see you go!",
-			Content: "Your account has been successfully deleted.",
-		},
-	})
 }
 
 func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request) {
@@ -892,12 +940,12 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  if err := s.DB.UpdateUserPassword(val, hashed); err != nil {
-    http.Error(w, "Internal error", http.StatusInternalServerError)
-    return
-  }
+	if err := s.DB.UpdateUserPassword(val, hashed); err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
 
-  w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {

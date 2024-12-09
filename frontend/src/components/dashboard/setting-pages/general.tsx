@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dash-context';
 import DeleteAccountAlert from '../delete-account-dialog';
+import { Provider } from '@/types';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
@@ -14,12 +15,18 @@ export default function SettingGeneralPage() {
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
 
+  const [firstName, setFirstName] = useState(user?.firstname);
+  const [lastName, setLastName] = useState(user?.lastname);
+
+  const [email, setEmail] = useState(user?.email);
+
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmedPassword, setConfirmedPassword] = useState('');
+
   const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.target as HTMLFormElement);
-    const first_name = data.get('first_name');
-    const last_name = data.get('last_name');
-    if (first_name === '' || last_name === '') {
+    if (firstName === '' || lastName === '') {
       toast.error('All fields must be filled');
       return;
     }
@@ -30,15 +37,15 @@ export default function SettingGeneralPage() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ first_name, last_name }),
+      body: JSON.stringify({ first_name: firstName, last_name: lastName }),
     })
       .then((resp) => {
         if (resp.status === 200) {
           toast.success('Successfully updated first name and/or last name.');
           setUser(
             Object.assign({}, user, {
-              firstname: first_name,
-              lastname: last_name,
+              firstname: firstName,
+              lastname: lastName,
             }),
           );
         } else {
@@ -52,8 +59,6 @@ export default function SettingGeneralPage() {
 
   const handleEmailSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.target as HTMLFormElement);
-    const email = data.get('email');
     if (email === '') {
       toast.error('The email field cannot be empty');
       return;
@@ -81,20 +86,12 @@ export default function SettingGeneralPage() {
 
   const handlePasswordSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.target as HTMLFormElement);
-    const old_password = data.get('old_password');
-    const new_password = data.get('new_password');
-    const confirmed_password = data.get('confirmed_password');
-    if (
-      old_password === '' ||
-      new_password === '' ||
-      confirmed_password === ''
-    ) {
+    if (oldPassword === '' || newPassword === '' || confirmedPassword === '') {
       toast.error('All fileds must be filled');
       return;
     }
 
-    if (confirmed_password !== new_password) {
+    if (confirmedPassword !== newPassword) {
       toast.error('The passwords do not match');
       return;
     }
@@ -106,7 +103,10 @@ export default function SettingGeneralPage() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ old_password, new_password }),
+      body: JSON.stringify({
+        old_password: oldPassword,
+        new_password: newPassword,
+      }),
     })
       .then((resp) => {
         if (resp.status === 200) {
@@ -126,6 +126,11 @@ export default function SettingGeneralPage() {
         title='Profile'
         description='Used to identify your account.'
         loading={loadingProfile}
+        disabled={
+          firstName === '' ||
+          lastName === '' ||
+          (firstName === user?.firstname && lastName === user?.lastname)
+        }
         action={handleFirstLastNameSubmit}
         content={
           <div className='flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4'>
@@ -133,9 +138,10 @@ export default function SettingGeneralPage() {
               First Name
               <Input
                 placeholder='John'
-                defaultValue={user?.firstname}
                 name='first_name'
                 type='text'
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
               />
             </Label>
 
@@ -143,9 +149,10 @@ export default function SettingGeneralPage() {
               Last name
               <Input
                 placeholder='Doe'
-                defaultValue={user?.lastname}
                 name='last_name'
                 type='text'
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
               />
             </Label>
           </div>
@@ -156,15 +163,17 @@ export default function SettingGeneralPage() {
       <SettingCard
         title='Email'
         loading={loadingEmail}
+        disabled={email === '' || email === user?.email}
         description='This accounts main email.'
         action={handleEmailSubmit}
         content={
           <Label className='flex flex-col gap-2'>
             <Input
               placeholder='Email'
-              defaultValue={user?.email}
               type='email'
               name='email'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </Label>
         }
@@ -174,6 +183,9 @@ export default function SettingGeneralPage() {
       <SettingCard
         title='Password'
         loading={loadingPassword}
+        disabled={
+          oldPassword === '' || newPassword === '' || confirmedPassword === ''
+        }
         description='The key protecting this account.'
         action={handlePasswordSubmit}
         content={
@@ -184,6 +196,8 @@ export default function SettingGeneralPage() {
                 placeholder='Current password'
                 name='old_password'
                 type='password'
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
               />
             </Label>
             <Label className='flex flex-col gap-2'>
@@ -192,6 +206,8 @@ export default function SettingGeneralPage() {
                 placeholder='New password'
                 name='new_password'
                 type='password'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
               />
             </Label>
             <Label className='flex flex-col gap-2'>
@@ -200,6 +216,8 @@ export default function SettingGeneralPage() {
                 placeholder='Confirm new password'
                 name='confirmed_password'
                 type='password'
+                value={confirmedPassword}
+                onChange={(e) => setConfirmedPassword(e.target.value)}
               />
             </Label>
           </div>
@@ -247,9 +265,10 @@ export default function SettingGeneralPage() {
 
       <SettingCard
         title='Providers'
-        description='A list of providers connected with thsi account.'
+        description='A list of providers linked to this account.'
         loading={false}
-        action={() => {}}
+        disabled={false}
+        action={() => { }}
         content={
           <div className='flex flex-col gap-4'>
             <div className='flex items-center justify-between'>
@@ -278,7 +297,7 @@ export default function SettingGeneralPage() {
                 </div>
               </div>
               <Button variant={'ghost'} size={'sm'} className='rounded-[12px]'>
-                Disconnect
+                {user?.provider === Provider.GITHUB ? "Disconnect" : "Connect"}
               </Button>
             </div>
           </div>
@@ -286,32 +305,23 @@ export default function SettingGeneralPage() {
       />
 
       <SettingCard
-        title='Danger zone'
+        title='Delete account'
         loading={false}
-        action={() => {}}
+        disabled={false}
+        action={() => { }}
         danger
-        description='Be careful, each action could be dangerous.'
+        description='This action will delete this account forever.'
         content={
           <div className='flex flex-col gap-4'>
-            <div className='flex items-center justify-between'>
-              <div className='space-y-1'>
-                <p className='text-sm font-medium leading-none'>
-                  Delete account
-                </p>
-                <p className='text-sm text-red-500 dark:text-red-400'>
-                  This action will delete this account forever.
-                </p>
-              </div>
-              <DeleteAccountAlert>
-                <Button
-                  variant={'destructiveOutline'}
-                  size={'sm'}
-                  className='rounded-[12px]'
-                >
-                  Delete account
-                </Button>
-              </DeleteAccountAlert>
-            </div>
+            <DeleteAccountAlert>
+              <Button
+                variant={'destructiveOutline'}
+                size={'sm'}
+                className='rounded-[12px]'
+              >
+                Delete account
+              </Button>
+            </DeleteAccountAlert>
           </div>
         }
       />

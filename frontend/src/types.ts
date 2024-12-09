@@ -13,7 +13,7 @@ export interface Group {
   metrics: Metric[];
   created: Date;
   enabled: boolean;
-  type: number;
+  type: Provider;
 }
 
 export interface Metric {
@@ -34,7 +34,7 @@ export interface User {
   lastname: string;
   image: string;
   email: string;
-  provider: string;
+  provider: number;
 }
 
 export interface Plan {
@@ -48,4 +48,9 @@ export interface Plan {
 export enum GroupType {
   Base,
   Dual,
+}
+
+export enum Provider {
+  EMAIL,
+  GITHUB
 }
