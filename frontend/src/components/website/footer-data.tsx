@@ -1,6 +1,7 @@
 export const footerData = [
   { title: 'Home', href: '/home' },
   { title: 'Pricing', href: '/pricing' },
+  { title: 'About us', href: '/about' },
   { title: 'Documentation', href: '/docs/getting-started/introduction' },
   { title: 'Installation', href: '/docs/getting-started/installation' },
   {
@@ -8,6 +9,6 @@ export const footerData = [
     href: '/docs/getting-started/installation/quickstart',
   },
   { title: 'Terms', href: '/terms' },
-  { title: 'Privacy policy', href: '/privacy' },
+  { title: 'Privacy', href: '/privacy' },
   { title: 'Help', href: '/help' },
 ];
