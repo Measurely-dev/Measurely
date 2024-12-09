@@ -115,7 +115,7 @@ export default function MetricInformations(props: {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='max-md: max-h-[95%] !min-w-[60%] !rounded-[16px] !shadow-none !ring ring-input max-md:max-w-[95%]'>
+      <DialogContent className='max-md: max-h-[95%] !min-w-[60%] !rounded-[16px] !shadow-none !ring ring-input max-lg:max-w-[80%] max-md:max-w-[95%]'>
         <DialogHeader className='static'>
           <DialogTitle className='flex flex-row items-center gap-5 !text-xl'>
             {props.group.name}
@@ -136,7 +136,7 @@ export default function MetricInformations(props: {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <div className='flex flex-row w-full items-center justify-between gap-2'>
+        <div className='flex max-sm:flex-col max-sm:items-start flex-row w-full items-center justify-between gap-2'>
           <ToggleGroup
             type='single'
             defaultValue='today'
@@ -163,7 +163,7 @@ export default function MetricInformations(props: {
             </ToggleGroupItem>
           </ToggleGroup>
           <AdvancedOptionsMetricDialog>
-            <Button variant={'secondary'} className='gap-2 items-center rounded-[12px] h-full'>
+            <Button variant={'secondary'} className='gap-2 max-sm:w-full items-center rounded-[12px] h-full'>
               <Sliders className='size-4'/>
               Advanced
             </Button>

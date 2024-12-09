@@ -12,7 +12,7 @@ import {
 import { X } from 'lucide-react';
 import { ReactNode } from 'react';
 import { DatePicker } from '../ui/date-picker';
-import { Label } from '../ui/label';
+import Link from 'next/link';
 
 export default function AdvancedOptionsMetricDialog(props: {
   children: ReactNode;
@@ -22,9 +22,9 @@ export default function AdvancedOptionsMetricDialog(props: {
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className='rounded-sm shadow-sm'>
         <DialogHeader className='static'>
-          <DialogTitle>Advanced information</DialogTitle>
+          <DialogTitle>Advanced options</DialogTitle>
           <DialogDescription>
-            You can see the data of a specific day here
+            You can choose advanced options for the chart
           </DialogDescription>
           <DialogClose className='absolute right-5 top-3'>
             <Button
@@ -38,15 +38,10 @@ export default function AdvancedOptionsMetricDialog(props: {
           </DialogClose>
         </DialogHeader>
         <div className='flex w-full flex-col gap-4'>
-          <DatePicker />
-          <Label className='flex flex-col gap-1 mt-2'>
-            Total
-            <div className='font-mono text-xl'>21378123</div>
-          </Label>
-          <Label className='flex flex-col gap-1 mt-2'>
-            Daily update
-            <div className='font-mono text-xl'>+213982</div>
-          </Label>
+          <div className='mt-2 flex flex-col gap-1'>
+            <DatePicker />
+            <div className='text-secondary text-sm'>You can select a date to offset the chart <Link className='text-primary underline' href={'/docs/getting-started/installation'}>learn more</Link></div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
