@@ -115,26 +115,38 @@ export default function MetricInformations(props: {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='max-md: max-h-[95%] !min-w-[60%] !rounded-[16px] p-4 max-sm:p-2 max-sm:pt-4 !shadow-none !ring ring-input max-lg:max-w-[80%] max-md:max-w-[95%]'>
-        <div className='flex flex-row justify-between items-start max-sm:flex-col max-sm:gap-2'>
-          <DialogTitle className='flex flex-col items-start gap-1 !text-lg font-medium'>
+      <DialogContent className='min-w-[70%] rounded-[16px] p-4 shadow-none ring ring-input max-lg:max-w-[90%] max-md:max-w-[95%] max-sm:max-w-[100%] max-sm:rounded-[0px] max-sm:p-2 max-sm:pt-4 max-sm:ring-0'>
+        <div className='flex flex-row items-center justify-between max-sm:flex-col max-sm:items-start max-sm:justify-start max-sm:gap-2'>
+          <DialogTitle className='flex flex-col items-start gap-1 text-start !text-lg font-medium'>
             {props.group.name}
-            <div>
-              <div className='font-mono text-xl'>
-                {props.total}
-              </div>
-            </div>
           </DialogTitle>
+          <div className='sm:hidden'>
+            <div className='flex flex-row items-center font-mono text-xl'>
+              {props.total}
+              {props.group.type === 0 ? (
+                <></>
+              ) : (
+                <>
+                  <div className='ml-2 h-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
+                    +{props.total}
+                  </div>
+                  <div className='ml-2 h-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
+                    -{props.total}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
           <div className='flex flex-row items-center gap-2 max-sm:w-full'>
             <ToggleGroup
               type='single'
               defaultValue='today'
               size={'sm'}
-              className='w-fit h-[35px] gap-0 divide-x rounded-[12px] border'
+              className='h-[35px] w-fit gap-0 divide-x rounded-[12px] border'
             >
               <ToggleGroupItem
                 value='today'
-                className='rounded-l-[12px] h-[33px] rounded-r-none'
+                className='h-[33px] rounded-l-[12px] rounded-r-none'
               >
                 D
               </ToggleGroupItem>
@@ -146,7 +158,7 @@ export default function MetricInformations(props: {
               </ToggleGroupItem>
               <ToggleGroupItem
                 value='30'
-                className='rounded-l-none rounded-r-[12px] h-[33px]'
+                className='h-[33px] rounded-l-none rounded-r-[12px]'
               >
                 30D
               </ToggleGroupItem>
@@ -160,7 +172,7 @@ export default function MetricInformations(props: {
                 Advanced
               </Button>
             </AdvancedOptionsMetricDialog>
-            <DialogClose className='max-sm:absolute max-sm:right-4 max-sm:top-5'>
+            <DialogClose className='max-sm:absolute max-sm:right-2 max-sm:top-2'>
               <Button
                 type='button'
                 size={'icon'}
@@ -170,6 +182,23 @@ export default function MetricInformations(props: {
                 <X />
               </Button>
             </DialogClose>
+          </div>
+        </div>
+        <div className='max-sm:hidden'>
+          <div className='flex flex-row items-center font-mono text-xl'>
+            {props.total}
+            {props.group.type === 0 ? (
+              <></>
+            ) : (
+              <>
+                <div className='ml-2 h-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
+                  +{props.total}
+                </div>
+                <div className='ml-2 h-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
+                  -{props.total}
+                </div>
+              </>
+            )}
           </div>
         </div>
         {props.group.type === 0 ? (
@@ -223,22 +252,6 @@ export default function MetricInformations(props: {
           </>
         ) : (
           <div className='rounded-[12px] bg-accent p-3'>
-            <div className='flex flex-col gap-4'>
-              <div className='flex flex-col gap-2 xl:flex-row xl:justify-between'>
-                <Label className='flex flex-col gap-2 capitalize'>
-                  {props.group.metrics[0].name}
-                  <div className='font-mono text-lg text-green-500'>
-                    -{props.total}
-                  </div>
-                </Label>
-                <Label className='flex flex-col gap-2 capitalize xl:text-end'>
-                  {props.group.metrics[1].name}
-                  <div className='font-mono text-lg text-red-500'>
-                    +{props.total}
-                  </div>
-                </Label>
-              </div>
-            </div>
             <ChartContainer
               config={{
                 positive: {
