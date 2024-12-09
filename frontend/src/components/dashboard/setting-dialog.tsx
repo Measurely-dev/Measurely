@@ -7,10 +7,10 @@ import {
 } from '@/components/ui/dialog';
 import { CreditCard, Home, X } from 'lucide-react';
 import { ReactNode, useState } from 'react';
-import SettingGeneralPage from './settingPages/general';
+import SettingGeneralPage from './setting-pages/general';
 import { Hexagon } from 'react-feather';
-import SettingAppsPage from './settingPages/apps-api';
-import SettingPaymentPage from './settingPages/plan';
+import SettingAppsPage from './setting-pages/apps-api';
+import SettingPaymentPage from './setting-pages/plan';
 import { Button } from '@/components/ui/button';
 
 export default function SettingDialog(props: { children: ReactNode }) {
