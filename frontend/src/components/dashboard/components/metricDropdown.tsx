@@ -23,7 +23,7 @@ import { AppsContext } from '@/dashContext';
 import { Group } from '@/types';
 import { useContext, useState } from 'react';
 import { toast } from 'sonner';
-import EditDialogContent from './EditDialogContent';
+import EditMetricDialogContent from './editMetricDialogContent';
 
 export default function MetricDropdown(props: {
   children: any;
@@ -139,7 +139,7 @@ export default function MetricDropdown(props: {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <EditDialogContent
+        <EditMetricDialogContent
           group={props.group}
           total={props.total}
           setOpen={setOpen}

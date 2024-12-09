@@ -14,7 +14,7 @@ import { Group } from '@/types';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-export default function EditDialogContent(props: {
+export default function EditMetricDialogContent(props: {
   group: Group;
   total: number;
   setOpen: (value: any) => void;

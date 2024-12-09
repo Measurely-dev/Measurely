@@ -8,6 +8,7 @@ import Empty from '../../components/empty';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
+import EditAppDialog from '../../components/editAppDialog';
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);
@@ -71,7 +72,7 @@ export default function SettingAppsPage() {
                         Api key
                       </Button>
                     </ApiDialog>
-                    <DialogTrigger asChild>
+                    <EditAppDialog>
                       <Button
                         variant={'default'}
                         size={'sm'}
@@ -79,7 +80,7 @@ export default function SettingAppsPage() {
                       >
                         Edit
                       </Button>
-                    </DialogTrigger>
+                    </EditAppDialog>
                   </div>
                 </div>
               </div>
