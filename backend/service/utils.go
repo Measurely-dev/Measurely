@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -144,4 +146,91 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 	}
 
 	return plan, true
+}
+
+func RetrieveAccessToken(code string, w http.ResponseWriter, r *http.Request) (string, error) {
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_SECRET")
+
+	// Set us the request body as JSON
+	requestBodyMap := map[string]string{
+		"client_id":     clientID,
+		"client_secret": clientSecret,
+		"code":          code,
+	}
+	requestJSON, _ := json.Marshal(requestBodyMap)
+
+	// POST request to set URL
+	req, reqerr := http.NewRequest(
+		"POST",
+		"https://github.com/login/oauth/access_token",
+		bytes.NewBuffer(requestJSON),
+	)
+	if reqerr != nil {
+		log.Println(reqerr)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+		return "", reqerr
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	// Get the response
+	resp, resperr := http.DefaultClient.Do(req)
+	if resperr != nil {
+		log.Println(resperr)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+		return "", resperr
+	}
+
+	// Response body converted to stringified JSON
+	respbody, _ := io.ReadAll(resp.Body)
+
+	// Represents the response received from Github
+	type githubAccessTokenResponse struct {
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+		Scope       string `json:"scope"`
+	}
+
+	// Convert stringified JSON to a struct object of type githubAccessTokenResponse
+	var ghresp githubAccessTokenResponse
+	json.Unmarshal(respbody, &ghresp)
+
+	return ghresp.AccessToken, nil
+}
+
+func RevokeUserToken(access_token string) error {
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_SECRET")
+
+	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", clientID)
+
+	reqBody := map[string]string{
+		"access_token": access_token,
+	}
+	jsonBody, _ := json.Marshal(reqBody)
+
+	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	req.SetBasicAuth(clientID, clientSecret)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/vnd.github+json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println(err)
+    return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		_, err := io.ReadAll(resp.Body)
+    return err
+	}
+
+  return nil
 }

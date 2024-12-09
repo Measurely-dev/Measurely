@@ -13,7 +13,7 @@ export interface Group {
   metrics: Metric[];
   created: Date;
   enabled: boolean;
-  type: Provider;
+  type: GroupType;
 }
 
 export interface Metric {
@@ -34,7 +34,7 @@ export interface User {
   lastname: string;
   image: string;
   email: string;
-  provider: number;
+  provider: Provider;
 }
 
 export interface Plan {

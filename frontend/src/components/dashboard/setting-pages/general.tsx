@@ -8,6 +8,7 @@ import { FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dash-context';
 import DeleteAccountAlert from '../delete-account-dialog';
 import { Provider } from '@/types';
+import DisconnectProviderDialog from '../disconnect-provider-dialog';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
@@ -297,9 +298,25 @@ export default function SettingGeneralPage() {
                   </p>
                 </div>
               </div>
-              <Button variant={'ghost'} size={'sm'} className='rounded-[12px]'>
-                {user?.provider === Provider.GITHUB ? "Disconnect" : "Connect"}
-              </Button>
+              {user?.provider === Provider.EMAIL ? (
+                <Button
+                  variant={'ghost'}
+                  size={'sm'}
+                  className='rounded-[12px]'
+                >
+                  Connect
+                </Button>
+              ) : (
+                <DisconnectProviderDialog>
+                  <Button
+                    variant={'ghost'}
+                    size={'sm'}
+                    className='rounded-[12px]'
+                  >
+                    Disconnect
+                  </Button>
+                </DisconnectProviderDialog>
+              )}
             </div>
           </div>
         }
