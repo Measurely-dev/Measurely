@@ -258,7 +258,6 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 func (s *Service) UseGithub(w http.ResponseWriter, r *http.Request) {
 	request_type := r.URL.Query().Get("type")
 	email := r.URL.Query().Get("email")
-  log.Print("Hello")
   log.Println(email, request_type)
 	var state string
 	if request_type == "0" {
@@ -276,7 +275,7 @@ func (s *Service) UseGithub(w http.ResponseWriter, r *http.Request) {
 	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
 
 	// Create the dynamic redirect URL for login
-	redirectURL := fmt.Sprintf(
+  redirectURL := fmt.Sprintf(
 		"https://github.com/login/oauth/authorize?client_id=%s&scope=user:email&state=%s",
 		githubClientID, url.QueryEscape(state+";"+email),
 	)
@@ -296,6 +295,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			email = splitted[1]
 		}
 	}
+
 
 	access_token, err := RetrieveAccessToken(code, w, r)
 	if err != nil {
@@ -357,9 +357,11 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if err := s.DB.UpdateUserProvider(user.Id, types.GITHUB); err != nil {
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to connect account togithub", http.StatusPermanentRedirect)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to connect account to github", http.StatusPermanentRedirect)
 				return
 			}
+
+      http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?success=Sucessfully connected Github to your account", http.StatusPermanentRedirect)
 		} else {
 			if err == sql.ErrNoRows {
 				stripe_params := &stripe.CustomerParams{

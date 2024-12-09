@@ -20,6 +20,11 @@ export default function SignIn() {
         toast.error(params.get('error') as string);
       });
     }
+    if (params.get('success') !== null) {
+      setTimeout(() => {
+        toast.success(params.get('success') as string);
+      });
+    }
   }, [params]);
 
   return (
