@@ -115,59 +115,62 @@ export default function MetricInformations(props: {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='max-md: max-h-[95%] !min-w-[60%] !rounded-[16px] !shadow-none !ring ring-input max-lg:max-w-[80%] max-md:max-w-[95%]'>
-        <DialogHeader className='static'>
-          <DialogTitle className='flex flex-row items-center gap-5 !text-xl'>
+      <DialogContent className='max-md: max-h-[95%] !min-w-[60%] !rounded-[16px] p-4 max-sm:p-2 max-sm:pt-4 !shadow-none !ring ring-input max-lg:max-w-[80%] max-md:max-w-[95%]'>
+        <div className='flex flex-row justify-between items-start max-sm:flex-col max-sm:gap-2'>
+          <DialogTitle className='flex flex-col items-start gap-1 !text-lg font-medium'>
             {props.group.name}
             <div>
-              <div className='flex w-fit items-center justify-center rounded-[12px] bg-accent p-1 px-2 font-mono text-[16px]'>
+              <div className='font-mono text-xl'>
                 {props.total}
               </div>
             </div>
           </DialogTitle>
-          <DialogClose className='absolute right-5 top-3'>
-            <Button
-              type='button'
-              size={'icon'}
-              variant='secondary'
-              className='rounded-[12px]'
+          <div className='flex flex-row items-center gap-2 max-sm:w-full'>
+            <ToggleGroup
+              type='single'
+              defaultValue='today'
+              size={'sm'}
+              className='w-fit h-[35px] gap-0 divide-x rounded-[12px] border'
             >
-              <X />
-            </Button>
-          </DialogClose>
-        </DialogHeader>
-        <div className='flex max-sm:flex-col max-sm:items-start flex-row w-full items-center justify-between gap-2'>
-          <ToggleGroup
-            type='single'
-            defaultValue='today'
-            size={'sm'}
-            className='w-fit gap-0 divide-x rounded-[12px] border'
-          >
-            <ToggleGroupItem
-              value='today'
-              className='rounded-l-[12px] rounded-r-none'
-            >
-              D
-            </ToggleGroupItem>
-            <ToggleGroupItem value='7' className='rounded-none'>
-              7D
-            </ToggleGroupItem>
-            <ToggleGroupItem value='15' className='rounded-none'>
-              15D
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value='30'
-              className='rounded-l-none rounded-r-[12px]'
-            >
-              30D
-            </ToggleGroupItem>
-          </ToggleGroup>
-          <AdvancedOptionsMetricDialog>
-            <Button variant={'secondary'} className='gap-2 max-sm:w-full items-center rounded-[12px] h-full'>
-              <Sliders className='size-4'/>
-              Advanced
-            </Button>
-          </AdvancedOptionsMetricDialog>
+              <ToggleGroupItem
+                value='today'
+                className='rounded-l-[12px] h-[33px] rounded-r-none'
+              >
+                D
+              </ToggleGroupItem>
+              <ToggleGroupItem value='7' className='h-[33px] rounded-none'>
+                7D
+              </ToggleGroupItem>
+              <ToggleGroupItem value='15' className='h-[33px] rounded-none'>
+                15D
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value='30'
+                className='rounded-l-none rounded-r-[12px] h-[33px]'
+              >
+                30D
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <AdvancedOptionsMetricDialog>
+              <Button
+                variant={'secondary'}
+                className='items-center gap-2 rounded-[12px] max-sm:w-full'
+              >
+                <Sliders className='size-4' />
+                Advanced
+              </Button>
+            </AdvancedOptionsMetricDialog>
+            <DialogClose className='max-sm:absolute max-sm:right-4 max-sm:top-5'>
+              <Button
+                type='button'
+                size={'icon'}
+                variant='secondary'
+                className='rounded-[12px]'
+              >
+                <X />
+              </Button>
+            </DialogClose>
+          </div>
         </div>
         {props.group.type === 0 ? (
           <>
