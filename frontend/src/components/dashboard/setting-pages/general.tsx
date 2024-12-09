@@ -130,7 +130,6 @@ export default function SettingGeneralPage() {
         btn_loading={loadingProfile}
         btn_disabled={
           firstName === '' ||
-          lastName === '' ||
           (firstName === user?.firstname && lastName === user?.lastname)
         }
         action={handleFirstLastNameSubmit}
