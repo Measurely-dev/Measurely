@@ -13,8 +13,9 @@ const SettingCard = (props: {
   title: string;
   description: string;
   content: ReactNode;
-  loading: boolean;
-  disabled: boolean;
+  btn_loading: boolean;
+  btn_disabled: boolean;
+  disabled?: boolean | false;
   action?: (e: FormEvent<HTMLFormElement>) => void;
   btn?: string | undefined;
   danger?: boolean | false;
@@ -39,8 +40,8 @@ const SettingCard = (props: {
             <Button
               className='w-full rounded-[12px]'
               type='submit'
-              loading={props.loading}
-              disabled={props.loading || props.disabled}
+              loading={props.btn_loading}
+              disabled={props.btn_loading || props.btn_disabled}
             >
               {props.btn}
             </Button>

@@ -125,8 +125,8 @@ export default function SettingGeneralPage() {
       <SettingCard
         title='Profile'
         description='Used to identify your account.'
-        loading={loadingProfile}
-        disabled={
+        btn_loading={loadingProfile}
+        btn_disabled={
           firstName === '' ||
           lastName === '' ||
           (firstName === user?.firstname && lastName === user?.lastname)
@@ -162,8 +162,8 @@ export default function SettingGeneralPage() {
 
       <SettingCard
         title='Email'
-        loading={loadingEmail}
-        disabled={email === '' || email === user?.email}
+        btn_loading={loadingEmail}
+        btn_disabled={email === '' || email === user?.email}
         description='This accounts main email.'
         action={handleEmailSubmit}
         content={
@@ -182,10 +182,11 @@ export default function SettingGeneralPage() {
 
       <SettingCard
         title='Password'
-        loading={loadingPassword}
-        disabled={
+        btn_loading={loadingPassword}
+        btn_disabled={
           oldPassword === '' || newPassword === '' || confirmedPassword === ''
         }
+        disabled={user?.provider === Provider.GITHUB}
         description='The key protecting this account.'
         action={handlePasswordSubmit}
         content={
@@ -266,8 +267,8 @@ export default function SettingGeneralPage() {
       <SettingCard
         title='Providers'
         description='A list of providers linked to this account.'
-        loading={false}
-        disabled={false}
+        btn_loading={false}
+        btn_disabled={false}
         action={() => { }}
         content={
           <div className='flex flex-col gap-4'>
@@ -306,8 +307,8 @@ export default function SettingGeneralPage() {
 
       <SettingCard
         title='Delete account'
-        loading={false}
-        disabled={false}
+        btn_loading={false}
+        btn_disabled={false}
         action={() => { }}
         danger
         description='This action will delete this account forever.'
