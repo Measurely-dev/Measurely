@@ -13,8 +13,8 @@ const SettingCard = (props: {
   title: string;
   description: string;
   content: ReactNode;
-  loading: boolean;
-  action: (e: FormEvent<HTMLFormElement>) => void;
+  loading?: boolean;
+  action?: (e: FormEvent<HTMLFormElement>) => void;
   btn?: string | undefined;
   danger?: boolean | false;
 }) => {

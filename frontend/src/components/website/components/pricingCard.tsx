@@ -6,12 +6,8 @@ interface WebPricingCardProps {
   name: string;
   description: string;
   price: number | 'custom';
-  recurrence: 'forever' | 'month';
-  target:
-    | 'very small teams'
-    | 'growing teams'
-    | 'scaling businesses'
-    | 'large organizations';
+  recurrence: string;
+  target: string;
   list: Array<any>;
   button?: string;
   [key: string]: any; // Accept any additional props

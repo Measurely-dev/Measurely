@@ -1,11 +1,12 @@
 'use client';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { CreditCard, Home } from 'lucide-react';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { CreditCard, Home, X } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import SettingGeneralPage from './settingPages/general';
 import { Hexagon } from 'react-feather';
 import SettingAppsPage from './settingPages/apps-api';
-import SettingPaymentPage from './settingPages/payment';
+import SettingPaymentPage from './settingPages/plan';
+import { Button } from '@/components/ui/button';
 
 export default function SettingDialog(props: { children: ReactNode }) {
   const [page, setPage] = useState('general');
@@ -31,6 +32,16 @@ export default function SettingDialog(props: { children: ReactNode }) {
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 !shadow-none ring-1 ring-input max-lg:min-w-[95%] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col lg:min-w-[900px] lg:max-w-[900px]'>
         <Navbar page={page} setPage={setPage} settings={settings} />
+        <DialogClose className='absolute right-8 top-11 max-md:right-4 max-md:top-4'>
+          <Button
+            type='button'
+            size={'icon'}
+            variant='secondary'
+            className='rounded-[12px] border md:hidden max-md:bg-background'
+          >
+            <X />
+          </Button>
+        </DialogClose>
         <Content page={page} setPage={setPage} settings={settings} />
       </DialogContent>
     </Dialog>

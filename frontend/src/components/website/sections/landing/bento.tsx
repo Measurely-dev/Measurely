@@ -6,7 +6,7 @@ import WebFooterHeader from '../../components/footerHeader';
 import WebTitle from '../../components/title';
 import ContentContainer from '../../containers/content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
-import SubscriptionUiSection from './sucscriptions';
+import SubscriptionUiSection from './pricing';
 
 export default function BentoUiSection() {
   const [is_client, set_is_client] = useState(false);

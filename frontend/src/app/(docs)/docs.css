@@ -22,8 +22,8 @@
   padding: 14px 0 !important;
   background-color: hsl(var(--accent));
   border-radius: 12px;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 15px;
+  margin-bottom: 15px;
   overflow-x: scroll;
 }
 
