@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/authNavbar';
-import Footer from '@/components/website/layout/footer/footer';
+import Footer from '@/components/website/footer';
 import { AppsContext } from '@/dashContext';
 import { Image } from 'lucide-react';
 import { useRouter } from 'next/navigation';
