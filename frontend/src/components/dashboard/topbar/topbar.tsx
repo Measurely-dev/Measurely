@@ -29,16 +29,16 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ApplicationsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog appId={applications?.[activeApp].id ?? ''}>
-              <Button
-                size={'sm'}
-                variant={'secondary'}
-                className='h-6 gap-1.5 rounded-full'
-              >
-                <Code className='size-4' />
-                Api key
-              </Button>
-            </ApiDialog>
+              <ApiDialog appId={applications?.[activeApp]?.id ?? ''}>
+                <Button
+                  size={'sm'}
+                  variant={'secondary'}
+                  className='h-6 gap-1.5 rounded-full'
+                >
+                  <Code className='size-4' />
+                  Api key
+                </Button>
+              </ApiDialog>
           </div>
         </div>
         <div className='flex flex-row gap-[12px] max-md:hidden'>

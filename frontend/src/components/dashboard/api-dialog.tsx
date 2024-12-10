@@ -21,7 +21,7 @@ import RandomizeAlert from './randomize-alert';
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
-  appId?: string;
+  appId: string;
 }) {
   const [view, setView] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -29,7 +29,7 @@ export default function ApiDialog(props: {
   const { applications, activeApp } = useContext(AppsContext);
 
   useEffect(() => {
-    if (applications !== null) {
+    if (applications !== null && applications.length > 0) {
       const appIndex = applications.findIndex((app) => app.id === props.appId);
       if (appIndex !== -1 && applications[appIndex].apikey !== null) {
         setApiKey(applications[appIndex].apikey);

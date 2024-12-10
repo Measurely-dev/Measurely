@@ -18,10 +18,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Application } from '@/types';
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);
   const [sortedApplications, setSortedApplications] = useState<any>([]);
+
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
   useEffect(() => {
     if (applications?.length !== 0 && applications !== null) {
@@ -50,7 +53,7 @@ export default function SettingAppsPage() {
           {sortedApplications.length === 0 ? (
             <Empty>No app found</Empty>
           ) : (
-            sortedApplications.map((app: any, i: any) => {
+            sortedApplications.map((app: Application, i: any) => {
               return (
                 <div key={i} className='flex items-center justify-between'>
                   <div className='flex flex-row items-center gap-2'>
@@ -89,11 +92,17 @@ export default function SettingAppsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className='mr-20'>
-                        <DialogTrigger className='w-full'>
+                        <DialogTrigger
+                          className='w-full'
+                          onClick={() => setSelectedApp(app)}
+                        >
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                         </DialogTrigger>
                         <AlertDialogTrigger className='w-full'>
-                          <DropdownMenuItem className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'>
+                          <DropdownMenuItem
+                            className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
+                            onClick={() => setSelectedApp(app)}
+                          >
                             Delete
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
@@ -105,8 +114,8 @@ export default function SettingAppsPage() {
             })
           )}
         </div>
-        <EditAppDialogContent />
-        <DeleteAppDialogContent />
+        <EditAppDialogContent app={selectedApp} />
+        <DeleteAppDialogContent app={selectedApp} />
       </AlertDialog>
     </Dialog>
   );
