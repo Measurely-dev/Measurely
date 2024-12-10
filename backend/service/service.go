@@ -258,7 +258,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 func (s *Service) UseGithub(w http.ResponseWriter, r *http.Request) {
 	request_type := r.URL.Query().Get("type")
 	email := r.URL.Query().Get("email")
-  log.Println(email, request_type)
+	log.Println(email, request_type)
 	var state string
 	if request_type == "0" {
 		state = "auth"
@@ -275,7 +275,7 @@ func (s *Service) UseGithub(w http.ResponseWriter, r *http.Request) {
 	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
 
 	// Create the dynamic redirect URL for login
-  redirectURL := fmt.Sprintf(
+	redirectURL := fmt.Sprintf(
 		"https://github.com/login/oauth/authorize?client_id=%s&scope=user:email&state=%s",
 		githubClientID, url.QueryEscape(state+";"+email),
 	)
@@ -295,7 +295,6 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			email = splitted[1]
 		}
 	}
-
 
 	access_token, err := RetrieveAccessToken(code, w, r)
 	if err != nil {
@@ -361,7 +360,7 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-      http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?success=Sucessfully connected Github to your account", http.StatusPermanentRedirect)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?success=Sucessfully connected Github to your account", http.StatusPermanentRedirect)
 		} else {
 			if err == sql.ErrNoRows {
 				stripe_params := &stripe.CustomerParams{
@@ -600,7 +599,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		LastName:    user.LastName,
 		CurrentPlan: user.CurrentPlan,
 		Provider:    user.Provider,
-    Plan : user.CurrentPlan,
+		Plan:        user.CurrentPlan,
 	}
 
 	bytes, jerr := json.Marshal(resp)
@@ -1081,7 +1080,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the app's api key
-	err := s.DB.UpdateApplicationApiKey(request.AppId, api_key)
+	err := s.DB.UpdateApplicationApiKey(request.AppId, val, api_key)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1114,6 +1113,37 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request struct {
+		NewName string    `json:"new_name"`
+		AppId   uuid.UUID `json:"app_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := s.DB.UpdateApplicationName(request.AppId, val, request.NewName); err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "The application was not found", http.StatusBadRequest)
+			return
+
+		} else {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

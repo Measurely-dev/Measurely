@@ -10,8 +10,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { UserContext } from '@/dash-context';
-import { useContext } from 'react';
 
 export default function DashboardHomePage() {
   return (

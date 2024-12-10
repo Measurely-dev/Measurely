@@ -1,3 +1,6 @@
+
+export const MAXFILESIZE = 500 * 1024;
+
 export async function loadMetricsGroups(appid: string) {
   const res = await fetch(
     process.env.NEXT_PUBLIC_API_URL + '/metric-groups?appid=' + appid,

@@ -295,8 +295,13 @@ func (db *DB) CreateApplication(app types.Application) (types.Application, error
 	return new_app, err
 }
 
-func (db *DB) UpdateApplicationApiKey(id uuid.UUID, apikey string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET apikey = $1 WHERE id = $2", apikey, id)
+func (db *DB) UpdateApplicationApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
+	_, err := db.Conn.Exec("UPDATE applications SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
+	return err
+}
+
+func (db DB) UpdateApplicationName(id uuid.UUID, userid uuid.UUID, newname string) error {
+	_, err := db.Conn.Exec("UPDATE applications SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
 	return err
 }
 

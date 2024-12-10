@@ -84,6 +84,7 @@ func (h *Handler) setup_api() {
 			cr.Get("/application", h.service.GetApplications)
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)
+      cr.Patch("/app-name", h.service.UpdateApplicationName)
 			cr.Get("/metric-groups", h.service.GetMetricGroups)
 			cr.Patch("/rand-apikey", h.service.RandomizeApiKey)
 			cr.Get("/events", h.service.GetMetricEvents)

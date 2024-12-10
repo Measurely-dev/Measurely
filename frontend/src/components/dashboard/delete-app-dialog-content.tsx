@@ -56,6 +56,7 @@ export default function DeleteAppDialogContent(props: {
 
                 if (applications?.[activeApp].id === props.app?.id) {
                   setActiveApp(0);
+                  localStorage.setItem('activeApp', (0).toString());
                 } else {
                   const toRemove = applications?.findIndex(
                     (app) => app.id === props.app?.id,
@@ -63,9 +64,12 @@ export default function DeleteAppDialogContent(props: {
                   if (toRemove === -1 || toRemove === undefined) return;
                   if (toRemove < activeApp) {
                     setActiveApp(activeApp - 1);
+                    localStorage.setItem(
+                      'activeApp',
+                      (activeApp - 1).toString(),
+                    );
                   }
                 }
-
                 setApplications(
                   applications?.filter((app) => app.id !== props.app?.id) ?? [],
                 );

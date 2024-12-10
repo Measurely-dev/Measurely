@@ -13,13 +13,11 @@ import { Image } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dispatch, useContext, useState } from 'react';
 import { toast } from 'sonner';
-
-const maxSize = 500 * 1024;
+import { MAXFILESIZE } from '@/utils';
 
 export default function NewApp() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
 
   const router = useRouter();
@@ -36,8 +34,6 @@ export default function NewApp() {
       credentials: 'include',
       body: JSON.stringify({
         name: name,
-        description: description,
-        file: file,
       }),
     })
       .then((res) => {
@@ -95,7 +91,7 @@ export default function NewApp() {
               setLoading(true);
 
               if (file !== null) {
-                if (file.size > maxSize) {
+                if (file.size > MAXFILESIZE) {
                   toast.error('The image is too large, MAX 500KB');
                   setLoading(false);
                   return;
@@ -122,8 +118,6 @@ export default function NewApp() {
               <Inputs
                 name={name}
                 setName={setName}
-                description={description}
-                setDescription={setDescription}
                 file={file}
                 setFile={setFile}
               />
@@ -149,8 +143,6 @@ export default function NewApp() {
 function Inputs(props: {
   name: string;
   setName: Dispatch<React.SetStateAction<string>>;
-  description: string;
-  setDescription: Dispatch<React.SetStateAction<string>>;
   file: any;
   setFile: Dispatch<React.SetStateAction<any>>;
 }) {
