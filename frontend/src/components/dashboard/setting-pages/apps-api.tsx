@@ -8,6 +8,8 @@ import Empty from '../empty';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
 import EditAppDialog from '../edit-app-dialog';
+import { Trash } from 'lucide-react';
+import DeleteAppDialog from '../delete-app-dialog';
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);
@@ -43,7 +45,7 @@ export default function SettingAppsPage() {
             return (
               <div
                 key={i}
-                className={`rounded-[16px] p-1 pr-2 hover:bg-accent ${app.name === applications?.[activeApp]?.name ? 'bg-accent' : ''}`}
+                className={`rounded-[16px] p-1 pr-2 ${app.name === applications?.[activeApp]?.name ? 'bg-accent' : ''}`}
               >
                 <div className='flex items-center justify-between'>
                   <div className='flex flex-row items-center gap-2'>
@@ -80,6 +82,15 @@ export default function SettingAppsPage() {
                         Edit
                       </Button>
                     </EditAppDialog>
+                    <DeleteAppDialog>
+                      <Button
+                        className='rounded-[12px]'
+                        variant={'destructiveOutline'}
+                        size={'icon'}
+                      >
+                        <Trash className='size-4' />
+                      </Button>
+                    </DeleteAppDialog>
                   </div>
                 </div>
               </div>
