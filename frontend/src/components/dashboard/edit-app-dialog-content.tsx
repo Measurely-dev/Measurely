@@ -13,6 +13,7 @@ import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
 import { MAXFILESIZE } from '@/utils';
 import { Image } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -73,7 +74,7 @@ export default function EditAppDialogContent(props: {
           setApplications(
             applications?.map((app) =>
               app.id === props.app?.id
-                ? Object.assign({}, app, { image: 'app_' + props.app?.id })
+                ? Object.assign({}, app, { image: `app_${props.app?.id}?random=${Math.random()}`})
                 : app,
             ) ?? [],
           );
@@ -87,10 +88,10 @@ export default function EditAppDialogContent(props: {
   }
 
   useEffect(() => {
-    setName(props.app?.name ?? '')
-    setFile(null)
-    setReader(null)
-  }, [props.app])
+    setName(props.app?.name ?? '');
+    setFile(null);
+    setReader(null);
+  }, [props.app]);
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
@@ -120,7 +121,11 @@ export default function EditAppDialogContent(props: {
             <Label className='relative h-full w-full cursor-pointer'>
               <AvatarImage
                 className='rounded-[16px]'
-                src={reader === null ? `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${props.app?.image}` : reader}
+                src={
+                  reader === null
+                    ? `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${props.app?.image}`
+                    : reader
+                }
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>
                 <Image className='text-secondary' />
