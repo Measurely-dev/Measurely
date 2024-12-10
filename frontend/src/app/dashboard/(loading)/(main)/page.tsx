@@ -27,7 +27,7 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <UpgradeCard type='plus' />
+      <UpgradeCard type='starter' />
       <ChartsCard />
     </DashboardContentContainer>
   );

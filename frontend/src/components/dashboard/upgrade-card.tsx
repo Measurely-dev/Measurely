@@ -4,11 +4,13 @@ import { Card, CardContent } from '../ui/card';
 import { useContext } from 'react';
 import { UserContext } from '@/dash-context';
 
-export default function UpgradeCard(props: { type: 'free' | 'plus' | 'pro' }) {
+export default function UpgradeCard(props: {
+  type: 'starter' | 'plus' | 'pro';
+}) {
   const { user } = useContext(UserContext);
   function render() {
     switch (props.type) {
-      case 'free':
+      case 'starter':
         return (
           <Card className='mt-5 rounded-[12px] rounded-b-none border-none bg-black'>
             <CardContent className='flex flex-row items-center justify-between gap-5 p-4 max-md:flex-col'>
@@ -38,9 +40,9 @@ export default function UpgradeCard(props: { type: 'free' | 'plus' | 'pro' }) {
             <CardContent className='flex flex-row items-center justify-between gap-5 p-4 max-md:flex-col'>
               <div className='flex flex-col max-md:w-full'>
                 <div className='flex flex-row items-center gap-3'>
-                  <div className='flex flex-row items-center gap-1 rounded-full bg-background px-2 py-0.5 text-sm'>
+                  <div className='flex flex-row items-center gap-1 rounded-full bg-background px-2 py-0.5 text-xs'>
                     <Sparkle className='size-3 text-purple-500' />
-                    <div className='animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 bg-clip-text font-semibold text-transparent'>
+                    <div className='animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 bg-clip-text font-medium text-transparent'>
                       Plus
                     </div>
                   </div>
@@ -61,7 +63,7 @@ export default function UpgradeCard(props: { type: 'free' | 'plus' | 'pro' }) {
             <CardContent className='flex flex-row items-center justify-between gap-5 p-4 max-md:flex-col'>
               <div className='flex flex-col max-md:w-full'>
                 <div className='flex flex-row items-center gap-3'>
-                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-sm font-medium'>
+                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium'>
                     <Sparkle className='size-3' />
                     Pro
                   </div>
