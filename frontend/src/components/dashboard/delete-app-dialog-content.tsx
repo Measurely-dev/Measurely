@@ -11,10 +11,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ReactNode } from 'react';
 
-export default function DeleteAppDialog(props: { children: ReactNode }) {
+export default function DeleteAppDialogContent() {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
       <AlertDialogContent className='border border-red-500 bg-red-500/30 py-8 backdrop-blur-3xl'>
         <AlertDialogHeader>
           <AlertDialogTitle className='text-red-200'>
@@ -34,6 +32,5 @@ export default function DeleteAppDialog(props: { children: ReactNode }) {
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
-    </AlertDialog>
   );
 }
