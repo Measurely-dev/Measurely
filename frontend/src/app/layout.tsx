@@ -22,7 +22,7 @@ export const metadata: Metadata = {
       'Track and analyze your metrics seamlessly with Measurely. Perfect for developers and data-driven teams.',
     images: [
       {
-        url: 'https://measurely.dev/assets/og-image.png', // Replace with your actual OG image
+        url: 'https://i.ibb.co/zh0GwyQ/opengraph.png',
         width: 1200,
         height: 630,
         alt: 'Measurely Dashboard Preview',
@@ -31,11 +31,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@Measurely', // Replace with your Twitter handle
+    site: '@getmeasurely',
     title: 'Measurely - Track Your Metrics Effectively',
     description:
       'Discover how Measurely helps developers track and analyze metrics seamlessly. Boost your data-driven decisions today!',
-    images: ['https://measurely.dev/assets/og-image.png'], // Replace with your actual Twitter OG image
+    images: ['https://i.ibb.co/zh0GwyQ/opengraph.png'],
   },
   metadataBase: new URL('https://measurely.dev'),
   icons: [
