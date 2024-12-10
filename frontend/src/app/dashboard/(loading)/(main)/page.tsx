@@ -1,6 +1,7 @@
 'use client';
 import { ChartsCard } from '@/components/dashboard/charts-card';
 import DashboardContentContainer from '@/components/dashboard/container';
+import UpgradeCard from '@/components/dashboard/upgrade-card';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,6 +27,7 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+      <UpgradeCard type='plus' />
       <ChartsCard />
     </DashboardContentContainer>
   );

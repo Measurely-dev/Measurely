@@ -180,7 +180,7 @@ export function ChartsCard() {
   }, [activeGroup]);
 
   return (
-    <Card className='mt-5 border-input'>
+    <Card className='rounded-t-none border-input'>
       <MetricStats
         stats={[
           {

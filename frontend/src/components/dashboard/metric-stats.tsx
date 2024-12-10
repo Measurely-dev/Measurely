@@ -6,7 +6,7 @@ export default function MetricStats(props: {
 }) {
   return (
     <Card
-      className={`max-lg: flex flex-row justify-between gap-[30px] divide-x rounded-2xl rounded-b-none border-none bg-accent p-5 max-lg:grid max-lg:grid-cols-2 max-lg:divide-x-[0] max-sm:grid-cols-1 max-sm:divide-y ${props.className}`}
+      className={`flex flex-row justify-between gap-[30px] divide-x rounded-none border-none bg-accent p-5 max-lg:grid max-lg:grid-cols-2 max-lg:divide-x-[0] max-sm:grid-cols-1 max-sm:divide-y ${props.className}`}
     >
       {props.stats.map((stat, i) => {
         return (
