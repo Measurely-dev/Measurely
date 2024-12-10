@@ -168,6 +168,17 @@ export default function SettingGeneralPage() {
         title='Email'
         btn_loading={loadingEmail}
         btn_disabled={email === '' || email === user?.email}
+        disabled={user?.provider === Provider.GITHUB}
+        disabled_text={
+          <div className='flex flex-col items-center justify-center gap-4'>
+            <Info className='size-16 text-blue-500' />
+            <div className='text-md max-w-[220px] text-center text-secondary'>
+              You cannot update your{' '}
+              <span className='font-semibold text-primary'>email</span> when
+              connected to a provider
+            </div>
+          </div>
+        }
         description='This accounts main email.'
         action={handleEmailSubmit}
         content={

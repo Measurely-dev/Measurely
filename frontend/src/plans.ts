@@ -1,6 +1,7 @@
-export const pricingData = [
+export const plans = [
   {
-    name: 'Free',
+    name: 'Starter',
+    identifier: 'starter',
     description:
       'Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees.',
     price: 0,
@@ -21,6 +22,7 @@ export const pricingData = [
   },
   {
     name: 'Plus',
+    identifier: 'plus',
     description:
       'Advanced features to help you scale any business without limits.',
     price: 25,
@@ -41,6 +43,7 @@ export const pricingData = [
   },
   {
     name: 'Pro',
+    identifier: 'pro',
     description:
       'For teams with more complex needs requiring the highest levels of support.',
     price: 59,

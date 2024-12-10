@@ -26,6 +26,7 @@ type GetUserResponse struct {
 	Image       string `json:"image"`
 	CurrentPlan string `json:"currentplan"`
 	Provider    int    `json:"provider"`
+	Plan        string `json:"plan"`
 }
 
 type EmailValidRequest struct {

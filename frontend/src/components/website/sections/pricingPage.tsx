@@ -1,4 +1,4 @@
-import { pricingData } from '@/components/global/pricing-data';
+import { plans } from '@/plans';
 import WebPageHeader from '../page-header';
 import WebPricingCard from '../pricing-card';
 
@@ -18,17 +18,17 @@ export default function PricingCardsSection() {
         description='Find the plan the best suited for your application'
       />
       <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
-        {pricingData.map((card, i) => {
+        {plans.map((plan, i) => {
           return (
             <WebPricingCard
               key={i}
-              name={card.name}
-              description={card.description}
-              price={card.price}
-              recurrence={card.reccurence}
-              target={card.target}
-              list={card.list}
-              button={card.button}
+              name={plan.name}
+              description={plan.description}
+              price={plan.price}
+              recurrence={plan.reccurence}
+              target={plan.target}
+              list={plan.list}
+              button={plan.button}
             />
           );
         })}

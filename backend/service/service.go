@@ -600,6 +600,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		LastName:    user.LastName,
 		CurrentPlan: user.CurrentPlan,
 		Provider:    user.Provider,
+    Plan : user.CurrentPlan,
 	}
 
 	bytes, jerr := json.Marshal(resp)

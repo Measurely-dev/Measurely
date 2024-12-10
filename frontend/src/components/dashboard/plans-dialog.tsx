@@ -1,14 +1,13 @@
-import { pricingData } from '@/components/global/pricing-data';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import WebPricingCard from '@/components/website/pricing-card';
+import { plans } from '@/plans';
 import { X } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -30,17 +29,17 @@ export default function PlansDialog(props: { children: ReactNode }) {
           </DialogClose>
         </DialogHeader>
         <div className='mt-5 grid grid-cols-3 gap-5 overflow-y-scroll max-lg:gap-1 max-md:grid-cols-1 max-md:gap-5'>
-          {pricingData.map((card, i) => {
+          {plans.map((plan, i) => {
             return (
               <WebPricingCard
                 key={i}
-                name={card.name}
-                description={card.description}
-                price={card.price}
-                recurrence={card.reccurence}
-                target={card.target}
-                list={card.list}
-                button={card.button}
+                name={plan.name}
+                description={plan.description}
+                price={plan.price}
+                recurrence={plan.reccurence}
+                target={plan.target}
+                list={plan.list}
+                button={plan.button}
               />
             );
           })}

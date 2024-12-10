@@ -4,12 +4,10 @@ import { Card, CardContent } from '../ui/card';
 import { useContext } from 'react';
 import { UserContext } from '@/dash-context';
 
-export default function UpgradeCard(props: {
-  type: 'starter' | 'plus' | 'pro';
-}) {
+export default function UpgradeCard() {
   const { user } = useContext(UserContext);
   function render() {
-    switch (props.type) {
+    switch (user?.plan) {
       case 'starter':
         return (
           <Card className='mt-5 rounded-[12px] rounded-b-none border-none bg-black'>
@@ -22,7 +20,7 @@ export default function UpgradeCard(props: {
                   </div>
                 </div>
                 <div className='text-sm text-secondary text-white/70'>
-                  You can unlock limits by upgrading to the next plan.
+                  You can unlock your limits by upgrading to the next plan.
                 </div>
               </div>
               <Button
@@ -66,6 +64,27 @@ export default function UpgradeCard(props: {
                   <div className='flex flex-row items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium'>
                     <Sparkle className='size-3' />
                     Pro
+                  </div>
+                  <div className='text-md font-semibold text-white'>
+                    Welcome back,{' '}
+                    <span className='font-semibold capitalize'>
+                      {user?.firstname}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return (
+          <Card className='mt-5 animate-gradient rounded-[12px] rounded-b-none border-none bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500'>
+            <CardContent className='flex flex-row items-center justify-between gap-5 p-4 max-md:flex-col'>
+              <div className='flex flex-col max-md:w-full'>
+                <div className='flex flex-row items-center gap-3'>
+                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium'>
+                    <Sparkle className='size-3' />
+                   {user?.plan} 
                   </div>
                   <div className='text-md font-semibold text-white'>
                     Welcome back,{' '}
