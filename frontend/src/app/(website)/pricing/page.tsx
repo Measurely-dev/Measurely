@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Pricing',
   description:
     'Explore Measurely’s flexible pricing plans designed to meet the needs of developers and teams. Whether you’re just getting started or managing large-scale projects, we have a plan to help you track metrics and analyze data with ease.',
-}
+};
 export default function Pricing() {
   return (
     <WebContainer>
