@@ -3,9 +3,7 @@ import { Navbar } from '@/components/docs/navbar';
 import './docs.css';
 
 export const metadata: Metadata = {
-  title: 'AriaDocsLite - Template',
-  description:
-    'This comprehensive documentation template, crafted with Next.js and available as open-source, delivers a sleek and responsive design, tailored to meet all your project documentation requirements.',
+  title: 'Documentation',
 };
 
 export default function RootLayout({

@@ -27,7 +27,7 @@ export default function SettingGeneralPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -283,7 +283,7 @@ export default function SettingGeneralPage() {
         description='A list of providers linked to this account.'
         btn_loading={false}
         btn_disabled={false}
-        action={() => { }}
+        action={() => {}}
         content={
           <div className='flex flex-col gap-4'>
             <div className='flex items-center justify-between'>
@@ -344,7 +344,7 @@ export default function SettingGeneralPage() {
         title='Delete account'
         btn_loading={false}
         btn_disabled={false}
-        action={() => { }}
+        action={() => {}}
         danger
         description='This action will delete this account forever.'
         content={

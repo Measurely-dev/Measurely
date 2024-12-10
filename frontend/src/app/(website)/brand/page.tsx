@@ -7,6 +7,13 @@ import { Download } from 'lucide-react';
 import Image from 'next/image';
 import MeasurelyIcon from '../../../../public/measurely-icon-1200x1200.png';
 import MeasurelyLogo from '../../../../public/measurely-logo-816x306.png';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Brand',
+  description:
+    'Explore Measurely’s brand assets, including our logo, color palettes, and user guidelines. Whether you’re a partner, designer, or developer, find everything you need to represent Measurely consistently and professionally across your materials and projects.',
+};
 export default function BrandAssetsPage() {
   return (
     <WebContainer>

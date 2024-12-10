@@ -84,7 +84,9 @@ export default function AuthForm(props: {
             <div
               className='curso-pointer flex w-full cursor-pointer items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium transition-all hover:bg-background/75'
               onClick={() => {
-                router.push(process.env.NEXT_PUBLIC_API_URL + '/use-github?type=0');
+                router.push(
+                  process.env.NEXT_PUBLIC_API_URL + '/use-github?type=0',
+                );
               }}
             >
               <svg

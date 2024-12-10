@@ -1,7 +1,12 @@
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
-import WebPageHeader from '@/components/website/page-header';
+import { Metadata } from 'next';
 
+export const metadata: Metadata = {
+  title: 'About us',
+  description:
+    'Get to know the team behind Measurely. Learn about our mission, values, and commitment to providing developers and teams with the tools they need to track metrics, analyze data, and make better data-driven decisions.',
+};
 export default function Pricing() {
   return (
     <WebContainer>
@@ -30,9 +35,7 @@ export default function Pricing() {
             built with the dedication and curiosity of two programmers who
             believe in creating tools that truly help.
           </div>
-          <div className='mt-20 text-4xl font-medium'>
-            Why Measurely?
-          </div>
+          <div className='mt-20 text-4xl font-medium'>Why Measurely?</div>
           <div className='mt-5 text-lg'>
             The modern world runs on data, but not everyone has access to the
             tools to harness it. With{' '}
@@ -49,8 +52,8 @@ export default function Pricing() {
             constantly evolving, and we have big plans for the future. From
             expanding features to building a community of data enthusiasts,
             we’re committed to growing{' '}
-            <span className='font-semibold text-blue-600'>Measurely</span>{' '}
-            into something extraordinary.
+            <span className='font-semibold text-blue-600'>Measurely</span> into
+            something extraordinary.
           </div>
           <div className='mt-20 text-4xl font-medium'>
             Join Us on Our Journey

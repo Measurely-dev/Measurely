@@ -1,25 +1,19 @@
-'use client';
+import DashboardContentClient from './dashboard-content-client';
+import { Metadata } from 'next';
 
-import { AppsContext, UserContext } from '@/dash-context';
-import { useState } from 'react';
-import { Application, User } from '@/types';
-
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description:
+    'Welcome to your Measurely Dashboard. Manage and track your metrics, connect APIs, and analyze data all in one place. Get real-time insights to make better data-driven decisions for your projects and teams.',
+};
 export default function DashboardContentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [applications, setApplications] = useState<Application[] | null>(null);
-  const [activeApp, setActiveApp] = useState<number>(0);
-  const [user, setUser] = useState<User | null>(null);
-
   return (
-    <UserContext.Provider value={{ user, setUser }}>
-      <AppsContext.Provider
-        value={{ applications, setApplications, activeApp, setActiveApp }}
-      >
-        {children}
-      </AppsContext.Provider>
-    </UserContext.Provider>
+    <>
+      <DashboardContentClient>{children}</DashboardContentClient>
+    </>
   );
 }

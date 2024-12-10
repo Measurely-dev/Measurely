@@ -47,7 +47,7 @@ export async function generateMetadata({ params: { slug = [] } }: PageProps) {
   if (!res) return {} as Metadata;
   const { frontmatter } = res;
   return {
-    title: frontmatter.title,
+    title: frontmatter.title + " " + "| Measurely",
     description: frontmatter.description,
   };
 }

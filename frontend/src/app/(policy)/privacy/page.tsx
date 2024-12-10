@@ -2,7 +2,13 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import PolicyWrapper from '@/components/website/policy';
 import PrivacyContent from './privacy';
+import { Metadata } from 'next';
 
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Measurely',
+  description:
+    'Read Measurely’s Privacy Policy to understand how we collect, use, and protect your data. We are committed to ensuring the privacy and security of your information while providing you with the best experience using our platform.',
+};
 export default function Page() {
   return (
     <WebContainer>

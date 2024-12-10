@@ -37,14 +37,14 @@ export default function SettingPaymentPage() {
             className='w-full rounded-[12px]'
             variant={'default'}
             onClick={() => {
-              console.log("yoyo")
+              console.log('yoyo');
               setLoadingBilling(true);
               fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
                 method: 'GET',
                 credentials: 'include',
               })
                 .then((resp) => {
-                  console.log(resp)
+                  console.log(resp);
                   if (resp.status === 200) {
                     return resp.json();
                   } else {

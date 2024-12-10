@@ -25,7 +25,7 @@ const SettingCard = (props: {
     <form className='flex flex-col' onSubmit={props.action}>
       <Card className={`${props.danger ? 'border-red-500/40' : ''} relative`}>
         {props.disabled ? (
-          <div className='absolute left-0 top-0 z-10 h-full w-full flex flex-col items-center justify-center gap-4 rounded-[16px] bg-accent/20 backdrop-blur-lg'>
+          <div className='absolute left-0 top-0 z-10 flex h-full w-full flex-col items-center justify-center gap-4 rounded-[16px] bg-accent/20 backdrop-blur-lg'>
             {props.disabled_text}
           </div>
         ) : (

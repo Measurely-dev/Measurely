@@ -40,7 +40,15 @@ export default function AdvancedOptionsMetricDialog(props: {
         <div className='flex w-full flex-col gap-4'>
           <div className='mt-2 flex flex-col gap-1'>
             <DatePicker />
-            <div className='text-secondary text-sm'>You can select a date to offset the chart <Link className='text-primary underline' href={'/docs/getting-started/installation'}>learn more</Link></div>
+            <div className='text-sm text-secondary'>
+              You can select a date to offset the chart{' '}
+              <Link
+                className='text-primary underline'
+                href={'/docs/getting-started/installation'}
+              >
+                learn more
+              </Link>
+            </div>
           </div>
         </div>
       </DialogContent>

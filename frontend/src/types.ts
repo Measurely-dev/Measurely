@@ -52,5 +52,5 @@ export enum GroupType {
 
 export enum Provider {
   EMAIL,
-  GITHUB
+  GITHUB,
 }

@@ -1,9 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'react-feather';
 
+export const metadata: Metadata = {
+  title: 'Help',
+  description:
+    'Find answers to your questions on the Measurely Help page. Access guides, tutorials, FAQs, and troubleshooting tips to get the most out of Measurely’s features and improve your experience with metric tracking and data analysis.',
+};
 export default function Help() {
   const help = [
     {

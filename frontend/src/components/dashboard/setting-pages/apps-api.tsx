@@ -52,51 +52,55 @@ export default function SettingAppsPage() {
           ) : (
             sortedApplications.map((app: any, i: any) => {
               return (
-                  <div key={i} className='flex items-center justify-between'>
-                    <div className='flex flex-row items-center gap-2'>
-                      <Avatar className='size-10 rounded-[12px] border bg-accent'>
-                        <AvatarImage
-                          src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app?.image}`}
-                        />
-                        <AvatarFallback>
-                          {app?.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className='flex flex-col'>
-                        <p className='text-sm font-medium leading-none'>
-                          {app?.name}
-                        </p>
-                      </div>
-                    </div>
-                    <div className='flex flex-row items-center gap-2'>
-                      <ApiDialog randomize appId={app?.id}>
-                        <Button
-                          variant={'secondary'}
-                          size={'icon'}
-                          className='rounded-[12px]'
-                        >
-                          <Key className='size-4'/>
-                        </Button>
-                      </ApiDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size={'icon'} variant={'ghost'} className='rounded-[12px]'>
-                            <MoreHorizontal className='size-4' />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className='mr-20'>
-                          <DialogTrigger className='w-full'>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                          </DialogTrigger>
-                          <AlertDialogTrigger className='w-full'>
-                            <DropdownMenuItem className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'>
-                              Delete
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                <div key={i} className='flex items-center justify-between'>
+                  <div className='flex flex-row items-center gap-2'>
+                    <Avatar className='size-10 rounded-[12px] border bg-accent'>
+                      <AvatarImage
+                        src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app?.image}`}
+                      />
+                      <AvatarFallback>
+                        {app?.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className='flex flex-col'>
+                      <p className='text-sm font-medium leading-none'>
+                        {app?.name}
+                      </p>
                     </div>
                   </div>
+                  <div className='flex flex-row items-center gap-2'>
+                    <ApiDialog randomize appId={app?.id}>
+                      <Button
+                        variant={'secondary'}
+                        size={'icon'}
+                        className='rounded-[12px]'
+                      >
+                        <Key className='size-4' />
+                      </Button>
+                    </ApiDialog>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size={'icon'}
+                          variant={'ghost'}
+                          className='rounded-[12px]'
+                        >
+                          <MoreHorizontal className='size-4' />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className='mr-20'>
+                        <DialogTrigger className='w-full'>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                        </DialogTrigger>
+                        <AlertDialogTrigger className='w-full'>
+                          <DropdownMenuItem className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'>
+                            Delete
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
               );
             })
           )}
