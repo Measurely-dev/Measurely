@@ -34,6 +34,17 @@ export default function Password() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    document.title = 'Create Password | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Create a secure password for your Measurely account to start tracking your metrics and analyzing your data.',
+      );
+    }
+  }, []);
+
   return (
     <WebContainer>
       <AuthNavbar href={`/register${back_query}`} button='Back' />

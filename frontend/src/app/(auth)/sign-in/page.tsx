@@ -27,6 +27,16 @@ export default function SignIn() {
     }
   }, [params]);
 
+  useEffect(() => {
+    document.title = 'Sign In | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Sign in to your Measurely account to track your metrics and analyze your data.',
+      );
+    }
+  }, []);
   return (
     <WebContainer>
       <div className='max-md:mb-[20px]'>

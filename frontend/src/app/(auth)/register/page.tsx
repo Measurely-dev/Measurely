@@ -5,7 +5,7 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function Register() {
@@ -15,6 +15,16 @@ export default function Register() {
 
   const router = useRouter();
 
+  useEffect(() => {
+    document.title = 'Register | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Create a Measurely account to start tracking your metrics and gain insights for your projects and teams.',
+      );
+    }
+  }, []);
   return (
     <WebContainer>
       <div className='max-md:mb-[50px]'>

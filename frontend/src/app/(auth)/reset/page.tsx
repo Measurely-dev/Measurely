@@ -22,6 +22,17 @@ export default function PasswordReset() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    document.title = 'Reset password | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Reset your password and regain access to your Measurely account to manage your metrics and data.',
+      );
+    }
+  }, []);
+
   return (
     <WebContainer>
       <AuthNavbar href='/sign-in' button='Sign in' />
@@ -120,7 +131,7 @@ export default function PasswordReset() {
                 },
                 body: JSON.stringify({
                   newpassword: password,
-                  code : searchParams.get("code")
+                  code: searchParams.get('code'),
                 }),
                 credentials: 'include',
               }).then((res) => {

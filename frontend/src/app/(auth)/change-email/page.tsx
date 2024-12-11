@@ -28,6 +28,17 @@ export default function PasswordReset() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    document.title = 'Change Email | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Update your email address to stay connected with your Measurely account and continue tracking your metrics.',
+      );
+    }
+  }, []);
+
   return (
     <WebContainer>
       <AuthNavbar href='/sign-in' button='Sign in' />
