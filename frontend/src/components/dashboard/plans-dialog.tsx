@@ -11,10 +11,48 @@ import { UserContext } from '@/dash-context';
 import { plans } from '@/plans';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { ReactNode, useContext } from 'react';
+import { useRouter } from 'next/navigation';
+import { ReactNode, useContext, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function PlansDialog(props: { children: ReactNode }) {
-  const users = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const router = useRouter();
+
+  const subscribe = (plan: string) => {
+    setSelectedPlan(plan);
+    setLoading(true);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: plan }),
+    })
+      .then((resp) => {
+        if (resp.status === 200) {
+          return resp.json();
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+          setLoading(false);
+        }
+      })
+      .then((data) => {
+        if (data !== null && data !== undefined) {
+          if (plan === 'starter') {
+            toast.success('Successfully downgraded to the starter plan');
+            setUser(Object.assign({}, user, { plan: 'starter' }));
+          } else {
+            toast.success('Opening billing portal...');
+            setTimeout(() => router.push(data.url), 500);
+          }
+        }
+      });
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
@@ -43,8 +81,12 @@ export default function PlansDialog(props: { children: ReactNode }) {
                 recurrence={plan.reccurence}
                 target={plan.target}
                 list={plan.list}
-                button={"Switch to" + " " + plan.name}
-                disabled={users?.user?.plan === plan.identifier ? true : false}
+                button={plan.button}
+                loading={loading && selectedPlan === plan.identifier}
+                disabled={user?.plan === plan.identifier || loading}
+                onSelect={() => {
+                  subscribe(plan.identifier);
+                }}
               />
             );
           })}

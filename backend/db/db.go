@@ -2,7 +2,6 @@ package db
 
 import (
 	"Measurely/types"
-	"database/sql"
 	"log"
 	"os"
 	"strconv"
@@ -86,7 +85,7 @@ func (db *DB) UpdateUserEmail(id uuid.UUID, newemail string) error {
 	return err
 }
 
-func (db *DB) UpdateUserPlan(id uuid.UUID, plan sql.Null[string]) error {
+func (db *DB) UpdateUserPlan(id uuid.UUID, plan string) error {
 	_, err := db.Conn.Exec("UPDATE users SET currentplan = $1 WHERE id = $2", plan, id)
 	return err
 }

@@ -24,6 +24,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
   list,
   button,
   disabled,
+  loading,
   ...additionalProps
 }) => {
   return (
@@ -61,7 +62,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         })}
       </div>
       {button ? (
-        <Button className={`mt-[30px] w-fit rounded-[12px]`} disabled={disabled}>{disabled? 'Plan selected' : button}</Button>
+        <Button className={`mt-[30px] w-fit rounded-[12px]`} disabled={disabled} loading={loading}>{disabled? 'Current plan' : button}</Button>
       ) : (
         <></>
       )}
