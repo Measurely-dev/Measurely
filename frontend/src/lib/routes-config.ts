@@ -24,6 +24,24 @@ export const ROUTES: EachRoute[] = [
       },
     ],
   },
+  {
+    title: 'Features',
+    href: '/features',
+    noLink: true,
+    items: [
+      { title: 'Basic metric', href: '/basic-metric' },
+      { title: 'Dual metric', href: '/dual-metric' },
+      { title: 'Advanced Options', href: '/advanced-options' },
+    ],
+  },
+  {
+    title: 'API reference',
+    href: '/api-reference',
+    noLink: true,
+    items: [
+      { title: 'Guide', href: '/guide' },
+    ],
+  },
 ];
 
 type Page = { title: string; href: string };
