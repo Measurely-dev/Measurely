@@ -51,6 +51,17 @@ export default function DashboardMetrics() {
     }
   }, [activeApp]);
 
+  useEffect(() => {
+    document.title = 'Metrics | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Manage your metrics and analyze data all in one place. Measurely helps you organize, track, and gain insights to make data-driven decisions effectively.',
+      );
+    }
+  }, []);
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb>

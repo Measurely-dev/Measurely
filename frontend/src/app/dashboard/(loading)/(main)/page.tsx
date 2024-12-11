@@ -10,8 +10,19 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { useEffect } from 'react';
 
 export default function DashboardHomePage() {
+  useEffect(() => {
+    document.title = 'Dashboard | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Welcome to your Measurely Dashboard. Get an overview of your metrics, analyze data trends, and manage your applications all in one place.',
+      );
+    }
+  }, []);
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb>
@@ -27,7 +38,7 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <UpgradeCard/>
+      <UpgradeCard />
       <ChartsCard />
     </DashboardContentContainer>
   );

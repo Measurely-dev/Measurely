@@ -1,3 +1,4 @@
+'use client';
 import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
@@ -10,7 +11,18 @@ import {
 import { Button } from '@/components/ui/button';
 import WebChip from '@/components/website/chip';
 import { Users } from 'lucide-react';
+import { useEffect } from 'react';
 export default function TeamPage() {
+  useEffect(() => {
+    document.title = 'Team | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Collaborate with your team on Measurely. Manage roles, share insights, and work together to track and analyze metrics effectively.',
+      );
+    }
+  }, []);
   return (
     <DashboardContentContainer className='mt-0 flex h-[calc(100vh-15px-50px)] w-full pb-10 pt-[15px]'>
       <Breadcrumb>
