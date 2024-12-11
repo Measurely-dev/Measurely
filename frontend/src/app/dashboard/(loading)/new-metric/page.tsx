@@ -112,11 +112,10 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
-        props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-      }`}
+        }`}
       onClick={() => {
         if (props.value === 2) {
           return;
@@ -133,8 +132,8 @@ function Metric(props: {
 }
 
 function BasicStep(props: { setStep: (props: number) => void }) {
-  const [baseValue, setBaseValue] = useState(0);
   const [name, setName] = useState('');
+  const [baseValue, setBaseValue] = useState<number | string>(0);
   const [loading, setLoading] = useState(false);
   const { applications, setApplications, activeApp } = useContext(AppsContext);
   const router = useRouter();
@@ -194,11 +193,11 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                   applications?.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
-                          groups: [
-                            ...(applications[activeApp].groups ?? []),
-                            json,
-                          ],
-                        })
+                        groups: [
+                          ...(applications[activeApp].groups ?? []),
+                          json,
+                        ],
+                      })
                       : v,
                   ),
                 );
@@ -226,8 +225,14 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                   <Input
                     placeholder='optional'
                     type='number'
-                    value={baseValue}
-                    onChange={(e) => setBaseValue(Number(e.target.value))}
+                    value={
+                      baseValue === 0 && !Number(baseValue) ? '' : baseValue
+                    }
+                    onChange={(e) =>
+                      setBaseValue(
+                        e.target.value === '' ? '' : Number(e.target.value),
+                      )
+                    }
                     className='h-11 rounded-[12px]'
                   />
                   <Label className='text-xs font-normal leading-tight text-secondary'>
@@ -325,11 +330,11 @@ function DualStep(props: { setStep: (props: number) => void }) {
                 applications?.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
-                        groups: [
-                          ...(applications[activeApp].groups ?? []),
-                          json,
-                        ],
-                      })
+                      groups: [
+                        ...(applications[activeApp].groups ?? []),
+                        json,
+                      ],
+                    })
                     : v,
                 ),
               );
