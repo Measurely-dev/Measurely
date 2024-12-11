@@ -403,7 +403,7 @@ export default function SettingGeneralPage() {
                     className='rounded-[12px]'
                   >
                     Disconnect
-                  </Button>
+                  </Button>Account settings
                 </DisconnectProviderDialog>
               )}
             </div>
