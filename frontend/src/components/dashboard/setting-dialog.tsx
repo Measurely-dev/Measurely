@@ -10,7 +10,7 @@ import { ReactNode, useState } from 'react';
 import SettingGeneralPage from './setting-pages/general';
 import { Hexagon } from 'react-feather';
 import SettingAppsPage from './setting-pages/apps-api';
-import SettingPaymentPage from './setting-pages/plan';
+import SettingPaymentPage from './setting-pages/payment';
 import { Button } from '@/components/ui/button';
 
 export default function SettingDialog(props: { children: ReactNode }) {
@@ -66,9 +66,8 @@ function Navbar(props: {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${
-                props.page === item.value ? 'bg-zinc-400/15' : ''
-              }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${props.page === item.value ? 'bg-zinc-400/15' : ''
+                }`}
               onClick={() => props.setPage(item.value)}
             >
               {item.icon}

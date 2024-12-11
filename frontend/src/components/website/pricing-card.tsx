@@ -10,6 +10,7 @@ interface WebPricingCardProps {
   target: string;
   list: Array<any>;
   button?: string;
+  disabled?: boolean | false;
   [key: string]: any; // Accept any additional props
 }
 
@@ -22,11 +23,12 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
   target,
   list,
   button,
-  ...additionalProps // Destructure additional props here
+  disabled,
+  ...additionalProps
 }) => {
   return (
     <div
-      {...additionalProps} // Spread additionalProps here
+      {...additionalProps}
       className={`flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className}`}
     >
       <div className='text-2xl font-medium'>{name}</div>
@@ -59,7 +61,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         })}
       </div>
       {button ? (
-        <Button className='mt-[30px] w-fit rounded-[12px]'>{button}</Button>
+        <Button className={`mt-[30px] w-fit rounded-[12px]`} disabled={disabled}>{disabled? 'Plan selected' : button}</Button>
       ) : (
         <></>
       )}

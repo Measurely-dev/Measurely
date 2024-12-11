@@ -40,7 +40,7 @@ export default function SettingPaymentPage() {
   };
 
   return (
-    <div>
+    <div className='flex flex-col gap-5'>
       <div className='flex w-full flex-row items-center justify-between rounded-[12px] bg-accent px-5 py-3 max-md:flex-col max-md:gap-4'>
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
