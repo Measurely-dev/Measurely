@@ -46,7 +46,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
             toast.success('Successfully downgraded to the starter plan');
             setUser(Object.assign({}, user, { plan: 'starter' }));
           } else {
-            toast.success('Opening billing portal...');
+            toast.success('Opening checkout session...');
             setTimeout(() => router.push(data.url), 500);
           }
         }
@@ -81,7 +81,11 @@ export default function PlansDialog(props: { children: ReactNode }) {
                 recurrence={plan.reccurence}
                 target={plan.target}
                 list={plan.list}
-                button={"Switch to " + plan.name}
+                button={
+                  user?.plan === plan.identifier
+                    ? 'Current plan'
+                    : 'Switch to ' + plan.name
+                }
                 loading={loading && selectedPlan === plan.identifier}
                 disabled={user?.plan === plan.identifier || loading}
                 onSelect={() => {
