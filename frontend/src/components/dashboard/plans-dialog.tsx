@@ -56,7 +56,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='max-h-[95%] w-[95%] min-w-[95%] overflow-y-scroll rounded-sm shadow-sm'>
+      <DialogContent className='max-h-[95%] w-[95%] !max-w-[1100px] max-lg:min-w-[95%] overflow-y-scroll rounded-sm shadow-sm'>
         <DialogHeader className='!m-0 flex flex-row items-center justify-between !p-0'>
           <DialogTitle className='text-2xl'>Plans</DialogTitle>
           <DialogClose className='!m-0 h-full !p-0'>
