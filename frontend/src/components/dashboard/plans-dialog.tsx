@@ -81,7 +81,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
                 recurrence={plan.reccurence}
                 target={plan.target}
                 list={plan.list}
-                button={plan.button}
+                button={"Switch to " + plan.name}
                 loading={loading && selectedPlan === plan.identifier}
                 disabled={user?.plan === plan.identifier || loading}
                 onSelect={() => {
