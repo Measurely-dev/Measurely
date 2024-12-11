@@ -63,7 +63,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         })}
       </div>
       {button ? (
-        <Button className={`mt-[30px] w-fit rounded-[12px]`} disabled={disabled} loading={loading} onClick={onSelect}>button</Button>
+        <Button className={`mt-[30px] w-fit rounded-[12px]`} disabled={disabled} loading={loading} onClick={onSelect}>{button}</Button>
       ) : (
         <></>
       )}
