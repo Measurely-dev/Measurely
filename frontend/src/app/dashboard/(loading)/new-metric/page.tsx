@@ -66,8 +66,7 @@ export default function NewMetric() {
                 <div className='flex flex-col gap-[5px]'>
                   <div className='text-xl font-medium'>Choose metric type </div>
                   <div className='text-sm text-secondary'>
-                    We&apos;ll fill the billing details automatically if we find
-                    the company.
+                    Select the type of metric you want to create
                   </div>
                 </div>
                 <div className='flex w-full flex-col gap-2'>
@@ -143,8 +142,8 @@ function BasicStep(props: { setStep: (props: number) => void }) {
       <div className='flex flex-col gap-[5px]'>
         <div className='text-xl font-medium'>Basic metric</div>
         <div className='text-sm text-secondary'>
-          We&apos;ll fill the billing details automatically if we find the
-          company.
+          Track a single value for straightforward metrics, ideal for simple
+          counts or totals.
         </div>
         <form
           onSubmit={(e) => {
@@ -237,7 +236,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                   />
                   <Label className='text-xs font-normal leading-tight text-secondary'>
                     Base value stands for the value of the metric before using
-                    measurely to measure the metric
+                    Measurely to measure the metric
                   </Label>
                 </div>
               </div>
@@ -347,8 +346,8 @@ function DualStep(props: { setStep: (props: number) => void }) {
         <div className='flex flex-col gap-[5px]'>
           <div className='text-xl font-medium'>Dual metric</div>
           <div className='text-sm text-secondary'>
-            We&apos;ll fill the billing details automatically if we find the
-            company.
+            Track metrics with positive and negative values, perfect for
+            scenarios like gains and losses or approvals and rejections.
           </div>
           <div className='flex w-full flex-col gap-3'>
             <div className='my-2 flex flex-col gap-4'>
@@ -388,6 +387,10 @@ function DualStep(props: { setStep: (props: number) => void }) {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                <Label className='text-xs font-normal leading-tight text-secondary'>
+                  Customize the names for positive and negative values to match
+                  your specific use case and improve clarity.
+                </Label>
               </Label>
               {namingType === 'auto' ? (
                 <></>

@@ -10,10 +10,10 @@ import { UserContext } from '@/dash-context';
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
-  const {user} = useContext(UserContext)
+  const { user } = useContext(UserContext);
 
-  const handleManageBilling = (e : FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleManageBilling = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setLoadingBilling(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
       method: 'GET',
@@ -29,7 +29,7 @@ export default function SettingPaymentPage() {
           resp.text().then((text) => {
             toast.error(text);
           });
-          setLoadingBilling(false)
+          setLoadingBilling(false);
         }
       })
       .then((data) => {
@@ -37,7 +37,7 @@ export default function SettingPaymentPage() {
           toast.success('Opening billing portal...');
           setTimeout(() => router.push(data.url), 500);
         }
-      })
+      });
   };
 
   return (
@@ -46,7 +46,9 @@ export default function SettingPaymentPage() {
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
             <Code className='size-5' />
-            <div className='text-md font-semibold'>You're using {user?.plan} plan</div>
+            <div className='text-md font-semibold'>
+              You're using {user?.plan} plan
+            </div>
           </div>
           <div className='text-sm text-secondary'>
             You can unlock limits by upgrading to the next plan.
@@ -54,12 +56,12 @@ export default function SettingPaymentPage() {
         </div>
         <PlansDialog>
           <Button className='rounded-[12px] max-md:w-full' variant={'default'}>
-            View plans
+            {user?.plan === 'starter' ? 'Upgrade plan' : 'Switch plan'}
           </Button>
         </PlansDialog>
       </div>
       <SettingCard
-        title='Manage payment'
+        title='Manage payment & plans'
         btn_loading={loadingBilling}
         btn_disabled={loadingBilling}
         action={handleManageBilling}
@@ -72,7 +74,7 @@ export default function SettingPaymentPage() {
             loading={loadingBilling}
             disabled={loadingBilling}
           >
-            Manage payment
+            Manage
           </Button>
         }
       />

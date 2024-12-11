@@ -211,7 +211,7 @@ export function ChartsCard() {
       />
 
       {applications?.[activeApp].groups !== undefined &&
-      applications?.[activeApp].groups?.length! > 0 ? (
+        applications?.[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
@@ -343,7 +343,7 @@ function Header(props: {
         <CardTitle>
           {props.total} {props.groups[props.activeGroup]?.name}
         </CardTitle>
-        <CardDescription>Metric value for the last month</CardDescription>
+        <CardDescription>Metric tracked for the last month</CardDescription>
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

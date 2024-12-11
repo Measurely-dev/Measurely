@@ -110,8 +110,8 @@ export default function NewApp() {
                     : 'Create application'}
                 </div>
                 <div className='text-sm text-secondary'>
-                  We&apos;ll fill the billing details automatically if we find
-                  the company.
+                  Set up a new application to start tracking metrics and
+                  managing your data efficiently
                 </div>
               </div>
               {/* Inputs */}

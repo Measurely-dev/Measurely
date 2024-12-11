@@ -29,7 +29,7 @@ export default function UpgradeCard() {
                   className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
                   variant={'default'}
                 >
-                  View plans
+                  Upgrade
                 </Button>
               </PlansDialog>
             </CardContent>

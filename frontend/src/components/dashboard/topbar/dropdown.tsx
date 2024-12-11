@@ -1,5 +1,7 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +12,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserContext } from '@/dash-context';
+import { RocketIcon, Sparkle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext } from 'react';
 import { ArrowUpRight } from 'react-feather';
+import PlansDialog from '../plans-dialog';
 
 function Capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -24,6 +28,38 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
 
   const { user } = useContext(UserContext);
 
+  function planBadge() {
+    switch (user?.plan) {
+      case 'starter':
+        return (
+          <PlansDialog>
+            <Button
+              className='h-[25px] w-full animate-gradient gap-2 rounded-[6px] bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500'
+              size={'sm'}
+            >
+              <RocketIcon className='size-3' />
+              Upgrade
+            </Button>
+          </PlansDialog>
+        );
+      case 'plus':
+        return (
+          <div className='flex w-fit flex-row items-center gap-1 rounded-full border bg-accent px-2 py-0.5 text-xs'>
+            <Sparkle className='size-3 text-purple-500' />
+            <div className='animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 bg-clip-text font-medium text-transparent'>
+              Plus
+            </div>
+          </div>
+        );
+      case 'pro':
+        return (
+          <div className='flex w-fit animate-gradient flex-row items-center gap-1 rounded-full bg-accent bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 px-2 py-0.5 text-xs font-medium text-white'>
+            <Sparkle className='size-3' />
+            Pro
+          </div>
+        );
+    }
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
@@ -34,14 +70,9 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
             {Capitalize(user?.lastname ?? '')}
           </DropdownMenuLabel>
           <DropdownMenuLabel className='py-0 text-xs font-normal text-secondary'>
-            {user?.email === '' ? (
-              <div className='cursor cursor-pointer select-none hover:text-blue-500'>
-                Add your email in the settings
-              </div>
-            ) : (
-              user?.email
-            )}
+            {user?.email}
           </DropdownMenuLabel>
+          <div className='mt-2'>{planBadge()}</div>
         </div>
         {/* Separator */}
         <DropdownMenuSeparator />

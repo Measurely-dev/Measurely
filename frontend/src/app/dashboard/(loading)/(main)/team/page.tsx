@@ -33,10 +33,9 @@ export default function TeamPage() {
         </div>
         <div className='flex flex-col gap-3 text-center'>
           <div className='text-lg font-semibold'>Team</div>
-          <div className='text-sm text-secondary'>
-            Create web-based invoices in seconds. Have an easy overview of all
-            <br />
-            your invoices and see your outstanding balance.
+          <div className='max-w-[400px] text-sm text-secondary'>
+            Collaborate with others by adding team members to your workspace.
+            Stay tuned for this upcoming feature!
           </div>
           <Button className='mx-auto mb-10 mt-4 w-fit rounded-xl'>
             Request feature

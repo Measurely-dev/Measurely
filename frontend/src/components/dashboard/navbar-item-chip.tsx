@@ -11,7 +11,7 @@ import { BookOpen } from 'react-feather';
 export default function NavbarItemChip() {
   const itemList = [
     {
-      label: 'Docs',
+      label: 'Documentation',
       href: '/docs/getting-started/introduction',
       icon: <BookOpen className='size-[18px]' />,
     },
@@ -34,7 +34,7 @@ function Item(props: { children: ReactNode; label: string; href: string }) {
     <TooltipProvider delayDuration={0}>
       <Tooltip>
         <TooltipTrigger>
-          <Link href={props.href}>
+          <Link href={props.href} target='_blank'>
             <div
               className={`flex items-center justify-center rounded-[12px] py-1.5 text-[20px] text-secondary transition-all duration-200 hover:bg-background hover:text-primary`}
             >

@@ -44,7 +44,8 @@ export default function AdvancedOptionsMetricDialog(props: {
               You can select a date to offset the chart{' '}
               <Link
                 className='text-primary underline'
-                href={'/docs/getting-started/installation'}
+                href={'/docs/features/advanced-options'}
+                target='_blank'
               >
                 learn more
               </Link>
