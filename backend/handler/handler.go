@@ -53,7 +53,8 @@ func (h *Handler) setup_api() {
 	h.router.Group(func(r chi.Router) {
 		r.Post("/email-valid", h.service.EmailValid)
 		r.Post("/login", h.service.Login)
-		r.Get("/use-github", h.service.UseGithub)
+		r.Get("/oauth/{provider}", h.service.Oauth)
+		r.HandleFunc("/callback/{provider}", h.service.Callback)
 		r.Post("/register", h.service.Register)
 		r.Post("/logout", h.service.Logout)
 		r.Post("/forgot-password", h.service.ForgotPassword)
@@ -63,7 +64,6 @@ func (h *Handler) setup_api() {
 
 		r.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
 		r.HandleFunc("/webhook", h.service.Webhook)
-		r.HandleFunc("/github-callback", h.service.GithubCallback)
 
 		r.Post("/update-rates", h.service.UpdateRates)
 		r.Post("/update-plans", h.service.UpdatePlans)
@@ -79,7 +79,7 @@ func (h *Handler) setup_api() {
 
 			cr.Delete("/account", h.service.DeleteAccount)
 
-			cr.Post("/disconnect-github", h.service.DisconnectGithubProvider)
+			cr.Post("/disconnect/{provider}", h.service.DisconnectProvider)
 
 			cr.Get("/user", h.service.GetUser)
 

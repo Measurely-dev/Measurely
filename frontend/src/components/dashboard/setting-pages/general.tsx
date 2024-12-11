@@ -29,10 +29,11 @@ export default function SettingGeneralPage() {
 
   const router = useRouter();
 
+
   const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (firstName === '' || lastName === '') {
-      toast.error('All fields must be filled');
+    if (firstName === '') {
+      toast.error("The firstname field must be filled");
       return;
     }
     setLoadingProfile(true);
@@ -168,7 +169,6 @@ export default function SettingGeneralPage() {
         title='Email'
         btn_loading={loadingEmail}
         btn_disabled={email === '' || email === user?.email}
-        disabled={user?.provider === Provider.GITHUB}
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
@@ -201,7 +201,6 @@ export default function SettingGeneralPage() {
         btn_disabled={
           oldPassword === '' || newPassword === '' || confirmedPassword === ''
         }
-        disabled={user?.provider === Provider.GITHUB}
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
@@ -322,14 +321,14 @@ export default function SettingGeneralPage() {
                   </p>
                 </div>
               </div>
-              {user?.provider === Provider.EMAIL ? (
+              {(user?.providers.filter(prov => prov.provider === Provider.GITHUB).length ?? 0) === 0? (
                 <Button
                   variant={'ghost'}
                   size={'sm'}
                   className='rounded-[12px]'
                   onClick={() => {
                     router.push(
-                      `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=2&email=${user.email}`,
+                      `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=2&email=${user?.email}`,
                     );
                   }}
                 >
@@ -382,14 +381,14 @@ export default function SettingGeneralPage() {
                   </p>
                 </div>
               </div>
-              {user?.provider === Provider.EMAIL ? (
+              {(user?.providers.filter(prov => prov.provider === Provider.GOOGLE).length ?? 0) === 0? (
                 <Button
                   variant={'ghost'}
                   size={'sm'}
                   className='rounded-[12px]'
                   onClick={() => {
                     router.push(
-                      `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=2&email=${user.email}`,
+                      `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=2&email=${user?.email}`,
                     );
                   }}
                 >

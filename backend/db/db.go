@@ -38,7 +38,7 @@ func (d *DB) Close() error {
 
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
-	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, provider, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.Provider, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.Provider, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image)
+	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image)
 	return new_user, err
 }
 
@@ -93,6 +93,42 @@ func (db *DB) UpdateUserPlan(id uuid.UUID, plan string) error {
 func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 	_, err := db.Conn.Exec("UPDATE users SET image = $1 WHERE id = $2", image, id)
 	return err
+}
+
+func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {
+	var new_provider types.UserProvider
+	err := db.Conn.QueryRow("INSERT INTO providers (userid, provider, provideruserid) VALUES ($1, $2, $3) RETURNING *", provider.UserId, provider.Provider, provider.ProviderUserId).Scan(&new_provider.Id, &new_provider.UserId, &new_provider.Provider, &new_provider.ProviderUserId)
+	return new_provider, err
+}
+
+func (db *DB) DeleteUserProvider(id uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM providers WHERE id = $1", id)
+	return err
+}
+
+func (db *DB) GetProviderByProviderUserId(provideruserid string, providerType int) (types.UserProvider, error) {
+	var provider types.UserProvider
+	err := db.Conn.Get(&provider, "SELECT * FROM providers WHERE provideruserid = $1 AND provider = $2", provideruserid, providerType)
+	return provider, err
+}
+
+func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, error) {
+	rows, err := db.Conn.Query("SELECT * FROM providers WHERE userid = $1", userid)
+	if err != nil {
+		return []types.UserProvider{}, err
+	}
+	defer rows.Close()
+	var providers []types.UserProvider
+	for rows.Next() {
+		var provider types.UserProvider
+		err := rows.Scan(&provider.Id, &provider.UserId, &provider.Provider, &provider.ProviderUserId)
+		if err != nil {
+			return []types.UserProvider{}, err
+		}
+		providers = append(providers, provider)
+	}
+
+	return providers, nil
 }
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {

@@ -7,14 +7,21 @@ CREATE TABLE Users (
     FirstName TEXT NOT NULL,
     LastName TEXT NOT NULL,
     Password TEXT NOT NULL,
-    Provider INT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,
     CurrentPlan TEXT NULL,
     Image TEXT NOT NULL DEFAULT ''
 );
 
-
-CREATE INDEX idx__userid ON  Users (Id);
+-- Create Providers table
+CREATE TABLE IF NOT EXISTS Providers (
+  Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  UserId UUID NOT NULL,
+  Provider INT NOT NULL,
+  ProviderUserId INT NOT NULL,
+  UNIQUE(Provider, ProviderUserId),
+  UNIQUE(Provider, UserId),
+  FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+);
 
 -- Create Applications table
 CREATE TABLE Applications (
@@ -102,7 +109,7 @@ CREATE TABLE IF NOT EXISTS Plans (
     TimeFrames TEXT NOT NULL
 );
 
-
+CREATE INDEX IF NOT EXISTS idx__userid ON  Users (Id);
 CREATE INDEX IF NOT EXISTS idx_metrics_events_metricid_id ON MetricEvents (MetricId);
 CREATE INDEX IF NOT EXISTS idx_metrics_app_id ON Metrics (GroupId, Id);
 CREATE INDEX IF NOT EXISTS idx_apikey_id ON applications (ApiKey);

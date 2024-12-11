@@ -7,8 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -85,7 +83,7 @@ func DeleteCookie() http.Cookie {
 		cookie.Domain = "measurely.dev"
 		cookie.SameSite = http.SameSiteNoneMode
 	}
-  return cookie
+	return cookie
 }
 
 func IsUUIDValid(id string) bool {
@@ -165,89 +163,46 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 	return plan, true
 }
 
-func RetrieveAccessToken(code string, w http.ResponseWriter, r *http.Request) (string, error) {
-	clientID := os.Getenv("GITHUB_CLIENT_ID")
-	clientSecret := os.Getenv("GITHUB_SECRET")
-
-	// Set us the request body as JSON
-	requestBodyMap := map[string]string{
-		"client_id":     clientID,
-		"client_secret": clientSecret,
-		"code":          code,
-	}
-	requestJSON, _ := json.Marshal(requestBodyMap)
-
-	// POST request to set URL
-	req, reqerr := http.NewRequest(
-		"POST",
-		"https://github.com/login/oauth/access_token",
-		bytes.NewBuffer(requestJSON),
-	)
-	if reqerr != nil {
-		log.Println(reqerr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-		return "", reqerr
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	// Get the response
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Println(resperr)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-		return "", resperr
-	}
-
-	// Response body converted to stringified JSON
-	respbody, _ := io.ReadAll(resp.Body)
-
-	// Represents the response received from Github
-	type githubAccessTokenResponse struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-		Scope       string `json:"scope"`
-	}
-
-	// Convert stringified JSON to a struct object of type githubAccessTokenResponse
-	var ghresp githubAccessTokenResponse
-	json.Unmarshal(respbody, &ghresp)
-
-	return ghresp.AccessToken, nil
-}
-
-func RevokeUserToken(access_token string) error {
-	clientID := os.Getenv("GITHUB_CLIENT_ID")
-	clientSecret := os.Getenv("GITHUB_SECRET")
-
-	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", clientID)
-
-	reqBody := map[string]string{
-		"access_token": access_token,
-	}
-	jsonBody, _ := json.Marshal(reqBody)
-
-	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	req.SetBasicAuth(clientID, clientSecret)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/vnd.github+json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusNoContent {
-		_, err := io.ReadAll(resp.Body)
-		return err
-	}
-
-	return nil
-}
+// func (s *Service) RetrieveAccessToken(code string, w http.ResponseWriter, r *http.Request) (string, error) {
+// 	ctx := context.Background()
+// 	token, err := s.oauth2.Exchange(ctx, code)
+// 	if err != nil {
+// 		log.Println("Error exchanging code for token:", err)
+// 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
+// 		return "", err
+// 	}
+//
+// 	return token.AccessToken, nil
+// }
+//
+// func (s * Service) RevokeUserToken(accessToken string) error {
+// 	clientID := s.oauth2.ClientID
+// 	clientSecret := s.oauth2.ClientSecret
+//
+// 	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", clientID)
+//
+// 	req, err := http.NewRequest("DELETE", url, nil)
+// 	if err != nil {
+// 		log.Println("Error creating revoke request:", err)
+// 		return err
+// 	}
+//
+// 	req.SetBasicAuth(clientID, clientSecret)
+// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+// 	req.Header.Set("Accept", "application/vnd.github+json")
+//
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		log.Println("Error sending revoke request:", err)
+// 		return err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusNoContent {
+// 		log.Println("Unexpected status code while revoking token:", resp.StatusCode)
+// 		return fmt.Errorf("failed to revoke token, status code: %d", resp.StatusCode)
+// 	}
+//
+// 	return nil
+// }

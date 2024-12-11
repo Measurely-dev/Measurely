@@ -20,13 +20,13 @@ type RegisterRequest struct {
 }
 
 type GetUserResponse struct {
-	Email       string `json:"email"`
-	FirstName   string `json:"firstname"`
-	LastName    string `json:"lastname"`
-	Image       string `json:"image"`
-	CurrentPlan string `json:"currentplan"`
-	Provider    int    `json:"provider"`
-	Plan        string `json:"plan"`
+	Email       string               `json:"email"`
+	FirstName   string               `json:"firstname"`
+	LastName    string               `json:"lastname"`
+	Image       string               `json:"image"`
+	CurrentPlan string               `json:"currentplan"`
+	Plan        string               `json:"plan"`
+	Providers   []types.UserProvider `json:"providers"`
 }
 
 type EmailValidRequest struct {

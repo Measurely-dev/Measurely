@@ -9,6 +9,7 @@ import (
 const (
 	EMAIL = iota
 	GITHUB
+	GOOGLE
 )
 
 const (
@@ -37,10 +38,16 @@ type User struct {
 	Password         string
 	FirstName        string
 	LastName         string
-	Provider         int
 	StripeCustomerId string
 	CurrentPlan      string
 	Image            string
+}
+
+type UserProvider struct {
+	Id             uuid.UUID `json:"id"`
+	UserId         uuid.UUID `json:"userid"`
+	Provider       int       `json:"provider"`
+	ProviderUserId string    `json:"provideruserid"`
 }
 
 type Application struct {

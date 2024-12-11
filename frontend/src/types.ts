@@ -34,8 +34,15 @@ export interface User {
   lastname: string;
   image: string;
   email: string;
+  plan: string;
+  providers: UserProvider[];
+}
+
+interface UserProvider {
+  id: string;
+  userid: string;
   provider: Provider;
-  plan : string;
+  provideruserid: string;
 }
 
 export interface Plan {
@@ -54,4 +61,5 @@ export enum GroupType {
 export enum Provider {
   EMAIL,
   GITHUB,
+  GOOGLE,
 }
