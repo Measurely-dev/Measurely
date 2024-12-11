@@ -69,13 +69,13 @@ export default function SettingGeneralPage() {
       return;
     }
     setLoadingEmail(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/email`, {
-      method: 'PATCH',
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/requestemailchange`, {
+      method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ new_email: email }),
     })
       .then((resp) => {
         if (resp.status === 200) {
@@ -294,7 +294,7 @@ export default function SettingGeneralPage() {
         description='A list of providers linked to this account.'
         btn_loading={false}
         btn_disabled={false}
-        action={() => {}}
+        action={() => { }}
         content={
           <div className='flex flex-col gap-4'>
             <div className='flex items-center justify-between'>
@@ -355,7 +355,7 @@ export default function SettingGeneralPage() {
         title='Delete account'
         btn_loading={false}
         btn_disabled={false}
-        action={() => {}}
+        action={() => { }}
         danger
         description='This action will delete this account forever.'
         content={

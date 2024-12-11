@@ -103,8 +103,6 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  log.Println("yoyo")
-
 	user, err := s.DB.GetUserById(val)
 	if err != nil {
 		log.Println(err)
@@ -132,10 +130,8 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  log.Print(result.URL)
-
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (s *Service) CancelSubscription(w http.ResponseWriter, r *http.Request) {

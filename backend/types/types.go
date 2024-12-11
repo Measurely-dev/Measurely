@@ -78,6 +78,14 @@ type AccountRecovery struct {
 	Code   string
 	UserId uuid.UUID
 }
+
+type EmailChangeRequest struct {
+	Id       uuid.UUID
+	Code     string
+	UserId   uuid.UUID
+	NewEmail string
+}
+
 type Feedback struct {
 	Id      uuid.UUID
 	Date    time.Time

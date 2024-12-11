@@ -44,14 +44,12 @@ export default function PasswordReset() {
             btn_loading={loading}
             action={(form) => {
               setLoading(true);
-
               const email = form.get('email');
               if (email === '') {
                 toast.error('Email is required');
                 setLoading(false);
                 return;
               }
-
               fetch(process.env.NEXT_PUBLIC_API_URL + '/forgot-password', {
                 method: 'POST',
                 headers: {
@@ -121,7 +119,8 @@ export default function PasswordReset() {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  password: password,
+                  newpassword: password,
+                  code : searchParams.get("code")
                 }),
                 credentials: 'include',
               }).then((res) => {

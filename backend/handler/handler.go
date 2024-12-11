@@ -70,6 +70,8 @@ func (h *Handler) setup_api() {
 		r.Get("/rates", h.service.GetRates)
 		r.Get("/plans", h.service.GetPlans)
 
+    r.Patch("/changeemail", h.service.UpdateUserEmail)
+
 		r.Group(func(cr chi.Router) {
 			cr.Use(h.service.AuthentificatedMiddleware)
 
@@ -103,6 +105,8 @@ func (h *Handler) setup_api() {
 
 			cr.Patch("/name", h.service.UpdateFirstAndLastName)
 			cr.Patch("/password", h.service.UpdatePassword)
+
+      cr.Post("/requestemailchange", h.service.RequestEmailChange)
 		})
 	})
 }

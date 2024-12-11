@@ -81,6 +81,11 @@ func (db *DB) UpdateUserProvider(id uuid.UUID, provider int) error {
 	return err
 }
 
+func (db *DB) UpdateUserEmail(id uuid.UUID, newemail string) error {
+	_, err := db.Conn.Exec("UPDATE users SET email = $1 WHERE id = $2", newemail, id)
+	return err
+}
+
 func (db *DB) UpdateUserPlan(id uuid.UUID, plan sql.Null[string]) error {
 	_, err := db.Conn.Exec("UPDATE users SET currentplan = $1 WHERE id = $2", plan, id)
 	return err
@@ -312,7 +317,7 @@ func (db *DB) DeleteApplication(id uuid.UUID, userid uuid.UUID) error {
 
 func (db *DB) CreateAccountRecovery(userid uuid.UUID, code string) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
-	err := db.Conn.QueryRow("INSERT INTO accountrecovery (userid, code) VALUES ($1, $2) RETURNING *", userid, code).Scan(&account_recovery.UserId, &account_recovery.Code, &account_recovery.Id)
+	err := db.Conn.QueryRow("INSERT INTO accountrecovery (userid, code) VALUES ($1, $2) RETURNING *", userid, code).Scan(&account_recovery.Id, &account_recovery.Code, &account_recovery.UserId)
 	return account_recovery, err
 }
 
@@ -326,6 +331,29 @@ func (db *DB) GetAccountRecoveryByUserId(userid uuid.UUID) (types.AccountRecover
 	var account_recovery types.AccountRecovery
 	err := db.Conn.Get(&account_recovery, "SELECT * FROM accountrecovery WHERE userid = $1", userid)
 	return account_recovery, err
+}
+
+func (db *DB) GetEmailChangeRequest(code string) (types.EmailChangeRequest, error) {
+	var emailchange types.EmailChangeRequest
+	err := db.Conn.Get(&emailchange, "SELECT * FROM emailchange WHERE code = $1", code)
+	return emailchange, err
+}
+
+func (db *DB) GetEmailChangeRequestByUserId(userid uuid.UUID, newemail string) (types.EmailChangeRequest, error) {
+	var emailchange types.EmailChangeRequest
+	err := db.Conn.Get(&emailchange, "SELECT * FROM emailchange WHERE userid = $1 AND newemail = $2", userid, newemail)
+	return emailchange, err
+}
+
+func (db *DB) CreateEmailChangeRequest(userid uuid.UUID, code string, newemail string) (types.EmailChangeRequest, error) {
+	var emailchange types.EmailChangeRequest
+	err := db.Conn.QueryRow("INSERT INTO emailchange (userid, code, newemail) VALUES ($1, $2, $3) RETURNING *", userid, code, newemail).Scan(&emailchange.Id, &emailchange.Code, &emailchange.UserId, &emailchange.NewEmail)
+	return emailchange, err
+}
+
+func (db *DB) DeleteEmailChangeRequest(code string) error {
+	_, err := db.Conn.Exec("DELETE FROM emailchange WHERE code = $1", code)
+	return err
 }
 
 func (db *DB) DeleteAccountRecovery(code string) error {

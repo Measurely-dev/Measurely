@@ -75,6 +75,15 @@ CREATE TABLE IF NOT EXISTS AccountRecovery (
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
+-- Create Email Change table
+CREATE TABLE IF NOT EXISTS EmailChange (
+    Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    Code TEXT NOT NULL UNIQUE,
+    UserId UUID NOT NULL,
+    NewEmail TEXT NOT NULL,
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+);
+
 -- Create Feedback table
 CREATE TABLE IF NOT EXISTS Feedbacks (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

@@ -213,7 +213,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if a user with the chosen email exists
-	user, derr := s.DB.GetUserByEmail(request.Email)
+	user, derr := s.DB.GetUserByEmail(strings.ToLower(request.Email))
 	if derr == sql.ErrNoRows {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -431,7 +431,6 @@ func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if user.Provider != types.GITHUB {
-				log.Println("user already exists")
 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", http.StatusMovedPermanently)
 				return
 			}
@@ -536,7 +535,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_user, err := s.DB.CreateUser(types.User{
-		Email:            request.Email,
+		Email:            strings.ToLower(request.Email),
 		Password:         hashed_password,
 		FirstName:        request.FirstName,
 		LastName:         request.LastName,
@@ -638,7 +637,6 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var account_recovery types.AccountRecovery
 	account_recovery, gerr := s.DB.GetAccountRecoveryByUserId(user.Id)
 	if gerr == sql.ErrNoRows {
-
 		tries := 5
 		var code string = ""
 		var aerr error
@@ -653,7 +651,7 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 			}
 
 			_, aerr = s.DB.GetAccountRecovery(code)
-			if aerr != nil {
+			if aerr == sql.ErrNoRows {
 				break
 			}
 		}
@@ -852,6 +850,117 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	cookie := DeleteCookie()
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
+	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request struct {
+		NewEmail string `json:"new_email"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+  user , err := s.DB.GetUserById(val)
+  if err != nil {
+    http.Error(w, "Internal error", http.StatusInternalServerError)
+    return
+  }
+
+	var emailchange types.EmailChangeRequest
+	emailchange, gerr := s.DB.GetEmailChangeRequestByUserId(val, strings.ToLower(request.NewEmail))
+	if gerr == sql.ErrNoRows {
+		tries := 5
+		var code string = ""
+		var aerr error
+		for {
+			if tries <= 0 {
+				break
+			}
+			tries -= 1
+			code, aerr = GenerateRandomKey()
+			if aerr != nil {
+				continue
+			}
+
+			_, aerr = s.DB.GetEmailChangeRequest(code)
+			if aerr == sql.ErrNoRows {
+				break
+			}
+		}
+
+		if code == "" {
+			http.Error(w, "Timeout, please try again later", http.StatusRequestTimeout)
+			return
+		}
+
+		var cerr error
+		emailchange, cerr = s.DB.CreateEmailChangeRequest(val, code, strings.ToLower(request.NewEmail))
+		if cerr != nil {
+			log.Println(cerr)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	// Send email
+	s.ScheduleEmail(SendEmailRequest{
+		To: user.Email,
+		Fields: MailFields{
+			Subject:     "Change your email",
+			Content:     "A request has been made to change your email. If you do not recall making this request, please update your password immediately.",
+			Link:        os.Getenv("ORIGIN") + "/change-email?code=" + emailchange.Code,
+			ButtonTitle: "Change my email",
+		},
+	})
+}
+
+func (s *Service) UpdateUserEmail(w http.ResponseWriter, r * http.Request){
+	var request struct {
+    Code string `json:"code"`
+  }
+
+	// Try to unmarshal the request body
+	jerr := json.NewDecoder(r.Body).Decode(&request)
+	if jerr != nil {
+		http.Error(w, jerr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// fetch the account recovery
+	emailchange, gerr := s.DB.GetEmailChangeRequest(request.Code)
+	if gerr != nil {
+		http.Error(w, "Invalid email change link", http.StatusBadRequest)
+		return
+	}
+
+	// update the user password
+	err := s.DB.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// delete the account recovery
+	derr := s.DB.DeleteEmailChangeRequest(emailchange.Code)
+	if derr != nil {
+		log.Println(derr)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request) {

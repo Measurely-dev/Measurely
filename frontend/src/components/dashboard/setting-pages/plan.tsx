@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import SettingCard from '../setting-card';
 import { Code } from 'react-feather';
@@ -8,8 +9,38 @@ import { useRouter } from 'next/navigation';
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
+
+  const handleManageBilling = () => {
+    setLoadingBilling(true);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+      .then((resp) => {
+        if (resp.status === 200) {
+          return resp.json();
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+      })
+      .then((data) => {
+        if (data !== null && data !== undefined) {
+          toast.success('Opening billing portal...');
+          setTimeout(() => router.push(data.url), 500);
+        }
+      })
+      .finally(() => {
+        setLoadingBilling(false);
+      });
+  };
+
   return (
-    <>
+    <div>
       <div className='flex w-full flex-row items-center justify-between rounded-[12px] bg-accent px-5 py-3 max-md:flex-col max-md:gap-4'>
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
@@ -30,44 +61,17 @@ export default function SettingPaymentPage() {
         title='Manage payment'
         btn_loading={loadingBilling}
         btn_disabled={loadingBilling}
-        action={() => {}}
         description='To manage your payment methods and plans please go on stripe.'
         content={
           <Button
             className='w-full rounded-[12px]'
             variant={'default'}
-            onClick={() => {
-              console.log('yoyo');
-              setLoadingBilling(true);
-              fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
-                method: 'GET',
-                credentials: 'include',
-              })
-                .then((resp) => {
-                  console.log(resp);
-                  if (resp.status === 200) {
-                    return resp.json();
-                  } else {
-                    resp.text().then((text) => {
-                      toast.error(text);
-                    });
-                  }
-                })
-                .then((data) => {
-                  if (data !== null && data !== undefined) {
-                    toast.success('Opening billing portal...');
-                    setTimeout(() => router.push(data.url), 500);
-                  }
-                })
-                .finally(() => {
-                  setLoadingBilling(false);
-                });
-            }}
+            onClick={handleManageBilling}
           >
             Manage payment
           </Button>
         }
       />
-    </>
+    </div>
   );
 }
