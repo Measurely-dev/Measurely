@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { useContext } from 'react';
 import { UserContext } from '@/dash-context';
+import PlansDialog from './plans-dialog';
 
 export default function UpgradeCard() {
   const { user } = useContext(UserContext);
@@ -23,12 +24,14 @@ export default function UpgradeCard() {
                   You can unlock your limits by upgrading to the next plan.
                 </div>
               </div>
-              <Button
-                className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
-                variant={'default'}
-              >
-                View plans
-              </Button>
+              <PlansDialog>
+                <Button
+                  className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
+                  variant={'default'}
+                >
+                  View plans
+                </Button>
+              </PlansDialog>
             </CardContent>
           </Card>
         );
@@ -84,7 +87,7 @@ export default function UpgradeCard() {
                 <div className='flex flex-row items-center gap-3'>
                   <div className='flex flex-row items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium'>
                     <Sparkle className='size-3' />
-                   {user?.plan} 
+                    {user?.plan}
                   </div>
                   <div className='text-md font-semibold text-white'>
                     Welcome back,{' '}
