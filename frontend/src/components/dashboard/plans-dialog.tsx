@@ -43,7 +43,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
                 recurrence={plan.reccurence}
                 target={plan.target}
                 list={plan.list}
-                button={plan.button}
+                button={"Switch to" + " " + plan.name}
                 disabled={users?.user?.plan === plan.identifier ? true : false}
               />
             );
