@@ -174,17 +174,17 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		w.Write(bytes)
 		w.Header().Set("Content-Type", "application/json")
 
-		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: user.Email,
-			Fields: MailFields{
-				Subject: "Thank you for subscription",
-				Content: "You have been successfully upgraded to " + request.Plan + ".",
-
-				Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
-				ButtonTitle: "View Dashboard",
-			},
-		})
+		// // send email
+		// s.ScheduleEmail(SendEmailRequest{
+		// 	To: user.Email,
+		// 	Fields: MailFields{
+		// 		Subject: "Thank you for subscription",
+		// 		Content: "You have been successfully upgraded to " + request.Plan + ".",
+		//
+		// 		Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
+		// 		ButtonTitle: "View Dashboard",
+		// 	},
+		// })
 
 	}
 }
