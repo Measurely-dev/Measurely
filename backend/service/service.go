@@ -868,11 +868,11 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  user , err := s.DB.GetUserById(val)
-  if err != nil {
-    http.Error(w, "Internal error", http.StatusInternalServerError)
-    return
-  }
+	user, err := s.DB.GetUserById(val)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
 
 	var emailchange types.EmailChangeRequest
 	emailchange, gerr := s.DB.GetEmailChangeRequestByUserId(val, strings.ToLower(request.NewEmail))
@@ -924,10 +924,10 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Service) UpdateUserEmail(w http.ResponseWriter, r * http.Request){
+func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-    Code string `json:"code"`
-  }
+		Code string `json:"code"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -943,24 +943,42 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r * http.Request){
 		return
 	}
 
-	// update the user password
-	err := s.DB.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail)
+	user, err := s.DB.GetUserById(emailchange.UserId)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// update the user password
+	if err = s.DB.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
+	params := stripe.CustomerParams{
+		Email: stripe.String(emailchange.NewEmail),
+	}
+	_, err = customer.Update(user.StripeCustomerId, &params)
+	if err != nil {
+		log.Println("Failed to update stripe customer email")
+		s.DB.UpdateUserEmail(user.Id, user.Email)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
 	// delete the account recovery
-	derr := s.DB.DeleteEmailChangeRequest(emailchange.Code)
-	if derr != nil {
-		log.Println(derr)
+	if err := s.DB.DeleteEmailChangeRequest(emailchange.Code); err != nil {
+		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-
 }
 
 func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request) {

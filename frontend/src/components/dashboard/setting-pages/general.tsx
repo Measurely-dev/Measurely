@@ -355,7 +355,7 @@ export default function SettingGeneralPage() {
         title='Delete account'
         btn_loading={false}
         btn_disabled={false}
-        action={() => { }}
+        action={(e) => {e.preventDefault()}}
         danger
         description='This action will delete this account forever.'
         content={

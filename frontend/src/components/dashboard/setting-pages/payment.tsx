@@ -1,16 +1,19 @@
 'use client';
-import React, { useState } from 'react';
+import React, { FormEvent, useContext, useState } from 'react';
 import SettingCard from '../setting-card';
 import { Code } from 'react-feather';
 import { Button } from '@/components/ui/button';
 import PlansDialog from '../plans-dialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { UserContext } from '@/dash-context';
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
+  const {user} = useContext(UserContext)
 
-  const handleManageBilling = () => {
+  const handleManageBilling = (e : FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setLoadingBilling(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
       method: 'GET',
@@ -26,6 +29,7 @@ export default function SettingPaymentPage() {
           resp.text().then((text) => {
             toast.error(text);
           });
+          setLoadingBilling(false)
         }
       })
       .then((data) => {
@@ -34,9 +38,6 @@ export default function SettingPaymentPage() {
           setTimeout(() => router.push(data.url), 500);
         }
       })
-      .finally(() => {
-        setLoadingBilling(false);
-      });
   };
 
   return (
@@ -45,7 +46,7 @@ export default function SettingPaymentPage() {
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
             <Code className='size-5' />
-            <div className='text-md font-semibold'>You're using free plan</div>
+            <div className='text-md font-semibold'>You're using {user?.plan} plan</div>
           </div>
           <div className='text-sm text-secondary'>
             You can unlock limits by upgrading to the next plan.
@@ -61,12 +62,15 @@ export default function SettingPaymentPage() {
         title='Manage payment'
         btn_loading={loadingBilling}
         btn_disabled={loadingBilling}
+        action={handleManageBilling}
         description='To manage your payment methods and plans please go on stripe.'
         content={
           <Button
             className='w-full rounded-[12px]'
             variant={'default'}
-            onClick={handleManageBilling}
+            type='submit'
+            loading={loadingBilling}
+            disabled={loadingBilling}
           >
             Manage payment
           </Button>

@@ -72,11 +72,10 @@ export default function DisconnectProviderDialog(props: {
                   resp.text().then((text) => {
                     toast.error(text);
                   });
+                  setLoading(false)
                 }
               })
-              .finally(() => {
-                setLoading(false);
-              });
+              
           }}
         >
           <div className='flex flex-row items-center justify-center gap-4'>
