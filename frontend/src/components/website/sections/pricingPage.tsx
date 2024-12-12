@@ -1,8 +1,55 @@
+'use client';
 import { plans } from '@/plans';
 import WebPageHeader from '../page-header';
 import WebPricingCard from '../pricing-card';
+import { useContext, useState } from 'react';
+import { UserContext } from '@/dash-context';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
-export default function PricingCardsSection() {
+export default function PricingCardsSection(props: {
+  isAuthentificated: string | null;
+}) {
+  const { user, setUser } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const router = useRouter();
+
+  const subscribe = (plan: string) => {
+    if (props.isAuthentificated === 'true') {
+      setSelectedPlan(plan);
+      setLoading(true);
+      fetch(`${process.env.NEXT_PUBLIC_API_URL} / subscribe`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: plan }),
+      })
+        .then((resp) => {
+          if (resp.status === 200) {
+            return resp.json();
+          } else {
+            resp.text().then((text) => {
+              toast.error(text);
+            });
+            setLoading(false);
+          }
+        })
+        .then((data) => {
+          if (data !== null && data !== undefined) {
+            if (plan === 'starter') {
+              toast.success('Successfully downgraded to the starter plan');
+              setUser(Object.assign({}, user, { plan: 'starter' }));
+            } else {
+              toast.success('Opening checkout session...');
+              setTimeout(() => router.push(data.url), 500);
+            }
+          }
+        });
+    } else {
+      router.push('/register');
+    }
+  };
   return (
     <>
       <WebPageHeader
@@ -28,7 +75,18 @@ export default function PricingCardsSection() {
               recurrence={plan.reccurence}
               target={plan.target}
               list={plan.list}
-              button={plan.button}
+              button={
+                plan.identifier === 'starter'
+                  ? 'Get started'
+                  : user?.plan === plan.identifier
+                    ? 'Current plan'
+                    : 'Continue with ' + plan.name
+              }
+              loading={loading && selectedPlan === plan.identifier}
+              disabled={user?.plan === plan.identifier || loading}
+              onSelect={() => {
+                subscribe(plan.identifier);
+              }}
             />
           );
         })}
