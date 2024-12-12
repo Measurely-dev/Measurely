@@ -10,9 +10,9 @@ export const metadata: Metadata = {
     'Explore Measurely’s flexible pricing plans designed to meet the needs of developers and teams. Whether you’re just getting started or managing large-scale projects, we have a plan to help you track metrics and analyze data with ease.',
 };
 
-const headersList = headers();
-const is_authentificated = headersList.get('is-authentificated');
 export default function Pricing() {
+  const headersList = headers();
+  const is_authentificated = headersList.get('is-authentificated');
   return (
     <WebContainer>
       <ContentContainer type='page'>

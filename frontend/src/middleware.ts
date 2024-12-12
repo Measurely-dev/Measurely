@@ -45,6 +45,7 @@ export const config = {
   matcher: [
     '/',
     '/home',
+    '/pricing',
     '/sign-in',
     '/register',
     '/forgot-password',

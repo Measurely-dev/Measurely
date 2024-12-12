@@ -16,10 +16,11 @@ export default function PricingCardsSection(props: {
   const router = useRouter();
 
   const subscribe = (plan: string) => {
+    console.log(props.isAuthentificated)
     if (props.isAuthentificated === 'true') {
       setSelectedPlan(plan);
       setLoading(true);
-      fetch(`${process.env.NEXT_PUBLIC_API_URL} / subscribe`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
