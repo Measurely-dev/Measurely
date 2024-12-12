@@ -11,7 +11,9 @@ import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
 import Image5 from '../../../../public/measurely-image5.png';
-export default function BentoUiSection() {
+export default function BentoUiSection(props: {
+  isAuthentificated: string | null;
+}) {
   const [is_client, set_is_client] = useState(false);
   const [window_width, set_window_width] = useState(0);
 
@@ -76,7 +78,7 @@ export default function BentoUiSection() {
           description='Measurely tracks single (basic) and dual metrics. Basic metrics monitor growth, while dual metrics compare positive and negative influences on a key metric.'
           img={Image2}
         />
-        <SubscriptionUiSection />
+        <SubscriptionUiSection isAuthentificated={props.isAuthentificated} />
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
