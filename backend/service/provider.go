@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,10 +13,9 @@ import (
 )
 
 type Provider struct {
-	UserURL  string
-	GrantURL string
-	Type     int
-	Config   *oauth2.Config
+	UserURL string
+	Type    int
+	Config  *oauth2.Config
 }
 
 type UserInfo struct {
@@ -33,14 +31,18 @@ func UnmarshalUserInfo(data []byte) (UserInfo, error) {
 		return UserInfo{}, err
 	}
 
-	// Extract and normalize the "id" field
-	switch id := raw["id"].(type) {
-	case float64: // JSON numbers are parsed as float64
-		userInfo.Id = fmt.Sprintf("%.0f", id)
-	case string:
-		userInfo.Id = id
-	default:
-		return UserInfo{}, errors.New("unexpected type for Id")
+	if sub, ok := raw["sub"].(string); ok {
+		userInfo.Id = sub
+	} else {
+		// Extract and normalize the "id" field
+		switch id := raw["id"].(type) {
+		case float64: // JSON numbers are parsed as float64
+			userInfo.Id = fmt.Sprintf("%.0f", id)
+		case string:
+			userInfo.Id = id
+		default:
+			return UserInfo{}, errors.New("unexpected type for Id")
+		}
 	}
 
 	// Extract other fields
@@ -88,47 +90,23 @@ func GetProviderUserInformation(provider Provider, token string) (UserInfo, erro
 	return userInfo, nil
 }
 
-func RevokeUserToken(provider Provider, token string) {
-	if provider.GrantURL == "" {
-		return
-	}
-
-	reqBody := map[string]string{
-		"access_token": token,
-	}
-	jsonBody, _ := json.Marshal(reqBody)
-	req, err := http.NewRequest("DELETE", provider.GrantURL, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	req.SetBasicAuth(provider.Config.ClientID, provider.Config.ClientSecret)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/vnd.github+json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Println(err)
-	}
-	resp.Body.Close()
-}
-
 func BeginProviderAuth(provider Provider, state string) string {
 	url := provider.Config.AuthCodeURL(state)
-  log.Println(url)
+	log.Println(url)
 	return url
 }
 
-func CompleteProviderAuth(provider Provider, code string) (UserInfo, string, error) {
+func CompleteProviderAuth(provider Provider, code string) (UserInfo, *oauth2.Token, error) {
 	token, err := provider.Config.Exchange(context.Background(), code)
 	if err != nil {
 		log.Println(err)
-		return UserInfo{}, "", errors.New("internal error")
+		return UserInfo{}, nil, errors.New("internal error")
 	}
 
 	user, err := GetProviderUserInformation(provider, token.AccessToken)
 	if err != nil {
-		return UserInfo{}, "", err
+		return UserInfo{}, nil, err
 	}
 
-	return user, token.AccessToken, nil
+	return user, token, nil
 }

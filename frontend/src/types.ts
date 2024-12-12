@@ -41,9 +41,7 @@ export interface User {
 
 export interface UserProvider {
   id: string;
-  userid: string;
-  provider: Provider;
-  provideruserid: string;
+  type: Provider;
 }
 
 export interface Plan {

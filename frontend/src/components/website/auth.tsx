@@ -86,6 +86,7 @@ export default function AuthForm(props: {
             {providers.map((provider : any) => {
               return (
                 <div
+                  key={provider.type}
                   className='curso-pointer flex w-full cursor-pointer items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium transition-all hover:bg-background/75'
                   onClick={() => {
                     router.push(

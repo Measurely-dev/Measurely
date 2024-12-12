@@ -13,7 +13,6 @@ import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
 import { MAXFILESIZE } from '@/utils';
 import { Image } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 

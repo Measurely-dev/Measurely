@@ -30,8 +30,13 @@ const (
 
 type key int
 
-const USERID key = iota
+const TOKEN key = iota
 
+type Token struct {
+	Id           uuid.UUID `json:"id"`
+	Email        string    `json:"email"`
+	CreationDate time.Time `json:"creationdate"`
+}
 type User struct {
 	Id               uuid.UUID
 	Email            string
@@ -46,7 +51,7 @@ type User struct {
 type UserProvider struct {
 	Id             uuid.UUID `json:"id"`
 	UserId         uuid.UUID `json:"userid"`
-	Provider       int       `json:"provider"`
+	Type           int       `json:"type"`
 	ProviderUserId string    `json:"provideruserid"`
 }
 

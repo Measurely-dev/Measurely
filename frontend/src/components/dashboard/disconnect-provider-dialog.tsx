@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UserContext } from '@/dash-context';
+import { providers } from '@/providers';
 import { Provider, UserProvider } from '@/types';
-import { useRouter } from 'next/navigation';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function DisconnectProviderDialog(props: {
@@ -24,10 +25,10 @@ export default function DisconnectProviderDialog(props: {
   const [password, setPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const { user, setUser } = useContext(UserContext);
 
-  const getProviderName = (provider: Provider | undefined) => {
-    switch (provider) {
+  const getProviderName = (type: Provider | undefined) => {
+    switch (type) {
       case Provider.GOOGLE: {
         return 'google';
       }
@@ -70,28 +71,33 @@ export default function DisconnectProviderDialog(props: {
 
             setLoading(true);
             fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/disconnect/${getProviderName(props.userprovider?.provider)}`,
+              `${process.env.NEXT_PUBLIC_API_URL}/disconnect/${getProviderName(props.userprovider?.type)}`,
               {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password }),
               },
-            ).then((resp) => {
-              if (resp.status === 200) {
-                toast.success(
-                  'Successfully diconnected the provider. You will now be logged out.',
-                );
-                fetch(
-                  `${process.env.NEXT_PUBLIC_API_URL}/oauth/${getProviderName(props.userprovider?.provider)}?state=revoke.${props.userprovider?.provideruserid}`,
-                );
-              } else {
-                resp.text().then((text) => {
-                  toast.error(text);
-                });
+            )
+              .then((resp) => {
+                if (resp.status === 200) {
+                  toast.success('Successfully diconnected the provider');
+                  setUser(
+                    Object.assign({}, user, {
+                      providers: user?.providers.filter(
+                        (p) => p.type != props.userprovider?.type,
+                      ),
+                    }),
+                  );
+                } else {
+                  resp.text().then((text) => {
+                    toast.error(text);
+                  });
+                }
+              })
+              .finally(() => {
                 setLoading(false);
-              }
-            });
+              });
           }}
         >
           <div className='flex flex-row items-center justify-center gap-4'>
@@ -127,7 +133,7 @@ export default function DisconnectProviderDialog(props: {
                 onClick={() => {
                   setPassword('');
                   setConfirmedPassword('');
-                  setLoading(false)
+                  setLoading(false);
                 }}
               >
                 Cancel

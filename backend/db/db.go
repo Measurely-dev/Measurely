@@ -97,7 +97,7 @@ func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 
 func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {
 	var new_provider types.UserProvider
-	err := db.Conn.QueryRow("INSERT INTO providers (userid, provider, provideruserid) VALUES ($1, $2, $3) RETURNING *", provider.UserId, provider.Provider, provider.ProviderUserId).Scan(&new_provider.Id, &new_provider.UserId, &new_provider.Provider, &new_provider.ProviderUserId)
+	err := db.Conn.QueryRow("INSERT INTO providers (userid, type, provideruserid) VALUES ($1, $2, $3) RETURNING *", provider.UserId, provider.Type, provider.ProviderUserId).Scan(&new_provider.Id, &new_provider.UserId, &new_provider.Type, &new_provider.ProviderUserId)
 	return new_provider, err
 }
 
@@ -106,9 +106,14 @@ func (db *DB) DeleteUserProvider(id uuid.UUID) error {
 	return err
 }
 
+func (db *DB) UpdateProviderRefreshToken(id uuid.UUID, refreshtoken string) error {
+	_, err := db.Conn.Exec("UPDATE providers SET refreshtoken = $1 WHERE id = $2", refreshtoken, id)
+	return err
+}
+
 func (db *DB) GetProviderByProviderUserId(provideruserid string, providerType int) (types.UserProvider, error) {
 	var provider types.UserProvider
-	err := db.Conn.Get(&provider, "SELECT * FROM providers WHERE provideruserid = $1 AND provider = $2", provideruserid, providerType)
+	err := db.Conn.Get(&provider, "SELECT * FROM providers WHERE provideruserid = $1 AND type = $2", provideruserid, providerType)
 	return provider, err
 }
 
@@ -121,7 +126,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 	var providers []types.UserProvider
 	for rows.Next() {
 		var provider types.UserProvider
-		err := rows.Scan(&provider.Id, &provider.UserId, &provider.Provider, &provider.ProviderUserId)
+		err := rows.Scan(&provider.Id, &provider.UserId, &provider.Type, &provider.ProviderUserId)
 		if err != nil {
 			return []types.UserProvider{}, err
 		}

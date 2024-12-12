@@ -29,12 +29,12 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Value struct {
-		Value int `json:"value"`
+		Value int `json:"tokenue"`
 	}
 
-	var value Value
+	var tokenue Value
 
-	err = json.NewDecoder(r.Body).Decode(&value)
+	err = json.NewDecoder(r.Body).Decode(&tokenue)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -43,7 +43,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	request := CreateMetricEventRequest{
 		ApplicationApiKey: apikey,
 		MetricId:          metricid,
-		Value:             value.Value,
+		Value:             tokenue.Value,
 	}
 
 	logKey := "events:process"
@@ -62,7 +62,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -99,7 +99,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	forcedaily := r.URL.Query().Get("daily")
 
 	// Get application
-	_, err = s.DB.GetApplication(appid, val)
+	_, err = s.DB.GetApplication(appid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -151,7 +151,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-// This function update the total value for the the metric group and creates a summery for the day.
+// This function update the total tokenue for the the metric group and creates a summery for the day.
 func (s *Service) UpdateMeterTotal() {
 	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
@@ -173,7 +173,7 @@ func (s *Service) UpdateMeterTotal() {
 		for _, key := range keys {
 			count, err := s.redisClient.Get(s.redisCtx, key).Int()
 			if err != nil {
-				log.Println("Failed to get value from Redis:", err)
+				log.Println("Failed to get tokenue from Redis:", err)
 				continue
 			}
 			metricid := strings.TrimPrefix(key, "metric:")
@@ -306,7 +306,7 @@ func (s *Service) ProcessMetricEvents() {
 }
 
 func (s *Service) Process(request CreateMetricEventRequest) error {
-	val, err := s.redisClient.Get(s.redisCtx, request.ApplicationApiKey).Result()
+	token, err := s.redisClient.Get(s.redisCtx, request.ApplicationApiKey).Result()
 	if err == redis.Nil {
 		lockKey := "events:lock:" + request.ApplicationApiKey
 		lock := s.redisClient.SetNX(s.redisCtx, lockKey, "locked", 0)
@@ -346,7 +346,7 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 
 			s.redisClient.Set(s.redisCtx, request.ApplicationApiKey, bytes, 5*time.Minute)
 
-			val = string(bytes)
+			token = string(bytes)
 
 			s.redisClient.Del(s.redisCtx, lockKey)
 		} else {
@@ -363,7 +363,7 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 					continue
 				}
 				if exists <= 0 {
-					val = s.redisClient.Get(s.redisCtx, request.ApplicationApiKey).Val()
+					token = s.redisClient.Get(s.redisCtx, request.ApplicationApiKey).Val()
 					break
 				}
 				retryCount++
@@ -375,7 +375,7 @@ func (s *Service) Process(request CreateMetricEventRequest) error {
 	}
 
 	var cache CacheData
-	jerr := json.Unmarshal([]byte(val), &cache)
+	jerr := json.Unmarshal([]byte(token), &cache)
 	if jerr != nil {
 		return jerr
 	}

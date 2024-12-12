@@ -3,11 +3,9 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Sliders, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';

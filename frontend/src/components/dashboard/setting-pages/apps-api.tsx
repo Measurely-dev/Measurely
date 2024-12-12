@@ -7,7 +7,7 @@ import ApiDialog from '../api-dialog';
 import Empty from '../empty';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
-import { Key, MoreHorizontal, Trash } from 'lucide-react';
+import { Key, MoreHorizontal } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import EditAppDialogContent from '../edit-app-dialog-content';
 import DeleteAppDialogContent from '../delete-app-dialog-content';

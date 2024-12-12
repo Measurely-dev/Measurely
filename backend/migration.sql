@@ -1,7 +1,17 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Create Plans table first since it is referenced by Users
+CREATE TABLE IF NOT EXISTS Plans (
+    Identifier TEXT NOT NULL UNIQUE,
+    Name TEXT NOT NULL,
+    Price TEXT NOT NULL,
+    AppLimit INT NOT NULL,
+    MetricPerAppLimit INT NOT NULL,
+    TimeFrames TEXT NOT NULL
+);
+
 -- Create Users table
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Email TEXT NOT NULL UNIQUE,
     FirstName TEXT NOT NULL,
@@ -9,22 +19,23 @@ CREATE TABLE Users (
     Password TEXT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,
     CurrentPlan TEXT NULL,
-    Image TEXT NOT NULL DEFAULT ''
+    Image TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY (CurrentPlan) REFERENCES Plans(Identifier)
 );
 
--- Create Providers table
+-- Create Providers table (added Provider column definition)
 CREATE TABLE IF NOT EXISTS Providers (
   Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   UserId UUID NOT NULL,
-  Provider INT NOT NULL,
-  ProviderUserId INT NOT NULL,
-  UNIQUE(Provider, ProviderUserId),
-  UNIQUE(Provider, UserId),
+  Type INT NOT NULL,
+  ProviderUserId TEXT NOT NULL,
+  UNIQUE(Type, ProviderUserId),
+  UNIQUE(Type, UserId),
   FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 -- Create Applications table
-CREATE TABLE Applications (
+CREATE TABLE IF NOT EXISTS Applications (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     ApiKey TEXT NOT NULL UNIQUE,
     UserId UUID NOT NULL,
@@ -33,26 +44,24 @@ CREATE TABLE Applications (
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
-
 -- Create Metric Group table
-CREATE TABLE MetricGroups (
+CREATE TABLE IF NOT EXISTS MetricGroups (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     AppId UUID NOT NULL,
     Type INT NOT NULL,
     Name TEXT NOT NULL UNIQUE,
-    Created TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Created TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
 -- Create Metrics table
-CREATE TABLE IF NOT EXISTS Metrics(
+CREATE TABLE IF NOT EXISTS Metrics (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     GroupId UUID NOT NULL,
     Name TEXT NOT NULL,
     Total INT NOT NULL DEFAULT 0,
     FOREIGN KEY (GroupId) REFERENCES MetricGroups(Id) ON DELETE CASCADE
 );
-
 
 -- Create Metric events table
 CREATE TABLE IF NOT EXISTS MetricEvents (
@@ -63,8 +72,7 @@ CREATE TABLE IF NOT EXISTS MetricEvents (
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
-
--- Create Metric daily summary table 
+-- Create Metric daily summary table
 CREATE TABLE IF NOT EXISTS MetricDailySummary (
     Id TEXT PRIMARY KEY,
     MetricId UUID NOT NULL,
@@ -72,7 +80,6 @@ CREATE TABLE IF NOT EXISTS MetricDailySummary (
     VALUE INT NOT NULL,
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
-
 
 -- Create Account Recovery table
 CREATE TABLE IF NOT EXISTS AccountRecovery (
@@ -99,17 +106,9 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
     Content TEXT NOT NULL
 );
 
--- Create Plan table 
-CREATE TABLE IF NOT EXISTS Plans (
-    Identifier TEXT NOT NULL UNIQUE,
-    Name TEXT NOT NULL,
-    Price TEXT NOT NULL,
-    AppLimit INT NOT NULL,
-    MetricPerAppLimit INT NOT NULL,
-    TimeFrames TEXT NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx__userid ON  Users (Id);
+-- Create Indexes
+CREATE INDEX IF NOT EXISTS idx__userid ON Users (Id);
 CREATE INDEX IF NOT EXISTS idx_metrics_events_metricid_id ON MetricEvents (MetricId);
 CREATE INDEX IF NOT EXISTS idx_metrics_app_id ON Metrics (GroupId, Id);
-CREATE INDEX IF NOT EXISTS idx_apikey_id ON applications (ApiKey);
+CREATE INDEX IF NOT EXISTS idx_apikey_id ON Applications (ApiKey);
+

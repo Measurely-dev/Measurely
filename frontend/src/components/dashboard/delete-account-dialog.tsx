@@ -10,7 +10,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { UserContext } from '@/dash-context';
-import { Provider } from '@/types';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext } from 'react';
 import { toast } from 'sonner';

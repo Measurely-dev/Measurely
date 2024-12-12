@@ -6,7 +6,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -14,8 +16,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/securecookie"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 )
@@ -39,22 +41,22 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func CreateCookie(user *types.User, scookie *securecookie.SecureCookie) (http.Cookie, error) {
-	// Create cookie and send it
-	auth_cookie := types.AuthCookie{
-		UserId:       user.Id,
-		Email:        user.Email,
-		CreationDate: time.Now(),
-	}
+func CreateCookie(user *types.User) (http.Cookie, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"id":           user.Id,
+			"email":        user.Email,
+			"creationdate": time.Now().Format("2006-01-02 15:04:05.999999999 -0700 MST"),
+		})
 
-	encrypted, err := scookie.Encode("measurely-session", auth_cookie)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
 		return http.Cookie{}, err
 	}
 
 	var cookie http.Cookie = http.Cookie{
 		Name:     "measurely-session",
-		Value:    encrypted,
+		Value:    tokenString,
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
@@ -84,6 +86,35 @@ func DeleteCookie() http.Cookie {
 		cookie.SameSite = http.SameSiteNoneMode
 	}
 	return cookie
+}
+
+func VerifyToken(tokenStr string) (types.Token, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+	if err != nil {
+		return types.Token{}, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		id, err := uuid.Parse(fmt.Sprint(claims["id"]))
+		if err != nil {
+			return types.Token{}, errors.New("invalid jwt token")
+		}
+
+		date, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", fmt.Sprint(claims["creationdate"]))
+		if err != nil {
+      log.Println(err)
+			return types.Token{}, errors.New("invalid jwt token")
+		}
+		return types.Token{
+			Id:           id,
+			Email:        fmt.Sprint(claims["email"]),
+			CreationDate: date,
+		}, nil
+	} else {
+		return types.Token{}, errors.New("invalid jwt token")
+	}
 }
 
 func IsUUIDValid(id string) bool {
@@ -162,47 +193,3 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 
 	return plan, true
 }
-
-// func (s *Service) RetrieveAccessToken(code string, w http.ResponseWriter, r *http.Request) (string, error) {
-// 	ctx := context.Background()
-// 	token, err := s.oauth2.Exchange(ctx, code)
-// 	if err != nil {
-// 		log.Println("Error exchanging code for token:", err)
-// 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-// 		return "", err
-// 	}
-//
-// 	return token.AccessToken, nil
-// }
-//
-// func (s * Service) RevokeUserToken(accessToken string) error {
-// 	clientID := s.oauth2.ClientID
-// 	clientSecret := s.oauth2.ClientSecret
-//
-// 	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", clientID)
-//
-// 	req, err := http.NewRequest("DELETE", url, nil)
-// 	if err != nil {
-// 		log.Println("Error creating revoke request:", err)
-// 		return err
-// 	}
-//
-// 	req.SetBasicAuth(clientID, clientSecret)
-// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-// 	req.Header.Set("Accept", "application/vnd.github+json")
-//
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		log.Println("Error sending revoke request:", err)
-// 		return err
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	if resp.StatusCode != http.StatusNoContent {
-// 		log.Println("Unexpected status code while revoking token:", resp.StatusCode)
-// 		return fmt.Errorf("failed to revoke token, status code: %d", resp.StatusCode)
-// 	}
-//
-// 	return nil
-// }

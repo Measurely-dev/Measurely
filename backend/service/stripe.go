@@ -10,7 +10,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/stripe/stripe-go/v79"
 	bilsession "github.com/stripe/stripe-go/v79/billingportal/session"
 	"github.com/stripe/stripe-go/v79/checkout/session"
@@ -18,13 +17,13 @@ import (
 )
 
 func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -56,7 +55,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -75,11 +74,11 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	plan, exists := s.GetPlan(request.Plan)
 	if !exists {
-		http.Error(w, "Invalid plan", http.StatusBadRequest)
+		http.Error(w, "Intokenid plan", http.StatusBadRequest)
 		return
 	}
 
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -144,7 +143,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	if request.Plan == "starter" {
 		w.WriteHeader(http.StatusOK)
 
-    s.DB.UpdateUserPlan(val, "starter")
+    s.DB.UpdateUserPlan(token.Id, "starter")
 
 		// send email
 		s.ScheduleEmail(SendEmailRequest{

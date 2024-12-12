@@ -18,6 +18,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
+	"github.com/lib/pq"
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/customer"
 	"github.com/stripe/stripe-go/v79/subscription"
@@ -81,9 +82,8 @@ func New() Service {
 
 	providers := make(map[string]Provider)
 	providers["github"] = Provider{
-		UserURL:  os.Getenv("GITHUB_USER"),
-		GrantURL: fmt.Sprintf("https://api.github.com/applications/%s/grant", os.Getenv("GITHUB_KEY")),
-		Type:     types.GITHUB,
+		UserURL: os.Getenv("GITHUB_USER"),
+		Type:    types.GITHUB,
 		Config: &oauth2.Config{
 			ClientID:     os.Getenv("GITHUB_KEY"),
 			ClientSecret: os.Getenv("GITHUB_SECRET"),
@@ -93,15 +93,14 @@ func New() Service {
 		},
 	}
 	providers["google"] = Provider{
-		UserURL:  os.Getenv("GOOGLE_USER"),
-		GrantURL: "",
-		Type:     types.GOOGLE,
+		UserURL: os.Getenv("GOOGLE_USER"),
+		Type:    types.GOOGLE,
 		Config: &oauth2.Config{
 			ClientID:     os.Getenv("GOOGLE_KEY"),
 			ClientSecret: os.Getenv("GOOGLE_SECRET"),
 			Endpoint:     google.Endpoint,
 			RedirectURL:  os.Getenv("URL") + "/callback/google",
-			Scopes:       []string{"read:user"},
+			Scopes:       []string{"openid", "profile", "email"},
 		},
 	}
 
@@ -200,9 +199,9 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email is valid
+	// Check if the email is tokenid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email ", http.StatusBadRequest)
+		http.Error(w, "Intokenid email ", http.StatusBadRequest)
 		return
 	}
 
@@ -241,9 +240,9 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email and password are valid
+	// Check if the email and password are tokenid
 	if !isEmailValid(strings.ToLower(request.Email)) {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		http.Error(w, "Intokenid email", http.StatusBadRequest)
 		return
 	}
 
@@ -273,14 +272,14 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the password is correct
-	is_pwd_valid := CheckPasswordHash(request.Password, user.Password)
-	if !is_pwd_valid {
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
+	is_pwd_tokenid := CheckPasswordHash(request.Password, user.Password)
+	if !is_pwd_tokenid {
+		http.Error(w, "Intokenid password", http.StatusUnauthorized)
 		return
 	}
 
 	// create auth cookie
-	cookie, err := CreateCookie(&user, s.scookie)
+	cookie, err := CreateCookie(&user)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -306,6 +305,8 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	state := r.URL.Query().Get("state")
 
+	log.Println(providerName)
+
 	provider, exists := s.providers[providerName]
 	if !exists {
 		fmt.Println("error")
@@ -323,12 +324,10 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
 	state := r.URL.Query().Get("state")
-	log.Println(state)
 
 	var action string
 	var id string
 	splitted := strings.Split(state, ".")
-	log.Println(splitted)
 
 	if len(splitted) == 0 {
 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=missing parameters", http.StatusMovedPermanently)
@@ -355,13 +354,9 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(action)
-	log.Println(id)
 	var user types.User
 	provider, gerr := s.DB.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
-	log.Println(gerr)
 	if gerr == sql.ErrNoRows {
-
 		if action == "auth" {
 			stripe_params := &stripe.CustomerParams{
 				Email: stripe.String(providerUser.Email),
@@ -383,15 +378,17 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				CurrentPlan:      "starter",
 			})
 			if err != nil {
-				log.Println(err)
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+				if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+					http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=An account with the same email already exists", http.StatusMovedPermanently)
+				} else {
+					http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+				}
 				return
 			}
 		} else if action == "connect" {
-			log.Println("connect code running")
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Invalid user identifier", http.StatusMovedPermanently)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Intokenid user identifier", http.StatusMovedPermanently)
 				return
 			}
 			user, err = s.DB.GetUserById(parsedId)
@@ -401,10 +398,9 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		log.Println(user.Id)
 		provider, err = s.DB.CreateProvider(types.UserProvider{
 			UserId:         user.Id,
-			Provider:       chosenProvider.Type,
+			Type:           chosenProvider.Type,
 			ProviderUserId: providerUser.Id,
 		})
 		if err != nil {
@@ -414,21 +410,6 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if action == "revoke" {
-		log.Println("revoking")
-		if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to disconnect the provider", http.StatusMovedPermanently)
-			return
-		}
-
-		RevokeUserToken(chosenProvider, token)
-		cookie := DeleteCookie()
-
-		http.SetCookie(w, &cookie)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
 	if gerr == nil {
 		user, err = s.DB.GetUserById(provider.UserId)
 		if err != nil {
@@ -436,29 +417,29 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 			return
 		}
+		s.DB.UpdateProviderRefreshToken(provider.Id, token.RefreshToken)
 	}
 
-	cookie, err := CreateCookie(&user, s.scookie)
+	cookie, err := CreateCookie(&user)
 	if err != nil {
-		log.Println(err)
+		log.Println("error:", err)
 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 		return
 	}
 
-	log.Println("redirect")
 	http.SetCookie(w, &cookie)
 	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
 }
 
 func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
-	_, exists := s.providers[providerName]
+	chosenProvider, exists := s.providers[providerName]
 	if !exists {
 		http.Error(w, "The provider does not exists", http.StatusMovedPermanently)
 		return
 	}
 
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -473,7 +454,7 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providers, err := s.DB.GetProvidersByUserId(val)
+	providers, err := s.DB.GetProvidersByUserId(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			providers = []types.UserProvider{}
@@ -494,11 +475,21 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := s.DB.UpdateUserPassword(val, hashed_password); err != nil {
+		if err := s.DB.UpdateUserPassword(token.Id, hashed_password); err != nil {
 			http.Error(w, "Failed to update password", http.StatusInternalServerError)
 			return
 		}
 
+	}
+
+	for _, provider := range providers {
+		if provider.Type == chosenProvider.Type {
+			if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
+				http.Error(w, "Failed to disconnect provider", http.StatusInternalServerError)
+				return
+			}
+			break
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -519,9 +510,9 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email and password are valid
+	// Check if the email and password are tokenid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		http.Error(w, "Intokenid email", http.StatusBadRequest)
 		return
 	}
 	if !isPasswordValid(request.Password) {
@@ -556,13 +547,18 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		CurrentPlan:      "starter",
 	})
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Email already exists", http.StatusBadRequest)
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "Email already exists", http.StatusBadRequest)
+		} else {
+			log.Println(err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+		}
+
 		return
 	}
 
 	// create auth cookie
-	cookie, cerr := CreateCookie(&new_user, s.scookie)
+	cookie, cerr := CreateCookie(&new_user)
 	if cerr != nil {
 		log.Println(cerr)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -592,13 +588,13 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -614,6 +610,14 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	finalProviders := []types.UserProvider{}
+	for _, provider := range providers {
+		finalProviders = append(finalProviders, types.UserProvider{
+			Id:   provider.Id,
+			Type: provider.Type,
+		})
+	}
+
 	resp := GetUserResponse{
 		Id:          user.Id,
 		Email:       user.Email,
@@ -621,7 +625,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		LastName:    user.LastName,
 		CurrentPlan: user.CurrentPlan,
 		Plan:        user.CurrentPlan,
-		Providers:   providers,
+		Providers:   finalProviders,
 	}
 
 	bytes, jerr := json.Marshal(resp)
@@ -644,9 +648,9 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email is valid
+	// Check if the email is tokenid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email ", http.StatusBadRequest)
+		http.Error(w, "Intokenid email ", http.StatusBadRequest)
 		return
 	}
 
@@ -717,16 +721,16 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if the new password is valid
+	// check if the new password is tokenid
 	if !isPasswordValid(request.NewPassword) {
-		http.Error(w, "Invalid password", http.StatusBadRequest)
+		http.Error(w, "Intokenid password", http.StatusBadRequest)
 		return
 	}
 
 	// fetch the account recovery
 	account_recovery, gerr := s.DB.GetAccountRecovery(request.Code)
 	if gerr != nil {
-		http.Error(w, "Invalid account recovery link", http.StatusBadRequest)
+		http.Error(w, "Intokenid account recovery link", http.StatusBadRequest)
 		return
 	}
 
@@ -778,7 +782,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		http.Error(w, "Intokenid email", http.StatusBadRequest)
 		return
 	}
 
@@ -806,14 +810,14 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	// Get the user
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -853,6 +857,21 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	providers, err := s.DB.GetProvidersByUserId(token.Id)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		for _, provider := range providers {
+			if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
+				http.Error(w, "Failed to disconnect provider", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
 	// Delete the user
 	err = s.DB.DeleteUser(user.Id)
 	if err != nil {
@@ -876,7 +895,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -891,14 +910,14 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	var emailchange types.EmailChangeRequest
-	emailchange, gerr := s.DB.GetEmailChangeRequestByUserId(val, strings.ToLower(request.NewEmail))
+	emailchange, gerr := s.DB.GetEmailChangeRequestByUserId(token.Id, strings.ToLower(request.NewEmail))
 	if gerr == sql.ErrNoRows {
 		tries := 5
 		var code string = ""
@@ -925,7 +944,7 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var cerr error
-		emailchange, cerr = s.DB.CreateEmailChangeRequest(val, code, strings.ToLower(request.NewEmail))
+		emailchange, cerr = s.DB.CreateEmailChangeRequest(token.Id, code, strings.ToLower(request.NewEmail))
 		if cerr != nil {
 			log.Println(cerr)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -962,7 +981,7 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	// fetch the account recovery
 	emailchange, gerr := s.DB.GetEmailChangeRequest(request.Code)
 	if gerr != nil {
-		http.Error(w, "Invalid email change link", http.StatusBadRequest)
+		http.Error(w, "Intokenid email change link", http.StatusBadRequest)
 		return
 	}
 
@@ -1005,7 +1024,7 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1021,7 +1040,7 @@ func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := s.DB.UpdateUserFirstAndLastName(val, request.FirstName, request.LastName); err != nil {
+	if err := s.DB.UpdateUserFirstAndLastName(token.Id, request.FirstName, request.LastName); err != nil {
 		http.Error(w, "Failed to update the user's first name and/or last name", http.StatusInternalServerError)
 		return
 	}
@@ -1030,7 +1049,7 @@ func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1051,7 +1070,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1068,7 +1087,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.DB.UpdateUserPassword(val, hashed); err != nil {
+	if err := s.DB.UpdateUserPassword(token.Id, hashed); err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -1077,7 +1096,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1103,14 +1122,14 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch application
-	_, gerr := s.DB.GetApplicationByName(val, request.Name)
+	_, gerr := s.DB.GetApplicationByName(token.Id, request.Name)
 	if gerr == nil {
 		http.Error(w, "Application with this name already exists", http.StatusBadRequest)
 		return
 	}
 
 	// Get user
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
@@ -1121,7 +1140,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	if plan.AppLimit >= 0 {
 
 		// Get application count
-		count, cerr := s.DB.GetApplicationCountByUser(val)
+		count, cerr := s.DB.GetApplicationCountByUser(token.Id)
 		if cerr != nil {
 			log.Println(cerr)
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
@@ -1163,7 +1182,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	new_app, err := s.DB.CreateApplication(types.Application{
 		ApiKey: api_key,
 		Name:   request.Name,
-		UserId: val,
+		UserId: token.Id,
 	})
 	if err != nil {
 		log.Println(err)
@@ -1182,7 +1201,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1198,7 +1217,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, gerr := s.DB.GetApplication(request.AppId, val)
+	_, gerr := s.DB.GetApplication(request.AppId, token.Id)
 	if gerr != nil {
 		log.Println(gerr)
 		http.Error(w, "Application does not exist.", http.StatusNotFound)
@@ -1230,7 +1249,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the app's api key
-	err := s.DB.UpdateApplicationApiKey(request.AppId, val, api_key)
+	err := s.DB.UpdateApplicationApiKey(request.AppId, token.Id, api_key)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1242,7 +1261,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1258,7 +1277,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the application
-	err := s.DB.DeleteApplication(request.AppId, val)
+	err := s.DB.DeleteApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1269,7 +1288,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1285,7 +1304,7 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := s.DB.UpdateApplicationName(request.AppId, val, request.NewName); err != nil {
+	if err := s.DB.UpdateApplicationName(request.AppId, token.Id, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "The application was not found", http.StatusBadRequest)
 			return
@@ -1300,14 +1319,14 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	// Fetch Applications
-	apps, err := s.DB.GetApplications(val)
+	apps, err := s.DB.GetApplications(token.Id)
 	if err == sql.ErrNoRows {
 		apps = []types.Application{}
 	} else if err != nil {
@@ -1327,7 +1346,7 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1353,7 +1372,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Type != types.BASE && request.Type != types.DUAL {
-		http.Error(w, "Invalid metric type", http.StatusBadRequest)
+		http.Error(w, "Intokenid metric type", http.StatusBadRequest)
 		return
 	}
 
@@ -1368,7 +1387,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	app, err := s.DB.GetApplication(request.AppId, val)
+	app, err := s.DB.GetApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1384,7 +1403,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the user
-	user, err := s.DB.GetUserById(val)
+	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1444,7 +1463,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1460,7 +1479,7 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, val)
+	_, err := s.DB.GetApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1479,7 +1498,7 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1492,7 +1511,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get application
-	_, err := s.DB.GetApplication(appid, val)
+	_, err := s.DB.GetApplication(appid, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1536,37 +1555,8 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-// func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
-// 	_, ok := r.Context().Value(types.USERID).(uuid.UUID)
-// 	if !ok {
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	//TODO : security concern, find a way to ensure that the user has access to the specific metric
-
-// 	var request GetMetricsRequest
-
-// 	// Fetch Metrics
-// 	metrics, err := s.DB.GetMetrics(request.MetricId)
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	bytes, jerr := json.Marshal(metrics)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusContinue)
-// 		return
-// 	}
-
-// 	w.Write(bytes)
-// 	w.Header().Set("Content-Type", "application/json")
-// }
-
 func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1582,7 +1572,7 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, val)
+	_, err := s.DB.GetApplication(request.AppId, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1604,7 +1594,7 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
-	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1620,7 +1610,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, val)
+	_, err := s.DB.GetApplication(request.AppId, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1653,7 +1643,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 // func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
-// 	val, ok := r.Context().Value(types.USERID).(uuid.UUID)
+// 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 // 	if !ok {
 // 		http.Error(w, "Internal error", http.StatusInternalServerError)
 // 		return
@@ -1669,7 +1659,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 // 	}
 
 // 	// Get the application
-// 	_, err := s.DB.GetApplication(request.AppId, val)
+// 	_, err := s.DB.GetApplication(request.AppId, token)
 // 	if err != nil {
 // 		log.Println(err)
 // 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1678,7 +1668,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 
 // 	if request.Enabled {
 // 		// Get the user
-// 		user, gerr := s.DB.GetUserById(val)
+// 		user, gerr := s.DB.GetUserById(token)
 // 		if gerr != nil {
 // 			log.Println(gerr)
 // 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1718,17 +1708,15 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		var auth_cookie types.AuthCookie
-		derr := s.scookie.Decode("measurely-session", cookie.Value, &auth_cookie)
-		if derr != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		token, err := VerifyToken(cookie.Value)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
+		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
-		ctx := context.WithValue(r.Context(), types.USERID, auth_cookie.UserId)
-
-		if cookie.Expires.Sub(auth_cookie.CreationDate) <= 12*time.Hour {
-			new_cookie, err := CreateCookie(&types.User{Id: auth_cookie.UserId}, s.scookie)
+		if cookie.Expires.Sub(token.CreationDate) <= 12*time.Hour {
+			new_cookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email})
 			if err == nil {
 				http.SetCookie(w, &new_cookie)
 			}
@@ -1750,7 +1738,7 @@ func (s *Service) UpdateRates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Secret != secret {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Intokenid Request", http.StatusBadRequest)
 		return
 	}
 
@@ -1777,7 +1765,7 @@ func (s *Service) UpdatePlans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Secret != secret {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Intokenid Request", http.StatusBadRequest)
 		return
 	}
 
@@ -1823,7 +1811,7 @@ func (s *Service) GetRates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Secret != secret {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Intokenid Request", http.StatusBadRequest)
 		return
 	}
 
@@ -1866,7 +1854,7 @@ func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Secret != secret {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Intokenid Request", http.StatusBadRequest)
 		return
 	}
 
@@ -1878,14 +1866,14 @@ func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
 
 	rates := make(map[string]types.Plan)
 	for _, key := range keys {
-		val, err := s.redisClient.Get(s.redisCtx, key).Result()
+		token, err := s.redisClient.Get(s.redisCtx, key).Result()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		var plan types.Plan
-		err = json.Unmarshal([]byte(val), &plan)
+		err = json.Unmarshal([]byte(token), &plan)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

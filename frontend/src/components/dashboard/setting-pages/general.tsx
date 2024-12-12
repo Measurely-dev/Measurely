@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dash-context';
 import DeleteAccountAlert from '../delete-account-dialog';
-import { Provider } from '@/types';
 import DisconnectProviderDialog from '../disconnect-provider-dialog';
 import { Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -201,7 +200,9 @@ export default function SettingGeneralPage() {
         btn_disabled={
           oldPassword === '' || newPassword === '' || confirmedPassword === ''
         }
-        disabled={user?.providers === null ? false : (user?.providers.length ?? 0) > 0}
+        disabled={
+          user?.providers === null ? false : (user?.providers.length ?? 0) > 0
+        }
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
@@ -261,7 +262,10 @@ export default function SettingGeneralPage() {
           <div className='flex flex-col gap-4'>
             {providers.map((provider: any) => {
               return (
-                <div className='flex items-center justify-between'>
+                <div
+                  key={provider.type}
+                  className='flex items-center justify-between'
+                >
                   <div className='flex flex-row items-center gap-2'>
                     <div className='flex size-10 items-center justify-center rounded-[6px] bg-accent'>
                       {provider.logo}{' '}
@@ -277,9 +281,8 @@ export default function SettingGeneralPage() {
                   </div>
                   {(user?.providers === null
                     ? 0
-                    : (user?.providers.filter(
-                      (p) => p.provider === provider.type,
-                    ).length ?? 0)) === 0 ? (
+                    : (user?.providers.filter((p) => p.type === provider.type)
+                      .length ?? 0)) === 0 ? (
                     <Button
                       variant={'ghost'}
                       size={'sm'}
@@ -294,7 +297,11 @@ export default function SettingGeneralPage() {
                     </Button>
                   ) : (
                     <DisconnectProviderDialog
-                      userprovider={user?.providers.filter(p => p.provider === provider.type)[0] ?? null}
+                      userprovider={
+                        user?.providers.filter(
+                          (p) => p.type === provider.type,
+                        )[0] ?? null
+                      }
                       providerLength={
                         user?.providers === null
                           ? 0
