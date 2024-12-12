@@ -148,7 +148,7 @@ func (s *Service) SetupSharedVariables() {
 		}
 
 		plus := types.Plan{
-			Price:             "price_1PoTkIIA5zCZk9dL7QEzx8XP",
+			Price:             "price_1QVJwOKSu0h3NTsFEXJo7ORd",
 			Identifier:        "plus",
 			Name:              "Plus",
 			AppLimit:          5,
@@ -157,7 +157,7 @@ func (s *Service) SetupSharedVariables() {
 		}
 
 		pro := types.Plan{
-			Price:             "price_1PoTlpIA5zCZk9dLdb4xESXC",
+			Price:             "price_1QVJwGKSu0h3NTsFaIS0vBeF",
 			Identifier:        "pro",
 			Name:              "Pro",
 			AppLimit:          15,
