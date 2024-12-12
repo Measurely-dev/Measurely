@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,9 +14,10 @@ import (
 )
 
 type Provider struct {
-	UserURL string
-	Type    int
-	Config  *oauth2.Config
+	UserURL  string
+	GrantURL string
+	Type     int
+	Config   *oauth2.Config
 }
 
 type UserInfo struct {
@@ -87,24 +89,46 @@ func GetProviderUserInformation(provider Provider, token string) (UserInfo, erro
 }
 
 func RevokeUserToken(provider Provider, token string) {
+	if provider.GrantURL == "" {
+		return
+	}
+
+	reqBody := map[string]string{
+		"access_token": token,
+	}
+	jsonBody, _ := json.Marshal(reqBody)
+	req, err := http.NewRequest("DELETE", provider.GrantURL, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	req.SetBasicAuth(provider.Config.ClientID, provider.Config.ClientSecret)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/vnd.github+json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	resp.Body.Close()
 }
 
-func BeginProviderAuth(provider Provider) string {
-	url := provider.Config.AuthCodeURL("")
+func BeginProviderAuth(provider Provider, state string) string {
+	url := provider.Config.AuthCodeURL(state)
+  log.Println(url)
 	return url
 }
 
-func CompleteProviderAuth(provider Provider, code string) (UserInfo, error) {
+func CompleteProviderAuth(provider Provider, code string) (UserInfo, string, error) {
 	token, err := provider.Config.Exchange(context.Background(), code)
 	if err != nil {
 		log.Println(err)
-		return UserInfo{}, errors.New("internal error")
+		return UserInfo{}, "", errors.New("internal error")
 	}
 
 	user, err := GetProviderUserInformation(provider, token.AccessToken)
 	if err != nil {
-		return UserInfo{}, err
+		return UserInfo{}, "", err
 	}
 
-	return user, nil
+	return user, token.AccessToken, nil
 }

@@ -81,8 +81,9 @@ func New() Service {
 
 	providers := make(map[string]Provider)
 	providers["github"] = Provider{
-		UserURL: os.Getenv("GITHUB_USER"),
-		Type:    types.GITHUB,
+		UserURL:  os.Getenv("GITHUB_USER"),
+		GrantURL: fmt.Sprintf("https://api.github.com/applications/%s/grant", os.Getenv("GITHUB_KEY")),
+		Type:     types.GITHUB,
 		Config: &oauth2.Config{
 			ClientID:     os.Getenv("GITHUB_KEY"),
 			ClientSecret: os.Getenv("GITHUB_SECRET"),
@@ -92,8 +93,9 @@ func New() Service {
 		},
 	}
 	providers["google"] = Provider{
-		UserURL: os.Getenv("GOOGLE_USER"),
-		Type:    types.GOOGLE,
+		UserURL:  os.Getenv("GOOGLE_USER"),
+		GrantURL: "",
+		Type:     types.GOOGLE,
 		Config: &oauth2.Config{
 			ClientID:     os.Getenv("GOOGLE_KEY"),
 			ClientSecret: os.Getenv("GOOGLE_SECRET"),
@@ -257,8 +259,15 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if the user uses GIthub
-	if user.Password == "" {
+	providers, err := s.DB.GetProvidersByUserId(user.Id)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if len(providers) > 0 {
 		http.Error(w, "This account has been registered with a provider", http.StatusUnauthorized)
 		return
 	}
@@ -295,6 +304,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
+	state := r.URL.Query().Get("state")
 
 	provider, exists := s.providers[providerName]
 	if !exists {
@@ -302,56 +312,96 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := BeginProviderAuth(provider)
+	url := BeginProviderAuth(provider, state)
+  log.Println(url)
 
-	http.Redirect(w, r, url, http.StatusMovedPermanently)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
 func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	code := r.URL.Query().Get("code")
 
+	state := r.URL.Query().Get("state")
+	log.Println(state)
+
+	var action string
+	var id string
+	splitted := strings.Split(state, ".")
+	log.Println(splitted)
+
+	if len(splitted) == 0 {
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=missing parameters", http.StatusTemporaryRedirect)
+		return
+	}
+
+	if len(splitted) > 0 {
+		action = splitted[0]
+		if len(splitted) > 1 {
+			id = splitted[1]
+		}
+	}
+
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Error(w, "Invalid provider", http.StatusBadRequest)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
 		return
 	}
 
-	providerUser, err := CompleteProviderAuth(chosenProvider, code)
+	providerUser, token, err := CompleteProviderAuth(chosenProvider, code)
 	if err != nil {
 		log.Print(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+err.Error(), http.StatusFound)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+err.Error(), http.StatusTemporaryRedirect)
 		return
 	}
 
+	log.Println(action)
+	log.Println(id)
 	var user types.User
-	provider, err := s.DB.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
-	if err == sql.ErrNoRows {
-		stripe_params := &stripe.CustomerParams{
-			Email: stripe.String(providerUser.Email),
+	provider, gerr := s.DB.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
+	log.Println(gerr)
+	if gerr == sql.ErrNoRows {
+
+		if action == "auth" {
+			stripe_params := &stripe.CustomerParams{
+				Email: stripe.String(providerUser.Email),
+			}
+
+			c, err := customer.New(stripe_params)
+			if err != nil {
+				log.Println(err)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+				return
+			}
+
+			user, err = s.DB.CreateUser(types.User{
+				Email:            strings.ToLower(providerUser.Email),
+				Password:         "",
+				FirstName:        providerUser.Name,
+				LastName:         "",
+				StripeCustomerId: c.ID,
+				CurrentPlan:      "starter",
+			})
+			if err != nil {
+				log.Println(err)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+				return
+			}
+		} else if action == "connect" {
+			log.Println("connect code running")
+			parsedId, err := uuid.Parse(id)
+			if err != nil {
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Invalid user identifier", http.StatusTemporaryRedirect)
+				return
+			}
+			user, err = s.DB.GetUserById(parsedId)
+			if err != nil {
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=User not found", http.StatusTemporaryRedirect)
+				return
+			}
 		}
 
-		c, err := customer.New(stripe_params)
-		if err != nil {
-			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusFound)
-			return
-		}
-
-		user, err := s.DB.CreateUser(types.User{
-			Email:            strings.ToLower(providerUser.Email),
-			Password:         "",
-			FirstName:        providerUser.Name,
-			LastName:         "",
-			StripeCustomerId: c.ID,
-			CurrentPlan:      "starter",
-		})
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
-
+		log.Println(user.Id)
 		provider, err = s.DB.CreateProvider(types.UserProvider{
 			UserId:         user.Id,
 			Provider:       chosenProvider.Type,
@@ -359,16 +409,30 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusFound)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
 			return
 		}
 	}
 
-	if err == nil {
+	if action == "revoke" {
+    log.Println("revoking")
+		if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to disconnect the provider", http.StatusTemporaryRedirect)
+			return
+		}
+		RevokeUserToken(chosenProvider, token)
+		cookie := DeleteCookie()
+
+		http.SetCookie(w, &cookie)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if gerr == nil {
 		user, err = s.DB.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusFound)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
 			return
 		}
 	}
@@ -376,193 +440,20 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	cookie, err := CreateCookie(&user, s.scookie)
 	if err != nil {
 		log.Println(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusFound)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
 		return
 	}
 
+	log.Println("redirect")
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusPermanentRedirect)
+	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusTemporaryRedirect)
 }
-
-// func (s *Service) GithubCallback(w http.ResponseWriter, r *http.Request) {
-// 	code := r.URL.Query().Get("code")
-// 	state := r.URL.Query().Get("state")
-// 	splitted := strings.Split(state, ";")
-//
-// 	var email string
-// 	if len(splitted) > 0 {
-// 		state = splitted[0]
-// 		if len(splitted) > 1 {
-// 			email = splitted[1]
-// 		}
-// 	}
-//
-// 	access_token, err := s.RetrieveAccessToken(code, w, r)
-// 	if err != nil {
-// 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Internal error", http.StatusMovedPermanently)
-// 		return
-// 	}
-//
-// 	if state == "auth" || state == "connect" {
-// 		// Get request to a set URL
-// 		req2, reqerr := http.NewRequest(
-// 			"GET",
-// 			"https://api.github.com/user",
-// 			nil,
-// 		)
-// 		if reqerr != nil {
-// 			log.Println(reqerr)
-// 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Internal error", http.StatusMovedPermanently)
-// 			return
-// 		}
-//
-// 		authorizationHeaderValue := fmt.Sprintf("Bearer %s", access_token)
-// 		req2.Header.Set("Authorization", authorizationHeaderValue)
-//
-// 		// Make the request
-// 		resp2, resperr := http.DefaultClient.Do(req2)
-// 		if resperr != nil {
-// 			log.Println(resperr)
-// 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Internal error", http.StatusMovedPermanently)
-// 			return
-// 		}
-//
-// 		// Read the response as a byte slice
-// 		respbody2, _ := io.ReadAll(resp2.Body)
-//
-// 		type UserInfo struct {
-// 			Email string `json:"email"`
-// 			Name  string `json:"name"`
-// 		}
-//
-// 		var userInfo UserInfo
-// 		json.Unmarshal(respbody2, &userInfo)
-//
-// 		if !isEmailValid(userInfo.Email) || userInfo.Name == "" {
-// 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Github authentification has failed", http.StatusMovedPermanently)
-// 			return
-// 		}
-//
-// 		user, err := s.DB.GetUserByEmail(userInfo.Email)
-// 		if state == "connect" {
-// 			cookie := DeleteCookie()
-// 			http.SetCookie(w, &cookie)
-// 			if strings.ToLower(userInfo.Email) != strings.ToLower(email) {
-// 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Your github account's email must be the same as your measurely account", http.StatusPermanentRedirect)
-// 				return
-// 			}
-// 			if err == sql.ErrNoRows {
-// 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=No user with email ("+userInfo.Email+") was found.", http.StatusPermanentRedirect)
-// 				return
-// 			}
-//
-// 			if err := s.DB.UpdateUserProvider(user.Id, types.GITHUB); err != nil {
-// 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to connect account to github", http.StatusPermanentRedirect)
-// 				return
-// 			}
-//
-// 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?success=Sucessfully connected Github to your account", http.StatusPermanentRedirect)
-// 		} else {
-// 			if err == sql.ErrNoRows {
-// 				stripe_params := &stripe.CustomerParams{
-// 					Email: stripe.String(userInfo.Email),
-// 				}
-//
-// 				c, err := customer.New(stripe_params)
-// 				if err != nil {
-// 					log.Println(err)
-// 					http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Internal error", http.StatusMovedPermanently)
-// 					return
-// 				}
-//
-// 				names := strings.Split(userInfo.Name, " ")
-// 				var first_name string = ""
-// 				var last_name string = ""
-// 				if len(names) == 0 {
-// 					first_name = userInfo.Email
-// 				} else if len(names) == 1 {
-// 					first_name = names[0]
-// 				} else if len(names) == 2 {
-// 					first_name = names[0]
-// 					last_name = names[1]
-// 				}
-//
-// 				new_user := types.User{
-// 					Email:            userInfo.Email,
-// 					Password:         "",
-// 					Provider:         types.GITHUB,
-// 					FirstName:        first_name,
-// 					LastName:         last_name,
-// 					StripeCustomerId: c.ID,
-// 					CurrentPlan:      "starter",
-// 				}
-//
-// 				user, err = s.DB.CreateUser(new_user)
-// 				if err != nil {
-// 					log.Println(err)
-// 					http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-// 					return
-// 				}
-//
-// 				// send email
-// 				s.ScheduleEmail(SendEmailRequest{
-// 					To: new_user.Email,
-// 					Fields: MailFields{
-// 						Subject:     "Thank you for joining Measurely",
-// 						Content:     "You can now access your account's dashboard by using the following link.",
-// 						Link:        os.Getenv("ORIGIN") + "/dashboard",
-// 						ButtonTitle: "Access dashboard",
-// 					},
-// 				})
-// 			} else if err != nil {
-// 				log.Println(err)
-// 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-// 				return
-// 			} else {
-// 				// send email
-// 				s.ScheduleEmail(SendEmailRequest{
-// 					To: user.Email,
-// 					Fields: MailFields{
-// 						Subject:     "A new login has been detected",
-// 						Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
-// 						Link:        os.Getenv("ORIGIN") + "/dashboard",
-// 						ButtonTitle: "Update password",
-// 					},
-// 				})
-// 			}
-//
-// 			if user.Provider != types.GITHUB {
-// 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"An account using this email address already exists", http.StatusMovedPermanently)
-// 				return
-// 			}
-//
-// 			cookie, err := CreateCookie(&user, s.scookie)
-// 			if err != nil {
-// 				log.Println(err)
-// 				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+"Internal error", http.StatusMovedPermanently)
-// 				return
-// 			}
-// 			http.SetCookie(w, &cookie)
-// 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
-//
-// 		}
-// 	} else if state == "revoke" {
-// 		s.RevokeUserToken(access_token)
-//
-// 		cookie := DeleteCookie()
-// 		http.SetCookie(w, &cookie)
-// 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in", http.StatusMovedPermanently)
-//
-// 	} else {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 	}
-// }
 
 func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Error(w, "The provider does not exists", http.StatusNotFound)
+		http.Error(w, "The provider does not exists", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -578,16 +469,6 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	user, err := s.DB.GetUserById(val)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "user not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "internal error", http.StatusInternalServerError)
-		}
 		return
 	}
 
@@ -621,14 +502,10 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 
 	for _, provider := range providers {
 		if provider.Provider == chosenProvider.Type {
-			if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
-				http.Error(w, "Failed to disconnect the provider", http.StatusInternalServerError)
-				return
-			}
-      http.Redirect(w, r, "/oauth/"+providerName+"/state=" + provider.ProviderUserId + ";" + "", http.StatusPermanentRedirect)
-      break
-		} 
-  }
+			http.Redirect(w, r, "/oauth/"+providerName+"?state=revoke."+provider.ProviderUserId, http.StatusTemporaryRedirect)
+      return
+		}
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -744,6 +621,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := GetUserResponse{
+		Id:          user.Id,
 		Email:       user.Email,
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,

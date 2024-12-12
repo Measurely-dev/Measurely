@@ -20,6 +20,7 @@ type RegisterRequest struct {
 }
 
 type GetUserResponse struct {
+	Id          uuid.UUID            `json:"id"`
 	Email       string               `json:"email"`
 	FirstName   string               `json:"firstname"`
 	LastName    string               `json:"lastname"`
