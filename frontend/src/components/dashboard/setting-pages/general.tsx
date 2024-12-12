@@ -294,7 +294,7 @@ export default function SettingGeneralPage() {
                     </Button>
                   ) : (
                     <DisconnectProviderDialog
-                      provider={provider.type}
+                      userprovider={user?.providers.filter(p => p.provider === provider.type)[0] ?? null}
                       providerLength={
                         user?.providers === null
                           ? 0

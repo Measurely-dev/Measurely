@@ -11,14 +11,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Provider } from '@/types';
+import { Provider, UserProvider } from '@/types';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function DisconnectProviderDialog(props: {
   children: ReactNode;
-  provider: Provider;
+  userprovider: UserProvider | null;
   providerLength: number;
 }) {
   const [password, setPassword] = useState('');
@@ -26,7 +26,7 @@ export default function DisconnectProviderDialog(props: {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const getProviderName = (provider: Provider) => {
+  const getProviderName = (provider: Provider | undefined) => {
     switch (provider) {
       case Provider.GOOGLE: {
         return 'google';
@@ -70,7 +70,7 @@ export default function DisconnectProviderDialog(props: {
 
             setLoading(true);
             fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/disconnect/${getProviderName(props.provider)}`,
+              `${process.env.NEXT_PUBLIC_API_URL}/disconnect/${getProviderName(props.userprovider?.provider)}`,
               {
                 method: 'POST',
                 credentials: 'include',
@@ -82,7 +82,9 @@ export default function DisconnectProviderDialog(props: {
                 toast.success(
                   'Successfully diconnected the provider. You will now be logged out.',
                 );
-                setTimeout(() => router.push('/sign-in'), 500);
+                fetch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/oauth/${getProviderName(props.userprovider?.provider)}?state=revoke.${props.userprovider?.provideruserid}`,
+                );
               } else {
                 resp.text().then((text) => {
                   toast.error(text);
@@ -125,6 +127,7 @@ export default function DisconnectProviderDialog(props: {
                 onClick={() => {
                   setPassword('');
                   setConfirmedPassword('');
+                  setLoading(false)
                 }}
               >
                 Cancel

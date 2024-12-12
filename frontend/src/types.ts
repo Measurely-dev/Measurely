@@ -39,7 +39,7 @@ export interface User {
   providers: UserProvider[];
 }
 
-interface UserProvider {
+export interface UserProvider {
   id: string;
   userid: string;
   provider: Provider;

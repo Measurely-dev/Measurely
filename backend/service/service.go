@@ -308,14 +308,14 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 
 	provider, exists := s.providers[providerName]
 	if !exists {
+		fmt.Println("error")
 		http.Error(w, "Invalid provider", http.StatusBadRequest)
 		return
 	}
 
 	url := BeginProviderAuth(provider, state)
-  log.Println(url)
 
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
 func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
@@ -331,7 +331,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	log.Println(splitted)
 
 	if len(splitted) == 0 {
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=missing parameters", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=missing parameters", http.StatusMovedPermanently)
 		return
 	}
 
@@ -344,14 +344,14 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 		return
 	}
 
 	providerUser, token, err := CompleteProviderAuth(chosenProvider, code)
 	if err != nil {
 		log.Print(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+err.Error(), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+err.Error(), http.StatusMovedPermanently)
 		return
 	}
 
@@ -370,7 +370,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			c, err := customer.New(stripe_params)
 			if err != nil {
 				log.Println(err)
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 				return
 			}
 
@@ -384,19 +384,19 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			})
 			if err != nil {
 				log.Println(err)
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 				return
 			}
 		} else if action == "connect" {
 			log.Println("connect code running")
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Invalid user identifier", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Invalid user identifier", http.StatusMovedPermanently)
 				return
 			}
 			user, err = s.DB.GetUserById(parsedId)
 			if err != nil {
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=User not found", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=User not found", http.StatusMovedPermanently)
 				return
 			}
 		}
@@ -409,17 +409,18 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 			return
 		}
 	}
 
 	if action == "revoke" {
-    log.Println("revoking")
+		log.Println("revoking")
 		if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to disconnect the provider", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Failed to disconnect the provider", http.StatusMovedPermanently)
 			return
 		}
+
 		RevokeUserToken(chosenProvider, token)
 		cookie := DeleteCookie()
 
@@ -432,7 +433,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		user, err = s.DB.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 			return
 		}
 	}
@@ -440,20 +441,20 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	cookie, err := CreateCookie(&user, s.scookie)
 	if err != nil {
 		log.Println(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 		return
 	}
 
 	log.Println("redirect")
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
 }
 
 func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
-	chosenProvider, exists := s.providers[providerName]
+	_, exists := s.providers[providerName]
 	if !exists {
-		http.Error(w, "The provider does not exists", http.StatusTemporaryRedirect)
+		http.Error(w, "The provider does not exists", http.StatusMovedPermanently)
 		return
 	}
 
@@ -498,13 +499,6 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-	}
-
-	for _, provider := range providers {
-		if provider.Provider == chosenProvider.Type {
-			http.Redirect(w, r, "/oauth/"+providerName+"?state=revoke."+provider.ProviderUserId, http.StatusTemporaryRedirect)
-      return
-		}
 	}
 
 	w.WriteHeader(http.StatusOK)

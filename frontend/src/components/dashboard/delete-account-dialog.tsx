@@ -48,7 +48,7 @@ export default function DeleteAccountAlert(props: { children: ReactNode }) {
                   );
 
                   setTimeout(() => {
-                    if (user?.provider === Provider.GITHUB) {
+                    if (user?.providers !== null) {
                       router.push(
                         `${process.env.NEXT_PUBLIC_API_URL}/use-github?type=1`,
                       );
