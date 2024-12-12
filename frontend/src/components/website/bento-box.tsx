@@ -1,11 +1,11 @@
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 
 export default function WebBentoBox(props: {
   className?: string;
   type: 'horizontal-left' | 'horizontal-right' | 'vertical';
   title: string;
   description: string;
-  img: string;
+  img: string | StaticImageData;
 }) {
   const render = () => {
     switch (props.type) {
@@ -55,8 +55,8 @@ export default function WebBentoBox(props: {
                 {props.description}
               </div>
             </div>
-            <div className='min-w-none mx-auto flex h-fit max-w-[450px] items-center justify-center'>
-              <Image src={props.img} alt='Image' height={340} width={1000} />
+            <div className='min-w-none mx-auto flex h-fit max-w-[450px] max-h-[500px] items-center justify-center'>
+              <Image src={props.img} alt='Image' className='max-h-[500px]' height={340} width={1000} />
             </div>
           </div>
         );

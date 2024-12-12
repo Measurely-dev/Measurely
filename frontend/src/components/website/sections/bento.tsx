@@ -7,7 +7,10 @@ import WebTitle from '../title';
 import ContentContainer from '../content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
 import SubscriptionUiSection from './pricing';
-
+import Image1 from '../../../../public/measurely-image1.png';
+import Image2 from '../../../../public/measurely-image2.png';
+import Image4 from '../../../../public/measurely-image4.png';
+import Image5 from '../../../../public/measurely-image5.png';
 export default function BentoUiSection() {
   const [is_client, set_is_client] = useState(false);
   const [window_width, set_window_width] = useState(0);
@@ -46,32 +49,32 @@ export default function BentoUiSection() {
         <WebBentoBox
           type={bentoBoxType}
           className='mt-20'
-          title='Controls in place to prevent errors'
-          description='Acctual detects duplicate invoices, streamlines approvals, and saves wallet details. This ensures error-free payments and enhances control over the entire process.'
-          img='https://framerusercontent.com/images/EMoV7R8WierVn1xbQmEoQCnqck.webp'
+          title='Simplify Your Metrics'
+          description='Measurely is a powerful tool that makes it easy to track and analyze your key metrics. With a simple API integration, you can send your data to Measurely for real-time monitoring and visualization.'
+          img={Image1}
         />
         <div className='grid grid-cols-2 gap-5 max-md:grid-cols-1 max-md:grid-rows-2'>
           <WebBentoBox
             type='vertical'
             className='mt-5'
-            title='Stay compliant and secure'
-            description='Safely send payments—we protect you from high-risk wallet addresses.'
-            img='https://framerusercontent.com/images/0YQX4OAyaQHdMGB0u9YlfxZAGTc.webp'
+            title='Visualize Your Data, Your Way'
+            description='Data is displayed in easy-to-understand charts & tables, with advanced options.'
+            img={Image5}
           />
           <WebBentoBox
             type='vertical'
             className='mt-5'
-            title='Finally... accounts payable for crypto'
-            description='It’s time we bring sophistication to the crypto AP process. Now, you’ll have visibility to take control and reduce risk.'
-            img='https://framerusercontent.com/images/vhcnpRPJz0JgRfwEubCm4WWJC00.webp'
+            title='Seamless Integration'
+            description="Straightforward API integration that allows you to seamlessly start tracking your metrics in no time."
+            img={Image4}
           />
         </div>
         <WebBentoBox
           type={bentoBoxType}
           className='mt-5'
-          title='Seamlessly sync with your accounting stack'
-          description='Automatically record and match bills with payments, sync contacts with your accounting system, while working alongside your crypto subledger. All on-chain payments are associated with an invoice.'
-          img='https://framerusercontent.com/images/NSgMty5qHcNLTMQrQEZ8DPmMpYo.png'
+          title='Multiple metric type'
+          description='Measurely tracks single (basic) and dual metrics. Basic metrics monitor growth, while dual metrics compare positive and negative influences on a key metric.'
+          img={Image2}
         />
         <SubscriptionUiSection />
         <WebTitle

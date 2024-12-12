@@ -19,9 +19,9 @@ export default function Card5(props: { className?: string }) {
         className='!absolute bottom-[-0px] right-[-80px] !rotate-[-9deg]'
       />
       <CardHeader className='p-0'>
-        <CardTitle>New milestone</CardTitle>
+        <CardTitle>New metric</CardTitle>
         <CardDescription className='text-xs'>
-          Clearing all the created metrics is a irreversible action, think
+          Deleting a metrics is a irreversible action, think
           before doing it.
         </CardDescription>
       </CardHeader>
@@ -32,7 +32,7 @@ export default function Card5(props: { className?: string }) {
           </Label>
           <Input
             type='text'
-            placeholder='Write application name...'
+            placeholder='Confirm metric name...'
             className='text-xs placeholder:text-xs'
           />
         </div>
@@ -41,7 +41,7 @@ export default function Card5(props: { className?: string }) {
           variant={'destructiveOutline'}
           size='sm'
         >
-          Clear all metrics
+          Delete metric
         </Button>
       </CardContent>
     </Card>

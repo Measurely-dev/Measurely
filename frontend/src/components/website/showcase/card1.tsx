@@ -20,7 +20,7 @@ export default function Card1(props: { className?: string }) {
         <div className='flex aspect-square h-[60px] items-center justify-center rounded-full border border-red-400 bg-red-400/10 text-red-400'>
           <MinusIcon className='size-8 stroke-[2]' />
         </div>
-        Account deleted
+        Metric deleted
       </div>
       <CardHeader className='p-0'>
         <CardTitle>New milestone</CardTitle>
