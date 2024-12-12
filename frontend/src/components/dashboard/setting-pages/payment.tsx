@@ -47,7 +47,7 @@ export default function SettingPaymentPage() {
           <div className='flex flex-row items-center gap-3'>
             <Code className='size-5' />
             <div className='text-md font-semibold'>
-              You're using {user?.plan} plan
+              You're using the {user?.plan} plan
             </div>
           </div>
           <div className='text-sm text-secondary'>

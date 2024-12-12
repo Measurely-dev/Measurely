@@ -14,32 +14,21 @@ import Image5 from '../../../../public/measurely-image5.png';
 export default function BentoUiSection(props: {
   isAuthentificated: string | null;
 }) {
-  const [is_client, set_is_client] = useState(false);
   const [window_width, set_window_width] = useState(0);
 
   useEffect(() => {
-    set_is_client(true);
+    const handleResize = () => {
+      set_window_width(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    if (is_client) {
-      const handleResize = () => {
-        set_window_width(window.innerWidth);
-      };
-
-      window.addEventListener('resize', handleResize);
-
-      handleResize();
-
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, [is_client]);
-
-  const bentoBoxType = is_client
-    ? window_width > 768
-      ? 'horizontal-left'
-      : 'vertical'
-    : 'horizontal-left';
+  const bentoBoxType = window_width > 768 ? 'horizontal-left' : 'vertical';
 
   return (
     <div className='z-10 w-screen bg-secondaryColor pb-[150px] pt-[150px]'>

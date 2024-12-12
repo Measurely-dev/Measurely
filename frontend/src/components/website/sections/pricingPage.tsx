@@ -16,7 +16,6 @@ export default function PricingCardsSection(props: {
   const router = useRouter();
 
   const subscribe = (plan: string) => {
-    console.log(props.isAuthentificated)
     if (props.isAuthentificated === 'true') {
       setSelectedPlan(plan);
       setLoading(true);
@@ -29,6 +28,9 @@ export default function PricingCardsSection(props: {
         .then((resp) => {
           if (resp.status === 200) {
             return resp.json();
+          } else if (resp.status === 304) {
+            toast.warning("You are already on this plan")
+            setLoading(false)
           } else {
             resp.text().then((text) => {
               toast.error(text);

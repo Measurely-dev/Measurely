@@ -86,7 +86,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.CurrentPlan == request.Plan {
-		http.Error(w, "Already on that plan", http.StatusNotModified)
+		http.Error(w, "You are already using this plan", http.StatusNotModified)
 		return
 	}
 
