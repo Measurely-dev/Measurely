@@ -260,8 +260,6 @@ export default function SettingGeneralPage() {
         content={
           <div className='flex flex-col gap-4'>
             {providers.map((provider: any) => {
-              console.log(user?.providers);
-              console.log(provider.type);
               return (
                 <div className='flex items-center justify-between'>
                   <div className='flex flex-row items-center gap-2'>
