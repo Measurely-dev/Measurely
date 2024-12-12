@@ -60,8 +60,6 @@ func (h *Handler) setup_api() {
 		r.Post("/forgot-password", h.service.ForgotPassword)
 		r.Post("/recover-account", h.service.RecoverAccount)
 
-		r.Post("/feedback", h.service.SendFeedback)
-
 		r.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
 		r.HandleFunc("/webhook", h.service.Webhook)
 
@@ -70,10 +68,12 @@ func (h *Handler) setup_api() {
 		r.Get("/rates", h.service.GetRates)
 		r.Get("/plans", h.service.GetPlans)
 
-    r.Patch("/changeemail", h.service.UpdateUserEmail)
+		r.Patch("/changeemail", h.service.UpdateUserEmail)
 
 		r.Group(func(cr chi.Router) {
 			cr.Use(h.service.AuthentificatedMiddleware)
+
+			cr.Post("/feedback", h.service.SendFeedback)
 
 			cr.Get("/is-connected", h.service.IsConnected)
 
@@ -86,7 +86,7 @@ func (h *Handler) setup_api() {
 			cr.Get("/application", h.service.GetApplications)
 			cr.Post("/application", h.service.CreateApplication)
 			cr.Delete("/application", h.service.DeleteApplication)
-      cr.Patch("/app-name", h.service.UpdateApplicationName)
+			cr.Patch("/app-name", h.service.UpdateApplicationName)
 			cr.Get("/metric-groups", h.service.GetMetricGroups)
 			cr.Patch("/rand-apikey", h.service.RandomizeApiKey)
 			cr.Get("/events", h.service.GetMetricEvents)
@@ -103,7 +103,7 @@ func (h *Handler) setup_api() {
 			cr.Patch("/name", h.service.UpdateFirstAndLastName)
 			cr.Patch("/password", h.service.UpdatePassword)
 
-      cr.Post("/requestemailchange", h.service.RequestEmailChange)
+			cr.Post("/requestemailchange", h.service.RequestEmailChange)
 		})
 	})
 }

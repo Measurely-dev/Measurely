@@ -25,6 +25,7 @@ export default function SignIn() {
         toast.success(params.get('success') as string);
       });
     }
+
   }, [params]);
 
   useEffect(() => {

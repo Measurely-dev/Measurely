@@ -305,8 +305,6 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	state := r.URL.Query().Get("state")
 
-	log.Println(providerName)
-
 	provider, exists := s.providers[providerName]
 	if !exists {
 		fmt.Println("error")
@@ -435,7 +433,7 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Error(w, "The provider does not exists", http.StatusMovedPermanently)
+		http.Error(w, "The provider does not exists", http.StatusNotFound)
 		return
 	}
 
@@ -762,7 +760,15 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
-	var request FeedbackRequest
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var request struct {
+		Content string `json:"content"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -781,15 +787,20 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isEmailValid(request.Email) {
-		http.Error(w, "Intokenid email", http.StatusBadRequest)
+	user, err := s.DB.GetUserById(token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "user not found", http.StatusNotFound)
+		} else {
+
+			http.Error(w, "internal error", http.StatusInternalServerError)
+		}
 		return
 	}
 
 	// send email
-
 	cerr := s.DB.CreateFeedback(types.Feedback{
-		Email:   request.Email,
+		Email:   user.Email,
 		Content: request.Content,
 		Date:    time.Now(),
 	})
@@ -799,14 +810,21 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	s.ScheduleEmail(SendEmailRequest{
-		To: request.Email,
+		To: user.Email,
 		Fields: MailFields{
 			Subject: "Feedback received",
 			Content: "Thank you for your feedback. We will try to improve our service as soon as possible.",
 		},
 	})
-	w.WriteHeader(http.StatusOK)
+	s.ScheduleEmail(SendEmailRequest{
+		To: "info@measurely.dev",
+		Fields: MailFields{
+			Subject: "Feedback Received from " + user.Email,
+			Content: request.Content,
+		},
+	})
 }
 
 func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {

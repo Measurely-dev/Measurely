@@ -92,7 +92,6 @@ func GetProviderUserInformation(provider Provider, token string) (UserInfo, erro
 
 func BeginProviderAuth(provider Provider, state string) string {
 	url := provider.Config.AuthCodeURL(state)
-	log.Println(url)
 	return url
 }
 
