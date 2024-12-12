@@ -43,8 +43,8 @@ export default function BentoUiSection() {
     <div className='z-10 w-screen bg-secondaryColor pb-[150px] pt-[150px]'>
       <ContentContainer>
         <WebTitle
-          subtitle='Team collaboration'
-          title='Rediscover the joy in storytelling.'
+          subtitle='Discover Measurely'
+          title='Effortless metric tracking'
         />
         <WebBentoBox
           type={bentoBoxType}
@@ -65,7 +65,7 @@ export default function BentoUiSection() {
             type='vertical'
             className='mt-5'
             title='Seamless Integration'
-            description="Straightforward API integration that allows you to seamlessly start tracking your metrics in no time."
+            description='Straightforward API integration that allows you to seamlessly start tracking your metrics in no time.'
             img={Image4}
           />
         </div>

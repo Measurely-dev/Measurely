@@ -12,8 +12,8 @@ export default function ShowcaseLandingSection(props: {
 }) {
   return (
     <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[30vh] max-lg:pt-[20vh] max-md:pt-[23vh]'>
-      <WebChip color='default' href='/'>
-        <span className='mr-1 font-medium'>Measurably</span> is the new way
+      <WebChip color='default' href='/docs/getting-started/introduction'>
+        <span className='mr-1 font-medium'>Measurely</span> is the new way
       </WebChip>
       <div className='mt-5 w-[90%] text-center text-6xl font-semibold leading-[1.15] tracking-normal max-lg:px-0 max-lg:text-5xl max-md:text-5xl max-sm:text-4xl'>
         <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>

@@ -12,7 +12,7 @@ export default function AuthNavbar(props: {
       <Link href='/home'>
         <div className='flex cursor-pointer items-center gap-[10px]'>
           <LogoSvg className='size-8' />
-          <div className='text-sm font-semibold max-md:hidden'>Measurably</div>
+          <div className='text-sm font-semibold max-md:hidden'>Measurely</div>
         </div>
       </Link>
       {props.button === null ? null : (
@@ -38,7 +38,7 @@ export function AuthNavbarButton(props: {
       <Link href='/'>
         <div className='flex cursor-pointer items-center gap-[10px]'>
           <LogoSvg className='size-8' />
-          <div className='text-sm font-semibold max-md:hidden'>Measurably</div>
+          <div className='text-sm font-semibold max-md:hidden'>Measurely</div>
         </div>
       </Link>
       <Separator className='h-5' orientation='vertical' />

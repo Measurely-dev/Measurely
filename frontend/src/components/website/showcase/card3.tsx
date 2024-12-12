@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 
 export default function Card3(props: { className?: string }) {
   return (
-    <Card className={`w-[320px] rounded-2xl bg-white shadow-sm ${props.className}`}>
+    <Card className={`w-[320px] z-20 rounded-2xl bg-white shadow-sm ${props.className}`}>
       <div className='flex flex-col items-center justify-center px-4 py-5 text-center'>
         <span className='text-[17px] font-semibold'>
           10 new created accounts

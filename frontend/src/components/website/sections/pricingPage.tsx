@@ -15,7 +15,7 @@ export default function PricingCardsSection() {
             <br /> your needs
           </span>
         }
-        description='Find the plan the best suited for your application'
+        description='Find the plan the best suited for you'
       />
       <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
         {plans.map((plan, i) => {
