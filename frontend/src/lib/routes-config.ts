@@ -14,14 +14,15 @@ export const ROUTES: EachRoute[] = [
     noLink: true,
     items: [
       { title: 'Introduction', href: '/introduction' },
-      {
-        title: 'Installation',
-        href: '/installation',
-        items: [
-          { title: 'Quickstart', href: '/quickstart' },
-          { title: 'Developement', href: '/developement' },
-        ],
-      },
+    ],
+  },
+  {
+    title: 'Setup',
+    href: '/setup',
+    noLink: true,
+    items: [
+      { title: 'Quickstart', href: '/quickstart' },
+      { title: 'Developement', href: '/developement' },
     ],
   },
   {
@@ -38,9 +39,7 @@ export const ROUTES: EachRoute[] = [
     title: 'API reference',
     href: '/api-reference',
     noLink: true,
-    items: [
-      { title: 'Guide', href: '/guide' },
-    ],
+    items: [{ title: 'Guide', href: '/guide' }],
   },
 ];
 

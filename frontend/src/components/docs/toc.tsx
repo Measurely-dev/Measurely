@@ -3,8 +3,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import clsx from 'clsx';
 
-export default async function Toc(props: { path: string }) {
-  const tocs = await getDocsTocs(props.path);
+export default function Toc(props: { path: string }) {
+  const tocs = getDocsTocs(props.path);
 
   return (
     <div className='toc sticky top-16 hidden h-[95.95vh] min-w-[230px] flex-[1] py-8 lg:flex'>

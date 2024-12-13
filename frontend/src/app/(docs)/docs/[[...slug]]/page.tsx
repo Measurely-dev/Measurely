@@ -5,6 +5,8 @@ import { Typography } from '@/components/docs/typography';
 import { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Pagination from '@/components/docs/pagination';
+import DocsBreadcrumb from '@/components/docs/breadcrumb';
 
 type PageProps = {
   params: { slug: string[] };
@@ -28,12 +30,14 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
   return (
     <div className='flex items-start gap-14'>
       <div className='flex-[3] py-10'>
+        <DocsBreadcrumb paths={slug} />
         <Typography>
           <h1 className='-mt-2 text-3xl'>{res.frontmatter.title}</h1>
-          <p className='-mt-4 text-[16.5px] text-muted-foreground'>
+          <p className='-mt-4 text-[16.5px] text-[#78716c]'>
             {res.frontmatter.description}
           </p>
           <div className='mt-5'>{res.content}</div>
+          <Pagination pathname={pathName} />
         </Typography>
       </div>
       <Toc path={pathName} />
@@ -47,7 +51,7 @@ export async function generateMetadata({ params: { slug = [] } }: PageProps) {
   if (!res) return {} as Metadata;
   const { frontmatter } = res;
   return {
-    title: frontmatter.title + " " + "| Measurely",
+    title: frontmatter.title + ' ' + '| Measurely',
     description: frontmatter.description,
   };
 }

@@ -12,7 +12,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserContext } from '@/dash-context';
-import { providers } from '@/providers';
 import { Provider, UserProvider } from '@/types';
 import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';

@@ -1,12 +1,12 @@
 import path from 'path';
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import remarkGfm from 'remark-gfm';
 import { compileMDX } from 'next-mdx-remote/rsc'; // Corrected import
 import rehypePrism from 'rehype-prism-plus';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
 import rehypeCodeTitles from 'rehype-code-titles';
-
+import { page_routes } from "./routes-config";
 // custom components imports
 import Note from '@/components/docs/note';
 
@@ -45,20 +45,29 @@ type BaseMdxFrontmatter = {
 export async function getDocsForSlug(slug: string) {
   try {
     const contentPath = getDocsContentPath(slug);
-    const rawMdx = await fs.readFile(contentPath, 'utf-8');
+    const rawMdx = fs.readFileSync(contentPath, 'utf-8');
     return await parseMdx<BaseMdxFrontmatter>(rawMdx);
   } catch (err) {
     console.log(err);
   }
 }
 
-export async function getDocsTocs(slug: string) {
+export function getPreviousNext(path: string) {
+  const index = page_routes.findIndex(({ href }) => href == `/${path}`);
+  return {
+    prev: page_routes[index - 1],
+    next: page_routes[index + 1],
+  };
+}
+export function getDocsTocs(
+  slug: string,
+): { level: number; text: string; href: string }[] {
   const contentPath = getDocsContentPath(slug);
-  const rawMdx = await fs.readFile(contentPath, 'utf-8');
+  const rawMdx = fs.readFileSync(contentPath, 'utf-8');
   // captures between ## - #### can modify accordingly
   const headingsRegex = /^(#{2,4})\s(.+)$/gm;
   let match;
-  const extractedHeadings = [];
+  const extractedHeadings: { level: number; text: string; href: string }[] = [];
   while ((match = headingsRegex.exec(rawMdx)) !== null) {
     const headingLevel = match[1].length;
     const headingText = match[2].trim();

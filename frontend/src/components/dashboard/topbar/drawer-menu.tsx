@@ -6,7 +6,7 @@ import { Book, Code, LogOut, Plus, Settings, User } from 'react-feather';
 
 import Link from 'next/link';
 import { ReactNode, useContext } from 'react';
-import { UserContext } from '@/dash-context';
+import { AppsContext, UserContext } from '@/dash-context';
 import ApiDialog from '../api-dialog';
 import { Separator } from '@/components/ui/separator';
 import { navItem } from '../navbar';
@@ -18,6 +18,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
   const pathname = usePathname();
   const { user } = useContext(UserContext);
   const router = useRouter();
+  const { applications, activeApp } = useContext(AppsContext);
   function Capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
@@ -64,7 +65,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
           </Button>
         </Link>
         <div className='sm:hidden'>
-          <ApiDialog>
+          <ApiDialog appId={applications?.[activeApp]?.id ?? ''}>
             <Button
               variant={'secondary'}
               className='w-full gap-1.5 rounded-[12px]'

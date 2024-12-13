@@ -1,14 +1,21 @@
 .prose {
   margin: 0 !important;
 }
+.docs h1 {
+  font-weight: 800;
+  margin-bottom: 24px;
+  font-family: mono;
+}
 .docs h2 {
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 700;
   margin-bottom: 10px;
-  margin-top: 20px;
+  margin-top: 40px;
+  font-family: mono;
 }
-.docs h1 {
-  margin-bottom: 24px;
+.docs p {
+  line-height: 1.6;
+  color: #3f3f46;
 }
 .docs pre {
   padding: 0 !important;
