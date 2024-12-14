@@ -339,6 +339,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
