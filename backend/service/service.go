@@ -339,7 +339,6 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
@@ -588,13 +587,19 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Failed to get user token")
+		http.Error(w, "Failed to retrieve user session", http.StatusInternalServerError)
 		return
 	}
 
 	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			log.Println("Failed to get user by id: ", err)
+			http.Error(w, "Failed to load the user data", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -603,6 +608,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			providers = []types.UserProvider{}
 		} else {
+			log.Println("Failed to get user providers by user id :", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
