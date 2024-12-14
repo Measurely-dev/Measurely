@@ -8,7 +8,7 @@ export default async function Home() {
   const is_authentificated = headersList.get('is-authentificated');
   return (
     <WebContainer>
-      <ShowcaseLandingSection type='default' />
+      <ShowcaseLandingSection />
       <BentoUiSection isAuthentificated={is_authentificated} />
     </WebContainer>
   );

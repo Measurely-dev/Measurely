@@ -125,6 +125,7 @@ export default function EditAppDialogContent(props: {
                     ? `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${props.app?.image}`
                     : reader
                 }
+                alt='Application image'
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>
                 <Image className='text-secondary' />

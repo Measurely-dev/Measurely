@@ -17,7 +17,7 @@ const SettingCard = (props: {
   btn_disabled: boolean;
   disabled?: boolean | false;
   disabled_text?: ReactNode;
-  action?: (e: FormEvent<HTMLFormElement>) => void;
+  action?: (_: FormEvent<HTMLFormElement>) => void;
   btn?: string | undefined;
   danger?: boolean | false;
 }) => {

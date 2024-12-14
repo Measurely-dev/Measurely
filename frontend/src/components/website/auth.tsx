@@ -18,7 +18,7 @@ export default function AuthForm(props: {
   forgot_password?: boolean;
   policies?: boolean;
   btn_loading?: boolean;
-  action: (formdata: FormData) => void;
+  action: (_: FormData) => void;
 }) {
   const router = useRouter();
   const [isDisabled, setIsDisabled] = useState(true);

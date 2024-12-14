@@ -18,7 +18,7 @@ import Footer from '@/components/website/footer';
 import { AppsContext } from '@/dash-context';
 import { GroupType } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useContext, useState } from 'react';
+import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function NewMetric() {
@@ -107,14 +107,15 @@ function Metric(props: {
   value: number;
   descripiton: string;
   state: any;
-  setState: (props: number) => void;
+  setState: Dispatch<SetStateAction<number>>;
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
+        props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-        }`}
+      }`}
       onClick={() => {
         if (props.value === 2) {
           return;
@@ -130,7 +131,7 @@ function Metric(props: {
   );
 }
 
-function BasicStep(props: { setStep: (props: number) => void }) {
+function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   const [name, setName] = useState('');
   const [baseValue, setBaseValue] = useState<number | string>(0);
   const [loading, setLoading] = useState(false);
@@ -192,11 +193,11 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                   applications?.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
-                        groups: [
-                          ...(applications[activeApp].groups ?? []),
-                          json,
-                        ],
-                      })
+                          groups: [
+                            ...(applications[activeApp].groups ?? []),
+                            json,
+                          ],
+                        })
                       : v,
                   ),
                 );
@@ -268,7 +269,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
   );
 }
 
-function DualStep(props: { setStep: (props: number) => void }) {
+function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   const [name, setName] = useState('');
   const [namePos, setNamePos] = useState('added');
   const [nameNeg, setNameNeg] = useState('removed');
@@ -329,11 +330,11 @@ function DualStep(props: { setStep: (props: number) => void }) {
                 applications?.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
-                      groups: [
-                        ...(applications[activeApp].groups ?? []),
-                        json,
-                      ],
-                    })
+                        groups: [
+                          ...(applications[activeApp].groups ?? []),
+                          json,
+                        ],
+                      })
                     : v,
                 ),
               );

@@ -6,16 +6,23 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CreditCard, Home, X } from 'lucide-react';
-import { ReactNode, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
 import SettingGeneralPage from './setting-pages/general';
 import { Hexagon } from 'react-feather';
 import SettingAppsPage from './setting-pages/apps-api';
 import SettingPaymentPage from './setting-pages/payment';
 import { Button } from '@/components/ui/button';
 
+
+interface SettingPage {
+  name : string,
+  icon : ReactNode,
+  value : string
+}
+
 export default function SettingDialog(props: { children: ReactNode }) {
   const [page, setPage] = useState('general');
-  const settings = [
+  const settings : SettingPage[] = [
     {
       name: 'General',
       icon: <Home className='size-4 text-blue-500' />,
@@ -54,9 +61,9 @@ export default function SettingDialog(props: { children: ReactNode }) {
 }
 
 function Navbar(props: {
-  page: any;
-  setPage: (value: any) => void;
-  settings: Array<any>;
+  page: string;
+  setPage: Dispatch<SetStateAction<string>>;
+  settings: SettingPage[];
 }) {
   return (
     <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
@@ -81,9 +88,9 @@ function Navbar(props: {
 }
 
 function Content(props: {
-  page: any;
-  setPage: (value: any) => void;
-  settings: Array<any>;
+  page: string;
+  setPage: Dispatch<SetStateAction<string>>;
+  settings: Array<SettingPage>;
 }) {
   function content() {
     switch (props.page) {

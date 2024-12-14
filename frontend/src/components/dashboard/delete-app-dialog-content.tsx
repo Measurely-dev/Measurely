@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
-import { useRouter } from 'next/navigation';
 import { useContext } from 'react';
 import { toast } from 'sonner';
 
@@ -18,7 +17,6 @@ export default function DeleteAppDialogContent(props: {
 }) {
   const { applications, setApplications, activeApp, setActiveApp } =
     useContext(AppsContext);
-  const router = useRouter();
   return (
     <AlertDialogContent className='border border-red-500 bg-red-500/30 py-8 backdrop-blur-3xl'>
       <AlertDialogHeader>

@@ -11,13 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AppsContext } from '@/dash-context';
 import { Group } from '@/types';
-import { useContext, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function EditMetricDialogContent(props: {
   group: Group;
   total: number;
-  setOpen: (value: any) => void;
+  setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const [name, setName] = useState<string>(props.group.name);
   const [subNames, setSubNames] = useState<string[]>([]);
@@ -101,7 +101,7 @@ export default function EditMetricDialogContent(props: {
 
           if (applications !== null) {
             setApplications(
-              applications.map((v, i) =>
+              applications.map((v) =>
                 v.id === props.group.appid
                   ? Object.assign({}, v, {
                       groups: v.groups?.map((g) =>

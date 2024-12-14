@@ -118,7 +118,7 @@ export default function MetricDropdown(props: {
                     if (res.ok && applications !== null) {
                       toast.success('Metric succesfully deleted');
                       setApplications(
-                        applications?.map((v, i) =>
+                        applications?.map((v) =>
                           v.id === props.group.appid
                             ? Object.assign({}, v, {
                                 groups: v.groups?.filter(

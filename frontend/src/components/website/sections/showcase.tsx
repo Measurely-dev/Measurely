@@ -7,9 +7,7 @@ import Card3 from '../showcase/card3';
 import Card4 from '../showcase/card4';
 import Card5 from '../showcase/card5';
 
-export default function ShowcaseLandingSection(props: {
-  type: 'default' | 'waitlist';
-}) {
+export default function ShowcaseLandingSection() {
   return (
     <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[30vh] max-lg:pt-[20vh] max-md:pt-[23vh]'>
       <WebChip color='default' href='/docs/getting-started/introduction'>

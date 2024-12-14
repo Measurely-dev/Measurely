@@ -154,7 +154,11 @@ function Inputs(props: {
       <div className='flex w-full items-center gap-5'>
         <Avatar className='relative size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-[16px]'>
           <Label className='relative h-full w-full cursor-pointer'>
-            <AvatarImage className='rounded-[16px]' src={reader} />
+            <AvatarImage
+              className='rounded-[16px]'
+              src={reader}
+              alt='Application image'
+            />
             <AvatarFallback className='h-full w-full !rounded-[16px]'>
               <Image className='text-secondary' />
             </AvatarFallback>
