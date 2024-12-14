@@ -1682,7 +1682,6 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Println(cookie)
 		token, err := VerifyToken(cookie.Value)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -1690,10 +1689,9 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
-		if cookie.Expires.Sub(time.Now()) <= 12*time.Hour {
+		if cookie.Expires.Sub(time.Now().UTC()) <= 12*time.Hour {
 			new_cookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
 
-			log.Println("reset")
 			if err == nil {
 				http.SetCookie(w, &new_cookie)
 			}

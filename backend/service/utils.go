@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -60,7 +59,7 @@ func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) 
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 		HttpOnly: true,
-		Expires:  time.Now().Add(72 * time.Hour),
+		Expires:  time.Now().UTC().Add(72 * time.Hour),
 	}
 
 	if os.Getenv("ENV") == "production" {
@@ -97,7 +96,6 @@ func VerifyToken(tokenStr string) (types.Token, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-    log.Println(claims["id"])
 		id, err := uuid.Parse(fmt.Sprint(claims["id"]))
 		if err != nil {
 			return types.Token{}, errors.New("invalid jwt token")
