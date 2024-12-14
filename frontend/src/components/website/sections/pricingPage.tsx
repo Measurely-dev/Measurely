@@ -61,6 +61,7 @@ export default function PricingCardsSection(props: {
             <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
               Pricing
             </span>
+            <br className='sm:hidden'/>
             that fits
             <br /> your needs
           </span>

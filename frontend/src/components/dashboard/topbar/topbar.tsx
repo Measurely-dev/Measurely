@@ -20,7 +20,7 @@ export default function DashboardTopbar() {
   const { applications, activeApp } = useContext(AppsContext);
 
   return (
-    <div className='flex h-[50px] w-full flex-row justify-between border-b border-accent pr-[15px]'>
+    <div className='flex absolute bg-background top-[0px] pt-[15px] z-[20] max-md:border-b-none h-[65px] w-full flex-row justify-between border-b border-accent pr-[15px]'>
       <div className='flex h-[40px] w-full flex-row items-center justify-between'>
         <div className='flex items-center justify-center gap-4'>
           <Link href='/' className='md:hidden'>

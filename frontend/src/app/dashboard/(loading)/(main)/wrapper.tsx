@@ -13,9 +13,9 @@ export default function DashboardWrapper({ children }: { children: any }) {
       <div className='w-full pl-[20px]'>
         <DashboardContent>
           <DashboardTopbar />
-          <ScrollArea className='flex h-[calc(100vh-15px-50px)] flex-col'>
+          <div className='flex min-h-[calc(100vh-15px)] pt-[50px] flex-col'>
             {children}
-          </ScrollArea>
+          </div>
         </DashboardContent>
       </div>
     </div>

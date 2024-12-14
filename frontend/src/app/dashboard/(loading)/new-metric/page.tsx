@@ -57,7 +57,7 @@ export default function NewMetric() {
 
   return (
     <div className='flex flex-col'>
-      <WebContainer className='h-[100vh] w-[100vw]'>
+      <WebContainer className='h-[100vh] min-h-[700px] w-[100vw]'>
         <AuthNavbar href='/dashboard' button='Dashboard' />
         <ContentContainer className='flex h-full items-center justify-center'>
           {step === 1 ? (
@@ -93,7 +93,7 @@ export default function NewMetric() {
               </div>
             </>
           ) : (
-            <div className='h-fit w-[500px]'>{renderStep()}</div>
+            <div className='h-fit w-full max-w-[500px]'>{renderStep()}</div>
           )}
         </ContentContainer>
       </WebContainer>
@@ -138,7 +138,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
   const router = useRouter();
 
   return (
-    <div className='mx-auto flex w-[500px] flex-col gap-6'>
+    <div className='mx-auto flex flex-col gap-6'>
       <div className='flex flex-col gap-[5px]'>
         <div className='text-xl font-medium'>Basic metric</div>
         <div className='text-sm text-secondary'>
@@ -222,7 +222,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
                 <Label>Base value</Label>
                 <div className='flex flex-col gap-1'>
                   <Input
-                    placeholder='optional'
+                    placeholder='Optional'
                     type='number'
                     value={
                       baseValue === 0 && !Number(baseValue) ? '' : baseValue
@@ -243,7 +243,7 @@ function BasicStep(props: { setStep: (props: number) => void }) {
             </div>
           </div>
 
-          <div className='flex w-full flex-row gap-2'>
+          <div className='flex w-full max-md:flex-col flex-row gap-2'>
             <Button
               type='button'
               variant='secondary'
@@ -280,7 +280,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
   const router = useRouter();
 
   return (
-    <div className='mx-auto flex w-[500px] flex-col gap-6'>
+    <div className='mx-auto flex flex-col gap-6'>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -427,7 +427,7 @@ function DualStep(props: { setStep: (props: number) => void }) {
             </div>
           </div>
 
-          <div className='flex w-full flex-row gap-2'>
+          <div className='flex max-md:flex-col w-full flex-row gap-2'>
             <Button
               type='button'
               variant='secondary'
