@@ -1679,7 +1679,6 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		log.Println(token.Id)
 		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
 		if cookie.Expires.Sub(token.CreationDate) <= 12*time.Hour {

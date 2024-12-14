@@ -42,7 +42,6 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) {
-	log.Println(user.Id)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"id":           user.Id,
@@ -55,7 +54,7 @@ func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) 
 		return http.Cookie{}, err
 	}
 
-	var cookie http.Cookie = http.Cookie{
+	cookie := http.Cookie{
 		Name:     "measurely-session",
 		Value:    tokenString,
 		Path:     "/",
@@ -72,11 +71,12 @@ func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
+
 	return cookie, nil
 }
 
 func DeleteCookie() http.Cookie {
-	var cookie http.Cookie = http.Cookie{
+	cookie := http.Cookie{
 		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
