@@ -73,7 +73,7 @@ export default function PasswordReset() {
               <></>
             )}
 
-            {view === 2 ? <Loader className='size-8 animate-spin'/> : <></>}
+            {view === 2 ? <Loader className='size-8 animate-spin' /> : <></>}
 
             {view === 1 || view === 0 ? (
               <div className='mt-[10px] text-sm'>
