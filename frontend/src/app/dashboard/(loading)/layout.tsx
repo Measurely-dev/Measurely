@@ -4,6 +4,7 @@ import { AppsContext, UserContext } from '@/dash-context';
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
+import { toast } from 'sonner';
 
 export default function DashboardContentLayout({
   children,
@@ -34,7 +35,7 @@ export default function DashboardContentLayout({
         .then((res) => {
           if (!res.ok) {
             res.text().then((text) => {
-              router.push('/error?message=' + text);
+              toast.error(text)
             });
           } else {
             return res.json();
