@@ -29,12 +29,12 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Value struct {
-		Value int `json:"tokenue"`
+		Value int `json:"value"`
 	}
 
-	var tokenue Value
+	var value Value
 
-	err = json.NewDecoder(r.Body).Decode(&tokenue)
+	err = json.NewDecoder(r.Body).Decode(&value)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -43,7 +43,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	request := CreateMetricEventRequest{
 		ApplicationApiKey: apikey,
 		MetricId:          metricid,
-		Value:             tokenue.Value,
+		Value:             value.Value,
 	}
 
 	logKey := "events:process"
@@ -84,14 +84,14 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST",r.URL.Query().Get("start"))
-  if err != nil {
-    http.Error(w, "Bad Request", http.StatusBadRequest)
-    return
-  }
+	start, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("start"))
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
 
-  end, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("end"))
-		if err != nil {
+	end, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("end"))
+	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
@@ -297,7 +297,6 @@ func (s *Service) ProcessMetricEvents() {
 				if err != nil {
 					log.Println("Failed to process metric event:", err)
 				}
-
 			}(logStr)
 
 		}

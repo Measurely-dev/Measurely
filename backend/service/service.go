@@ -3,6 +3,7 @@ package service
 import (
 	"Measurely/db"
 	"Measurely/types"
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -1409,12 +1410,17 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Type == types.BASE && len(request.Metrics) != 1 {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "A base metric group cannot contain more than one 1 metric", http.StatusBadRequest)
 		return
 	}
 
 	if request.Type == types.DUAL && len(request.Metrics) != 2 {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "A dual metric group cannot contain more than 2 metrics", http.StatusBadRequest)
+		return
+	}
+
+	if request.BaseValue < 0 {
+		http.Error(w, "The base value cannot be negative", http.StatusBadRequest)
 		return
 	}
 
@@ -1466,19 +1472,41 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		MetricGroup: group,
 	}
 
-	for _, metric := range request.Metrics {
+	for i, metric := range request.Metrics {
 		created_metric, err := s.DB.CreateMetric(types.Metric{
 			Name:    metric,
 			GroupId: group.Id,
 			Total:   request.BaseValue,
 		})
 		if err != nil {
-			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+				http.Error(w, "A name with the same metric already exists", http.StatusBadRequest)
+			} else {
+				log.Println(err)
+				http.Error(w, "Internal error, failed to create metric", http.StatusInternalServerError)
+			}
 			return
 		}
 
 		metricsResp.Metrics = append(metricsResp.Metrics, created_metric)
+
+		if request.BaseValue != 0 && i == 0 {
+			data := map[string]interface{}{
+				"value": request.BaseValue,
+			}
+			jsonData, err := json.Marshal(data)
+			if err != nil {
+				fmt.Println("Error marshaling JSON:", err)
+				continue
+			}
+			request, err := http.NewRequest("POST", GetURL()+"/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
+			if err != nil {
+				continue
+			}
+
+			http.DefaultClient.Do(request)
+		}
+
 	}
 
 	bytes, jerr := json.Marshal(metricsResp)
