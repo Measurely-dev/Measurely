@@ -34,12 +34,17 @@ export default function DashboardContentLayout({
         credentials: 'include',
       })
         .then((res) => {
-          if (!res.ok) {
+          if (res.ok) {
+
+            return res.json();
+
+          } else if (res.status === 404) {
+            toast.error("User not found")
+            setTimeout(() => router.push("/sign-ing"), 500)
+          } else {
             res.text().then((text) => {
               toast.error(text);
             });
-          } else {
-            return res.json();
           }
         })
         .then((json) => {
@@ -56,10 +61,12 @@ export default function DashboardContentLayout({
         credentials: 'include',
       })
         .then((res) => {
-          if (!res.ok) {
-            return [];
-          } else {
+          if (res.ok) {
             return res.json();
+          } else {
+            res.text().then((text) => {
+              toast.error(text);
+            });
           }
         })
         .then((json) => {

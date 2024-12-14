@@ -600,6 +600,9 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			cookie := DeleteCookie()
+			SetupCacheControl(w, 0)
+			http.SetCookie(w, &cookie)
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
 			log.Println("Failed to get user by id: ", err)
@@ -1679,7 +1682,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-    log.Println(cookie)
+		log.Println(cookie)
 		token, err := VerifyToken(cookie.Value)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
