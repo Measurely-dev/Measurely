@@ -41,8 +41,8 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func CreateCookie(user *types.User) (http.Cookie, error) {
-  log.Println(user.Id)
+func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) {
+	log.Println(user.Id)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"id":           user.Id,
@@ -69,6 +69,9 @@ func CreateCookie(user *types.User) (http.Cookie, error) {
 		cookie.SameSite = http.SameSiteNoneMode
 	}
 
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 	return cookie, nil
 }
 
@@ -105,7 +108,7 @@ func VerifyToken(tokenStr string) (types.Token, error) {
 
 		date, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", fmt.Sprint(claims["creationdate"]))
 		if err != nil {
-      log.Println(err)
+			log.Println(err)
 			return types.Token{}, errors.New("invalid jwt token")
 		}
 		return types.Token{

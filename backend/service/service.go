@@ -279,7 +279,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create auth cookie
-	cookie, err := CreateCookie(&user)
+	cookie, err := CreateCookie(&user, w)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -417,7 +417,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cookie, err := CreateCookie(&user)
+	cookie, err := CreateCookie(&user, w)
 	if err != nil {
 		log.Println("error:", err)
 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
@@ -555,7 +555,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create auth cookie
-	cookie, cerr := CreateCookie(&new_user)
+	cookie, cerr := CreateCookie(&new_user, w)
 	if cerr != nil {
 		log.Println(cerr)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -592,7 +592,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  log.Println(token.Id)
+	log.Println(token.Id)
 	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -1666,64 +1666,6 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// func (s *Service) ToggleMetric(w http.ResponseWriter, r *http.Request) {
-// 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
-// 	if !ok {
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	var request ToggleMetricRequest
-
-// 	// Try to unmarshal the request body
-// 	jerr := json.NewDecoder(r.Body).Decode(&request)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	// Get the application
-// 	_, err := s.DB.GetApplication(request.AppId, token)
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	if request.Enabled {
-// 		// Get the user
-// 		user, gerr := s.DB.GetUserById(token)
-// 		if gerr != nil {
-// 			log.Println(gerr)
-// 			http.Error(w, "Internal error", http.StatusInternalServerError)
-// 			return
-// 		}
-
-// 		count, err := s.DB.GetMetricGroupCount(request.AppId)
-// 		if err != nil {
-// 			log.Println(err)
-// 			http.Error(w, "Internal error", http.StatusInternalServerError)
-// 			return
-// 		}
-
-// 		plan, _ := s.GetPlan(user.CurrentPlan)
-// 		if count >= plan.MetricPerAppLimit {
-// 			http.Error(w, "You have reached your limit", http.StatusBadRequest)
-// 			return
-// 		}
-// 	}
-
-// 	// Toggle the metric
-// 	err = s.DB.ToggleMetricGroup(request.MetricId, request.AppId, request.Enabled)
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	w.WriteHeader(http.StatusOK)
-// }
-
 func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("measurely-session")
@@ -1737,11 +1679,11 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-    log.Println(token.Id)
+		log.Println(token.Id)
 		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
 		if cookie.Expires.Sub(token.CreationDate) <= 12*time.Hour {
-			new_cookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email})
+			new_cookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
 			if err == nil {
 				http.SetCookie(w, &new_cookie)
 			}
