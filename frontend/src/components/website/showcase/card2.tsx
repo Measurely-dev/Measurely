@@ -19,7 +19,7 @@ import ShowcaseCursor from './cursor';
 
 export default function Card2(props: { className?: string }) {
   return (
-    <Card className={`w-[320px] rounded-2xl p-5 shadow-sm ${props.className}`}>
+    <Card className={`w-[320px] z-[5] bg-background rounded-2xl p-5 shadow-sm ${props.className}`}>
       <ShowcaseCursor
         cursor={1}
         className='!absolute max-lg:hidden left-[135px] top-[-26px] !rotate-[-9deg]'

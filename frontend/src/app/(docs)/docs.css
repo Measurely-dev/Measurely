@@ -4,14 +4,12 @@
 .docs h1 {
   font-weight: 800;
   margin-bottom: 24px;
-  font-family: mono;
 }
 .docs h2 {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 10px;
   margin-top: 40px;
-  font-family: mono;
 }
 .docs p {
   line-height: 1.6;

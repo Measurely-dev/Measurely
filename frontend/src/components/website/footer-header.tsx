@@ -11,7 +11,7 @@ export default function WebFooterHeader(props: { className?: string }) {
         <br /> tracking methods?
       </div>
       <div className='text-2xl text-secondary max-md:text-xl max-sm:text-base'>
-        Join the developers who trust Measurely for real-time
+        Join the teams who trust Measurely for real-time
         <br /> insights and seamless integration.
       </div>
       <Link href='/register'>
