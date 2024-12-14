@@ -42,6 +42,7 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func CreateCookie(user *types.User) (http.Cookie, error) {
+  log.Println(user.Id)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"id":           user.Id,

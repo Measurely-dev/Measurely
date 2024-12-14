@@ -40,9 +40,9 @@ type Token struct {
 type User struct {
 	Id               uuid.UUID
 	Email            string
-	Password         string
 	FirstName        string
 	LastName         string
+	Password         string
 	StripeCustomerId string
 	CurrentPlan      string
 	Image            string

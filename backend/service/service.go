@@ -272,9 +272,9 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the password is correct
-	is_pwd_tokenid := CheckPasswordHash(request.Password, user.Password)
-	if !is_pwd_tokenid {
-		http.Error(w, "Intokenid password", http.StatusUnauthorized)
+	is_valid := CheckPasswordHash(request.Password, user.Password)
+	if !is_valid {
+		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
 	}
 
@@ -1737,6 +1737,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
+    log.Println(token.Id)
 		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
 		if cookie.Expires.Sub(token.CreationDate) <= 12*time.Hour {
