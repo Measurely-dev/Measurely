@@ -42,8 +42,17 @@ func (h *Handler) Start(port string) error {
 }
 
 func (h *Handler) setup_api() {
+
+  var allowed_origins []string
+  if os.Getenv("ENV") == "production" {
+    allowed_origins = []string{"https://measurely.dev", "https://www.measurely.dev"}
+  } else {
+    allowed_origins = []string{"http://localhost:3000"}
+  }
+
+
 	Cors := cors.New(cors.Options{
-		AllowedOrigins:   []string{os.Getenv("ORIGIN")}, // Allow all origins for this route
+		AllowedOrigins:   allowed_origins, // Allow all origins for this route
 		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,

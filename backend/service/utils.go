@@ -46,7 +46,6 @@ func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) 
 		jwt.MapClaims{
 			"id":           user.Id,
 			"email":        user.Email,
-			"creationdate": time.Now().Format("2006-01-02 15:04:05.999999999 -0700 MST"),
 		})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -58,20 +57,16 @@ func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) 
 		Name:     "measurely-session",
 		Value:    tokenString,
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 		HttpOnly: true,
 		Expires:  time.Now().Add(72 * time.Hour),
 	}
 
 	if os.Getenv("ENV") == "production" {
-		cookie.Domain = "measurely.dev"
-		cookie.SameSite = http.SameSiteNoneMode
+		cookie.Domain = ".measurely.dev"
+		cookie.SameSite = http.SameSiteLaxMode
 	}
-
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
-
 	return cookie, nil
 }
 
@@ -80,14 +75,15 @@ func DeleteCookie() http.Cookie {
 		Name:     "measurely-session",
 		Value:    "",
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   true,
 	}
 
 	if os.Getenv("ENV") == "production" {
-		cookie.Domain = "measurely.dev"
-		cookie.SameSite = http.SameSiteNoneMode
+		cookie.Domain = ".measurely.dev"
+		cookie.SameSite = http.SameSiteLaxMode
 	}
 	return cookie
 }
@@ -101,20 +97,15 @@ func VerifyToken(tokenStr string) (types.Token, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+    log.Println(claims["id"])
 		id, err := uuid.Parse(fmt.Sprint(claims["id"]))
 		if err != nil {
 			return types.Token{}, errors.New("invalid jwt token")
 		}
 
-		date, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", fmt.Sprint(claims["creationdate"]))
-		if err != nil {
-			log.Println(err)
-			return types.Token{}, errors.New("invalid jwt token")
-		}
 		return types.Token{
 			Id:           id,
 			Email:        fmt.Sprint(claims["email"]),
-			CreationDate: date,
 		}, nil
 	} else {
 		return types.Token{}, errors.New("invalid jwt token")
@@ -196,4 +187,31 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 	}
 
 	return plan, true
+}
+
+func GetOrigin() string {
+	if os.Getenv("ENV") == "production" {
+		return "https://measurely.dev"
+	} else {
+		return "http://localhost:3000"
+	}
+}
+
+func GetURL() string {
+	if os.Getenv("ENV") == "production" {
+		return "https://api.measurely.dev"
+	} else {
+		return "http://localhost:8080"
+	}
+}
+
+func SetupCacheControl(w http.ResponseWriter, maxAge int) {
+	if maxAge <= 0 {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+	} else {
+		maxAgeStr := strconv.Itoa(maxAge)
+		w.Header().Set("Cache-Control", "max-age="+maxAgeStr+", public")
+	}
 }

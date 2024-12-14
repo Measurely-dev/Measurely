@@ -88,7 +88,7 @@ func New() Service {
 			ClientID:     os.Getenv("GITHUB_KEY"),
 			ClientSecret: os.Getenv("GITHUB_SECRET"),
 			Endpoint:     github.Endpoint,
-			RedirectURL:  os.Getenv("URL") + "/callback/github",
+			RedirectURL:  GetURL() + "/callback/github",
 			Scopes:       []string{"read:user"},
 		},
 	}
@@ -99,7 +99,7 @@ func New() Service {
 			ClientID:     os.Getenv("GOOGLE_KEY"),
 			ClientSecret: os.Getenv("GOOGLE_SECRET"),
 			Endpoint:     google.Endpoint,
-			RedirectURL:  os.Getenv("URL") + "/callback/google",
+			RedirectURL:  GetURL() + "/callback/google",
 			Scopes:       []string{"openid", "profile", "email"},
 		},
 	}
@@ -286,6 +286,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 
@@ -295,7 +296,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		Fields: MailFields{
 			Subject:     "A new login has been detected",
 			Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
-			Link:        os.Getenv("ORIGIN") + "/dashboard",
+			Link:        GetOrigin() + "/dashboard",
 			ButtonTitle: "Update password",
 		},
 	})
@@ -314,6 +315,7 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 
 	url := BeginProviderAuth(provider, state)
 
+	SetupCacheControl(w, 20)
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
@@ -328,7 +330,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	splitted := strings.Split(state, ".")
 
 	if len(splitted) == 0 {
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=missing parameters", http.StatusMovedPermanently)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=missing parameters", http.StatusMovedPermanently)
 		return
 	}
 
@@ -341,14 +343,14 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
 		return
 	}
 
 	providerUser, _, err := CompleteProviderAuth(chosenProvider, code)
 	if err != nil {
 		log.Print(err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+err.Error(), http.StatusMovedPermanently)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error="+err.Error(), http.StatusMovedPermanently)
 		return
 	}
 
@@ -363,7 +365,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			c, err := customer.New(stripe_params)
 			if err != nil {
 				log.Println(err)
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
 				return
 			}
 
@@ -377,21 +379,21 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			})
 			if err != nil {
 				if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-					http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=An account with the same email already exists", http.StatusMovedPermanently)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=An account with the same email already exists", http.StatusMovedPermanently)
 				} else {
-					http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
 				}
 				return
 			}
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=Intokenid user identifier", http.StatusMovedPermanently)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Intokenid user identifier", http.StatusMovedPermanently)
 				return
 			}
 			user, err = s.DB.GetUserById(parsedId)
 			if err != nil {
-				http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=User not found", http.StatusMovedPermanently)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusMovedPermanently)
 				return
 			}
 		}
@@ -403,7 +405,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
 			return
 		}
 	}
@@ -412,7 +414,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		user, err = s.DB.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println(err)
-			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
 			return
 		}
 	}
@@ -420,12 +422,13 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	cookie, err := CreateCookie(&user, w)
 	if err != nil {
 		log.Println("error:", err)
-		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
 		return
 	}
 
+	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, os.Getenv("ORIGIN")+"/dashboard", http.StatusMovedPermanently)
+	http.Redirect(w, r, GetOrigin()+"/dashboard", http.StatusMovedPermanently)
 }
 
 func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
@@ -562,6 +565,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
@@ -571,7 +575,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		Fields: MailFields{
 			Subject:     "Thank you for joining Measurely.",
 			Content:     "You can now access your account's dashboard by using the following link.",
-			Link:        os.Getenv("ORIGIN") + "/dashboard",
+			Link:        GetOrigin() + "/dashboard",
 			ButtonTitle: "Access dashboard",
 		},
 	})
@@ -579,7 +583,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie := DeleteCookie()
-
+	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 }
@@ -710,7 +714,7 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		Fields: MailFields{
 			Subject:     "Recover your account",
 			Content:     "A request has been made to recover your account. If you do not recall making this request, please update your password immediately.",
-			Link:        os.Getenv("ORIGIN") + "/reset?code=" + account_recovery.Code,
+			Link:        GetOrigin() + "/reset?code=" + account_recovery.Code,
 			ButtonTitle: "Recover my account",
 		},
 	})
@@ -914,6 +918,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	// logout
 	cookie := DeleteCookie()
+	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 }
@@ -984,7 +989,7 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		Fields: MailFields{
 			Subject:     "Change your email",
 			Content:     "A request has been made to change your email. If you do not recall making this request, please update your password immediately.",
-			Link:        os.Getenv("ORIGIN") + "/change-email?code=" + emailchange.Code,
+			Link:        GetOrigin() + "/change-email?code=" + emailchange.Code,
 			ButtonTitle: "Change my email",
 		},
 	})
@@ -1674,6 +1679,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+    log.Println(cookie)
 		token, err := VerifyToken(cookie.Value)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -1681,11 +1687,15 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
-		if cookie.Expires.Sub(token.CreationDate) <= 12*time.Hour {
+		if cookie.Expires.Sub(time.Now()) <= 12*time.Hour {
 			new_cookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
+
+			log.Println("reset")
 			if err == nil {
 				http.SetCookie(w, &new_cookie)
 			}
+
+			SetupCacheControl(w, 0)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

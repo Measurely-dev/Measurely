@@ -32,7 +32,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 
 	params := &stripe.BillingPortalSessionParams{
 		Customer:  stripe.String(user.StripeCustomerId),
-		ReturnURL: stripe.String(os.Getenv("ORIGIN") + "/dashboard"),
+		ReturnURL: stripe.String(GetOrigin() + "/dashboard"),
 	}
 
 	result, err := bilsession.New(params)
@@ -117,8 +117,8 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("ORIGIN") + "/subscribe/success"),
-		CancelURL:  stripe.String(os.Getenv("ORIGIN") + "/dashboard"),
+		SuccessURL: stripe.String(GetOrigin() + "/subscribe/success"),
+		CancelURL:  stripe.String(GetOrigin() + "/dashboard"),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				Price:    stripe.String(plan.Price),
@@ -269,7 +269,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 				Subject: "Invoice Paid",
 				Content: "Your invoice has been successfully paid." + "Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
 
-				Link:        os.Getenv("ORIGIN") + "/dashboard",
+				Link:        GetOrigin() + "/dashboard",
 				ButtonTitle: "View Dashboard",
 			},
 		})
@@ -303,7 +303,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 				Subject: "Invoice Failed",
 				Content: "Your invoice payment has failed." + "Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64),
 
-				Link:        os.Getenv("ORIGIN") + "/dashboard",
+				Link:        GetOrigin() + "/dashboard",
 				ButtonTitle: "View Dashboard",
 			},
 		})
