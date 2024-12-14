@@ -5,14 +5,14 @@ import DashboardNavbar from '@/components/dashboard/navbar';
 import DashboardTopbar from '@/components/dashboard/topbar/topbar';
 export default function DashboardWrapper({ children }: { children: any }) {
   return (
-    <div className='flex flex-row items-center gap-[40px] overflow-x-hidden pr-[5px]'>
+    <div className='flex max-h-screen flex-row items-center gap-[40px] overflow-x-hidden pr-[5px]'>
       <div className='max-md:hidden'>
         <DashboardNavbar />
       </div>
-      <div className='w-full pl-[20px]'>
+      <div className='w-full pl-[20px] max-h-screen'>
         <DashboardContent>
           <DashboardTopbar />
-          <div className='flex min-h-[calc(100vh-15px)] pt-[50px] flex-col'>
+          <div className='flex min-h-[calc(100vh-15px)] flex-col'>
             {children}
           </div>
         </DashboardContent>
