@@ -20,7 +20,7 @@ export default function DashboardTopbar() {
   const { applications, activeApp } = useContext(AppsContext);
 
   return (
-    <div className='flex absolute bg-background top-[0px] pt-[15px] z-[20] max-md:border-b-none h-[65px] w-full flex-row justify-between border-b border-accent pr-[15px]'>
+    <div className='absolute top-[0px] z-[20] flex h-[65px] w-full flex-row justify-between border-b border-accent bg-background pr-[15px] pt-[15px] max-md:fixed max-md:left-0 max-md:px-5'>
       <div className='flex h-[40px] w-full flex-row items-center justify-between'>
         <div className='flex items-center justify-center gap-4'>
           <Link href='/' className='md:hidden'>
@@ -29,16 +29,16 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ApplicationsChip />
           <div className='max-sm:hidden'>
-              <ApiDialog appId={applications?.[activeApp]?.id ?? ''}>
-                <Button
-                  size={'sm'}
-                  variant={'secondary'}
-                  className='h-6 gap-1.5 rounded-full'
-                >
-                  <Code className='size-4' />
-                  Api key
-                </Button>
-              </ApiDialog>
+            <ApiDialog appId={applications?.[activeApp]?.id ?? ''}>
+              <Button
+                size={'sm'}
+                variant={'secondary'}
+                className='h-6 gap-1.5 rounded-full'
+              >
+                <Code className='size-4' />
+                Api key
+              </Button>
+            </ApiDialog>
           </div>
         </div>
         <div className='flex flex-row gap-[12px] max-md:hidden'>
