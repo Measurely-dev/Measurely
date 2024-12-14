@@ -33,7 +33,7 @@ import {
 import { useContext, useEffect, useState } from 'react';
 import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
-import { loadMetricsGroups, mapToArray, multiMapsToArray } from '@/utils';
+import { loadChartData, loadMetricsGroups, parseXAxis } from '@/utils';
 import { Group, GroupType } from '@/types';
 import { toast } from 'sonner';
 import MetricStats from './metric-stats';
@@ -45,86 +45,8 @@ export function ChartsCard() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);
   const [activeGroup, setActiveGroup] = useState(0);
 
-  const [dataOne, setDataOne] = useState<Map<Date, number> | null>(null);
-  const [dataTwo, setDataTwo] = useState<Map<Date, number> | null>(null);
-
+  const [data, setData] = useState<any[] | null>(null);
   const [total, setTotal] = useState(0);
-
-  const loadData = async (group: Group) => {
-    let map2 = new Map<Date, number>();
-    let map1 = new Map<Date, number>();
-    const from = new Date();
-    const to = new Date(from);
-    to.setMonth(from.getMonth() - 1);
-    let total = 0;
-
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[0].id}&appid=${applications?.[activeApp].id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
-      { method: 'GET', credentials: 'include' },
-    )
-      .then((resp) => {
-        if (!resp.ok) {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-        } else {
-          return resp.json();
-        }
-      })
-      .then((json) => {
-        if (json === null || json === undefined) {
-          map1.set(from ?? new Date(), 0);
-          map1.set(to ?? new Date(), 0);
-        } else {
-          for (let i = 0; i < json.length; i++) {
-            const eventDate = new Date(json.date);
-            if (map1.get(eventDate)) {
-              map1.set(eventDate, map1.get(eventDate) + json.value);
-            } else {
-              map1.set(eventDate, json.value);
-            }
-            total += json.value;
-          }
-        }
-
-        setDataOne(map1);
-      });
-    if (group.type === GroupType.Dual) {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[1].id}&appid=${applications?.[activeApp].id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
-        { method: 'GET', credentials: 'include' },
-      )
-        .then((resp) => {
-          if (!resp.ok) {
-            resp.text().then((text) => {
-              toast.error(text);
-            });
-          } else {
-            return resp.json();
-          }
-        })
-        .then((json) => {
-          if (json === null || json === undefined) {
-            map2.set(from ?? new Date(), 0);
-            map2.set(to ?? new Date(), 0);
-          } else {
-            for (let i = 0; i < json.length; i++) {
-              const eventDate = new Date(json.date);
-              if (map2.get(eventDate)) {
-                map2.set(eventDate, map2.get(eventDate) + json.value);
-              } else {
-                map2.set(eventDate, json.value);
-              }
-              total += 1;
-            }
-          }
-
-          setDataTwo(map2);
-        });
-    }
-
-    setTotal(total);
-  };
 
   useEffect(() => {
     if (applications?.[activeApp].groups === null) {
@@ -139,44 +61,31 @@ export function ChartsCard() {
     }
   }, [activeApp]);
 
-  const arrangeData = (
-    map1: Map<Date, number>,
-    map2: Map<Date, number> | null,
-  ) => {
-    let array = [];
-    let finalArray: any[] = [{ value: 0 }];
-    if (map2 !== null) {
-      array = multiMapsToArray(map1, map2);
-    } else array = mapToArray(map1);
-
-    let nbr = 0;
-    for (let i = 0; i < array.length; i++) {
-      if (map2 === null) {
-        finalArray[finalArray.length - 1].value += array[i].value;
-      } else {
-        finalArray[finalArray.length - 1].value +=
-          array[i].positive - array[i].negative;
-      }
-      if (nbr === 0) {
-        finalArray[finalArray.length - 1].from = array[i].date;
-      } else if (nbr === 7) {
-        finalArray[finalArray.length - 1].to = array[i].date;
-        finalArray.push({ value: 0 });
-      }
-
-      nbr++;
-    }
-
-    return finalArray;
-  };
-
   useEffect(() => {
-    if (applications?.[activeApp]?.groups !== null) {
-      const group = applications?.[activeApp].groups[activeGroup];
-      if (group != undefined) {
-        loadData(group);
+    const load = async () => {
+      if (applications?.[activeApp]?.groups !== null) {
+        const group = applications?.[activeApp].groups[activeGroup];
+        if (group != undefined && applications?.[activeApp] !== undefined) {
+          if (group.type === GroupType.Base) setTotal(group.metrics[0].total);
+          else if (group.type === GroupType.Dual)
+            setTotal(group.metrics[0].total - group.metrics[1].total);
+          const from = new Date();
+          from.setDate(0);
+          const data = await loadChartData(
+            from,
+            30,
+            group,
+            applications?.[activeApp],
+          );
+          if (!data) {
+            setData([]);
+          } else {
+            setData(data);
+          }
+        }
       }
-    }
+    };
+    load();
   }, [activeGroup]);
 
   return (
@@ -211,7 +120,7 @@ export function ChartsCard() {
       />
 
       {applications?.[activeApp].groups !== undefined &&
-        applications?.[activeApp].groups?.length! > 0 ? (
+      applications?.[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
@@ -238,30 +147,27 @@ export function ChartsCard() {
                 <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
                   <ChartContainer
                     config={{
-                      value: {
+                      positive: {
                         label: applications?.[activeGroup].name,
                         color: 'hsl(var(--chart-1))',
                       },
                     }}
                   >
-                    <BarChart
-                      accessibilityLayer
-                      data={arrangeData(dataOne ?? new Map(), dataTwo)}
-                    >
+                    <BarChart accessibilityLayer data={data ?? []}>
                       <CartesianGrid vertical={false} />
                       <XAxis
                         dataKey='date'
                         tickLine={false}
                         tickMargin={10}
                         axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
+                        tickFormatter={(value : Date | string) => parseXAxis(value, 30)}
                       />
                       <ChartTooltip
                         cursor={false}
                         content={<ChartTooltipContent hideLabel />}
                       />
                       <Bar
-                        dataKey='value'
+                        dataKey='positive'
                         fill='red'
                         fillOpacity={0.6}
                         stroke='red'
@@ -282,7 +188,7 @@ export function ChartsCard() {
                   >
                     <AreaChart
                       accessibilityLayer
-                      data={arrangeData(dataOne ?? new Map(), dataTwo)}
+                      data={data ?? []}
                       margin={{
                         left: 12,
                         right: 12,
@@ -294,7 +200,7 @@ export function ChartsCard() {
                         tickLine={false}
                         axisLine={false}
                         tickMargin={8}
-                        tickFormatter={(value) => value.slice(0, 3)}
+                        tickFormatter={(value : Date | string) => parseXAxis(value, 30)}
                       />
                       <ChartTooltip
                         cursor={false}

@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+import { Application, Group, GroupType } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
 
@@ -26,43 +28,147 @@ export async function loadMetricsGroups(appid: string) {
   return [];
 }
 
-export const mapToArray = (map: Map<any, any>, name: string = 'value') => {
-  let array: any[] = [];
-  map.keys().forEach((key) => {
-    array.push({ date: key, [name]: map.get(key) });
-  });
-
-  return array;
-};
-
-export const multiMapsToArray = (map1: Map<any, any>, map2: Map<any, any>) => {
-  // Create a Set to track all unique dates
-  const uniqueDates = new Set<string>();
-
-  // Add keys from both maps to the uniqueDates Set
-  map1.keys().forEach((key) => uniqueDates.add(key));
-  map2.keys().forEach((key) => uniqueDates.add(key));
-
-  // Prepare the result array
-  const array: any[] = [];
-
-  // Populate the result array
-  uniqueDates.forEach((date) => {
-    array.push({
-      date: date,
-      positive: map1.get(date) || 0,
-      negative: map2.get(date) || 0,
-    });
-  });
-
-  return array;
-};
-
-export const dateToXAxis = (from: Date, to: Date, dateToParse: Date) => {
+export const getDaysFromDate = (date: Date) => {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  if (from.toString() === to.toString()) {
-    return dateToParse.getHours().toString();
+  return days[date.getDay()];
+};
+
+export const loadChartData = async (
+  date: Date,
+  range: number,
+  group: Group,
+  application: Application,
+) => {
+  let tmpData: any[] = [];
+  if (!date) {
+    return;
+  }
+
+  date.setHours(0);
+  date.setMinutes(0);
+  date.setSeconds(0);
+
+  const from = date;
+  const to = new Date();
+  to.setDate(from.getDate() + range);
+
+  const dateCounter = new Date(from);
+  const dataLength = range === 0 ? 24 : range;
+  const now = new Date();
+  for (let i = 0; i < dataLength; i++) {
+    const eventDate = new Date(dateCounter);
+    if (eventDate > now) {
+      tmpData.push({
+        date: eventDate,
+      });
+    } else {
+      tmpData.push({
+        date: eventDate,
+        positive: 0,
+        negative: 0,
+      });
+    }
+    if (range === 0) dateCounter.setHours(dateCounter.getHours() + 1);
+    else dateCounter.setDate(dateCounter.getDate() + 1);
+  }
+
+  await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[0].id}&appid=${application.id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+    { method: 'GET', credentials: 'include' },
+  )
+    .then((resp) => {
+      if (!resp.ok) {
+        resp.text().then((text) => {
+          toast.error(text);
+        });
+      } else {
+        return resp.json();
+      }
+    })
+    .then((json) => {
+      if (json !== null && json !== undefined) {
+        for (let i = 0; i < json.length; i++) {
+          const eventDate = new Date(json.date);
+          for (let j = 0; j < tmpData.length; j++) {
+            if (
+              eventDate.getDate() === tmpData[j].date.getDate() &&
+              eventDate.getMonth() === tmpData[j].date.getMonth() &&
+              eventDate.getFullYear() === tmpData[j].date.getFullYear()
+            ) {
+              if (range === 0) {
+                if (eventDate.getHours() === tmpData[j].date.getHours()) {
+                  tmpData[j].positive += json.value;
+                }
+              } else {
+                tmpData[j].positive += json.value;
+              }
+            }
+          }
+        }
+      }
+    });
+  if (group.type === GroupType.Dual) {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=$group.metrics[1].id}&appid=${application.id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+      { method: 'GET', credentials: 'include' },
+    )
+      .then((resp) => {
+        if (!resp.ok) {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        } else {
+          return resp.json();
+        }
+      })
+      .then((json) => {
+        if (json !== null && json !== undefined) {
+          for (let i = 0; i < json.length; i++) {
+            const eventDate = new Date(json.date);
+            for (let j = 0; j < tmpData.length; j++) {
+              if (
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear()
+              ) {
+                if (range === 0) {
+                  if (eventDate.getHours() === tmpData[j].date.getHours()) {
+                    tmpData[j].negative += json.value;
+                  }
+                } else {
+                  tmpData[j].negative += json.value;
+                }
+              }
+            }
+          }
+        }
+      });
+  }
+
+  if (tmpData.length >= 30) {
+    for (let i = 0; i < tmpData.length; i++) {
+      if (i % 3 !== 0) {
+        tmpData[i].date = undefined;
+      }
+    }
+  } else if (tmpData.length >= 10) {
+    for (let i = 0; i < tmpData.length; i++) {
+      if (i % 2 !== 0) {
+        tmpData[i].date = undefined;
+      }
+    }
+  }
+  return tmpData;
+};
+
+export const parseXAxis = (value: Date | string, range: number) => {
+  if (typeof value === 'string') {
+    return '';
   } else {
-    return days[dateToParse.getDay()];
+    if (range === 0) {
+      return value.getHours().toString() + ' H';
+    } else {
+      return getDaysFromDate(value) + ' ' + value.getDate().toString();
+    }
   }
 };

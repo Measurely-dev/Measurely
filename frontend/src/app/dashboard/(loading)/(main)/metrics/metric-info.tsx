@@ -15,11 +15,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Group, GroupType } from '@/types';
+import { Group } from '@/types';
 import { AppsContext } from '@/dash-context';
-import { toast } from 'sonner';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
+import { loadChartData, parseXAxis } from '@/utils';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -32,120 +32,34 @@ export default function MetricInformations(props: {
   const { applications, activeApp } = useContext(AppsContext);
   const [canLoad, setCanLoad] = useState(false);
 
-  const loadData = async () => {
-    let tmpData: any[] = [];
-    if (!date) {
-      setDate(new Date());
-      return;
-    }
-
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-
-    const from = date;
-    const to = new Date();
-    to.setDate(from.getDate() + range);
-
-    const dateCounter = new Date(from);
-    const dataLength = range === 0 ? 24 : range;
-    const now = new Date();
-    for (let i = 0; i < dataLength; i++) {
-      const eventDate = new Date(dateCounter);
-      if (eventDate > now) {
-        tmpData.push({
-          date: eventDate,
-        });
-      } else {
-        tmpData.push({
-          date: eventDate,
-          positive: 0,
-          negative: 0,
-        });
-      }
-      if (range === 0) dateCounter.setHours(dateCounter.getHours() + 1);
-      else dateCounter.setDate(dateCounter.getDate() + 1);
-    }
-
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${props.group.id}&metricid=${props.group.metrics[0].id}&appid=${applications?.[activeApp].id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
-      { method: 'GET', credentials: 'include' },
-    )
-      .then((resp) => {
-        if (!resp.ok) {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-        } else {
-          return resp.json();
-        }
-      })
-      .then((json) => {
-        if (json !== null && json !== undefined) {
-          for (let i = 0; i < json.length; i++) {
-            const eventDate = new Date(json.date);
-            for (let j = 0; j < tmpData.length; j++) {
-              if (
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear()
-              ) {
-                if (range === 0) {
-                  if (eventDate.getHours() === tmpData[j].date.getHours()) {
-                    tmpData[j].positive += json.value;
-                  }
-                } else {
-                  tmpData[j].positive += json.value;
-                }
-              }
-            }
-          }
-        }
-      });
-    if (props.group.type === GroupType.Dual) {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${props.group.id}&metricid=${props.group.metrics[1].id}&appid=${applications?.[activeApp].id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
-        { method: 'GET', credentials: 'include' },
-      )
-        .then((resp) => {
-          if (!resp.ok) {
-            resp.text().then((text) => {
-              toast.error(text);
-            });
-          } else {
-            return resp.json();
-          }
-        })
-        .then((json) => {
-          if (json !== null && json !== undefined) {
-            for (let i = 0; i < json.length; i++) {
-              const eventDate = new Date(json.date);
-              for (let j = 0; j < tmpData.length; j++) {
-                if (
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear()
-                ) {
-                  if (range === 0) {
-                    if (eventDate.getHours() === tmpData[j].date.getHours()) {
-                      tmpData[j].negative += json.value;
-                    }
-                  } else {
-                    tmpData[j].negative += json.value;
-                  }
-                }
-              }
-            }
-          }
-        });
-    }
-
-    setData(tmpData);
-  };
-
   useEffect(() => {
     if (canLoad) {
-      loadData();
+
+      if (!date) {
+        setDate(new Date())
+        return
+      }
+
+      const load = async () => {
+        if (applications !== undefined && applications?.[activeApp] !== undefined) {
+          const data = await loadChartData(
+            date,
+            range,
+            props.group,
+            applications?.[activeApp],
+          )
+
+          if (!data) {
+            setData([])
+          } else {
+            console.log(data)
+            setData(data)
+          }
+        };
+      }
+
+
+      load();
     }
   }, [date, range, canLoad]);
 
@@ -277,13 +191,7 @@ export default function MetricInformations(props: {
                       tickLine={false}
                       tickMargin={10}
                       axisLine={false}
-                      tickFormatter={(value: Date) => {
-                        if (range === 0) {
-                          return value.getHours().toString();
-                        } else {
-                          return value.getDate().toString();
-                        }
-                      }}
+                      tickFormatter={(value : Date | string) => parseXAxis(value, range)}
                     />
                     <ChartTooltip
                       cursor={false}
@@ -329,13 +237,7 @@ export default function MetricInformations(props: {
                       tickLine={false}
                       axisLine={false}
                       tickMargin={10}
-                      tickFormatter={(value: Date) => {
-                        if (range === 0) {
-                          return value.getHours().toString();
-                        } else {
-                          return value.getDate().toString();
-                        }
-                      }}
+                      tickFormatter={(value : Date | string) => parseXAxis(value, range)}
                     />
                     <ChartTooltip
                       cursor={false}
