@@ -25,11 +25,11 @@ export default function Note({
   return (
     <div
       className={cn(
-        'my-3 flex flex-col gap-3 rounded-[12px] border px-3.5 py-2 text-sm tracking-wide',
+        'my-3 flex flex-col gap-3 rounded-[12px] border px-3.5 py-2 tracking-wide',
         noteClassNames,
       )}
     >
-      <p className='-mb-3 font-medium'>{title}:</p> {children}
+      <p className='-mb-3 text-[1.05rem] font-mono font-medium'>{title}:</p> {children}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export const ROUTES: EachRoute[] = [
     noLink: true,
     items: [
       { title: 'Quickstart', href: '/quickstart' },
-      { title: 'Developement', href: '/developement' },
+      { title: 'Development', href: '/development' },
     ],
   },
   {

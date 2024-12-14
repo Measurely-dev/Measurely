@@ -6,16 +6,17 @@ import rehypePrism from 'rehype-prism-plus';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
 import rehypeCodeTitles from 'rehype-code-titles';
-import { page_routes } from "./routes-config";
-// custom components imports
-import Note from '@/components/docs/note';
+import { page_routes } from './routes-config';
 
-// add custom components
+import Note from '@/components/docs/note';
+import { Stepper, StepperItem } from '@/components/docs/stepper';
+
 const components = {
   Note,
+  Stepper,
+  StepperItem,
 };
 
-// can be used for other pages like blogs, Guides etc
 async function parseMdx<Frontmatter>(rawMdx: string) {
   return await compileMDX<Frontmatter>({
     source: rawMdx,
