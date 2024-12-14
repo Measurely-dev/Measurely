@@ -101,6 +101,7 @@ func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, e
 	return new_provider, err
 }
 
+
 func (db *DB) DeleteUserProvider(id uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM providers WHERE id = $1", id)
 	return err

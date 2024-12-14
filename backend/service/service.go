@@ -345,7 +345,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providerUser, token, err := CompleteProviderAuth(chosenProvider, code)
+	providerUser, _, err := CompleteProviderAuth(chosenProvider, code)
 	if err != nil {
 		log.Print(err)
 		http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error="+err.Error(), http.StatusMovedPermanently)
@@ -791,7 +791,6 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "user not found", http.StatusNotFound)
 		} else {
-
 			http.Error(w, "internal error", http.StatusInternalServerError)
 		}
 		return
