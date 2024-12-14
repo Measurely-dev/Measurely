@@ -2,7 +2,6 @@ package db
 
 import (
 	"Measurely/types"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -18,16 +17,27 @@ type DB struct {
 }
 
 func NewPostgres(url string) (*DB, error) {
+	// Connect to the database
 	db, err := sqlx.Connect("postgres", url)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := os.ReadFile("migration.sql")
+	// Set connection pooling parameters
+	db.SetMaxOpenConns(10)                  // Maximum number of open connections
+	db.SetMaxIdleConns(5)                   // Maximum number of idle connections
+	db.SetConnMaxLifetime(30 * time.Minute) // Maximum connection lifetime
+
+	// Run migration from a file
+	migrationFile := "migration.sql"
+	b, err := os.ReadFile(migrationFile)
 	if err != nil {
-		log.Fatalln("Failed to read migration file: ", err)
+		return nil, err
 	}
-	db.Exec(string(b))
+	_, err = db.Exec(string(b))
+	if err != nil {
+		return nil, err
+	}
 
 	return &DB{Conn: db}, nil
 }
@@ -100,7 +110,6 @@ func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, e
 	err := db.Conn.QueryRow("INSERT INTO providers (userid, type, provideruserid) VALUES ($1, $2, $3) RETURNING *", provider.UserId, provider.Type, provider.ProviderUserId).Scan(&new_provider.Id, &new_provider.UserId, &new_provider.Type, &new_provider.ProviderUserId)
 	return new_provider, err
 }
-
 
 func (db *DB) DeleteUserProvider(id uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM providers WHERE id = $1", id)

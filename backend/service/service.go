@@ -592,6 +592,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+  log.Println(token.Id)
 	user, err := s.DB.GetUserById(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
