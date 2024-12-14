@@ -29,7 +29,6 @@ func (h *Handler) Start(port string) error {
 	h.router.Use(middleware.Recoverer)
 
 	h.setup_api()
-	file.SetupFileServer(h.router)
 
 	go h.service.ProcessMetricEvents()
 	go h.service.ProcessEmails()
@@ -42,14 +41,12 @@ func (h *Handler) Start(port string) error {
 }
 
 func (h *Handler) setup_api() {
-
-  var allowed_origins []string
-  if os.Getenv("ENV") == "production" {
-    allowed_origins = []string{"https://measurely.dev", "https://www.measurely.dev"}
-  } else {
-    allowed_origins = []string{"http://localhost:3000"}
-  }
-
+	var allowed_origins []string
+	if os.Getenv("ENV") == "production" {
+		allowed_origins = []string{"https://measurely.dev", "https://www.measurely.dev"}
+	} else {
+		allowed_origins = []string{"http://localhost:3000"}
+	}
 
 	Cors := cors.New(cors.Options{
 		AllowedOrigins:   allowed_origins, // Allow all origins for this route
@@ -60,6 +57,8 @@ func (h *Handler) setup_api() {
 
 	h.router.Use(Cors)
 	h.router.Group(func(r chi.Router) {
+		file.SetupFileServer(h.router)
+
 		r.Post("/email-valid", h.service.EmailValid)
 		r.Post("/login", h.service.Login)
 		r.Get("/oauth/{provider}", h.service.Oauth)

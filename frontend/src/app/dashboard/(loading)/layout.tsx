@@ -5,7 +5,6 @@ import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
-import { warn } from 'console';
 
 export default function DashboardContentLayout({
   children,

@@ -113,12 +113,6 @@ type Plan struct {
 	TimeFrames        []int  `json:"timeframes"`
 }
 
-type AuthCookie struct {
-	UserId       uuid.UUID `json:"userId"`
-	Email        string    `json:"email"`
-	CreationDate time.Time `json:"creationDate"`
-}
-
 type DailyMetricSummary struct {
 	Id       string    `json:"id"`
 	Date     time.Time `json:"date"`

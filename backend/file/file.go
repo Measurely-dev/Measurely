@@ -2,7 +2,7 @@ package file
 
 import (
 	"Measurely/db"
-	"Measurely/types"
+	"Measurely/service"
 	"fmt"
 	"io"
 	"log"
@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/securecookie"
 )
 
 const MAX_SIZE = 500 * 1024
@@ -24,10 +23,6 @@ func SetupFileServer(router *chi.Mux) {
 		log.Fatalln(err)
 	}
 
-	hash_key := []byte(os.Getenv("HASH_KEY"))
-	block_key := []byte(os.Getenv("BLOCK_KEY"))
-	securecookie := securecookie.New(hash_key, block_key)
-
 	fs := http.FileServer(http.Dir("uploads"))
 	router.Handle("/uploads/*", http.StripPrefix("/uploads/", fs))
 
@@ -38,9 +33,8 @@ func SetupFileServer(router *chi.Mux) {
 			return
 		}
 
-		var auth_cookie types.AuthCookie
-		derr := securecookie.Decode("measurely-session", cookie.Value, &auth_cookie)
-		if derr != nil {
+		token, err := service.VerifyToken(cookie.Value)
+		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -53,7 +47,7 @@ func SetupFileServer(router *chi.Mux) {
 		}
 
 		// Get the application from the database
-		if _, err := db.GetApplication(appId, auth_cookie.UserId); err != nil {
+		if _, err := db.GetApplication(appId, token.Id); err != nil {
 			http.Error(w, "Unauthorized or not found", http.StatusUnauthorized)
 			return
 		}
@@ -111,9 +105,8 @@ func SetupFileServer(router *chi.Mux) {
 			return
 		}
 
-		var auth_cookie types.AuthCookie
-		derr := securecookie.Decode("measurely-session", cookie.Value, &auth_cookie)
-		if derr != nil {
+    token, err := service.VerifyToken(cookie.Value)
+		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -139,7 +132,7 @@ func SetupFileServer(router *chi.Mux) {
 		}
 		defer file.Close()
 
-		fileName := "user_" + auth_cookie.UserId.String() // Generate or use a unique name
+		fileName := "user_" + token.Id.String() // Generate or use a unique name
 		outFile, err := os.Create(filepath.Join("uploads", fileName))
 		if err != nil {
 			log.Println(err)
@@ -156,7 +149,7 @@ func SetupFileServer(router *chi.Mux) {
 		}
 
 		// Update the user
-		if err := db.UpdateUserImage(auth_cookie.UserId, fileName); err != nil {
+		if err := db.UpdateUserImage(token.Id, fileName); err != nil {
 			log.Println(err)
 			http.Error(w, "Unable to update user", http.StatusInternalServerError)
 			return
