@@ -415,7 +415,6 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, os.Getenv("ORIGIN")+"/sign-in?error=internal error", http.StatusMovedPermanently)
 			return
 		}
-		s.DB.UpdateProviderRefreshToken(provider.Id, token.RefreshToken)
 	}
 
 	cookie, err := CreateCookie(&user)

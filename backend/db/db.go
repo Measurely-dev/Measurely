@@ -106,11 +106,6 @@ func (db *DB) DeleteUserProvider(id uuid.UUID) error {
 	return err
 }
 
-func (db *DB) UpdateProviderRefreshToken(id uuid.UUID, refreshtoken string) error {
-	_, err := db.Conn.Exec("UPDATE providers SET refreshtoken = $1 WHERE id = $2", refreshtoken, id)
-	return err
-}
-
 func (db *DB) GetProviderByProviderUserId(provideruserid string, providerType int) (types.UserProvider, error) {
 	var provider types.UserProvider
 	err := db.Conn.Get(&provider, "SELECT * FROM providers WHERE provideruserid = $1 AND type = $2", provideruserid, providerType)
