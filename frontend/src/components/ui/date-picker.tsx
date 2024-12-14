@@ -12,9 +12,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Dispatch, SetStateAction } from 'react';
 
-export function DatePicker() {
-  const [date, setDate] = React.useState<Date>();
+export function DatePicker(props: {
+  setDate: Dispatch<SetStateAction<Date | undefined>>;
+  date: Date | undefined;
+}) {
   return (
     <div className={'grid gap-2'}>
       <Popover>
@@ -24,11 +27,11 @@ export function DatePicker() {
             variant={'secondary'}
             className={cn(
               'w-full justify-start rounded-[12px] px-4 text-left font-normal',
-              !date && 'text-muted-foreground',
+              !props.date && 'text-muted-foreground',
             )}
           >
             <CalendarIcon className='mr-2 size-4' />
-            {date ? format(date, 'PPP') : <span>Pick a date</span>}
+            {props.date ? format(props.date, 'PPP') : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -37,8 +40,8 @@ export function DatePicker() {
         >
           <Calendar
             mode='single'
-            selected={date}
-            onSelect={setDate}
+            selected={props.date}
+            onSelect={props.setDate}
             initialFocus
             disabled={(date) =>
               date > new Date() || date < new Date('1900-01-01')

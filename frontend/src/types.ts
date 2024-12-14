@@ -12,7 +12,6 @@ export interface Group {
   name: string;
   metrics: Metric[];
   created: Date;
-  enabled: boolean;
   type: GroupType;
 }
 

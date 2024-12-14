@@ -10,12 +10,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import { ReactNode } from 'react';
+import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { DatePicker } from '../ui/date-picker';
 import Link from 'next/link';
 
 export default function AdvancedOptionsMetricDialog(props: {
   children: ReactNode;
+  setDate: Dispatch<SetStateAction<Date | undefined>>;
+  date: Date | undefined;
 }) {
   return (
     <Dialog>
@@ -39,7 +41,7 @@ export default function AdvancedOptionsMetricDialog(props: {
         </DialogHeader>
         <div className='flex w-full flex-col gap-4'>
           <div className='mt-2 flex flex-col gap-1'>
-            <DatePicker />
+            <DatePicker setDate={props.setDate} date={props.date} />
             <div className='text-sm text-secondary'>
               You can select a date to offset the chart{' '}
               <Link
