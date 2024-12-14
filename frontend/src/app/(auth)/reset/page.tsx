@@ -7,6 +7,7 @@ import AuthNavbar from '@/components/website/auth-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Loader } from 'lucide-react';
 
 export default function PasswordReset() {
   const searchParams = useSearchParams();
@@ -194,7 +195,7 @@ export default function PasswordReset() {
               <></>
             )}
 
-            {view === 6 ? 'LOADING...' : <></>}
+            {view === 6 ? <Loader className='size-8 animate-spin'/> : <></>}
 
             {view === 1 || view === 3 || view === 5 ? (
               <div className='mt-[10px] text-sm'>

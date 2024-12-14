@@ -15,7 +15,7 @@ import { EyeClosedIcon } from '@radix-ui/react-icons';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Eye } from 'react-feather';
 import { AppsContext } from '@/dash-context';
-import { X } from 'lucide-react';
+import { Loader, X } from 'lucide-react';
 import RandomizeAlert from './randomize-alert';
 
 export default function ApiDialog(props: {
@@ -82,7 +82,7 @@ export default function ApiDialog(props: {
                   ? view
                     ? apiKey
                     : 'Click to copy'
-                  : 'LOADING...'}
+                  : <Loader className='size-4 animate-spin'/>}
             </Button>
           </div>
           <Button

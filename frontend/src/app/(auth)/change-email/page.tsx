@@ -5,6 +5,7 @@ import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Loader } from 'lucide-react';
 
 export default function PasswordReset() {
   const searchParams = useSearchParams();
@@ -72,7 +73,7 @@ export default function PasswordReset() {
               <></>
             )}
 
-            {view === 2 ? 'LOADING...' : <></>}
+            {view === 2 ? <Loader className='size-8 animate-spin'/> : <></>}
 
             {view === 1 || view === 0 ? (
               <div className='mt-[10px] text-sm'>

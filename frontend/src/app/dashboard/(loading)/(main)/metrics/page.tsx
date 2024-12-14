@@ -32,6 +32,7 @@ import {
 } from 'react';
 import { AppsContext } from '@/dash-context';
 import { loadMetricsGroups } from '@/utils';
+import { Loader } from 'lucide-react';
 
 export default function DashboardMetrics() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);
@@ -80,7 +81,9 @@ export default function DashboardMetrics() {
       {/* /Breadcrumb */}
       <div className='mt-5 flex h-full flex-row gap-5'>
         {applications?.[activeApp].groups === null ? (
-          <div>LOADING...</div>
+          <div className='flex h-[calc(100vh-50px-15px-200px)] w-full items-center justify-center'>
+            <Loader className='size-8 animate-spin' />
+          </div>
         ) : (
           <div className='flex w-full flex-col gap-[10px]'>
             <div className='flex w-full flex-row gap-[10px] max-md:flex-col'>
