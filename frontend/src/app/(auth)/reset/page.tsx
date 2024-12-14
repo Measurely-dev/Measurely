@@ -36,8 +36,9 @@ export default function PasswordReset() {
 
   return (
     <WebContainer>
-      <AuthNavbar href='/sign-in' button='Sign in' />
-
+      <div className='mb-[150px]'>
+        <AuthNavbar href='/sign-in' button='Sign in' />
+      </div>
       <ContentContainer>
         {view === 0 ? (
           <AuthForm
@@ -195,7 +196,7 @@ export default function PasswordReset() {
               <></>
             )}
 
-            {view === 6 ? <Loader className='size-8 animate-spin'/> : <></>}
+            {view === 6 ? <Loader className='size-8 animate-spin' /> : <></>}
 
             {view === 1 || view === 3 || view === 5 ? (
               <div className='mt-[10px] text-sm'>

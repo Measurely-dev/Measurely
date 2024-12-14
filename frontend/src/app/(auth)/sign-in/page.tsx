@@ -39,8 +39,8 @@ export default function SignIn() {
     }
   }, []);
   return (
-    <WebContainer>
-      <div className='max-md:mb-[20px]'>
+    <WebContainer className='min-h-[800px]'>
+      <div className='mb-[150px]'>
         <AuthNavbar href='/register' button='Create an account' />
       </div>
       <ContentContainer>

@@ -63,7 +63,7 @@ export default function AuthForm(props: {
 
   return (
     <form
-      className='flex min-h-screen w-full items-center justify-center'
+      className='flex w-full items-center justify-center'
       ref={ref}
       onSubmit={(e) => {
         e.preventDefault();

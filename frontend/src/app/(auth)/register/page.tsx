@@ -27,10 +27,10 @@ export default function Register() {
   }, []);
   return (
     <WebContainer>
-      <div className='max-md:mb-[50px]'>
+      <div className='mb-[150px]'>
         <AuthNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer>
+      <ContentContainer className='pb-[100px]'>
         <AuthForm
           title='Create an account'
           providers={true}
