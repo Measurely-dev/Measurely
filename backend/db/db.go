@@ -282,7 +282,7 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 }
 
 func (db *DB) UpdateMetricTotal(id uuid.UUID, total int) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET total = metrics.value + $1 WHERE id = $2", total, id)
+	_, err := db.Conn.Exec("UPDATE metrics SET total = total + $1 WHERE id = $2", total, id)
 	return err
 }
 
