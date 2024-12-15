@@ -165,7 +165,7 @@ export default function MetricInformations(props: {
           </div>
         </div>
         {loading ? (
-          'LOADING...'
+          <Skeleton className='h-[200px] w-full rounded-[12px]' />
         ) : (
           <>
             {props.group.type === 0 ? (
@@ -181,7 +181,7 @@ export default function MetricInformations(props: {
                 >
                   <AreaChart
                     accessibilityLayer
-                    data={data ?? []}
+                    data={data}
                     margin={{
                       left: 12,
                       right: 12,
@@ -191,7 +191,7 @@ export default function MetricInformations(props: {
                     <XAxis
                       dataKey='date'
                       tickLine={false}
-                      tickMargin={10}
+                      tickMargin={8}
                       axisLine={false}
                       tickFormatter={(value: Date | string) =>
                         parseXAxis(value, range)
@@ -229,7 +229,7 @@ export default function MetricInformations(props: {
                 >
                   <AreaChart
                     accessibilityLayer
-                    data={data ?? []}
+                    data={data}
                     margin={{
                       left: 12,
                       right: 12,
@@ -240,7 +240,7 @@ export default function MetricInformations(props: {
                       dataKey='date'
                       tickLine={false}
                       axisLine={false}
-                      tickMargin={10}
+                      tickMargin={8}
                       tickFormatter={(value: Date | string) =>
                         parseXAxis(value, range)
                       }

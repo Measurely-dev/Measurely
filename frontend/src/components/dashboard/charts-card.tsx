@@ -39,6 +39,7 @@ import MetricStats from './metric-stats';
 import Empty from './empty';
 import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { Skeleton } from '../ui/skeleton';
 
 export function ChartsCard() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);
@@ -147,7 +148,10 @@ export function ChartsCard() {
             ) : (
               <>
                 {loading ? (
-                  'LOADING...'
+                  <>
+                    <Skeleton className='h-[200px] w-full rounded-[12px]' />
+                    <Skeleton className='h-[200px] w-full rounded-[12px]' />
+                  </>
                 ) : (
                   <>
                     {/* Chart 1 */}
