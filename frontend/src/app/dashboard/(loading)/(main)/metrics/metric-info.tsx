@@ -102,7 +102,7 @@ export default function MetricInformations(props: {
           <div className='flex flex-row items-center gap-2 max-sm:w-full'>
             <ToggleGroup
               type='single'
-              defaultValue='today'
+              defaultValue='0'
               size={'sm'}
               className='h-[35px] w-fit gap-0 divide-x rounded-[12px] border'
               onValueChange={(e) => setRange(parseInt(e))}
@@ -110,7 +110,7 @@ export default function MetricInformations(props: {
             >
               <ToggleGroupItem
                 value={'0'}
-                className='h-[33px] rounded-l-[12px] rounded-r-none'
+                className='h-[33px] data-[state=on]:select-none rounded-l-[12px] rounded-r-none'
               >
                 D
               </ToggleGroupItem>

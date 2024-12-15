@@ -10,11 +10,15 @@ import { page_routes } from './routes-config';
 
 import Note from '@/components/docs/note';
 import { Stepper, StepperItem } from '@/components/docs/stepper';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const components = {
   Note,
   Stepper,
   StepperItem,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 };
 
 async function parseMdx<Frontmatter>(rawMdx: string) {
