@@ -400,7 +400,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 			user, err = s.DB.GetUserById(parsedId)
 			if err != nil {
-        log.Println(err)
+				log.Println(err)
 				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusMovedPermanently)
 				return
 			}
@@ -1468,8 +1468,12 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		Type:  request.Type,
 	})
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "A metric with the same name already exists", http.StatusBadRequest)
+		} else {
+			log.Println(err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -1505,15 +1509,15 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 			}
 			request, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
 			if err != nil {
-        log.Println(err)
+				log.Println(err)
 				continue
 			}
 
-      _, err = http.DefaultClient.Do(request)
-      if err != nil {
-        log.Println(err)
-        continue
-      }
+			_, err = http.DefaultClient.Do(request)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
 		}
 	}
 
