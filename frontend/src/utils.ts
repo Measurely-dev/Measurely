@@ -109,7 +109,7 @@ export const loadChartData = async (
     });
   if (group.type === GroupType.Dual) {
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=$group.metrics[1].id}&appid=${application.id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[1].id}&appid=${application.id}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
       { method: 'GET', credentials: 'include' },
     )
       .then((resp) => {

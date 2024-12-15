@@ -189,8 +189,7 @@ export function ChartsCard() {
                         config={{
                           positive: {
                             label:
-                              applications?.[activeApp].groups?.[activeGroup]
-                                ?.metrics[0].name ?? '',
+                              applications?.[activeApp].groups?.[activeGroup]?.name ?? '',
                             color: 'hsl(var(--chart-1))',
                           },
                         }}
@@ -351,7 +350,7 @@ export function ChartsCard() {
           <Empty className='rounded-t-none border-none'>
             <CubeIcon className='size-10' />
             <div className='flex flex-col items-center gap-3 text-center'>
-              C reate your first metric
+              Create your first metric
             </div>
           </Empty>
         </Link>

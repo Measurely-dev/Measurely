@@ -25,11 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function MetricInformations(props: {
   children: ReactNode;
   group: Group;
-  total: number;
 }) {
   const [date, setDate] = useState<Date>();
   const [range, setRange] = useState<number>(0);
-  const [data, setData] = useState<any[] | null>(null);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const { applications, activeApp } = useContext(AppsContext);
   const [canLoad, setCanLoad] = useState(false);
 
@@ -39,8 +39,8 @@ export default function MetricInformations(props: {
         setDate(new Date());
         return;
       }
-
       const load = async () => {
+        setLoading(true);
         if (
           applications !== undefined &&
           applications?.[activeApp] !== undefined
@@ -55,10 +55,10 @@ export default function MetricInformations(props: {
           if (!data) {
             setData([]);
           } else {
-            console.log(data);
             setData(data);
           }
         }
+        setLoading(false);
       };
 
       load();
@@ -83,16 +83,16 @@ export default function MetricInformations(props: {
           </DialogTitle>
           <div className='sm:hidden'>
             <div className='flex flex-row items-center font-mono text-xl'>
-              {props.total}
               {props.group.type === 0 ? (
-                <></>
+                <>{props.group.metrics[0].total}</>
               ) : (
                 <>
+                  {props.group.metrics[0].total - props.group.metrics[1].total}
                   <div className='ml-2 h-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                    +{props.total}
+                    +{props.group.metrics[0].total}
                   </div>
                   <div className='ml-2 h-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
-                    -{props.total}
+                    -{props.group.metrics[1].total}
                   </div>
                 </>
               )}
@@ -149,23 +149,23 @@ export default function MetricInformations(props: {
         </div>
         <div className='max-sm:hidden'>
           <div className='flex flex-row items-center font-mono text-xl'>
-            {props.total}
             {props.group.type === 0 ? (
-              <></>
+              <>{props.group.metrics[0].total}</>
             ) : (
               <>
+                {props.group.metrics[0].total - props.group.metrics[1].total}
                 <div className='ml-2 h-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                  +{props.total}
+                  +{props.group.metrics[0].total}
                 </div>
                 <div className='ml-2 h-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
-                  -{props.total}
+                  -{props.group.metrics[1].total}
                 </div>
               </>
             )}
           </div>
         </div>
-        {data === null ? (
-          <Skeleton className='h-[200px] w-full rounded-[12px]' />
+        {loading ? (
+          'LOADING...'
         ) : (
           <>
             {props.group.type === 0 ? (

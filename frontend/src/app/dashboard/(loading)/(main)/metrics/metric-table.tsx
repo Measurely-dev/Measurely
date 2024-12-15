@@ -205,7 +205,7 @@ const Item = (props: { group: Group; index: number }) => {
 
   return (
     <div className='relative'>
-      <MetricInformations group={props.group} total={total ?? 0}>
+      <MetricInformations group={props.group}>
         <div className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none' />
       </MetricInformations>
       <div
