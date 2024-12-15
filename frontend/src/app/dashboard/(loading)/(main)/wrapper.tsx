@@ -12,7 +12,7 @@ export default function DashboardWrapper({ children }: { children: any }) {
       <div className='w-full pl-[20px]'>
         <DashboardContent>
           <DashboardTopbar />
-          <div className='flex flex-col'>
+          <div className='flex flex-col max-h-[calc(100vh-15px)] overflow-y-scroll bg-blue-500'>
             {children}
           </div>
         </DashboardContent>
