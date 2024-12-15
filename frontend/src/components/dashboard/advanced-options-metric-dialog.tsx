@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Switch } from '../ui/switch';
 
 export default function AdvancedOptionsMetricDialog(props: {
   children: ReactNode;
@@ -49,6 +50,22 @@ export default function AdvancedOptionsMetricDialog(props: {
           </DialogClose>
         </DialogHeader>
         <div className='flex w-full flex-col gap-4'>
+          <Label className='flex flex-row items-center justify-between'>
+            <div className='flex flex-col gap-1'>
+              Trend
+              <div className='w-full text-sm text-secondary'>
+                Switch on or off the trend{' '}
+                <Link
+                  className='text-primary underline'
+                  href={'/docs/features/advanced-options'}
+                  target='_blank'
+                >
+                  learn more
+                </Link>
+              </div>
+            </div>
+            <Switch id='airplane-mode' />
+          </Label>
           {props.groupType === 0 ? (
             <></>
           ) : (
