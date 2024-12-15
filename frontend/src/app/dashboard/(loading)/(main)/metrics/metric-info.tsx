@@ -10,7 +10,7 @@ import {
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Sliders, X } from 'lucide-react';
 import { Bar, BarChart } from "recharts"
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import { CartesianGrid, XAxis } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
