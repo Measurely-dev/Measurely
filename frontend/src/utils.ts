@@ -33,6 +33,11 @@ export const getDaysFromDate = (date: Date) => {
   return days[date.getDay()];
 };
 
+export const getMonthsFromDate = (date : Date) => {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  return months[date.getMonth()]
+}
+
 export const loadChartData = async (
   date: Date,
   range: number,
@@ -168,7 +173,7 @@ export const parseXAxis = (value: Date | string, range: number) => {
     if (range === 0) {
       return value.getHours().toString() + ' H';
     } else {
-      return getDaysFromDate(value) + ' ' + value.getDate().toString();
+      return getMonthsFromDate(value) + ', ' + value.getDate().toString();
     }
   }
 };
