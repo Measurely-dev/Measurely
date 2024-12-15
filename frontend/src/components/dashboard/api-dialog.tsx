@@ -40,13 +40,13 @@ export default function ApiDialog(props: {
   return (
     <Dialog onOpenChange={() => setView(false)}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='!rounded-xl border border-input shadow-none max-md:max-w-[95%]'>
+      <DialogContent className='rounded-xl border border-input shadow-none max-md:max-w-[95%] max-sm:w-full max-sm:max-w-full max-sm:rounded-none max-sm:px-2 max-sm:py-4'>
         <DialogHeader className='max-md:text-start'>
           <DialogTitle>API KEY</DialogTitle>
           <DialogDescription>
             Anyone who has this key will be able to use it.
           </DialogDescription>
-          <DialogClose className='absolute right-5 top-3'>
+          <DialogClose className='absolute right-5 top-3 max-sm:hidden'>
             <Button
               type='button'
               size={'icon'}
@@ -57,14 +57,14 @@ export default function ApiDialog(props: {
             </Button>
           </DialogClose>
         </DialogHeader>
-        <div className='flex items-center'>
-          <div className='grid flex-1 gap-2'>
+        <div className='flex max-w-full items-center'>
+          <div className='flex w-full max-w-full flex-row gap-2'>
             <Label htmlFor='link' className='sr-only'>
               Link
             </Label>
             <Button
               id='link'
-              className={`rounded-[8px] rounded-r-none border-r-0 ${
+              className={`w-full overflow-x-scroll rounded-[8px] rounded-r-none border-r-0 max-sm:max-w-[calc(100vw-16px-40px)] max-sm:text-xs ${
                 view ? '' : 'text-secondary'
               }`}
               variant={'outline'}
@@ -76,13 +76,17 @@ export default function ApiDialog(props: {
                 }
               }}
             >
-              {copied
-                ? 'Copied!'
-                : apiKey !== null
-                  ? view
-                    ? apiKey
-                    : 'Click to copy'
-                  : <Loader className='size-4 animate-spin'/>}
+              {copied ? (
+                'Copied!'
+              ) : apiKey !== null ? (
+                view ? (
+                  apiKey
+                ) : (
+                  'Click to copy'
+                )
+              ) : (
+                <Loader className='size-4 animate-spin' />
+              )}
             </Button>
           </div>
           <Button
