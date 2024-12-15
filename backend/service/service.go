@@ -1456,7 +1456,6 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	plan, _ := s.GetPlan(user.CurrentPlan)
 
-	log.Println(count, plan.MetricPerAppLimit)
 	if count >= plan.MetricPerAppLimit {
 		http.Error(w, "You have reached the limit of metrics for this app", http.StatusUnauthorized)
 		return
@@ -1482,7 +1481,6 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		created_metric, err := s.DB.CreateMetric(types.Metric{
 			Name:    metric,
 			GroupId: group.Id,
-			Total:   request.BaseValue,
 		})
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1502,17 +1500,21 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 			}
 			jsonData, err := json.Marshal(data)
 			if err != nil {
-				fmt.Println("Error marshaling JSON:", err)
+				log.Println("Error marshaling JSON:", err)
 				continue
 			}
-			request, err := http.NewRequest("POST", GetURL()+"/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
+			request, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
 			if err != nil {
+        log.Println(err)
 				continue
 			}
 
-			http.DefaultClient.Do(request)
+      _, err = http.DefaultClient.Do(request)
+      if err != nil {
+        log.Println(err)
+        continue
+      }
 		}
-
 	}
 
 	bytes, jerr := json.Marshal(metricsResp)

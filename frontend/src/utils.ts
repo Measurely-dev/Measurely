@@ -172,3 +172,44 @@ export const parseXAxis = (value: Date | string, range: number) => {
     }
   }
 };
+
+export const calculateTrend = (data: any[], total: number): any[] => {
+  console.log(data, total);
+  let trendData: any[] = [];
+  let currentTotal = total;
+  if (
+    data[data.length - 1].positive !== undefined &&
+    data[data.length - 1].negative !== undefined
+  ) {
+    trendData.push({
+      date: data[data.length - 1].date,
+      value: currentTotal,
+    });
+    currentTotal =
+      currentTotal -
+      data[data.length - 1].positive +
+      data[data.length - 1].negative;
+  } else {
+    trendData.push({
+      date: data[data.length - 1].date,
+    });
+  }
+
+  for (let i = data.length - 2; i >= 0; i--) {
+    if (data[i].positive !== undefined && data[i].negative !== undefined) {
+      trendData.push({
+        date: data[i].date,
+        value: currentTotal,
+      });
+      currentTotal = currentTotal - data[i].positive + data[i].negative;
+    } else {
+      trendData.push({
+        date: data[i].date,
+      });
+    }
+  }
+  const reversedArray = trendData.reverse();
+  console.log(reversedArray);
+
+  return reversedArray;
+};

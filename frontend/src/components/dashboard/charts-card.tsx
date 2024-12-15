@@ -33,7 +33,7 @@ import {
 import { useContext, useEffect, useState } from 'react';
 import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
-import { loadChartData, loadMetricsGroups, parseXAxis } from '@/utils';
+import { calculateTrend, loadChartData, loadMetricsGroups, parseXAxis } from '@/utils';
 import { Group, GroupType } from '@/types';
 import MetricStats from './metric-stats';
 import Empty from './empty';
@@ -68,9 +68,11 @@ export function ChartsCard() {
       if (applications?.[activeApp]?.groups !== null) {
         const group = applications?.[activeApp].groups[activeGroup];
         if (group != undefined && applications?.[activeApp] !== undefined) {
-          if (group.type === GroupType.Base) setTotal(group.metrics[0].total);
+          let total = 0;
+          if (group.type === GroupType.Base) total = group.metrics[0].total;
           else if (group.type === GroupType.Dual)
-            setTotal(group.metrics[0].total - group.metrics[1].total);
+            total = group.metrics[0].total - group.metrics[1].total;
+          setTotal(total);
           const from = new Date();
           from.setDate(0);
 
@@ -91,6 +93,8 @@ export function ChartsCard() {
     };
     load();
   }, [activeGroup]);
+
+
 
   return (
     <Card className='rounded-t-none border-input'>
@@ -170,7 +174,7 @@ export function ChartsCard() {
                               },
                             }}
                           >
-                            <BarChart accessibilityLayer data={data ?? []}>
+                            <BarChart accessibilityLayer data={data}>
                               <CartesianGrid vertical={false} />
                               <XAxis
                                 dataKey='date'
@@ -199,7 +203,7 @@ export function ChartsCard() {
                         <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
                           <ChartContainer
                             config={{
-                              positive: {
+                              value: {
                                 label:
                                   applications?.[activeApp].groups?.[
                                     activeGroup
@@ -210,7 +214,7 @@ export function ChartsCard() {
                           >
                             <AreaChart
                               accessibilityLayer
-                              data={data ?? []}
+                              data={calculateTrend(data, total)}
                               margin={{
                                 left: 12,
                                 right: 12,
@@ -236,7 +240,7 @@ export function ChartsCard() {
                                 }
                               />
                               <Area
-                                dataKey='positive'
+                                dataKey='value'
                                 type='linear'
                                 fill='blue'
                                 fillOpacity={0.5}
@@ -267,7 +271,7 @@ export function ChartsCard() {
                               },
                             }}
                           >
-                            <BarChart accessibilityLayer data={data ?? []}>
+                            <BarChart accessibilityLayer data={data}>
                               <CartesianGrid vertical={false} />
                               <XAxis
                                 dataKey='date'
@@ -303,25 +307,18 @@ export function ChartsCard() {
                         <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
                           <ChartContainer
                             config={{
-                              positive: {
+                              value: {
                                 label:
                                   applications?.[activeApp].groups?.[
                                     activeGroup
                                   ]?.metrics[0].name ?? '',
                                 color: 'hsl(var(--chart-1))',
                               },
-                              negative: {
-                                label:
-                                  applications?.[activeApp].groups?.[
-                                    activeGroup
-                                  ].metrics[1].name,
-                                color: 'red',
-                              },
                             }}
                           >
                             <AreaChart
                               accessibilityLayer
-                              data={data ?? []}
+                              data={calculateTrend(data, total)}
                               margin={{
                                 left: 12,
                                 right: 12,
@@ -347,18 +344,11 @@ export function ChartsCard() {
                                 }
                               />
                               <Area
-                                dataKey='positive'
+                                dataKey='value'
                                 type='linear'
                                 fill='blue'
                                 fillOpacity={0.5}
                                 stroke='blue'
-                              />
-                              <Area
-                                dataKey='negative'
-                                type='linear'
-                                fill='red'
-                                fillOpacity={0.2}
-                                stroke='red'
                               />
                             </AreaChart>
                           </ChartContainer>

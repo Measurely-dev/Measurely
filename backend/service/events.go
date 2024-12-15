@@ -197,6 +197,7 @@ func (s *Service) UpdateMeterTotal() {
 				return
 			}
 
+      log.Println("updating")
 			err = s.DB.UpdateMetricTotal(parsedmetricid, count)
       if err != nil {
         log.Println("Failed to metric total: ", err)
