@@ -144,112 +144,204 @@ export function ChartsCard() {
             ) : (
               <>
                 {/* Chart 1 */}
-                <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
-                  <ChartContainer
-                    config={{
-                      positive: {
-                        label:
-                          applications?.[activeApp].groups?.[activeGroup]
-                            ?.name ?? '',
-                        color: 'hsl(var(--chart-1))',
-                      },
-                    }}
-                  >
-                    <BarChart accessibilityLayer data={data ?? []}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey='date'
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickFormatter={(value: Date | string) =>
-                          parseXAxis(value, 30)
-                        }
-                      />
-                      <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Bar
-                        dataKey='positive'
-                        fill='red'
-                        fillOpacity={0.6}
-                        stroke='red'
-                        radius={8}
-                      />
-                      {applications?.[activeApp].groups?.[activeGroup].type ===
-                        GroupType.Dual ? (
-                        <Area
-                          dataKey='negative'
-                          type='linear'
-                          fill='blue'
-                          fillOpacity={0.5}
-                          stroke='blue'
-                        />
-                      ) : (
-                        <></>
-                      )}
-                    </BarChart>
-                  </ChartContainer>
-                </div>
-                {/* Chart 2 */}
-                <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
-                  <ChartContainer
-                    config={{
-                      positive: {
-                        label:
-                          applications?.[activeApp].groups?.[activeGroup]
-                            ?.name ?? '',
-                        color: 'hsl(var(--chart-1))',
-                      },
-                    }}
-                  >
-                    <AreaChart
-                      accessibilityLayer
-                      data={data ?? []}
-                      margin={{
-                        left: 12,
-                        right: 12,
-                      }}
-                    >
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey='date'
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tickFormatter={(value: Date | string) =>
-                          parseXAxis(value, 30)
-                        }
-                      />
-                      <ChartTooltip
-                        cursor={false}
-                        content={
-                          <ChartTooltipContent indicator='dot' hideLabel />
-                        }
-                      />
-                      <Area
-                        dataKey='positive'
-                        type='linear'
-                        fill='blue'
-                        fillOpacity={0.5}
-                        stroke='blue'
-                      />
-                      {applications?.[activeApp].groups?.[activeGroup].type ===
-                        GroupType.Dual ? (
-                        <Area
-                          dataKey='negative'
-                          type='linear'
-                          fill='blue'
-                          fillOpacity={0.5}
-                          stroke='blue'
-                        />
-                      ) : (
-                        <></>
-                      )}
-                    </AreaChart>
-                  </ChartContainer>
-                </div>
+                {applications?.[activeApp].groups?.[activeGroup].type ===
+                  GroupType.Base ? (
+                  <>
+                    <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
+                      <ChartContainer
+                        config={{
+                          positive: {
+                            label:
+                              applications?.[activeApp].groups?.[activeGroup]
+                                ?.name ?? '',
+                            color: 'hsl(var(--chart-1))',
+                          },
+                        }}
+                      >
+                        <BarChart accessibilityLayer data={data ?? []}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey='date'
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                            tickFormatter={(value: Date | string) =>
+                              parseXAxis(value, 30)
+                            }
+                          />
+                          <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent hideLabel />}
+                          />
+                          <Bar
+                            dataKey='positive'
+                            fill='red'
+                            fillOpacity={0.6}
+                            stroke='red'
+                            radius={8}
+                          />
+                        </BarChart>
+                      </ChartContainer>
+                    </div>
+                    {/* Chart 2 */}
+                    <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
+                      <ChartContainer
+                        config={{
+                          positive: {
+                            label:
+                              applications?.[activeApp].groups?.[activeGroup]
+                                ?.metrics[0].name ?? '',
+                            color: 'hsl(var(--chart-1))',
+                          },
+                        }}
+                      >
+                        <AreaChart
+                          accessibilityLayer
+                          data={data ?? []}
+                          margin={{
+                            left: 12,
+                            right: 12,
+                          }}
+                        >
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey='date'
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tickFormatter={(value: Date | string) =>
+                              parseXAxis(value, 30)
+                            }
+                          />
+                          <ChartTooltip
+                            cursor={false}
+                            content={
+                              <ChartTooltipContent indicator='dot' hideLabel />
+                            }
+                          />
+                          <Area
+                            dataKey='positive'
+                            type='linear'
+                            fill='blue'
+                            fillOpacity={0.5}
+                            stroke='blue'
+                          />
+                        </AreaChart>
+                      </ChartContainer>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
+                      <ChartContainer
+                        config={{
+                          positive: {
+                            label:
+                              applications?.[activeApp].groups?.[activeGroup]
+                                ?.metrics[0].name ?? '',
+                            color: 'hsl(var(--chart-1))',
+                          },
+                          negative: {
+                            label:
+                              applications?.[activeApp].groups?.[activeGroup]
+                                .metrics[1].name,
+                            color: 'red',
+                          },
+                        }}
+                      >
+                        <BarChart accessibilityLayer data={data ?? []}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey='date'
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                            tickFormatter={(value: Date | string) =>
+                              parseXAxis(value, 30)
+                            }
+                          />
+                          <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent hideLabel />}
+                          />
+                          <Bar
+                            dataKey='positive'
+                            fill='green'
+                            fillOpacity={0.6}
+                            stroke='green'
+                            radius={8}
+                          />
+                          <Bar
+                            dataKey='negative'
+                            fill='red'
+                            fillOpacity={0.6}
+                            stroke='red'
+                            radius={8}
+                          />
+                        </BarChart>
+                      </ChartContainer>
+                    </div>
+                    {/* Chart 2 */}
+                    <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
+                      <ChartContainer
+                        config={{
+                          positive: {
+                            label:
+                              applications?.[activeApp].groups?.[activeGroup]
+                                ?.metrics[0].name ?? '',
+                            color: 'hsl(var(--chart-1))',
+                          },
+                          negative: {
+                            label:
+                              applications?.[activeApp].groups?.[activeGroup]
+                                .metrics[1].name,
+                            color: 'red',
+                          },
+                        }}
+                      >
+                        <AreaChart
+                          accessibilityLayer
+                          data={data ?? []}
+                          margin={{
+                            left: 12,
+                            right: 12,
+                          }}
+                        >
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey='date'
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tickFormatter={(value: Date | string) =>
+                              parseXAxis(value, 30)
+                            }
+                          />
+                          <ChartTooltip
+                            cursor={false}
+                            content={
+                              <ChartTooltipContent indicator='dot' hideLabel />
+                            }
+                          />
+                          <Area
+                            dataKey='positive'
+                            type='linear'
+                            fill='blue'
+                            fillOpacity={0.5}
+                            stroke='blue'
+                          />
+                          <Area
+                            dataKey='negative'
+                            type='linear'
+                            fill='red'
+                            fillOpacity={0.2}
+                            stroke='red'
+                          />
+                        </AreaChart>
+                      </ChartContainer>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </CardContent>
@@ -259,7 +351,7 @@ export function ChartsCard() {
           <Empty className='rounded-t-none border-none'>
             <CubeIcon className='size-10' />
             <div className='flex flex-col items-center gap-3 text-center'>
-              Create your first metric
+              C reate your first metric
             </div>
           </Empty>
         </Link>

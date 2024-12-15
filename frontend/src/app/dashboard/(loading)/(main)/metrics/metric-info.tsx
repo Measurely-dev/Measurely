@@ -34,30 +34,30 @@ export default function MetricInformations(props: {
 
   useEffect(() => {
     if (canLoad) {
+
       if (!date) {
-        setDate(new Date());
-        return;
+        setDate(new Date())
+        return
       }
 
       const load = async () => {
-        if (
-          applications !== undefined &&
-          applications?.[activeApp] !== undefined
-        ) {
+        if (applications !== undefined && applications?.[activeApp] !== undefined) {
           const data = await loadChartData(
             date,
             range,
             props.group,
             applications?.[activeApp],
-          );
+          )
 
           if (!data) {
-            setData([]);
+            setData([])
           } else {
-            setData(data);
+            console.log(data)
+            setData(data)
           }
-        }
-      };
+        };
+      }
+
 
       load();
     }
@@ -189,11 +189,9 @@ export default function MetricInformations(props: {
                     <XAxis
                       dataKey='date'
                       tickLine={false}
+                      tickMargin={10}
                       axisLine={false}
-                      tickMargin={8}
-                      tickFormatter={(value: Date | string) =>
-                        parseXAxis(value, range)
-                      }
+                      tickFormatter={(value : Date | string) => parseXAxis(value, range)}
                     />
                     <ChartTooltip
                       cursor={false}
@@ -202,7 +200,7 @@ export default function MetricInformations(props: {
                     />
                     <Area
                       dataKey='positive'
-                      type='natural'
+                      type='linear'
                       fill='skyblue'
                       fillOpacity={0.5}
                       stroke='skyblue'
@@ -239,9 +237,7 @@ export default function MetricInformations(props: {
                       tickLine={false}
                       axisLine={false}
                       tickMargin={10}
-                      tickFormatter={(value: Date | string) =>
-                        parseXAxis(value, range)
-                      }
+                      tickFormatter={(value : Date | string) => parseXAxis(value, range)}
                     />
                     <ChartTooltip
                       cursor={false}
@@ -250,7 +246,7 @@ export default function MetricInformations(props: {
                     />
                     <Area
                       dataKey='postive'
-                      type='natural'
+                      type='linear'
                       strokeOpacity={0.6}
                       fill='lime'
                       fillOpacity={0.2}
@@ -259,7 +255,7 @@ export default function MetricInformations(props: {
                     />
                     <Area
                       dataKey='negative'
-                      type='natural'
+                      type='linear'
                       strokeOpacity={0.6}
                       fill='red'
                       fillOpacity={0.2}
