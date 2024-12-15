@@ -58,10 +58,10 @@ export default function TeamPage() {
                 window.localStorage.getItem('request-team-feature') === 'true'
                   ? true
                   : false;
-              // if (requested) {
-              //   toast.success('Thank you for your feedback');
-              //   // return;
-              // }
+              if (requested) {
+                toast.success('Thank you for your feedback');
+                return;
+              }
 
               setLoading(true);
               fetch(
