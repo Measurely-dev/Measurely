@@ -2,7 +2,7 @@
 
 export type ColorUtility = "bg" | "stroke" | "fill" | "text"
 
-export const chartColors = {
+const colors = {
   blue: {
     bg: "bg-blue-500",
     stroke: "stroke-blue-500",
@@ -63,11 +63,11 @@ export const chartColors = {
      fill: "fill-fuchsia-500",
      text: "text-fuchsia-500",
   },
-} as const satisfies {
-  [color: string]: {
-    [key in ColorUtility]: string
-  }
 }
+export const chartColors: Record<
+  keyof typeof colors,
+  Record<ColorUtility, string>
+> = colors;
 
 export type AvailableChartColorsKeys = keyof typeof chartColors
 

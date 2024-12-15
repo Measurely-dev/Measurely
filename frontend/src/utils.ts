@@ -44,7 +44,7 @@ export const loadChartData = async (
   group: Group,
   application: Application,
 ) => {
-  let tmpData: any[] = [];
+  const tmpData: any[] = [];
   if (!date) {
     return;
   }
@@ -180,7 +180,7 @@ export const parseXAxis = (value: Date | string, range: number) => {
 
 export const calculateTrend = (data: any[], total: number): any[] => {
   console.log(data, total);
-  let trendData: any[] = [];
+  const trendData: any[] = [];
   let currentTotal = total;
   if (
     data[data.length - 1].positive !== undefined &&

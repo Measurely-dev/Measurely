@@ -13,10 +13,9 @@ import { Group } from '@/types';
 import { AppsContext } from '@/dash-context';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
-import { loadChartData, parseXAxis } from '@/utils';
+import { loadChartData } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart } from '@/components/ui/BarChart';
-import { Separator } from '@/components/ui/separator';
 import { DatePicker } from '@/components/ui/date-picker';
 
 export default function MetricInformations(props: {
