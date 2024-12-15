@@ -20,6 +20,7 @@ import { AppsContext } from '@/dash-context';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
 import { loadChartData, parseXAxis } from '@/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -34,30 +35,31 @@ export default function MetricInformations(props: {
 
   useEffect(() => {
     if (canLoad) {
-
       if (!date) {
-        setDate(new Date())
-        return
+        setDate(new Date());
+        return;
       }
 
       const load = async () => {
-        if (applications !== undefined && applications?.[activeApp] !== undefined) {
+        if (
+          applications !== undefined &&
+          applications?.[activeApp] !== undefined
+        ) {
           const data = await loadChartData(
             date,
             range,
             props.group,
             applications?.[activeApp],
-          )
+          );
 
           if (!data) {
-            setData([])
+            setData([]);
           } else {
-            console.log(data)
-            setData(data)
+            console.log(data);
+            setData(data);
           }
-        };
-      }
-
+        }
+      };
 
       load();
     }
@@ -163,7 +165,7 @@ export default function MetricInformations(props: {
           </div>
         </div>
         {data === null ? (
-          'LOADING...'
+          <Skeleton className='h-[200px] w-full rounded-[12px]' />
         ) : (
           <>
             {props.group.type === 0 ? (
@@ -191,7 +193,9 @@ export default function MetricInformations(props: {
                       tickLine={false}
                       tickMargin={10}
                       axisLine={false}
-                      tickFormatter={(value : Date | string) => parseXAxis(value, range)}
+                      tickFormatter={(value: Date | string) =>
+                        parseXAxis(value, range)
+                      }
                     />
                     <ChartTooltip
                       cursor={false}
@@ -237,7 +241,9 @@ export default function MetricInformations(props: {
                       tickLine={false}
                       axisLine={false}
                       tickMargin={10}
-                      tickFormatter={(value : Date | string) => parseXAxis(value, range)}
+                      tickFormatter={(value: Date | string) =>
+                        parseXAxis(value, range)
+                      }
                     />
                     <ChartTooltip
                       cursor={false}

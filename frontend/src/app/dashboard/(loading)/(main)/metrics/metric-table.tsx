@@ -233,7 +233,7 @@ const Item = (props: { group: Group; index: number }) => {
           orientation='horizontal'
           className='col-span-3 my-2 lg:hidden'
         />
-        <div className='my-auto line-clamp-1 h-fit w-full place-items-center items-center font-mono text-[15px] max-lg:flex max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
+        <div className='my-auto max-sm:col-span-3 line-clamp-1 h-fit w-full place-items-center items-center font-mono text-[15px] max-lg:flex max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
           <div className='font-sans font-semibold text-blue-500 lg:hidden'>
             Total value
           </div>
@@ -252,7 +252,7 @@ const Item = (props: { group: Group; index: number }) => {
             {dailyUpdate === null ? '0' : dailyUpdate}
           </Badge>
         </div>
-        <div className='flex items-center justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
+        <div className='flex items-center max-sm:col-span-3 justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
           <div className='text-sm font-semibold text-primary lg:hidden'>
             Created
           </div>
