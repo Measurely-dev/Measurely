@@ -9,19 +9,15 @@ import {
 } from '@/components/ui/dialog';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Sliders, X } from 'lucide-react';
-import { Bar, BarChart } from 'recharts';
-import { CartesianGrid, XAxis } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
 import { Group } from '@/types';
 import { AppsContext } from '@/dash-context';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
 import { loadChartData, parseXAxis } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BarChart } from '@/components/ui/BarChart';
+import { Separator } from '@/components/ui/separator';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -33,6 +29,35 @@ export default function MetricInformations(props: {
   const [loading, setLoading] = useState<boolean>(true);
   const { applications, activeApp } = useContext(AppsContext);
   const [canLoad, setCanLoad] = useState(false);
+  const [chartType, setChartType] = useState<'stacked' | 'percent'>('stacked');
+  const dualData = [
+    { date: 'Jan 23', AccountsCreated: 500, AccountsDeleted: 120 },
+    { date: 'Feb 23', AccountsCreated: 480, AccountsDeleted: 100 },
+    { date: 'Mar 23', AccountsCreated: 520, AccountsDeleted: 130 },
+    { date: 'Apr 23', AccountsCreated: 550, AccountsDeleted: 140 },
+    { date: 'May 23', AccountsCreated: 530, AccountsDeleted: 150 },
+    { date: 'Jun 23', AccountsCreated: 510, AccountsDeleted: 125 },
+    { date: 'Jul 23', AccountsCreated: 560, AccountsDeleted: 110 },
+    { date: 'Aug 23', AccountsCreated: 540, AccountsDeleted: 105 },
+    { date: 'Sep 23', AccountsCreated: 490, AccountsDeleted: 115 },
+    { date: 'Oct 23', AccountsCreated: 505, AccountsDeleted: 120 },
+    { date: 'Nov 23', AccountsCreated: 520, AccountsDeleted: 130 },
+    { date: 'Dec 23', AccountsCreated: 580, AccountsDeleted: 140 },
+  ];
+  const basicData = [
+    { date: 'Jan 23', TotalUsers: 5000 },
+    { date: 'Feb 23', TotalUsers: 5200 },
+    { date: 'Mar 23', TotalUsers: 5400 },
+    { date: 'Apr 23', TotalUsers: 5600 },
+    { date: 'May 23', TotalUsers: 5800 },
+    { date: 'Jun 23', TotalUsers: 6000 },
+    { date: 'Jul 23', TotalUsers: 6200 },
+    { date: 'Aug 23', TotalUsers: 6400 },
+    { date: 'Sep 23', TotalUsers: 6600 },
+    { date: 'Oct 23', TotalUsers: 6800 },
+    { date: 'Nov 23', TotalUsers: 7000 },
+    { date: 'Dec 23', TotalUsers: 7200 },
+  ];
 
   useEffect(() => {
     if (canLoad) {
@@ -99,35 +124,42 @@ export default function MetricInformations(props: {
               )}
             </div>
           </div>
-          <div className='flex flex-row items-center gap-2 max-sm:w-full'>
-            <ToggleGroup
-              type='single'
-              defaultValue='0'
-              size={'sm'}
-              className='h-[35px] w-fit gap-0 divide-x rounded-[12px] border'
-              onValueChange={(e) => setRange(parseInt(e))}
-              value={range.toString()}
+          <div className='flex flex-row items-center gap-2 max-sm:w-full max-sm:flex-col max-sm:items-start'>
+            <div className='flex items-center gap-2'>
+              <ToggleGroup
+                type='single'
+                defaultValue='0'
+                size={'sm'}
+                className='h-[35px] w-fit gap-0 divide-x rounded-[12px] border'
+                onValueChange={(e) => setRange(parseInt(e))}
+                value={range.toString()}
+              >
+                <ToggleGroupItem
+                  value={'0'}
+                  className='h-[33px] rounded-l-[12px] rounded-r-none data-[state=on]:select-none'
+                >
+                  D
+                </ToggleGroupItem>
+                <ToggleGroupItem value='7' className='h-[33px] rounded-none'>
+                  7D
+                </ToggleGroupItem>
+                <ToggleGroupItem value='15' className='h-[33px] rounded-none'>
+                  15D
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value='30'
+                  className='h-[33px] rounded-l-none rounded-r-[12px]'
+                >
+                  30D
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <DatePicker setDate={setDate} date={date} />
+            </div>
+            <AdvancedOptionsMetricDialog
+              chartType={chartType}
+              setChartType={setChartType}
+              groupType={props.group.type}
             >
-              <ToggleGroupItem
-                value={'0'}
-                className='h-[33px] data-[state=on]:select-none rounded-l-[12px] rounded-r-none'
-              >
-                D
-              </ToggleGroupItem>
-              <ToggleGroupItem value='7' className='h-[33px] rounded-none'>
-                7D
-              </ToggleGroupItem>
-              <ToggleGroupItem value='15' className='h-[33px] rounded-none'>
-                15D
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value='30'
-                className='h-[33px] rounded-l-none rounded-r-[12px]'
-              >
-                30D
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <AdvancedOptionsMetricDialog setDate={setDate} date={date}>
               <Button
                 variant={'secondary'}
                 className='items-center gap-2 rounded-[12px] max-sm:w-full'
@@ -170,106 +202,34 @@ export default function MetricInformations(props: {
         ) : (
           <>
             {props.group.type === 0 ? (
-              <>
-                <ChartContainer
-                  config={{
-                    positive: {
-                      label: props.group.name,
-                      color: 'skyblue',
-                    },
-                  }}
-                  className='rounded-[12px] bg-accent p-3'
-                >
-                  <BarChart
-                    accessibilityLayer
-                    data={data}
-                    margin={{
-                      left: 12,
-                      right: 12,
-                      top: 5,
-                    }}
-                  >
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey='date'
-                      tickLine={false}
-                      tickMargin={8}
-                      axisLine={false}
-                      tickFormatter={(value: Date | string) =>
-                        parseXAxis(value, range)
-                      }
-                    />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar
-                      dataKey='positive'
-                      fill='skyblue'
-                      fillOpacity={1}
-                      radius={8}
-                      className='rounded-b-none'
-                    />
-                  </BarChart>
-                </ChartContainer>
-              </>
+              <BarChart
+                className='w-full'
+                data={basicData}
+                index='date'
+                color='blue'
+                categories={['TotalUsers']}
+                valueFormatter={(number: number) =>
+                  `${Intl.NumberFormat('us').format(number).toString()}`
+                }
+                onValueChange={(v) => console.log(v)}
+                xAxisLabel='Month'
+                yAxisLabel='Total'
+              />
             ) : (
-              <div className='rounded-[12px] bg-accent p-3'>
-                <ChartContainer
-                  config={{
-                    positive: {
-                      label: props.group.metrics[0].name,
-                      color: 'green',
-                    },
-                    negative: {
-                      label: props.group.metrics[1].name,
-                      color: 'red',
-                    },
-                  }}
-                >
-                  <BarChart
-                    accessibilityLayer
-                    data={data}
-                    margin={{
-                      left: 12,
-                      right: 12,
-                      top: 5,
-                    }}
-                  >
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey='date'
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      tickFormatter={(value: Date | string) =>
-                        parseXAxis(value, range)
-                      }
-                    />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent indicator='dot' />}
-                      labelClassName='!min-w-[200px]'
-                    />
-                    <Bar
-                      dataKey='postive'
-                      fill='lime'
-                      fillOpacity={1}
-                      stackId='a'
-                      radius={8}
-                      className='rounded-b-none'
-                    />
-                    <Bar
-                      dataKey='negative'
-                      fill='red'
-                      fillOpacity={1}
-                      stackId='a'
-                      radius={8}
-                      className='rounded-b-none'
-                    />
-                  </BarChart>
-                </ChartContainer>
-              </div>
+              <BarChart
+                className='w-full'
+                data={dualData}
+                index='date'
+                type={chartType}
+                colors={['green', 'red']}
+                categories={['AccountsCreated', 'AccountsDeleted']}
+                valueFormatter={(number: number) =>
+                  `${Intl.NumberFormat('us').format(number).toString()}`
+                }
+                onValueChange={(v) => console.log(v)}
+                xAxisLabel='Month'
+                yAxisLabel='Accounts'
+              />
             )}
           </>
         )}

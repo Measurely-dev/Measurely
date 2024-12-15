@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Dispatch, SetStateAction } from 'react';
+import Link from 'next/link';
 
 export function DatePicker(props: {
   setDate: Dispatch<SetStateAction<Date | undefined>>;
@@ -24,20 +25,23 @@ export function DatePicker(props: {
         <PopoverTrigger asChild>
           <Button
             id='date'
+            size={'icon'}
             variant={'secondary'}
             className={cn(
-              'w-full justify-start rounded-[12px] px-4 text-left font-normal',
+              'items-center justify-center rounded-[12px] font-normal',
               !props.date && 'text-muted-foreground',
             )}
           >
-            <CalendarIcon className='mr-2 size-4' />
-            {props.date ? format(props.date, 'PPP') : <span>Pick a date</span>}
+            <CalendarIcon className='size-4' />
           </Button>
         </PopoverTrigger>
         <PopoverContent
           className='w-auto rounded-[12px] bg-background p-0'
           align='start'
         >
+          <div className='flex flex-col gap-1 px-4 pt-3'>
+            <div className='text-sm font-semibold'>Offset</div>
+          </div>
           <Calendar
             mode='single'
             selected={props.date}
@@ -47,6 +51,17 @@ export function DatePicker(props: {
               date > new Date() || date < new Date('1900-01-01')
             }
           />
+          <div className='w-full px-4 pb-3 text-sm text-secondary'>
+            Select a date to offset the chart
+            <br />
+            <Link
+              className='text-primary underline'
+              href={'/docs/features/advanced-options'}
+              target='_blank'
+            >
+              learn more
+            </Link>
+          </div>
         </PopoverContent>
       </Popover>
     </div>

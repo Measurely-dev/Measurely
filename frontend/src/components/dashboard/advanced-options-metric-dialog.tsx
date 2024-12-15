@@ -10,25 +10,34 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import { Dispatch, ReactNode, SetStateAction } from 'react';
-import { DatePicker } from '../ui/date-picker';
+import { ReactNode } from 'react';
+import { Label } from '../ui/label';
 import Link from 'next/link';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 export default function AdvancedOptionsMetricDialog(props: {
   children: ReactNode;
-  setDate: Dispatch<SetStateAction<Date | undefined>>;
-  date: Date | undefined;
+  chartType: string;
+  setChartType: (value: any) => void;
+  groupType: number;
 }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='rounded-sm shadow-sm'>
-        <DialogHeader className='static'>
+      <DialogContent className='rounded-sm shadow-sm max-sm:px-2'>
+        <DialogHeader className='static text-start'>
           <DialogTitle>Advanced options</DialogTitle>
           <DialogDescription>
             You can choose advanced options for the chart
           </DialogDescription>
-          <DialogClose className='absolute right-5 top-3'>
+          <DialogClose className='absolute right-5 top-3 max-sm:hidden'>
             <Button
               type='button'
               size={'icon'}
@@ -40,19 +49,37 @@ export default function AdvancedOptionsMetricDialog(props: {
           </DialogClose>
         </DialogHeader>
         <div className='flex w-full flex-col gap-4'>
-          <div className='mt-2 flex flex-col gap-1'>
-            <DatePicker setDate={props.setDate} date={props.date} />
-            <div className='text-sm text-secondary'>
-              You can select a date to offset the chart{' '}
-              <Link
-                className='text-primary underline'
-                href={'/docs/features/advanced-options'}
-                target='_blank'
+          {props.groupType === 0 ? (
+            <></>
+          ) : (
+            <Label className='flex flex-col gap-2'>
+              Chart type
+              <Select
+                value={props.chartType}
+                onValueChange={(e) => props.setChartType(e)}
               >
-                learn more
-              </Link>
-            </div>
-          </div>
+                <SelectTrigger className='h-11 border'>
+                  <SelectValue placeholder='Select a type of naming' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={'stacked'}>Stacked</SelectItem>
+                    <SelectItem value={'percent'}>Percentage</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <div className='w-full text-sm text-secondary'>
+                Select chart type{' '}
+                <Link
+                  className='text-primary underline'
+                  href={'/docs/features/advanced-options'}
+                  target='_blank'
+                >
+                  learn more
+                </Link>
+              </div>
+            </Label>
+          )}
         </div>
       </DialogContent>
     </Dialog>
