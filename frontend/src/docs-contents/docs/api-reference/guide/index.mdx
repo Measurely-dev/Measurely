@@ -1,61 +1,194 @@
 ---
-title: Tabs
-description: This section previews the Tabs component.
+title: Measurely API
+description: How to interact with the Measurely API to update metric values.
 ---
 
-The `Tabs` component allows you to organize content into multiple sections, enabling users to switch between them easily. This is particularly useful for displaying related content in a compact manner.
+To interact with the Measurely API, you need to send a POST request to the endpoint with an application API key and the metric ID of the value you wish to update. Follow the steps below to understand how to use the API.
 
-## Preview
+## Prerequisites
 
-<Tabs defaultValue="java" className="pt-5 pb-1">
+Before you can start using the Measurely API, you will need the following:
+
+- **API Key**: You need an application API key to authenticate your request.
+- **Metric ID**: The ID of the metric that you wish to update.
+
+<Note title='Remember' type='warning'>
+  Always keep your API key secure. Do not expose it publicly in your code or repositories.
+</Note>
+
+## Making a Request
+
+To update a metric's value, you need to make a POST request to the following endpoint:
+
+**POST** https://api.measurely.com/event/{API_KEY}/{METRIC_ID}
+
+
+#### Request Body
+
+The request body should contain the value you wish to add to the metric. The body format should be JSON:
+
+```json
+{
+  "value": 100
+}
+```
+
+**value**: The value to add to the metric.
+
+#### Code
+
+<Tabs defaultValue="javascript" className="pt-5 pb-1">
   <TabsList>
-    <TabsTrigger value="java">Java</TabsTrigger>
+    <TabsTrigger value="javascript">Javascript</TabsTrigger>
     <TabsTrigger value="typescript">TypeScript</TabsTrigger>
+    <TabsTrigger value="go">Go</TabsTrigger>
+    <TabsTrigger value="python">Python</TabsTrigger>
+    <TabsTrigger value="curl">Curl</TabsTrigger>
   </TabsList>
-  <TabsContent value="java">
-    ```java
-    // HelloWorld.java
-    public class HelloWorld {
-        public static void main(String[] args) {
-            System.out.println("Hello, World!");
-        }
+  <TabsContent value="javascript">
+    ```javascript
+    export const updateMetric = async (API_KEY, METRIC_ID, value) => {
+      const response = await fetch(`https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: value }),
+      });
+      return response.status;
     }
     ```
   </TabsContent>
   <TabsContent value="typescript">
     ```typescript
-    // helloWorld.ts
-    function helloWorld(): void {
-        console.log("Hello, World!");
+    export const updateMetric = async (API_KEY: string, METRIC_ID: string, value: number): Promise<number> => {
+      const response = await fetch(`https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: value }),
+      });
+      return response.status;
+    };
+    ```
+  </TabsContent>
+  <TabsContent value="go">
+    ```go
+    package main
+
+    import (
+      "bytes"
+      "encoding/json"
+      "fmt"
+      "net/http"
+    )
+
+    func updateMetric(API_KEY string, METRIC_ID string, value int) (int, error) {
+      url := fmt.Sprintf("https://api.measurely.dev/event/%s/%s", API_KEY, METRIC_ID)
+      jsonData := map[string]interface{}{
+        "value": value,
+      }
+      jsonValue, _ := json.Marshal(jsonData)
+
+      req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
+      if err != nil {
+        return 0, err
+      }
+
+      req.Header.Set("Content-Type", "application/json")
+
+      client := &http.Client{}
+      resp, err := client.Do(req)
+      if err != nil {
+        return 0, err
+      }
+      defer resp.Body.Close()
+
+      return resp.StatusCode, nil
     }
-    helloWorld();
+    ```
+  </TabsContent>
+  <TabsContent value="python">
+    ```python
+    import requests
+    import json
+
+    def update_metric(API_KEY, METRIC_ID, value):
+        url = f"https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        payload = {"value": value}
+        response = requests.post(url, json=payload, headers=headers)
+        return response.status_code
+    ```
+  </TabsContent>
+  <TabsContent value="curl">
+    ```bash
+    curl -X POST https://api.measurely.dev/event/{API_KEY}/{METRIC_ID} \
+      -H "Content-Type: application/json" \
+      -d '{"value": {value}}'
     ```
   </TabsContent>
 </Tabs>
 
-## Code
+## Response Codes
 
-```jsx
-<Tabs defaultValue="java" className="pt-5 pb-1">
-  <TabsList>
-    <TabsTrigger value="java">Java</TabsTrigger>
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-  </TabsList>
-  <TabsContent value="java">
-    ```java
-    // HelloWorld.java
-    public class HelloWorld {
-        public static void main(String[] args) {
-            System.out.println("Hello, World!");
-        }
-    }
-    ```</TabsContent>
-  <TabsContent value="typescript">
-    ```typescript
-    // helloWorld.ts
-    function helloWorld(): void {
-        console.log("Hello, World!");
-    }
-    helloWorld();
-    ```</TabsContent>
-</Tabs>
+The Measurely API responds with different status codes based on the outcome of your request. Here's what each response code means:
+
+#### 201 - Created
+
+The request was successful, and the metric's value has been updated.
+
+```json
+{
+  "status": "success",
+  "message": "Metric value updated successfully."
+}
+```
+
+#### 400 - Bad Request
+
+The request was invalid. This may happen if the request body is missing or incorrectly formatted. Check the request body and try again.
+
+```json
+{
+  "status": "error",
+  "message": "Invalid request. Ensure the value is provided in the correct format."
+}
+```
+
+#### 404 - Not Found
+
+The metric ID provided does not exist. Ensure that you are using a valid metric ID.
+
+```json
+{
+  "status": "error",
+  "message": "Metric not found. Please check the metric ID."
+}
+```
+
+#### 500 - Internal Server Error
+
+An unexpected error occurred on the server while processing your request. This is usually a server-side issue, and you should try again later.
+
+```json
+{
+  "status": "error",
+  "message": "An unexpected error occurred. Please try again later."
+}
+```
+
+#### 504 - Gateway Timeout
+
+The request timed out while waiting for a response from the server. This could be due to network issues or a slow server. Please try again.
+
+```json
+{
+  "status": "error",
+  "message": "Request timed out. Please try again."
+}
+```
+
