@@ -29,6 +29,7 @@ func (h *Handler) Start(port string) error {
 	h.router.Use(middleware.Recoverer)
 
 	h.setup_api()
+	file.SetupFileServer(h.router)
 
 	go h.service.ProcessMetricEvents()
 	go h.service.ProcessEmails()
@@ -48,70 +49,84 @@ func (h *Handler) setup_api() {
 		allowed_origins = []string{"http://localhost:3000"}
 	}
 
-	Cors := cors.New(cors.Options{
+	privateCors := cors.New(cors.Options{
 		AllowedOrigins:   allowed_origins, // Allow all origins for this route
 		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}).Handler
 
-	h.router.Use(Cors)
-	h.router.Group(func(r chi.Router) {
-		file.SetupFileServer(h.router)
+	publicCors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"OPTIONS", "POST"},
+	}).Handler
 
-		r.Post("/email-valid", h.service.EmailValid)
-		r.Post("/login", h.service.Login)
-		r.Get("/oauth/{provider}", h.service.Oauth)
-		r.HandleFunc("/callback/{provider}", h.service.Callback)
-		r.Post("/register", h.service.Register)
-		r.Post("/logout", h.service.Logout)
-		r.Post("/forgot-password", h.service.ForgotPassword)
-		r.Post("/recover-account", h.service.RecoverAccount)
+	privateRouter := chi.NewRouter()
+	publicRouter := chi.NewRouter()
+	authRouter := chi.NewRouter()
 
-		r.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
-		r.HandleFunc("/webhook", h.service.Webhook)
+	//// ROUTES THAT ARE ONLY AVAILABLE TO THE APPLICATION DOMAIN, PRIVATE CORS
+	privateRouter.Use(privateCors)
+	privateRouter.Post("/email-valid", h.service.EmailValid)
+	privateRouter.Post("/login", h.service.Login)
+	privateRouter.Get("/oauth/{provider}", h.service.Oauth)
+	privateRouter.HandleFunc("/callback/{provider}", h.service.Callback)
+	privateRouter.Post("/register", h.service.Register)
+	privateRouter.Post("/logout", h.service.Logout)
+	privateRouter.Post("/forgot-password", h.service.ForgotPassword)
+	privateRouter.Post("/recover-account", h.service.RecoverAccount)
 
-		r.Post("/update-rates", h.service.UpdateRates)
-		r.Post("/update-plans", h.service.UpdatePlans)
-		r.Get("/rates", h.service.GetRates)
-		r.Get("/plans", h.service.GetPlans)
+	privateRouter.HandleFunc("/webhook", h.service.Webhook)
 
-		r.Patch("/changeemail", h.service.UpdateUserEmail)
+	privateRouter.Post("/update-rates", h.service.UpdateRates)
+	privateRouter.Post("/update-plans", h.service.UpdatePlans)
+	privateRouter.Get("/rates", h.service.GetRates)
+	privateRouter.Get("/plans", h.service.GetPlans)
 
-		r.Group(func(cr chi.Router) {
-			cr.Use(h.service.AuthentificatedMiddleware)
+	privateRouter.Patch("/changeemail", h.service.UpdateUserEmail)
+	////
 
-			cr.Post("/feedback", h.service.SendFeedback)
+	// ROUTES THAT REQUIRE AUTHENTIFICATION
+	authRouter.Use(h.service.AuthentificatedMiddleware)
+	authRouter.Post("/feedback", h.service.SendFeedback)
 
-			cr.Get("/is-connected", h.service.IsConnected)
+	authRouter.Get("/is-connected", h.service.IsConnected)
 
-			cr.Delete("/account", h.service.DeleteAccount)
+	authRouter.Delete("/account", h.service.DeleteAccount)
 
-			cr.Post("/disconnect/{provider}", h.service.DisconnectProvider)
+	authRouter.Post("/disconnect/{provider}", h.service.DisconnectProvider)
 
-			cr.Get("/user", h.service.GetUser)
+	authRouter.Get("/user", h.service.GetUser)
 
-			cr.Get("/application", h.service.GetApplications)
-			cr.Post("/application", h.service.CreateApplication)
-			cr.Delete("/application", h.service.DeleteApplication)
-			cr.Patch("/app-name", h.service.UpdateApplicationName)
-			cr.Get("/metric-groups", h.service.GetMetricGroups)
-			cr.Patch("/rand-apikey", h.service.RandomizeApiKey)
-			cr.Get("/events", h.service.GetMetricEvents)
-			cr.Get("/connect", h.service.HandleWebSocket)
+	authRouter.Get("/application", h.service.GetApplications)
+	authRouter.Post("/application", h.service.CreateApplication)
+	authRouter.Delete("/application", h.service.DeleteApplication)
+	authRouter.Patch("/app-name", h.service.UpdateApplicationName)
+	authRouter.Get("/metric-groups", h.service.GetMetricGroups)
+	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
+	authRouter.Get("/events", h.service.GetMetricEvents)
+	authRouter.Get("/connect", h.service.HandleWebSocket)
 
-			cr.Post("/group", h.service.CreateGroup)
-			cr.Patch("/group", h.service.UpdateGroup)
-			cr.Delete("/group", h.service.DeleteGroup)
-			cr.Patch("/metric", h.service.UpdateMetric)
+	authRouter.Post("/group", h.service.CreateGroup)
+	authRouter.Patch("/group", h.service.UpdateGroup)
+	authRouter.Delete("/group", h.service.DeleteGroup)
+	authRouter.Patch("/metric", h.service.UpdateMetric)
 
-			cr.Get("/billing", h.service.ManageBilling)
-			cr.Post("/subscribe", h.service.Subscribe)
+	authRouter.Get("/billing", h.service.ManageBilling)
+	authRouter.Post("/subscribe", h.service.Subscribe)
 
-			cr.Patch("/name", h.service.UpdateFirstAndLastName)
-			cr.Patch("/password", h.service.UpdatePassword)
+	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
+	authRouter.Patch("/password", h.service.UpdatePassword)
 
-			cr.Post("/requestemailchange", h.service.RequestEmailChange)
-		})
-	})
+	authRouter.Post("/requestemailchange", h.service.RequestEmailChange)
+	////
+
+	// PUBLIC API ENDPOINT
+	publicRouter.Use(publicCors)
+	publicRouter.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
+	////
+
+	privateRouter.Mount("/", authRouter)
+	h.router.Mount("/", privateRouter)
+  h.router.Mount("/event", publicRouter)
 }
