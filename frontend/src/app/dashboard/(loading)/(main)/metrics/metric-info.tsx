@@ -180,17 +180,25 @@ export default function MetricInformations(props: {
           </div>
         </div>
         <div className='max-sm:hidden'>
-          <div className='flex flex-row items-center font-mono text-xl'>
+          <div className='flex flex-row items-center font-mono text-2xl'>
             {props.group.type === 0 ? (
-              <>{props.group.metrics[0].total}</>
+              Intl.NumberFormat('us')
+                .format(props.group.metrics[0].total)
+                .toString()
             ) : (
               <>
                 {props.group.metrics[0].total - props.group.metrics[1].total}
                 <div className='ml-2 h-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                  +{props.group.metrics[0].total}
+                  +
+                  {Intl.NumberFormat('us')
+                    .format(props.group.metrics[0].total)
+                    .toString()}
                 </div>
                 <div className='ml-2 h-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
-                  -{props.group.metrics[1].total}
+                  -
+                  {Intl.NumberFormat('us')
+                    .format(props.group.metrics[1].total)
+                    .toString()}
                 </div>
               </>
             )}
