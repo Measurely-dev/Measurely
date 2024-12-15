@@ -88,7 +88,7 @@ export const loadChartData = async (
     .then((json) => {
       if (json !== null && json !== undefined) {
         for (let i = 0; i < json.length; i++) {
-          const eventDate = new Date(json.date);
+          const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
             if (
               eventDate.getDate() === tmpData[j].date.getDate() &&
@@ -97,10 +97,10 @@ export const loadChartData = async (
             ) {
               if (range === 0) {
                 if (eventDate.getHours() === tmpData[j].date.getHours()) {
-                  tmpData[j].positive += json.value;
+                  tmpData[j].positive += json[i].value;
                 }
               } else {
-                tmpData[j].positive += json.value;
+                tmpData[j].positive += json[i].value;
               }
             }
           }
@@ -124,7 +124,7 @@ export const loadChartData = async (
       .then((json) => {
         if (json !== null && json !== undefined) {
           for (let i = 0; i < json.length; i++) {
-            const eventDate = new Date(json.date);
+            const eventDate = new Date(json[i].date);
             for (let j = 0; j < tmpData.length; j++) {
               if (
                 eventDate.getDate() === tmpData[j].date.getDate() &&
@@ -133,10 +133,10 @@ export const loadChartData = async (
               ) {
                 if (range === 0) {
                   if (eventDate.getHours() === tmpData[j].date.getHours()) {
-                    tmpData[j].negative += json.value;
+                    tmpData[j].negative += json[i].value;
                   }
                 } else {
-                  tmpData[j].negative += json.value;
+                  tmpData[j].negative += json[i].value;
                 }
               }
             }

@@ -3,11 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
-import {
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
@@ -147,10 +143,15 @@ const Item = (props: { group: Group; index: number }) => {
     groupid: string,
     metricid: string,
   ): Promise<number> => {
+    const from = new Date();
+    from.setHours(0);
+    from.setMinutes(0);
+    from.setSeconds(0);
+    const to = new Date();
+    to.setHours(from.getHours() + 24);
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
-        applications?.[activeApp].id
-      }&groupid=${groupid}&metricid=${metricid}&start=${Date.now()}&end=${Date.now()}&daily=0`,
+      `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${applications?.[activeApp].id
+      }&groupid=${groupid}&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
       {
         method: 'GET',
         credentials: 'include',

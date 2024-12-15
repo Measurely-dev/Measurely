@@ -19,7 +19,6 @@ export interface Metric {
   id: string;
   name: string;
   total: number;
-  monthly: MetricEvent[];
 }
 
 export interface MetricEvent {

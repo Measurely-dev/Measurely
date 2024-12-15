@@ -96,7 +96,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forcedaily := r.URL.Query().Get("daily")
+	daily := r.URL.Query().Get("daily")
 
 	// Get application
 	_, err = s.DB.GetApplication(appid, token.Id)
@@ -120,7 +120,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var bytes []byte
-	if end == start && forcedaily != "1" {
+	if end.Year() == start.Year() && end.Month() == start.Month() && end.Day() == start.Day() && daily != "1" {
 		// get the metric events
 		metrics, err := s.DB.GetMetricEvents(metricid, start)
 		if err != nil {

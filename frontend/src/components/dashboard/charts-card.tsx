@@ -35,7 +35,6 @@ import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
 import { loadChartData, loadMetricsGroups, parseXAxis } from '@/utils';
 import { Group, GroupType } from '@/types';
-import { toast } from 'sonner';
 import MetricStats from './metric-stats';
 import Empty from './empty';
 import { CubeIcon } from '@radix-ui/react-icons';
@@ -71,6 +70,7 @@ export function ChartsCard() {
             setTotal(group.metrics[0].total - group.metrics[1].total);
           const from = new Date();
           from.setDate(0);
+
           const data = await loadChartData(
             from,
             30,
@@ -120,7 +120,7 @@ export function ChartsCard() {
       />
 
       {applications?.[activeApp].groups !== undefined &&
-      applications?.[activeApp].groups?.length! > 0 ? (
+        applications?.[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
@@ -148,7 +148,9 @@ export function ChartsCard() {
                   <ChartContainer
                     config={{
                       positive: {
-                        label: applications?.[activeGroup].name,
+                        label:
+                          applications?.[activeApp].groups?.[activeGroup]
+                            ?.name ?? '',
                         color: 'hsl(var(--chart-1))',
                       },
                     }}
@@ -160,7 +162,9 @@ export function ChartsCard() {
                         tickLine={false}
                         tickMargin={10}
                         axisLine={false}
-                        tickFormatter={(value : Date | string) => parseXAxis(value, 30)}
+                        tickFormatter={(value: Date | string) =>
+                          parseXAxis(value, 30)
+                        }
                       />
                       <ChartTooltip
                         cursor={false}
@@ -173,6 +177,18 @@ export function ChartsCard() {
                         stroke='red'
                         radius={8}
                       />
+                      {applications?.[activeApp].groups?.[activeGroup].type ===
+                        GroupType.Dual ? (
+                        <Area
+                          dataKey='negative'
+                          type='linear'
+                          fill='blue'
+                          fillOpacity={0.5}
+                          stroke='blue'
+                        />
+                      ) : (
+                        <></>
+                      )}
                     </BarChart>
                   </ChartContainer>
                 </div>
@@ -180,8 +196,10 @@ export function ChartsCard() {
                 <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'>
                   <ChartContainer
                     config={{
-                      value: {
-                        label: applications?.[activeGroup].name,
+                      positive: {
+                        label:
+                          applications?.[activeApp].groups?.[activeGroup]
+                            ?.name ?? '',
                         color: 'hsl(var(--chart-1))',
                       },
                     }}
@@ -200,7 +218,9 @@ export function ChartsCard() {
                         tickLine={false}
                         axisLine={false}
                         tickMargin={8}
-                        tickFormatter={(value : Date | string) => parseXAxis(value, 30)}
+                        tickFormatter={(value: Date | string) =>
+                          parseXAxis(value, 30)
+                        }
                       />
                       <ChartTooltip
                         cursor={false}
@@ -209,12 +229,24 @@ export function ChartsCard() {
                         }
                       />
                       <Area
-                        dataKey='value'
+                        dataKey='positive'
                         type='linear'
                         fill='blue'
                         fillOpacity={0.5}
                         stroke='blue'
                       />
+                      {applications?.[activeApp].groups?.[activeGroup].type ===
+                        GroupType.Dual ? (
+                        <Area
+                          dataKey='negative'
+                          type='linear'
+                          fill='blue'
+                          fillOpacity={0.5}
+                          stroke='blue'
+                        />
+                      ) : (
+                        <></>
+                      )}
                     </AreaChart>
                   </ChartContainer>
                 </div>
