@@ -253,9 +253,15 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if a user with the chosen email exists
-	user, derr := s.DB.GetUserByEmail(strings.ToLower(request.Email))
-	if derr == sql.ErrNoRows {
-		http.Error(w, "User not found", http.StatusNotFound)
+	user, err := s.DB.GetUserByEmail(strings.ToLower(request.Email))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
@@ -394,6 +400,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 			user, err = s.DB.GetUserById(parsedId)
 			if err != nil {
+        log.Println(err)
 				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusMovedPermanently)
 				return
 			}
