@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Sliders, X } from 'lucide-react';
-import { Bar, BarChart } from "recharts"
+import { Bar, BarChart } from 'recharts';
 import { CartesianGrid, XAxis } from 'recharts';
 import {
   ChartContainer,
@@ -186,6 +186,7 @@ export default function MetricInformations(props: {
                     margin={{
                       left: 12,
                       right: 12,
+                      top: 5,
                     }}
                   >
                     <CartesianGrid vertical={false} />
@@ -205,9 +206,9 @@ export default function MetricInformations(props: {
                     <Bar
                       dataKey='positive'
                       fill='skyblue'
-                      fillOpacity={0.5}
-                      stroke='skyblue'
+                      fillOpacity={1}
                       radius={8}
+                      className='rounded-b-none'
                     />
                   </BarChart>
                 </ChartContainer>
@@ -232,6 +233,7 @@ export default function MetricInformations(props: {
                     margin={{
                       left: 12,
                       right: 12,
+                      top: 5,
                     }}
                   >
                     <CartesianGrid vertical={false} />
@@ -251,19 +253,19 @@ export default function MetricInformations(props: {
                     />
                     <Bar
                       dataKey='postive'
-                      strokeOpacity={0.6}
                       fill='lime'
-                      fillOpacity={0.2}
-                      stroke='lime'
+                      fillOpacity={1}
                       stackId='a'
+                      radius={8}
+                      className='rounded-b-none'
                     />
                     <Bar
                       dataKey='negative'
-                      strokeOpacity={0.6}
                       fill='red'
-                      fillOpacity={0.2}
-                      stroke='red'
+                      fillOpacity={1}
                       stackId='a'
+                      radius={8}
+                      className='rounded-b-none'
                     />
                   </BarChart>
                 </ChartContainer>
