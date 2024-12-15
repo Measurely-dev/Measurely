@@ -12,7 +12,7 @@ export default function DashboardWrapper({ children }: { children: any }) {
       <div className='w-full pl-[20px] max-h-screen'>
         <DashboardContent>
           <DashboardTopbar />
-          <div className='flex min-h-[calc(100vh-15px-[65px])] flex-col'>
+          <div className='flex flex-col'>
             {children}
           </div>
         </DashboardContent>

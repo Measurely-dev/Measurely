@@ -24,7 +24,7 @@ export default function Navbar(props: {
     },
   ];
   return (
-    <div className='fixed top-5 z-50 flex items-center gap-6 rounded-[20px] border border-background bg-accent/75 px-3 py-2 pl-4 backdrop-blur-xl max-md:w-[80%] max-md:justify-between'>
+    <div className='fixed top-5 z-50 flex items-center gap-6 rounded-[20px] border border-background bg-accent/75 px-3 py-2 pl-4 backdrop-blur-xl max-md:w-[40%] max-sm:w-[60%] max-md:justify-between'>
       {/* Logo */}
       <Link href='/home'>
         <div className='size-8'>
@@ -43,7 +43,7 @@ export default function Navbar(props: {
         <DrawerTrigger className='md:hidden'>
           <Menu className='mr-2 size-5' />
         </DrawerTrigger>
-        <DrawerContent className='flex flex-col gap-2 px-10 py-10 !pt-0'>
+        <DrawerContent className='flex flex-col gap-2 px-10 py-10 !pt-0 max-sm:p-3'>
           <div className='h-8 w-full' />
           <DrawerClose asChild>
             <Link
