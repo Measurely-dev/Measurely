@@ -197,17 +197,23 @@ func (s *Service) UpdateMeterTotal() {
 				return
 			}
 
-			s.DB.UpdateMetricTotal(parsedmetricid, count)
-			s.DB.CreateDailyMetricSummary(types.DailyMetricSummary{
+			err = s.DB.UpdateMetricTotal(parsedmetricid, count)
+      if err != nil {
+        log.Println("Failed to metric total: ", err)
+      }
+			err = s.DB.CreateDailyMetricSummary(types.DailyMetricSummary{
 				Id:       metricid + strconv.Itoa(time.Now().Year()) + strconv.Itoa(time.Now().Day()) + time.Now().Month().String(),
 				MetricId: parsedmetricid,
 				Value:    count,
 			})
+      if err != nil {
+        log.Println("Failed to create/update daily summary: ", err)
+      }
 
 			redisKeyOverage := fmt.Sprintf("metric:%s:add", metricid)
-			oerr := s.redisClient.Set(s.redisCtx, redisKeyOverage, 0, 0).Err()
-			if oerr != nil {
-				log.Println("Failed to reset overage count to zero in Redis:", oerr)
+			err = s.redisClient.Set(s.redisCtx, redisKeyOverage, 0, 0).Err()
+			if err != nil {
+				log.Println("Failed to reset overage count to zero in Redis:", err)
 			}
 		}
 	}
