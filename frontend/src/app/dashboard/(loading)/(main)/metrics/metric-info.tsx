@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Sliders, X } from 'lucide-react';
+import { Bar, BarChart } from "recharts"
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 import {
   ChartContainer,
@@ -179,7 +180,7 @@ export default function MetricInformations(props: {
                   }}
                   className='rounded-[12px] bg-accent p-3'
                 >
-                  <AreaChart
+                  <BarChart
                     accessibilityLayer
                     data={data}
                     margin={{
@@ -200,17 +201,15 @@ export default function MetricInformations(props: {
                     <ChartTooltip
                       cursor={false}
                       content={<ChartTooltipContent hideLabel />}
-                      labelClassName='!min-w-[200px]'
                     />
-                    <Area
+                    <Bar
                       dataKey='positive'
-                      type='linear'
                       fill='skyblue'
                       fillOpacity={0.5}
                       stroke='skyblue'
                       radius={8}
                     />
-                  </AreaChart>
+                  </BarChart>
                 </ChartContainer>
               </>
             ) : (
@@ -227,7 +226,7 @@ export default function MetricInformations(props: {
                     },
                   }}
                 >
-                  <AreaChart
+                  <BarChart
                     accessibilityLayer
                     data={data}
                     margin={{
@@ -250,25 +249,23 @@ export default function MetricInformations(props: {
                       content={<ChartTooltipContent indicator='dot' />}
                       labelClassName='!min-w-[200px]'
                     />
-                    <Area
+                    <Bar
                       dataKey='postive'
-                      type='linear'
                       strokeOpacity={0.6}
                       fill='lime'
                       fillOpacity={0.2}
                       stroke='lime'
                       stackId='a'
                     />
-                    <Area
+                    <Bar
                       dataKey='negative'
-                      type='linear'
                       strokeOpacity={0.6}
                       fill='red'
                       fillOpacity={0.2}
                       stroke='red'
                       stackId='a'
                     />
-                  </AreaChart>
+                  </BarChart>
                 </ChartContainer>
               </div>
             )}
