@@ -11,7 +11,7 @@ Before you can start using the Measurely API, you will need the following:
 
 - **API Key**: You need an application API key to authenticate your request.
 - **Metric ID**: The ID of the metric that you wish to update.
-
+## 
 <Note title='Remember' type='warning'>
   Always keep your API key secure. Do not expose it publicly in your code or repositories.
 </Note>
@@ -19,11 +19,11 @@ Before you can start using the Measurely API, you will need the following:
 ## Making a Request
 
 To update a metric's value, you need to make a POST request to the following endpoint:
-
+```
 **POST** https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
+```
 
-
-#### Request Body
+## Request Body
 
 The request body should contain the value you wish to add to the metric. The body format should be JSON:
 
@@ -35,15 +35,12 @@ The request body should contain the value you wish to add to the metric. The bod
 
 **value**: The value to add to the metric.
 
-#### Code
+## Code exemples
 
 <Tabs defaultValue="javascript" className="pt-5 pb-1">
   <TabsList>
     <TabsTrigger value="javascript">Javascript</TabsTrigger>
     <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="go">Go</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-    <TabsTrigger value="curl">Curl</TabsTrigger>
   </TabsList>
   <TabsContent value="javascript">
     ```javascript
@@ -73,6 +70,15 @@ The request body should contain the value you wish to add to the metric. The bod
     };
     ```
   </TabsContent>
+</Tabs>
+
+
+<Tabs defaultValue="go" className="pt-5 pb-1">
+  <TabsList>
+    <TabsTrigger value="go">Go</TabsTrigger>
+    <TabsTrigger value="python">Python</TabsTrigger>
+    <TabsTrigger value="curl">Curl</TabsTrigger>
+  </TabsList>
   <TabsContent value="go">
     ```go
     package main
@@ -133,11 +139,12 @@ The request body should contain the value you wish to add to the metric. The bod
   </TabsContent>
 </Tabs>
 
+
 ## Response Codes
 
 The Measurely API responds with different status codes based on the outcome of your request. Here's what each response code means:
 
-#### 201 - Created
+## 201 - Created
 
 The request was successful, and the metric's value has been updated.
 
@@ -148,7 +155,7 @@ The request was successful, and the metric's value has been updated.
 }
 ```
 
-#### 400 - Bad Request
+## 400 - Bad Request
 
 The request was invalid. This may happen if the request body is missing or incorrectly formatted. Check the request body and try again.
 
@@ -159,7 +166,7 @@ The request was invalid. This may happen if the request body is missing or incor
 }
 ```
 
-#### 404 - Not Found
+## 404 - Not Found
 
 The metric ID provided does not exist. Ensure that you are using a valid metric ID.
 
@@ -170,7 +177,7 @@ The metric ID provided does not exist. Ensure that you are using a valid metric 
 }
 ```
 
-#### 500 - Internal Server Error
+## 500 - Internal Server Error
 
 An unexpected error occurred on the server while processing your request. This is usually a server-side issue, and you should try again later.
 
@@ -181,7 +188,7 @@ An unexpected error occurred on the server while processing your request. This i
 }
 ```
 
-#### 504 - Gateway Timeout
+## 504 - Gateway Timeout
 
 The request timed out while waiting for a response from the server. This could be due to network issues or a slow server. Please try again.
 

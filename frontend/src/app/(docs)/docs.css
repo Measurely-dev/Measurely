@@ -19,17 +19,17 @@
   padding: 0 !important;
   width: inherit !important;
   overflow-x: auto;
+  background-color: hsl(var(--accent));
+  border-radius: 12px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  overflow-x: auto;
 }
 
 .docs pre > code {
   display: grid;
   max-width: inherit !important;
   padding: 14px 0 !important;
-  background-color: hsl(var(--accent));
-  border-radius: 12px;
-  margin-top: 15px;
-  margin-bottom: 15px;
-  overflow-x: scroll;
 }
 
 .code-line {

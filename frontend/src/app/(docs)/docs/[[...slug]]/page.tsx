@@ -28,15 +28,15 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
       </div>
     );
   return (
-    <div className='flex items-start gap-14'>
-      <div className='flex-[3] py-10'>
+    <div className='flex items-start gap-5'>
+      <div className='flex-[4.5] py-10 pt-9'>
         <DocsBreadcrumb paths={slug} />
         <Typography>
           <h1 className='-mt-2 text-3xl'>{res.frontmatter.title}</h1>
           <p className='-mt-4 text-[16.5px] text-[#78716c]'>
             {res.frontmatter.description}
           </p>
-          <div className='mt-5'>{res.content}</div>
+          <div>{res.content}</div>
           <Pagination pathname={pathName} />
         </Typography>
       </div>

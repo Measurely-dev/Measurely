@@ -6,9 +6,9 @@ export default function DocsLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className='flex items-start gap-14 max-lg:gap-0'>
+    <div className='flex items-start'>
       <Leftbar key='leftbar' />
-      <div className='flex-[4]'>{children}</div>
+      <div className='flex-[5.25] w-full'>{children}</div>
     </div>
   );
 }
