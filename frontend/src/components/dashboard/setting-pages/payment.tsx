@@ -13,7 +13,7 @@ export default function SettingPaymentPage() {
   const router = useRouter();
   const { user } = useContext(UserContext);
   function plan() {
-    let currentPlan = { metric: 0, app: 0, request: 0 };
+    const currentPlan = { metric: 0, app: 0, request: 0 };
     switch (user?.plan) {
       case 'starter':
         currentPlan.metric = 2;
