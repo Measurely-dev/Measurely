@@ -1,6 +1,6 @@
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
-import PricingCardsSection from '@/components/website/sections/pricingPage';
+import PricingCardsSection from '@/components/website/sections/pricing-page';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 

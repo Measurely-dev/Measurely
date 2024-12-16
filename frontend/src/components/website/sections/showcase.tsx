@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import WebButton from '../button';
 import WebChip from '../chip';
-import Card1 from '../showcase/card1';
-import Card2 from '../showcase/card2';
-import Card3 from '../showcase/card3';
-import Card4 from '../showcase/card4';
-import Card5 from '../showcase/card5';
+import Card1 from '../showcase/card-1';
+import Card2 from '../showcase/card-2';
+import Card3 from '../showcase/card-3';
+import Card4 from '../showcase/card-4';
+import Card5 from '../showcase/card-5';
 
 export default function ShowcaseLandingSection() {
   return (
