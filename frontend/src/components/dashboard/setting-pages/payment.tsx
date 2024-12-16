@@ -7,10 +7,32 @@ import PlansDialog from '../plans-dialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { UserContext } from '@/dash-context';
+import MetricStats from '../metric-stats';
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
   const { user } = useContext(UserContext);
+  function plan() {
+    let currentPlan = { metric: 0, app: 0, request: 0 };
+    switch (user?.plan) {
+      case 'starter':
+        currentPlan.metric = 2;
+        currentPlan.app = 1;
+        currentPlan.request = 100;
+        break;
+      case 'plus':
+        currentPlan.metric = 5;
+        currentPlan.app = 2;
+        currentPlan.request = 500;
+        break;
+      case 'pro':
+        currentPlan.metric = 10;
+        currentPlan.app = 5;
+        currentPlan.request = 1000;
+        break;
+    }
+    return currentPlan;
+  }
 
   const handleManageBilling = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,6 +82,27 @@ export default function SettingPaymentPage() {
           </Button>
         </PlansDialog>
       </div>
+      <MetricStats
+        differ
+        className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
+        stats={[
+          {
+            title: 'Metric available',
+            description: 'On this plan',
+            value: plan().metric,
+          },
+          {
+            title: 'Number of application available',
+            description: 'On this plan',
+            value: plan().app,
+          },
+          {
+            title: 'Request limit',
+            description: 'On this plan',
+            value: plan().request + " per minute",
+          },
+        ]}
+      />
       <SettingCard
         title='Manage payment & plans'
         btn_loading={loadingBilling}
