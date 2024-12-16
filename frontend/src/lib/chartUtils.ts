@@ -9,6 +9,12 @@ const colors = {
     fill: "fill-blue-500",
     text: "text-blue-500",
   },
+  black: {
+    bg: "bg-black",
+    stroke: "stroke-black",
+    fill: "fill-black",
+    text: "text-black",
+  },
   green: {
     bg: "bg-green-400",
     stroke: "stroke-green-400",

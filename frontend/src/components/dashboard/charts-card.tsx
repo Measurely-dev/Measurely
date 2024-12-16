@@ -34,6 +34,8 @@ import Empty from './empty';
 import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
+import { BarChart } from '../ui/BarChart';
+import { TopMetricCard } from './top-metric-card';
 
 export function ChartsCard() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);
@@ -93,7 +95,7 @@ export function ChartsCard() {
       <MetricStats
         stats={[
           {
-            title: 'Number of metric',
+            title: 'Metric used',
             description: 'Across this application',
             value: applications?.[activeApp].groups?.length,
           },
@@ -116,9 +118,18 @@ export function ChartsCard() {
             description: 'Coming soon',
             value: 'N/A',
           },
+          // {
+          //   title: 'Metric limit',
+          //   description: 'Number of metric available',
+          //   value: '2',
+          // },
+          // {
+          //   title: 'Request limit',
+          //   description: 'Allowed with this plan',
+          //   value: '100 per minute',
+          // },
         ]}
       />
-
       {applications?.[activeApp].groups !== undefined &&
       applications?.[activeApp].groups?.length! > 0 ? (
         <>
@@ -154,16 +165,22 @@ export function ChartsCard() {
                     {applications?.[activeApp].groups?.[activeGroup].type ===
                     GroupType.Base ? (
                       <>
-                        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'></div>
-                        {/* Chart 2 */}
-                        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'></div>
+                        {/* <BarChart
+                            className='w-full'
+                            data={basicData}
+                            index='date'
+                            color='blue'
+                            categories={['TotalUsers']}
+                            valueFormatter={(number: number) =>
+                              `${Intl.NumberFormat('us').format(number).toString()}`
+                            }
+                            onValueChange={(v) => console.log(v)}
+                            xAxisLabel='Month'
+                            yAxisLabel='Total'
+                          /> */}
                       </>
                     ) : (
-                      <>
-                        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'></div>
-                        {/* Chart 2 */}
-                        <div className='flex w-[100%] flex-col gap-4 rounded-xl bg-accent p-5 pb-0 pt-5'></div>
-                      </>
+                      <></>
                     )}
                   </>
                 )}
@@ -181,6 +198,7 @@ export function ChartsCard() {
           </Empty>
         </Link>
       )}
+      <TopMetricCard />
     </Card>
   );
 }

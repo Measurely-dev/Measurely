@@ -24,7 +24,7 @@ export default function DashboardHomePage() {
     }
   }, []);
   return (
-    <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
+    <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
