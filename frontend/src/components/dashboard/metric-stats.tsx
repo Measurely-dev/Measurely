@@ -12,7 +12,7 @@ export default function MetricStats(props: {
       {props.stats.map((stat, i) => {
         return (
           <div
-            className={`${props.differ ? '' : 'pl-[30px] max-lg:pl-[0]'}flex w-full flex-col gap-0.5 first:pl-0 max-sm:pt-5 max-sm:first:pt-0`}
+            className={`${props.differ ? '' : 'pl-[30px] max-lg:pl-[0]'} flex w-full flex-col gap-0.5 first:pl-0 max-sm:pt-5 max-sm:first:pt-0`}
             key={i}
           >
             <div className='text-sm font-medium'>{stat.title}</div>
