@@ -34,7 +34,6 @@ import Empty from './empty';
 import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
-import { BarChart } from '../ui/BarChart';
 import { TopMetricCard } from './top-metric-card';
 
 export function ChartsCard() {
