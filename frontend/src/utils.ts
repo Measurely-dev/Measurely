@@ -190,23 +190,27 @@ export const parseXAxis = (value: Date, range: number) => {
 export const calculateTrend = (
   data: any[],
   total: number,
+  type: GroupType,
   positiveName: string,
   negativeName: string,
+  metricName: string,
 ): any[] => {
   const trendData: any[] = [];
   let currentTotal = total;
-  if (
-    data[data.length - 1][positiveName] !== undefined &&
-    data[data.length - 1][negativeName] !== undefined
-  ) {
+  let exists =
+    type === GroupType.Base
+      ? data[data.length - 1][positiveName] !== undefined
+      : data[data.length - 1][positiveName] !== undefined &&
+        data[data.length - 1][negativeName] !== undefined;
+  if (exists) {
     trendData.push({
       date: data[data.length - 1].date,
-      value: currentTotal,
+      [metricName]: currentTotal,
     });
     currentTotal =
       currentTotal -
       data[data.length - 1][positiveName] +
-      data[data.length - 1][negativeName];
+      (data[data.length - 1][negativeName] ?? 0);
   } else {
     trendData.push({
       date: data[data.length - 1].date,
@@ -214,16 +218,19 @@ export const calculateTrend = (
   }
 
   for (let i = data.length - 2; i >= 0; i--) {
-    if (
-      data[i][positiveName] !== undefined &&
-      data[i][negativeName] !== undefined
-    ) {
+    exists =
+      type === GroupType.Base
+        ? data[i][positiveName] !== undefined
+        : data[i][positiveName] !== undefined &&
+          data[i][negativeName] !== undefined;
+
+    if (exists) {
       trendData.push({
         date: data[i].date,
-        value: currentTotal,
+        [metricName]: currentTotal,
       });
       currentTotal =
-        currentTotal - data[i][positiveName] + data[i][negativeName];
+        currentTotal - data[i][positiveName] + (data[i][negativeName] ?? 0);
     } else {
       trendData.push({
         date: data[i].date,

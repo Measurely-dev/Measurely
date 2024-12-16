@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Sliders, X } from 'lucide-react';
-import { Group } from '@/types';
+import { Group, GroupType } from '@/types';
 import { AppsContext } from '@/dash-context';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
@@ -17,6 +17,7 @@ import { calculateTrend, loadChartData } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart } from '@/components/ui/BarChart';
 import { DatePicker } from '@/components/ui/date-picker';
+import { AreaChart } from '@/components/ui/areaChart';
 
 export default function MetricInformations(props: {
   children: ReactNode;
@@ -184,41 +185,30 @@ export default function MetricInformations(props: {
         ) : (
           <>
             {isTrendActive ? (
-              <>
-                {props.group.type === 0 ? (
-                  <BarChart
-                    className='w-full'
-                    data={calculateTrend(data, props.group.metrics[0].total, props.group.name, "")}
-                    index='date'
-                    color='blue'
-                    categories={[props.group.name]}
-                    valueFormatter={(number: number) =>
-                      `${Intl.NumberFormat('us').format(number).toString()}`
-                    }
-                    onValueChange={(v) => console.log(v)}
-                    xAxisLabel='Month'
-                    yAxisLabel='Total'
-                  />
-                ) : (
-                  <BarChart
-                    className='w-full'
-                    data={calculateTrend(data, props.group.metrics[0].total - props.group.metrics[1].total, props.group.metrics[0].name, props.group.metrics[1].name)}
-                    index='date'
-                    type={chartType}
-                    colors={['green', 'red']}
-                    categories={[
-                      props.group.metrics[0].name,
-                      props.group.metrics[1].name,
-                    ]}
-                    valueFormatter={(number: number) =>
-                      `${Intl.NumberFormat('us').format(number).toString()}`
-                    }
-                    onValueChange={(v) => console.log(v)}
-                    xAxisLabel='Month'
-                    yAxisLabel='Total'
-                  />
+              <AreaChart
+                className='w-full'
+                data={calculateTrend(
+                  data,
+                  props.group.metrics[0].total,
+                  props.group.type,
+                  props.group.type === GroupType.Base
+                    ? props.group.name
+                    : props.group.metrics[0].name,
+                  props.group.type === GroupType.Base
+                    ? ''
+                    : props.group.metrics[1].name,
+                  props.group.name,
                 )}
-              </>
+                index='date'
+                color='blue'
+                categories={[props.group.name]}
+                valueFormatter={(number: number) =>
+                  `${Intl.NumberFormat('us').format(number).toString()}`
+                }
+                onValueChange={(v) => console.log(v)}
+                xAxisLabel='Month'
+                yAxisLabel='Total'
+              />
             ) : (
               <>
                 {props.group.type === 0 ? (
