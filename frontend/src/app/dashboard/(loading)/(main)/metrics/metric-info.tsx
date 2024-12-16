@@ -188,7 +188,7 @@ export default function MetricInformations(props: {
                 {props.group.type === 0 ? (
                   <BarChart
                     className='w-full'
-                    data={calculateTrend(data, total)}
+                    data={calculateTrend(data, props.group.metrics[0].total, props.group.name, "")}
                     index='date'
                     color='blue'
                     categories={[props.group.name]}
@@ -202,7 +202,7 @@ export default function MetricInformations(props: {
                 ) : (
                   <BarChart
                     className='w-full'
-                    data={calculateTrend(data, total, props.group.metrics[0].name, props.group.metrics[1].name)}
+                    data={calculateTrend(data, props.group.metrics[0].total - props.group.metrics[1].total, props.group.metrics[0].name, props.group.metrics[1].name)}
                     index='date'
                     type={chartType}
                     colors={['green', 'red']}
