@@ -1,23 +1,23 @@
-import { cn } from "@/lib/utils";
-import clsx from "clsx";
-import { Children, PropsWithChildren } from "react";
+import { cn } from '@/lib/utils';
+import clsx from 'clsx';
+import { Children, PropsWithChildren } from 'react';
 
 export function Stepper({ children }: PropsWithChildren) {
   const length = Children.count(children);
 
   return (
-    <div className="flex flex-col">
+    <div className='flex flex-col'>
       {Children.map(children, (child, index) => {
         return (
           <div
             className={cn(
-              "border-l pl-9 ml-3 relative",
+              'relative ml-3 border-l pl-9',
               clsx({
-                "pb-10 ": index < length - 1,
-              })
+                'pb-10': index < length - 1,
+              }),
             )}
           >
-            <div className="bg-muted w-8 h-8 text-xs font-medium rounded-md border flex items-center justify-center absolute -left-4 font-code">
+            <div className='font-code absolute -left-4 flex h-8 w-8 items-center justify-center rounded-md border bg-muted text-xs font-medium'>
               {index + 1}
             </div>
             {child}
@@ -33,8 +33,10 @@ export function StepperItem({
   title,
 }: PropsWithChildren & { title?: string }) {
   return (
-    <div className="pt-0.5">
-      <div className="mt-0 text-[18px] mb-3 font-semibold text-primary">{title}</div>
+    <div className='pt-0.5'>
+      <div className='mb-3 mt-0 text-[18px] font-semibold text-primary'>
+        {title}
+      </div>
       <div>{children}</div>
     </div>
   );

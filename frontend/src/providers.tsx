@@ -1,10 +1,10 @@
-import { Provider } from "./types";
+import { Provider } from './types';
 
-export const providers : any = [
+export const providers: any = [
   {
     name: 'Github',
-    type : Provider.GITHUB,
-    description : "Platform for code hosting",
+    type: Provider.GITHUB,
+    description: 'Platform for code hosting',
     logo: (
       <svg
         className='size-6'
@@ -24,8 +24,8 @@ export const providers : any = [
   },
   {
     name: 'Google',
-    type : Provider.GOOGLE,
-    description : "Widely used service",
+    type: Provider.GOOGLE,
+    description: 'Widely used service',
     logo: (
       <svg
         className='size-5'

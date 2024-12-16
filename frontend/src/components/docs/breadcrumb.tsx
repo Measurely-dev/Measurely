@@ -5,12 +5,12 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Fragment } from "react";
+} from '@/components/ui/breadcrumb';
+import { Fragment } from 'react';
 
 export default function DocsBreadcrumb({ paths }: { paths: string[] }) {
   return (
-    <div className="pb-5">
+    <div className='pb-5'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -21,11 +21,11 @@ export default function DocsBreadcrumb({ paths }: { paths: string[] }) {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {index < paths.length - 1 ? (
-                  <BreadcrumbLink className="a">
+                  <BreadcrumbLink className='a'>
                     {toTitleCase(path)}
                   </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage className="b">
+                  <BreadcrumbPage className='b'>
                     {toTitleCase(path)}
                   </BreadcrumbPage>
                 )}
@@ -39,9 +39,9 @@ export default function DocsBreadcrumb({ paths }: { paths: string[] }) {
 }
 
 function toTitleCase(input: string): string {
-  const words = input.split("-");
+  const words = input.split('-');
   const capitalizedWords = words.map(
-    (word) => word.charAt(0).toUpperCase() + word.slice(1)
+    (word) => word.charAt(0).toUpperCase() + word.slice(1),
   );
-  return capitalizedWords.join(" ");
+  return capitalizedWords.join(' ');
 }

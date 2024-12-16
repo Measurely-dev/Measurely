@@ -1,10 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -19,10 +14,12 @@ import ShowcaseCursor from './cursor';
 
 export default function Card2(props: { className?: string }) {
   return (
-    <Card className={`w-[320px] z-[5] bg-background rounded-2xl p-5 shadow-sm ${props.className}`}>
+    <Card
+      className={`z-[5] w-[320px] rounded-2xl bg-background p-5 shadow-sm ${props.className}`}
+    >
       <ShowcaseCursor
         cursor={1}
-        className='!absolute max-lg:hidden left-[135px] top-[-26px] !rotate-[-9deg]'
+        className='!absolute left-[135px] top-[-26px] !rotate-[-9deg] max-lg:hidden'
       />
       <CardHeader className='p-0'>
         <CardTitle>New metric</CardTitle>

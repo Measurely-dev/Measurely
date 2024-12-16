@@ -244,7 +244,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             </div>
           </div>
 
-          <div className='flex w-full max-md:flex-col flex-row gap-2'>
+          <div className='flex w-full flex-row gap-2 max-md:flex-col'>
             <Button
               type='button'
               variant='secondary'
@@ -428,7 +428,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             </div>
           </div>
 
-          <div className='flex max-md:flex-col w-full flex-row gap-2'>
+          <div className='flex w-full flex-row gap-2 max-md:flex-col'>
             <Button
               type='button'
               variant='secondary'

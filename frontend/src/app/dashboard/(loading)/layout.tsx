@@ -34,12 +34,10 @@ export default function DashboardContentLayout({
       })
         .then((res) => {
           if (res.ok) {
-
             return res.json();
-
           } else if (res.status === 404) {
-            toast.error("User not found")
-            setTimeout(() => router.push("/sign-in"), 500)
+            toast.error('User not found');
+            setTimeout(() => router.push('/sign-in'), 500);
           } else {
             res.text().then((text) => {
               toast.error(text);

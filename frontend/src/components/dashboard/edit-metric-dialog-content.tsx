@@ -11,7 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AppsContext } from '@/dash-context';
 import { Group } from '@/types';
-import { Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 
 export default function EditMetricDialogContent(props: {

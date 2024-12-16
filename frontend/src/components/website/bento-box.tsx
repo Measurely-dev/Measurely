@@ -55,8 +55,14 @@ export default function WebBentoBox(props: {
                 {props.description}
               </div>
             </div>
-            <div className='min-w-none mx-auto flex h-fit max-w-[450px] max-h-[500px] items-center justify-center'>
-              <Image src={props.img} alt='Image' className='max-h-[500px]' height={340} width={1000} />
+            <div className='min-w-none mx-auto flex h-fit max-h-[500px] max-w-[450px] items-center justify-center'>
+              <Image
+                src={props.img}
+                alt='Image'
+                className='max-h-[500px]'
+                height={340}
+                width={1000}
+              />
             </div>
           </div>
         );

@@ -15,23 +15,25 @@ export default function FeedbackPopover(props: { children: any }) {
   const handleFeedback = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    setLoading(true)
+    setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/feedback`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
-    }).then((resp) => {
-        if(resp.status === 200){
-          toast.success("Thank you for your feedback")
-        }else {
-          resp.text().then(text => {
-            toast.error(text)
-          })
+    })
+      .then((resp) => {
+        if (resp.status === 200) {
+          toast.success('Thank you for your feedback');
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
         }
-      }).finally(() => {
-        setLoading(false)
       })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (

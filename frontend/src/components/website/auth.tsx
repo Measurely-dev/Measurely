@@ -8,7 +8,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { providers } from '@/providers';
 
-
 export default function AuthForm(props: {
   title: string;
   description?: string;
@@ -83,7 +82,7 @@ export default function AuthForm(props: {
 
         {props.providers && (
           <div className='flex flex-col gap-[10px]'>
-            {providers.map((provider : any) => {
+            {providers.map((provider: any) => {
               return (
                 <div
                   key={provider.type}

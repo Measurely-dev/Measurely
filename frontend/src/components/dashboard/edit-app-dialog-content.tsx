@@ -73,7 +73,9 @@ export default function EditAppDialogContent(props: {
           setApplications(
             applications?.map((app) =>
               app.id === props.app?.id
-                ? Object.assign({}, app, { image: `app_${props.app?.id}?random=${Math.random()}`})
+                ? Object.assign({}, app, {
+                    image: `app_${props.app?.id}?random=${Math.random()}`,
+                  })
                 : app,
             ) ?? [],
           );

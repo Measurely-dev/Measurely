@@ -21,8 +21,7 @@ export default function Card5(props: { className?: string }) {
       <CardHeader className='p-0'>
         <CardTitle>New metric</CardTitle>
         <CardDescription className='text-xs'>
-          Deleting a metrics is a irreversible action, think
-          before doing it.
+          Deleting a metrics is a irreversible action, think before doing it.
         </CardDescription>
       </CardHeader>
       <CardContent className='mt-5 flex w-full flex-col gap-3 p-0'>

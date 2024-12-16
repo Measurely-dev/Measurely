@@ -36,7 +36,6 @@ import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
-import { BarChart } from '../ui/BarChart';
 
 export function ChartsCard() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);

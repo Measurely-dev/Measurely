@@ -29,8 +29,8 @@ export default function PricingCardsSection(props: {
           if (resp.status === 200) {
             return resp.json();
           } else if (resp.status === 304) {
-            toast.warning("You are already on this plan")
-            setLoading(false)
+            toast.warning('You are already on this plan');
+            setLoading(false);
           } else {
             resp.text().then((text) => {
               toast.error(text);
@@ -61,7 +61,7 @@ export default function PricingCardsSection(props: {
             <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
               Pricing
             </span>
-            <br className='sm:hidden'/>
+            <br className='sm:hidden' />
             that fits
             <br /> your needs
           </span>

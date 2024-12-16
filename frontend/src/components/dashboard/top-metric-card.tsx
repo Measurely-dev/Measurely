@@ -47,7 +47,7 @@ export const TopMetricCard = () => {
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
       </CardHeader>
-      <CardContent className='mt-5 mx-5 rounded-[12px] mb-5 bg-accent p-4'>
+      <CardContent className='mx-5 mb-5 mt-5 rounded-[12px] bg-accent p-4'>
         <BarChart
           className='w-full'
           data={topMetric}

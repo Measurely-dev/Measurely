@@ -99,7 +99,7 @@ export default function SettingPaymentPage() {
           {
             title: 'Request limit',
             description: 'On this plan',
-            value: plan().request + " per minute",
+            value: plan().request + ' per minute',
           },
         ]}
       />

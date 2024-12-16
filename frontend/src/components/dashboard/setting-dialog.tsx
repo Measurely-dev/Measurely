@@ -13,16 +13,15 @@ import SettingAppsPage from './setting-pages/apps-api';
 import SettingPaymentPage from './setting-pages/payment';
 import { Button } from '@/components/ui/button';
 
-
 interface SettingPage {
-  name : string,
-  icon : ReactNode,
-  value : string
+  name: string;
+  icon: ReactNode;
+  value: string;
 }
 
 export default function SettingDialog(props: { children: ReactNode }) {
   const [page, setPage] = useState('general');
-  const settings : SettingPage[] = [
+  const settings: SettingPage[] = [
     {
       name: 'General',
       icon: <Home className='size-4 text-blue-500' />,
@@ -67,14 +66,17 @@ function Navbar(props: {
 }) {
   return (
     <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
-      <div className='ml-4 text-xs font-medium text-secondary'>Account settings</div>
+      <div className='ml-4 text-xs font-medium text-secondary'>
+        Account settings
+      </div>
       <div className='mt-3 flex flex-col gap-2'>
         {props.settings.map((item, i) => {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${props.page === item.value ? 'bg-zinc-400/15' : ''
-                }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${
+                props.page === item.value ? 'bg-zinc-400/15' : ''
+              }`}
               onClick={() => props.setPage(item.value)}
             >
               {item.icon}

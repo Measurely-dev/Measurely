@@ -8,7 +8,7 @@ export default function DocsLayout({
   return (
     <div className='flex items-start'>
       <Leftbar key='leftbar' />
-      <div className='flex-[5.25] w-full'>{children}</div>
+      <div className='w-full flex-[5.25]'>{children}</div>
     </div>
   );
 }
