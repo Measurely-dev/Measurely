@@ -13,7 +13,7 @@ import { Group } from '@/types';
 import { AppsContext } from '@/dash-context';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options-metric-dialog';
-import { loadChartData } from '@/utils';
+import { calculateTrend, loadChartData } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart } from '@/components/ui/BarChart';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -26,37 +26,10 @@ export default function MetricInformations(props: {
   const [range, setRange] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isTrendActive, setIsTrendActive] = useState(false);
   const { applications, activeApp } = useContext(AppsContext);
   const [canLoad, setCanLoad] = useState(false);
   const [chartType, setChartType] = useState<'stacked' | 'percent'>('stacked');
-  const dualData = [
-    { date: 'Jan 23', AccountsCreated: 500, AccountsDeleted: 120 },
-    { date: 'Feb 23', AccountsCreated: 480, AccountsDeleted: 100 },
-    { date: 'Mar 23', AccountsCreated: 520, AccountsDeleted: 130 },
-    { date: 'Apr 23', AccountsCreated: 550, AccountsDeleted: 140 },
-    { date: 'May 23', AccountsCreated: 530, AccountsDeleted: 150 },
-    { date: 'Jun 23', AccountsCreated: 510, AccountsDeleted: 125 },
-    { date: 'Jul 23', AccountsCreated: 560, AccountsDeleted: 110 },
-    { date: 'Aug 23', AccountsCreated: 540, AccountsDeleted: 105 },
-    { date: 'Sep 23', AccountsCreated: 490, AccountsDeleted: 115 },
-    { date: 'Oct 23', AccountsCreated: 505, AccountsDeleted: 120 },
-    { date: 'Nov 23', AccountsCreated: 520, AccountsDeleted: 130 },
-    { date: 'Dec 23', AccountsCreated: 580, AccountsDeleted: 140 },
-  ];
-  const basicData = [
-    { date: 'Jan 23', TotalUsers: 5000 },
-    { date: 'Feb 23', TotalUsers: 5200 },
-    { date: 'Mar 23', TotalUsers: 5400 },
-    { date: 'Apr 23', TotalUsers: 5600 },
-    { date: 'May 23', TotalUsers: 5800 },
-    { date: 'Jun 23', TotalUsers: 6000 },
-    { date: 'Jul 23', TotalUsers: 6200 },
-    { date: 'Aug 23', TotalUsers: 6400 },
-    { date: 'Sep 23', TotalUsers: 6600 },
-    { date: 'Oct 23', TotalUsers: 6800 },
-    { date: 'Nov 23', TotalUsers: 7000 },
-    { date: 'Dec 23', TotalUsers: 7200 },
-  ];
 
   useEffect(() => {
     if (canLoad) {
@@ -158,6 +131,8 @@ export default function MetricInformations(props: {
               chartType={chartType}
               setChartType={setChartType}
               groupType={props.group.type}
+              isTrendActive={isTrendActive}
+              setIsTrendActive={setIsTrendActive}
             >
               <Button
                 variant={'secondary'}
@@ -208,35 +183,78 @@ export default function MetricInformations(props: {
           <Skeleton className='h-[200px] w-full rounded-[12px]' />
         ) : (
           <>
-            {props.group.type === 0 ? (
-              <BarChart
-                className='w-full'
-                data={basicData}
-                index='date'
-                color='blue'
-                categories={['TotalUsers']}
-                valueFormatter={(number: number) =>
-                  `${Intl.NumberFormat('us').format(number).toString()}`
-                }
-                onValueChange={(v) => console.log(v)}
-                xAxisLabel='Month'
-                yAxisLabel='Total'
-              />
+            {isTrendActive ? (
+              <>
+                {props.group.type === 0 ? (
+                  <BarChart
+                    className='w-full'
+                    data={calculateTrend(data, total)}
+                    index='date'
+                    color='blue'
+                    categories={[props.group.name]}
+                    valueFormatter={(number: number) =>
+                      `${Intl.NumberFormat('us').format(number).toString()}`
+                    }
+                    onValueChange={(v) => console.log(v)}
+                    xAxisLabel='Month'
+                    yAxisLabel='Total'
+                  />
+                ) : (
+                  <BarChart
+                    className='w-full'
+                    data={calculateTrend(data, total, props.group.metrics[0].name, props.group.metrics[1].name)}
+                    index='date'
+                    type={chartType}
+                    colors={['green', 'red']}
+                    categories={[
+                      props.group.metrics[0].name,
+                      props.group.metrics[1].name,
+                    ]}
+                    valueFormatter={(number: number) =>
+                      `${Intl.NumberFormat('us').format(number).toString()}`
+                    }
+                    onValueChange={(v) => console.log(v)}
+                    xAxisLabel='Month'
+                    yAxisLabel='Total'
+                  />
+                )}
+              </>
             ) : (
-              <BarChart
-                className='w-full'
-                data={dualData}
-                index='date'
-                type={chartType}
-                colors={['green', 'red']}
-                categories={['AccountsCreated', 'AccountsDeleted']}
-                valueFormatter={(number: number) =>
-                  `${Intl.NumberFormat('us').format(number).toString()}`
-                }
-                onValueChange={(v) => console.log(v)}
-                xAxisLabel='Month'
-                yAxisLabel='Accounts'
-              />
+              <>
+                {props.group.type === 0 ? (
+                  <BarChart
+                    className='w-full'
+                    data={data}
+                    index='date'
+                    color='blue'
+                    categories={[props.group.name]}
+                    valueFormatter={(number: number) =>
+                      `${Intl.NumberFormat('us').format(number).toString()}`
+                    }
+                    onValueChange={(v) => console.log(v)}
+                    xAxisLabel='Month'
+                    yAxisLabel='Total'
+                  />
+                ) : (
+                  <BarChart
+                    className='w-full'
+                    data={data}
+                    index='date'
+                    type={chartType}
+                    colors={['green', 'red']}
+                    categories={[
+                      props.group.metrics[0].name,
+                      props.group.metrics[1].name,
+                    ]}
+                    valueFormatter={(number: number) =>
+                      `${Intl.NumberFormat('us').format(number).toString()}`
+                    }
+                    onValueChange={(v) => console.log(v)}
+                    xAxisLabel='Month'
+                    yAxisLabel='Total'
+                  />
+                )}
+              </>
             )}
           </>
         )}

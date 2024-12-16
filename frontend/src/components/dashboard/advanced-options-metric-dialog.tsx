@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import { ReactNode } from 'react';
+import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { Label } from '../ui/label';
 import Link from 'next/link';
 import {
@@ -26,8 +26,10 @@ import { Switch } from '../ui/switch';
 export default function AdvancedOptionsMetricDialog(props: {
   children: ReactNode;
   chartType: string;
-  setChartType: (value: any) => void;
+  setChartType: Dispatch<SetStateAction<'stacked' | 'percent'>>;
   groupType: number;
+  isTrendActive: boolean;
+  setIsTrendActive: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
     <Dialog>
@@ -64,7 +66,11 @@ export default function AdvancedOptionsMetricDialog(props: {
                 </Link>
               </div>
             </div>
-            <Switch id='airplane-mode' />
+            <Switch
+              id='airplane-mode'
+              onCheckedChange={(e) => props.setIsTrendActive(e)}
+              checked={props.isTrendActive}
+            />
           </Label>
           {props.groupType === 0 ? (
             <></>
@@ -73,7 +79,9 @@ export default function AdvancedOptionsMetricDialog(props: {
               Chart type
               <Select
                 value={props.chartType}
-                onValueChange={(e) => props.setChartType(e)}
+                onValueChange={(e) =>
+                  props.setChartType(e as 'stacked' | 'percent')
+                }
               >
                 <SelectTrigger className='h-11 border'>
                   <SelectValue placeholder='Select a type of naming' />
