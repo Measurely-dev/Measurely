@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, ChevronsUpDown } from 'lucide-react';
+import { AreaChart } from '@/components/ui/areaChart';
 
 import {
   Card,
@@ -35,6 +36,7 @@ import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
+import { BarChart } from '../ui/BarChart';
 
 export function ChartsCard() {
   const { applications, setApplications, activeApp } = useContext(AppsContext);
@@ -43,6 +45,36 @@ export function ChartsCard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const userMetrics = [
+    {
+      date: 'Jan, 05',
+      occurrences: 2488,
+    },
+    {
+      date: 'Feb, 12',
+      occurrences: 1445,
+    },
+    {
+      date: 'Mar, 20',
+      occurrences: 743,
+    },
+    {
+      date: 'Apr, 15',
+      occurrences: 281,
+    },
+    {
+      date: 'May, 08',
+      occurrences: 251,
+    },
+    {
+      date: 'Jun, 21',
+      occurrences: 232,
+    },
+    {
+      date: 'Jul, 14',
+      occurrences: 98,
+    },
+  ];
 
   useEffect(() => {
     if (applications?.[activeApp].groups === null) {
@@ -117,16 +149,6 @@ export function ChartsCard() {
             description: 'Coming soon',
             value: 'N/A',
           },
-          // {
-          //   title: 'Metric limit',
-          //   description: 'Number of metric available',
-          //   value: '2',
-          // },
-          // {
-          //   title: 'Request limit',
-          //   description: 'Allowed with this plan',
-          //   value: '100 per minute',
-          // },
         ]}
       />
       {applications?.[activeApp].groups !== undefined &&
@@ -159,29 +181,43 @@ export function ChartsCard() {
                     <Skeleton className='h-[200px] w-full rounded-[12px]' />
                   </>
                 ) : (
-                  <>
+                  <div className='w-full'>
                     {/* Chart 1 */}
                     {applications?.[activeApp].groups?.[activeGroup].type ===
                     GroupType.Base ? (
-                      <>
-                        {/* <BarChart
-                            className='w-full'
-                            data={basicData}
+                      <div className='flex w-full flex-row gap-5'>
+                        <div className='w-full rounded-[12px] bg-accent p-5'>
+                          <AreaChart
+                            className='max-h-60 w-full'
+                            data={userMetrics}
                             index='date'
                             color='blue'
-                            categories={['TotalUsers']}
+                            categories={['occurrences']}
                             valueFormatter={(number: number) =>
                               `${Intl.NumberFormat('us').format(number).toString()}`
                             }
                             onValueChange={(v) => console.log(v)}
-                            xAxisLabel='Month'
-                            yAxisLabel='Total'
-                          /> */}
-                      </>
+                          />
+                        </div>
+                      </div>
                     ) : (
-                      <></>
+                      <div className='flex w-full flex-row gap-5'>
+                        <div className='w-full rounded-[12px] bg-accent p-5'>
+                          <AreaChart
+                            className='max-h-60 w-full'
+                            data={userMetrics}
+                            index='date'
+                            color='blue'
+                            categories={['occurrences']}
+                            valueFormatter={(number: number) =>
+                              `${Intl.NumberFormat('us').format(number).toString()}`
+                            }
+                            onValueChange={(v) => console.log(v)}
+                          />
+                        </div>
+                      </div>
                     )}
-                  </>
+                  </div>
                 )}
               </>
             )}
