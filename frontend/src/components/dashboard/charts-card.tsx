@@ -28,7 +28,7 @@ import {
 import { useContext, useEffect, useState } from 'react';
 import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
-import { loadChartData, loadMetricsGroups } from '@/utils';
+import { calculateTrend, loadChartData, loadMetricsGroups } from '@/utils';
 import { Group, GroupType } from '@/types';
 import MetricStats from './metric-stats';
 import Empty from './empty';
@@ -88,37 +88,39 @@ export function ChartsCard() {
     }
   }, [activeApp]);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      if (applications?.[activeApp]?.groups !== null) {
-        const group = applications?.[activeApp].groups[activeGroup];
-        if (group != undefined && applications?.[activeApp] !== undefined) {
-          let total = 0;
-          if (group.type === GroupType.Base) total = group.metrics[0].total;
-          else if (group.type === GroupType.Dual)
-            total = group.metrics[0].total - group.metrics[1].total;
-          setTotal(total);
-          const from = new Date();
-          from.setDate(0);
+  const loadData = async () => {
+    setLoading(true);
+    if (applications?.[activeApp]?.groups !== null) {
+      console.log('yoyo');
+      const group = applications?.[activeApp].groups[activeGroup];
+      if (group != undefined && applications?.[activeApp] !== undefined) {
+        let total = 0;
+        if (group.type === GroupType.Base) total = group.metrics[0].total;
+        else if (group.type === GroupType.Dual)
+          total = group.metrics[0].total - group.metrics[1].total;
+        setTotal(total);
+        const from = new Date();
+        from.setDate(0);
 
-          const data = await loadChartData(
-            from,
-            30,
-            group,
-            applications?.[activeApp],
-          );
-          if (!data) {
-            setData([]);
-          } else {
-            setData(data);
-          }
+        const data = await loadChartData(
+          from,
+          30,
+          group,
+          applications?.[activeApp],
+        );
+        if (!data) {
+          setData([]);
+        } else {
+          setData(data);
         }
       }
-      setLoading(false);
-    };
-    load();
-  }, [activeGroup]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [activeGroup, applications]);
 
   return (
     <Card className='rounded-t-none border-input'>
@@ -151,7 +153,7 @@ export function ChartsCard() {
         ]}
       />
       {applications?.[activeApp].groups !== undefined &&
-      applications?.[activeApp].groups?.length! > 0 ? (
+        applications?.[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
@@ -181,41 +183,44 @@ export function ChartsCard() {
                   </>
                 ) : (
                   <div className='w-full'>
-                    {/* Chart 1 */}
-                    {applications?.[activeApp].groups?.[activeGroup].type ===
-                    GroupType.Base ? (
-                      <div className='flex w-full flex-row gap-5'>
-                        <div className='w-full rounded-[12px] bg-accent p-5'>
-                          <AreaChart
-                            className='max-h-60 w-full'
-                            data={userMetrics}
-                            index='date'
-                            color='blue'
-                            categories={['occurrences']}
-                            valueFormatter={(number: number) =>
-                              `${Intl.NumberFormat('us').format(number).toString()}`
-                            }
-                            onValueChange={(v) => console.log(v)}
-                          />
-                        </div>
+                    <div className='flex w-full flex-row gap-5'>
+                      <div className='w-full rounded-[12px] bg-accent p-5'>
+                        <AreaChart
+                          className='max-h-60 w-full'
+                          data={calculateTrend(
+                            data,
+                            applications?.[activeApp].groups?.[activeGroup]
+                              .metrics[0].total ?? 0,
+                            applications?.[activeApp].groups?.[activeGroup]
+                              .type ?? GroupType.Base,
+                            applications?.[activeApp].groups?.[activeGroup]
+                              .type === GroupType.Base
+                              ? (applications?.[activeApp].groups?.[activeGroup]
+                                .name ?? '')
+                              : (applications?.[activeApp].groups?.[activeGroup]
+                                .metrics[0].name ?? ''),
+                            applications?.[activeApp].groups?.[activeGroup]
+                              .type === GroupType.Base
+                              ? ''
+                              : (applications?.[activeApp].groups?.[activeGroup]
+                                .metrics[1].name ?? ''),
+                            applications?.[activeApp].groups?.[activeGroup]
+                              .name ?? '',
+                          )}
+                          index='date'
+                          color='blue'
+                          categories={[
+                            applications?.[activeApp].groups?.[activeGroup]
+                              .name ?? '',
+                          ]}
+                          valueFormatter={(number: number) =>
+                            `${Intl.NumberFormat('us').format(number).toString()}`
+                          }
+                          xAxisLabel='Date'
+                          yAxisLabel='Total'
+                        />
                       </div>
-                    ) : (
-                      <div className='flex w-full flex-row gap-5'>
-                        <div className='w-full rounded-[12px] bg-accent p-5'>
-                          <AreaChart
-                            className='max-h-60 w-full'
-                            data={userMetrics}
-                            index='date'
-                            color='blue'
-                            categories={['occurrences']}
-                            valueFormatter={(number: number) =>
-                              `${Intl.NumberFormat('us').format(number).toString()}`
-                            }
-                            onValueChange={(v) => console.log(v)}
-                          />
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </>

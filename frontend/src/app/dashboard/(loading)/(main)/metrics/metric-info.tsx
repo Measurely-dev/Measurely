@@ -104,7 +104,12 @@ export default function MetricInformations(props: {
                 defaultValue='0'
                 size={'sm'}
                 className='h-[35px] w-fit gap-0 divide-x rounded-[12px] border'
-                onValueChange={(e) => setRange(parseInt(e))}
+                onValueChange={(e) => () => {
+                  const value = parseInt(e);
+                  if (value !== range) {
+                    setRange(value);
+                  }
+                }}
                 value={range.toString()}
               >
                 <ToggleGroupItem
@@ -205,8 +210,7 @@ export default function MetricInformations(props: {
                 valueFormatter={(number: number) =>
                   `${Intl.NumberFormat('us').format(number).toString()}`
                 }
-                onValueChange={(v) => console.log(v)}
-                xAxisLabel='Month'
+                xAxisLabel='Date'
                 yAxisLabel='Total'
               />
             ) : (
@@ -222,7 +226,7 @@ export default function MetricInformations(props: {
                       `${Intl.NumberFormat('us').format(number).toString()}`
                     }
                     onValueChange={(v) => console.log(v)}
-                    xAxisLabel='Month'
+                    xAxisLabel='Date'
                     yAxisLabel='Total'
                   />
                 ) : (
@@ -239,8 +243,7 @@ export default function MetricInformations(props: {
                     valueFormatter={(number: number) =>
                       `${Intl.NumberFormat('us').format(number).toString()}`
                     }
-                    onValueChange={(v) => console.log(v)}
-                    xAxisLabel='Month'
+                    xAxisLabel='Date'
                     yAxisLabel='Total'
                   />
                 )}

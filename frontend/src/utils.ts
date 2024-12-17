@@ -175,7 +175,6 @@ export const loadChartData = async (
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
 
-  console.log(tmpData);
   return tmpData;
 };
 
