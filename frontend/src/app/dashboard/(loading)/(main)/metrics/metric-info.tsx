@@ -104,8 +104,9 @@ export default function MetricInformations(props: {
                 defaultValue='0'
                 size={'sm'}
                 className='h-[35px] w-fit gap-0 divide-x rounded-[12px] border'
-                onValueChange={(e) => () => {
+                onValueChange={(e) => {
                   const value = parseInt(e);
+
                   if (value !== range) {
                     setRange(value);
                   }
