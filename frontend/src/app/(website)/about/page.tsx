@@ -17,7 +17,7 @@ export default function Pricing() {
             We’re two{' '}
             <span className='font-semibold text-blue-600'>17-year-olds</span>{' '}
             from Quebec, Canada, who share a passion for programming and
-            innovation. In late 2022, we set out to tackle a problem we both
+            innovation. In 2024, we set out to tackle a problem we both
             faced: tracking and understanding data shouldn’t be complicated.
             That’s when{' '}
             <span className='font-semibold text-blue-600'>Measurely</span> was
