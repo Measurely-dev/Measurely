@@ -43,6 +43,7 @@ export function DatePicker(props: {
           </div>
           <Calendar
             mode='single'
+            numberOfMonths={1}
             selected={props.date}
             onSelect={props.setDate}
             initialFocus

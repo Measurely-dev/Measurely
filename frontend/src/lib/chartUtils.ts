@@ -34,10 +34,10 @@ const colors = {
     text: 'text-violet-500',
   },
   amber: {
-    bg: 'bg-amber-500',
-    stroke: 'stroke-amber-500',
-    fill: 'fill-amber-500',
-    text: 'text-amber-500',
+    bg: 'bg-amber-400',
+    stroke: 'stroke-amber-400',
+    fill: 'fill-amber-400',
+    text: 'text-amber-400',
   },
   gray: {
     bg: 'bg-gray-500',
@@ -52,10 +52,10 @@ const colors = {
     text: 'text-cyan-500',
   },
   pink: {
-    bg: 'bg-pink-500',
-    stroke: 'stroke-pink-500',
-    fill: 'fill-pink-500',
-    text: 'text-pink-500',
+    bg: 'bg-pink-400',
+    stroke: 'stroke-pink-400',
+    fill: 'fill-pink-400',
+    text: 'text-pink-400',
   },
   lime: {
     bg: 'bg-lime-500',
@@ -64,10 +64,10 @@ const colors = {
     text: 'text-lime-500',
   },
   fuchsia: {
-    bg: 'bg-fuchsia-500',
-    stroke: 'stroke-fuchsia-500',
-    fill: 'fill-fuchsia-500',
-    text: 'text-fuchsia-500',
+    bg: 'bg-fuchsia-400',
+    stroke: 'stroke-fuchsia-400',
+    fill: 'fill-fuchsia-400',
+    text: 'text-fuchsia-400',
   },
 };
 export const chartColors: Record<

@@ -115,19 +115,19 @@ export default function MetricInformations(props: {
               >
                 <ToggleGroupItem
                   value={'0'}
-                  className='h-[33px] rounded-l-[12px] rounded-r-none data-[state=on]:select-none'
+                  className='h-[33px] rounded-l-[12px] rounded-r-none data-[state=on]:pointer-events-none'
                 >
                   D
                 </ToggleGroupItem>
-                <ToggleGroupItem value='7' className='h-[33px] rounded-none'>
+                <ToggleGroupItem value='7' className='h-[33px] rounded-none data-[state=on]:pointer-events-none'>
                   7D
                 </ToggleGroupItem>
-                <ToggleGroupItem value='15' className='h-[33px] rounded-none'>
+                <ToggleGroupItem value='15' className='h-[33px] rounded-none data-[state=on]:pointer-events-none'>
                   15D
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value='30'
-                  className='h-[33px] rounded-l-none rounded-r-[12px]'
+                  className='h-[33px] rounded-l-none rounded-r-[12px] data-[state=on]:pointer-events-none'
                 >
                   30D
                 </ToggleGroupItem>
@@ -187,12 +187,12 @@ export default function MetricInformations(props: {
           </div>
         </div>
         {loading ? (
-          <Skeleton className='h-[200px] w-full rounded-[12px]' />
+          <Skeleton className='h-[50vh] w-full rounded-[12px]' />
         ) : (
           <>
             {isTrendActive ? (
               <AreaChart
-                className='w-full'
+                className='w-full h-[50vh]'
                 data={calculateTrend(
                   data,
                   props.group.metrics[0].total,
@@ -218,7 +218,7 @@ export default function MetricInformations(props: {
               <>
                 {props.group.type === 0 ? (
                   <BarChart
-                    className='w-full'
+                    className='w-full h-[50vh]'
                     data={data}
                     index='date'
                     color='blue'
@@ -232,7 +232,7 @@ export default function MetricInformations(props: {
                   />
                 ) : (
                   <BarChart
-                    className='w-full'
+                    className='w-full h-[50vh]'
                     data={data}
                     index='date'
                     type={chartType}
