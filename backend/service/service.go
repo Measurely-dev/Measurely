@@ -1706,8 +1706,12 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get the metric group
 	err = s.DB.UpdateMetric(request.MetricId, request.Groupid, request.Name)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "A metric with the same name already exists", http.StatusBadRequest)
+		} else {
+			log.Println(err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+		}
 		return
 	}
 
