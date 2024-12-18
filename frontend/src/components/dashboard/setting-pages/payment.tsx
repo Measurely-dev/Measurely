@@ -72,12 +72,12 @@ export default function SettingPaymentPage() {
           {
             title: `Metrics limit for ${applications?.[activeApp].name}`,
             description: 'On this plan',
-            value: `${applications?.[activeApp].groups === null ? 0 : applications?.[activeApp].groups.length} / ${user?.plan.metric_per_app_limit}`,
+            value: `${applications?.[activeApp].groups === null ? 0 : applications?.[activeApp].groups.length}/${user?.plan.metric_per_app_limit}`,
           },
           {
             title: 'Applications limit',
             description: 'On this plan',
-            value: `${applications?.length} / ${user?.plan.applimit}`,
+            value: `${applications?.length}/${user?.plan.applimit}`,
           },
           {
             title: 'Requests limit',
