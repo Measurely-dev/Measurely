@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS Plans (
     Price TEXT NOT NULL,
     AppLimit INT NOT NULL,
     MetricPerAppLimit INT NOT NULL,
+    RequestLimit INT NOT NULL,
     TimeFrames TEXT NOT NULL
 );
 

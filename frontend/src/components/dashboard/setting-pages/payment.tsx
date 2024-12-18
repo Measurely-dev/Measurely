@@ -6,33 +6,14 @@ import { Button } from '@/components/ui/button';
 import PlansDialog from '../plans-dialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { UserContext } from '@/dash-context';
+import { AppsContext, UserContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
   const { user } = useContext(UserContext);
-  function plan() {
-    const currentPlan = { metric: 0, app: 0, request: 0 };
-    switch (user?.plan) {
-      case 'starter':
-        currentPlan.metric = 2;
-        currentPlan.app = 1;
-        currentPlan.request = 100;
-        break;
-      case 'plus':
-        currentPlan.metric = 5;
-        currentPlan.app = 2;
-        currentPlan.request = 500;
-        break;
-      case 'pro':
-        currentPlan.metric = 10;
-        currentPlan.app = 5;
-        currentPlan.request = 1000;
-        break;
-    }
-    return currentPlan;
-  }
+
+  const { applications, activeApp } = useContext(AppsContext);
 
   const handleManageBilling = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,7 +50,7 @@ export default function SettingPaymentPage() {
           <div className='flex flex-row items-center gap-3'>
             <Code className='size-5' />
             <div className='text-md font-semibold'>
-              You're using the {user?.plan} plan
+              You're using the {user?.plan.name} plan
             </div>
           </div>
           <div className='text-sm text-secondary'>
@@ -78,7 +59,9 @@ export default function SettingPaymentPage() {
         </div>
         <PlansDialog>
           <Button className='rounded-[12px] max-md:w-full' variant={'default'}>
-            {user?.plan === 'starter' ? 'Upgrade plan' : 'Switch plan'}
+            {user?.plan.identifier === 'starter'
+              ? 'Upgrade plan'
+              : 'Switch plan'}
           </Button>
         </PlansDialog>
       </div>
@@ -87,19 +70,19 @@ export default function SettingPaymentPage() {
         className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
         stats={[
           {
-            title: 'Metric available',
+            title: `Metrics limit for ${applications?.[activeApp].name}`,
             description: 'On this plan',
-            value: plan().metric,
+            value: `${applications?.[activeApp].groups === null ? 0 : applications?.[activeApp].groups.length} / ${user?.plan.metric_per_app_limit}`,
           },
           {
-            title: 'Number of application available',
+            title: 'Applications limit',
             description: 'On this plan',
-            value: plan().app,
+            value: `${applications?.length} / ${user?.plan.applimit}`,
           },
           {
-            title: 'Request limit',
+            title: 'Requests limit',
             description: 'On this plan',
-            value: plan().request + ' per minute',
+            value: user?.plan.requestlimit + ' per minute',
           },
         ]}
       />

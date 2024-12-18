@@ -33,7 +33,7 @@ export interface User {
   lastname: string;
   image: string;
   email: string;
-  plan: string;
+  plan: Plan;
   providers: UserProvider[];
 }
 
@@ -45,9 +45,9 @@ export interface UserProvider {
 export interface Plan {
   name: string;
   identifier: string;
-  price: number;
-  app_limit: number;
+  applimit: number;
   metric_per_app_limit: number;
+  requestlimit: number;
 }
 
 export enum GroupType {

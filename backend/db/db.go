@@ -421,7 +421,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 	for rows.Next() {
 		var plan types.Plan
 		var timeframes string
-		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &timeframes)
+		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &timeframes)
 		if err != nil {
 			return []types.Plan{}, err
 		}
@@ -439,13 +439,13 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 
 func (db *DB) CreatePlan(plan types.Plan) error {
 	timeframes := IntArrayToString(plan.TimeFrames)
-	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, timeframes) VALUES ($1, $2, $3, $4, $5, $6)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, timeframes)
+	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, timeframes) VALUES ($1, $2, $3, $4, $5, $6, $7)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, &plan.RequestLimit, timeframes)
 	return err
 }
 
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
 	timeframes := IntArrayToString(new_plan.TimeFrames)
-	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, timeframes = $5 WHERE identifier = $6", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, timeframes, identifier)
+	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, timeframes = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, timeframes, new_plan.RequestLimit, identifier)
 	return err
 }
 

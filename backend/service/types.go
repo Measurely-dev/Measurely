@@ -26,7 +26,7 @@ type GetUserResponse struct {
 	LastName    string               `json:"lastname"`
 	Image       string               `json:"image"`
 	CurrentPlan string               `json:"currentplan"`
-	Plan        string               `json:"plan"`
+	Plan        types.Plan           `json:"plan"`
 	Providers   []types.UserProvider `json:"providers"`
 }
 

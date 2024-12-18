@@ -143,8 +143,9 @@ func (s *Service) SetupSharedVariables() {
 			Price:             "",
 			Identifier:        "starter",
 			Name:              "Starter",
-			AppLimit:          10000,
+			AppLimit:          5,
 			MetricPerAppLimit: 2,
+			RequestLimit:      100,
 			TimeFrames:        []int{types.YEAR, types.MONTH},
 		}
 
@@ -154,6 +155,7 @@ func (s *Service) SetupSharedVariables() {
 			Name:              "Plus",
 			AppLimit:          5,
 			MetricPerAppLimit: 5,
+			RequestLimit:      100,
 			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
 		}
 
@@ -163,6 +165,7 @@ func (s *Service) SetupSharedVariables() {
 			Name:              "Pro",
 			AppLimit:          15,
 			MetricPerAppLimit: 15,
+			RequestLimit:      1000,
 			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
 		}
 
@@ -637,13 +640,22 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	plan, exists := s.GetPlan(user.CurrentPlan)
+	if !exists {
+    log.Println("hey")
+		http.Error(w, "Plan not found", http.StatusNotFound)
+		return
+	}
+
+	plan.Price = ""
+
 	resp := GetUserResponse{
 		Id:          user.Id,
 		Email:       user.Email,
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,
 		CurrentPlan: user.CurrentPlan,
-		Plan:        user.CurrentPlan,
+		Plan:        plan,
 		Providers:   finalProviders,
 	}
 

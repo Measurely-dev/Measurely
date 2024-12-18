@@ -33,8 +33,8 @@ type key int
 const TOKEN key = iota
 
 type Token struct {
-	Id           uuid.UUID `json:"id"`
-	Email        string    `json:"email"`
+	Id    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
 }
 type User struct {
 	Id               uuid.UUID
@@ -109,8 +109,9 @@ type Plan struct {
 	Identifier        string `json:"identifier"`
 	Price             string `json:"price"`
 	AppLimit          int    `json:"applimit"`
-	MetricPerAppLimit int    `json:"metricperapplimit"`
+	MetricPerAppLimit int    `json:"metric_per_app_limit"`
 	TimeFrames        []int  `json:"timeframes"`
+	RequestLimit      int    `json:"requestlimit"`
 }
 
 type DailyMetricSummary struct {

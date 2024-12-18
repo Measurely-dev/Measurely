@@ -85,12 +85,12 @@ export default function PlansDialog(props: { children: ReactNode }) {
                 target={plan.target}
                 list={plan.list}
                 button={
-                  user?.plan === plan.identifier
+                  user?.plan.identifier === plan.identifier
                     ? 'Current plan'
                     : 'Switch to ' + plan.name
                 }
                 loading={loading && selectedPlan === plan.identifier}
-                disabled={user?.plan === plan.identifier || loading}
+                disabled={user?.plan.identifier === plan.identifier || loading}
                 onSelect={() => {
                   subscribe(plan.identifier);
                 }}
