@@ -107,9 +107,9 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, serr := subscription.Cancel(subscriptions.Data[0].ID, nil)
-		if serr != nil {
-			log.Println(serr)
+		_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+		if err != nil {
+			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
@@ -143,7 +143,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	if request.Plan == "starter" {
 		w.WriteHeader(http.StatusOK)
 
-    s.DB.UpdateUserPlan(token.Id, "starter")
+		s.DB.UpdateUserPlan(token.Id, "starter")
 
 		// send email
 		s.ScheduleEmail(SendEmailRequest{
@@ -296,12 +296,30 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		result := subscription.List(&stripe.SubscriptionListParams{
+			Customer: stripe.String(user.StripeCustomerId),
+		})
+
+		subscriptions := result.SubscriptionList()
+
+		if subscriptions != nil {
+			if len(subscriptions.Data) > 0 {
+				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+				if err != nil {
+					log.Println(err)
+				}
+
+			}
+		}
+
+		s.DB.UpdateUserPlan(user.Id, "starter")
+
 		// send email
 		s.ScheduleEmail(SendEmailRequest{
 			To: user.Email,
 			Fields: MailFields{
 				Subject: "Invoice Failed",
-				Content: "Your invoice payment has failed." + "Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64),
+				Content: "Your invoice payment has failed." + "Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
 
 				Link:        GetOrigin() + "/dashboard",
 				ButtonTitle: "View Dashboard",
