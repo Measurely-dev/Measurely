@@ -42,12 +42,12 @@ const topMetric = [
 
 export const TopMetricCard = () => {
   return (
-    <Card className='rounded-none border-none'>
-      <CardHeader className='p-0 px-5'>
+    <Card className='rounded-none border-none mt-5'>
+      <CardHeader className='p-0'>
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
       </CardHeader>
-      <CardContent className='mx-5 mb-5 mt-5 rounded-[12px] bg-accent p-4'>
+      <CardContent className='mt-5 rounded-[12px] bg-accent p-4'>
         <BarChart
           className='w-full'
           data={topMetric}

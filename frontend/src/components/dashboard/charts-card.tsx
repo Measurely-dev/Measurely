@@ -136,7 +136,7 @@ export function ChartsCard() {
             groups={applications[activeApp].groups ?? []}
             total={total}
           />
-          <CardContent className='flex flex-row gap-5 max-md:flex-col'>
+          <CardContent className='flex flex-col'>
             {total === 0 ? (
               <div className='flex w-full flex-col items-center justify-center gap-2 rounded-[12px] bg-accent px-5 py-20'>
                 <div className='text-3xl font-semibold'>No data</div>
