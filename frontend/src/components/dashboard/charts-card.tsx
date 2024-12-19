@@ -28,7 +28,7 @@ import {
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
-import { calculateTrend, loadChartData, loadMetricsGroups } from '@/utils';
+import { calculateTrend, loadChartData } from '@/utils';
 import { Group, GroupType } from '@/types';
 import MetricStats from './metric-stats';
 import Empty from './empty';

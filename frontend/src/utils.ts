@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { Application, Group, GroupType } from './types';
+import { Group, GroupType } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
 
