@@ -47,7 +47,7 @@ export default function MetricInformations(props: {
             date,
             range,
             props.group,
-            applications?.[activeApp],
+            applications[activeApp].id,
           );
 
           if (!data) {

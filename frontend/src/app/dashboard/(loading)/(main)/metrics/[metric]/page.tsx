@@ -39,20 +39,16 @@ import {
 } from '@/components/ui/tooltip';
 import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
-import { fetchDailySummary } from '@/utils';
+import { calculateTrend, fetchDailySummary, loadChartData } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
-import { warn } from 'console';
-import { addDays } from 'date-fns';
 import { ArrowLeft, ArrowRight, Calendar, Edit, Sliders } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import {
-  act,
   Dispatch,
   ReactNode,
   SetStateAction,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -149,34 +145,6 @@ function getDualMetricChartColors(
   const selectedColors = colorsConfig[theme];
   return [selectedColors.positive, selectedColors.negative];
 }
-const chartdata = [
-  { date: 'Jan 23', TotalUsers: 5000 },
-  { date: 'Feb 23', TotalUsers: 5200 },
-  { date: 'Mar 23', TotalUsers: 5400 },
-  { date: 'Apr 23', TotalUsers: 5600 },
-  { date: 'May 23', TotalUsers: 5800 },
-  { date: 'Jun 23', TotalUsers: 6000 },
-  { date: 'Jul 23', TotalUsers: 6200 },
-  { date: 'Aug 23', TotalUsers: 6400 },
-  { date: 'Sep 23', TotalUsers: 6600 },
-  { date: 'Oct 23', TotalUsers: 6800 },
-  { date: 'Nov 23', TotalUsers: 7000 },
-  { date: 'Dec 23', TotalUsers: 7200 },
-];
-const dualData = [
-  { date: 'Jan 23', AccountsCreated: 500, AccountsDeleted: 120 },
-  { date: 'Feb 23', AccountsCreated: 480, AccountsDeleted: 100 },
-  { date: 'Mar 23', AccountsCreated: 520, AccountsDeleted: 130 },
-  { date: 'Apr 23', AccountsCreated: 550, AccountsDeleted: 140 },
-  { date: 'May 23', AccountsCreated: 530, AccountsDeleted: 150 },
-  { date: 'Jun 23', AccountsCreated: 510, AccountsDeleted: 125 },
-  { date: 'Jul 23', AccountsCreated: 560, AccountsDeleted: 110 },
-  { date: 'Aug 23', AccountsCreated: 540, AccountsDeleted: 105 },
-  { date: 'Sep 23', AccountsCreated: 490, AccountsDeleted: 115 },
-  { date: 'Oct 23', AccountsCreated: 505, AccountsDeleted: 120 },
-  { date: 'Nov 23', AccountsCreated: 520, AccountsDeleted: 130 },
-  { date: 'Dec 23', AccountsCreated: 580, AccountsDeleted: 140 },
-];
 
 const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
@@ -218,8 +186,8 @@ export default function DashboardMetricPage() {
     const groupData = applications[activeApp].groups?.filter(
       (g) => g.name === metricName,
     )[0];
-    if(groupData === null || groupData === undefined) {
-      router.push("/dashboard/metrics")
+    if (groupData === null || groupData === undefined) {
+      router.push('/dashboard/metrics');
     }
   }, [activeApp]);
 
@@ -330,10 +298,46 @@ function OverviewChart(props: { group: Group }) {
     ),
   };
 
+  const [range, setRange] = useState<number>(0);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
   });
+  const [chartData, setChartData] = useState<any[] | null>(null);
+
+  const loadChart = async () => {
+    if (date !== undefined && date.from !== undefined) {
+      setChartData(
+        (await loadChartData(
+          date.from,
+          range,
+          props.group,
+          props.group.appid,
+        )) ?? [],
+      );
+    }
+  };
+
+  useEffect(() => {
+    setDate((prev) => {
+      if (prev === undefined || prev.from === undefined) return;
+      const to = new Date(prev.from);
+      to.setDate(prev.from.getDate() + range);
+      const now = new Date();
+      if (now < prev.from) {
+        return {
+          from : new Date()
+        }
+      }
+      return {
+        from: prev.from,
+        to: to,
+      };
+    });
+
+    loadChart();
+  }, [date?.from, range]);
+
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -344,7 +348,7 @@ function OverviewChart(props: { group: Group }) {
       </CardHeader>
       <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1 max-sm:flex-col max-sm:items-start'>
         <div className='flex gap-2'>
-          <RangeSelector />
+          <RangeSelector range={range} setRange={setRange} />
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <Popover>
@@ -367,6 +371,7 @@ function OverviewChart(props: { group: Group }) {
                     autoFocus
                     startMonth={new Date(1999, 11)}
                     endMonth={new Date()}
+                    max={1}
                   />
                 </PopoverContent>
               </Popover>
@@ -410,32 +415,65 @@ function OverviewChart(props: { group: Group }) {
             orientation='vertical'
             className='mx-2 h-[50%] max-sm:hidden'
           />
-          <OffsetBtns />
+          <OffsetBtns
+            onLeft={() => {
+              setDate((prev) => {
+                if (prev === undefined || prev.from === undefined) return;
+                const from = new Date(prev.from);
+                const toRemove = range === 0 ? 1 : range;
+                from.setDate(from.getDate() - toRemove);
+                return {
+                  from: from,
+                  to: prev.to,
+                };
+              });
+            }}
+            onRight={() => {
+              setDate((prev) => {
+                if (prev === undefined || prev.from === undefined) return;
+                const from = new Date(prev.from);
+                const toAdd = range === 0 ? 1 : range;
+                from.setDate(from.getDate() + toAdd);
+                const now = new Date();
+                if (now < from) {
+                  return;
+                }
+                return {
+                  from: from,
+                  to: prev.to,
+                };
+              });
+            }}
+          />
         </div>
       </div>
 
-      <BarChart
-        className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-        data={chartdata}
-        customTooltip={customTooltip}
-        index='date'
-        type={overviewChartType}
-        colors={
-          props.group.type === GroupType.Dual
-            ? dualMetricChartConfig.colors
-            : [overviewChartColor]
-        }
-        categories={
-          props.group.type === GroupType.Base
-            ? ['TotalUsers']
-            : [props.group.metrics[0].name, props.group.metrics[1].name]
-        }
-        valueFormatter={(number: number) =>
-          `${Intl.NumberFormat('us').format(number).toString()}`
-        }
-        xAxisLabel='Date'
-        yAxisLabel='Total'
-      />
+      {chartData === null ? (
+        'LOADING...'
+      ) : (
+        <BarChart
+          className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
+          data={chartData}
+          customTooltip={customTooltip}
+          index='date'
+          type={overviewChartType}
+          colors={
+            props.group.type === GroupType.Dual
+              ? dualMetricChartConfig.colors
+              : [overviewChartColor]
+          }
+          categories={
+            props.group.type === GroupType.Base
+              ? [props.group.name]
+              : [props.group.metrics[0].name, props.group.metrics[1].name]
+          }
+          valueFormatter={(number: number) =>
+            `${Intl.NumberFormat('us').format(number).toString()}`
+          }
+          xAxisLabel='Date'
+          yAxisLabel='Total'
+        />
+      )}
     </>
   );
 }
@@ -446,10 +484,46 @@ function TrendChart(props: { group: Group }) {
   >('default');
   const [trendChartColor, setTrendChartColor] =
     useState<keyof ChartColors>('blue');
+
+  const [range, setRange] = useState<number>(0);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -20),
+    from: new Date(),
     to: new Date(),
   });
+  const [chartData, setChartData] = useState<any[] | null>(null);
+
+  const loadChart = async () => {
+    if (date !== undefined && date.from !== undefined) {
+      setChartData(
+        (await loadChartData(
+          date.from,
+          range,
+          props.group,
+          props.group.appid,
+        )) ?? [],
+      );
+    }
+  };
+
+  useEffect(() => {
+    setDate((prev) => {
+      if (prev === undefined || prev.from === undefined) return;
+      const to = new Date(prev.from);
+      to.setDate(prev.from.getDate() + range);
+      const now = new Date();
+      if (now < prev.from) {
+        return {
+          from : new Date()
+        }
+      }
+      return {
+        from: prev.from,
+        to: to,
+      };
+    });
+
+    loadChart();
+  }, [date?.from, range]);
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -460,7 +534,7 @@ function TrendChart(props: { group: Group }) {
       </CardHeader>
       <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1 max-sm:flex-col max-sm:items-start'>
         <div className='flex gap-2'>
-          <RangeSelector />
+          <RangeSelector range={range} setRange={setRange} />
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <Popover>
@@ -483,6 +557,7 @@ function TrendChart(props: { group: Group }) {
                     autoFocus
                     startMonth={new Date(1999, 11)}
                     endMonth={new Date()}
+                    max={1}
                   />
                 </PopoverContent>
               </Popover>
@@ -520,20 +595,67 @@ function TrendChart(props: { group: Group }) {
             orientation='vertical'
             className='mx-2 h-[50%] max-sm:hidden'
           />
-          <OffsetBtns />
+          <OffsetBtns
+            onLeft={() => {
+              setDate((prev) => {
+                if (prev === undefined || prev.from === undefined) return;
+                const from = new Date(prev.from);
+                const toRemove = range === 0 ? 1 : range;
+                from.setDate(from.getDate() - toRemove);
+                return {
+                  from: from,
+                  to: prev.to,
+                };
+              });
+            }}
+            onRight={() => {
+              setDate((prev) => {
+                if (prev === undefined || prev.from === undefined) return;
+                const from = new Date(prev.from);
+                const toAdd = range === 0 ? 1 : range;
+                from.setDate(from.getDate() + toAdd);
+                const now = new Date();
+                if (now < from) {
+                  return;
+                }
+                return {
+                  from: from,
+                  to: prev.to,
+                };
+              });
+            }}
+          />
         </div>
       </div>
-      <AreaChart
-        className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-        data={chartdata}
-        index='date'
-        customTooltip={customTooltip}
-        colors={[trendChartColor]}
-        categories={['TotalUsers']}
-        valueFormatter={(number: number) => valueFormatter(number)}
-        xAxisLabel='Date'
-        yAxisLabel='Total'
-      />
+
+      {chartData === null ? (
+        'LOADING...'
+      ) : (
+        <AreaChart
+          className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
+          data={calculateTrend(
+            chartData,
+            props.group.type === GroupType.Base
+              ? props.group.metrics[0].total
+              : props.group.metrics[0].total - props.group.metrics[1].total,
+            props.group.type,
+            props.group.type === GroupType.Base
+              ? props.group.name
+              : props.group.metrics[0].name,
+            props.group.type === GroupType.Dual
+              ? props.group.metrics[1].name
+              : '',
+            props.group.name,
+          )}
+          index='date'
+          customTooltip={customTooltip}
+          colors={[trendChartColor]}
+          categories={[props.group.name]}
+          valueFormatter={(number: number) => valueFormatter(number)}
+          xAxisLabel='Date'
+          yAxisLabel='Total'
+        />
+      )}
     </>
   );
 }
@@ -791,7 +913,7 @@ function AdvancedOptions(props: {
   );
 }
 
-function OffsetBtns() {
+function OffsetBtns(props: { onLeft: () => void; onRight: () => void }) {
   return (
     <div className='flex gap-2'>
       <Tooltip delayDuration={300}>
@@ -799,6 +921,7 @@ function OffsetBtns() {
           <Button
             className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
             size={'icon'}
+            onClick={props.onLeft}
           >
             <ArrowLeft className='size-4' />
           </Button>
@@ -816,6 +939,7 @@ function OffsetBtns() {
           <Button
             className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
             size={'icon'}
+            onClick={props.onRight}
           >
             <ArrowRight className='size-4' />
           </Button>
@@ -832,13 +956,23 @@ function OffsetBtns() {
   );
 }
 
-function RangeSelector() {
+function RangeSelector(props: {
+  range: number;
+  setRange: Dispatch<SetStateAction<number>>;
+}) {
   return (
     <ToggleGroup
       type='single'
       defaultValue='0'
       size={'sm'}
       className='h-[34px] w-fit gap-1 rounded-[10px] bg-background !p-1'
+      onValueChange={(e) => {
+        const value = parseInt(e);
+        if (value !== props.range) {
+          props.setRange(value);
+        }
+      }}
+      value={props.range.toString()}
     >
       <ToggleGroupItem
         value={'0'}
