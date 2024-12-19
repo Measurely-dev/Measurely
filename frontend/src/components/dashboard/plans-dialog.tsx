@@ -16,7 +16,7 @@ import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function PlansDialog(props: { children: ReactNode }) {
-  const { user, setUser } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
         if (data !== null && data !== undefined) {
           if (plan === 'starter') {
             toast.success('Successfully downgraded to the starter plan');
-            setUser(Object.assign({}, user, { plan: 'starter' }));
+            router.refresh()
           } else {
             toast.success('Opening checkout session...');
             setTimeout(() => router.push(data.url), 500);

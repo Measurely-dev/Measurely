@@ -2,14 +2,12 @@
 import { plans } from '@/plans';
 import WebPageHeader from '../page-header';
 import WebPricingCard from '../pricing-card';
-import { useContext, useState } from 'react';
-import { UserContext } from '@/dash-context';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 export default function SubscriptionUiSection(props: {
   isAuthentificated: string | null;
 }) {
-  const { user, setUser } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
@@ -40,7 +38,6 @@ export default function SubscriptionUiSection(props: {
           if (data !== null && data !== undefined) {
             if (plan === 'starter') {
               toast.success('Successfully downgraded to the starter plan');
-              setUser(Object.assign({}, user, { plan: 'starter' }));
             } else {
               toast.success('Opening checkout session...');
               setTimeout(() => router.push(data.url), 500);
@@ -80,12 +77,10 @@ export default function SubscriptionUiSection(props: {
               button={
                 plan.identifier === 'starter'
                   ? 'Get started'
-                  : user?.plan === plan.identifier
-                    ? 'Current plan'
-                    : 'Continue with ' + plan.name
+                  : 'Continue with ' + plan.name
               }
               loading={loading && selectedPlan === plan.identifier}
-              disabled={user?.plan === plan.identifier || loading}
+              disabled={loading}
               onSelect={() => {
                 subscribe(plan.identifier);
               }}
