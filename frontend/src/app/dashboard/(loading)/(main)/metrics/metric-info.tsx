@@ -16,7 +16,6 @@ import AdvancedOptionsMetricDialog from '@/components/dashboard/advanced-options
 import { calculateTrend, loadChartData } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart } from '@/components/ui/BarChart';
-import { DatePicker } from '@/components/ui/date-picker';
 import { AreaChart } from '@/components/ui/areaChart';
 
 export default function MetricInformations(props: {
@@ -132,7 +131,6 @@ export default function MetricInformations(props: {
                   30D
                 </ToggleGroupItem>
               </ToggleGroup>
-              <DatePicker setDate={setDate} date={date} />
             </div>
             <AdvancedOptionsMetricDialog
               chartType={chartType}
