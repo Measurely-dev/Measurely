@@ -119,7 +119,7 @@ export default function MetricInformations(props: {
                   D
                 </ToggleGroupItem>
                 <ToggleGroupItem value='7' className='h-[33px] rounded-none data-[state=on]:pointer-events-none'>
-                  7D
+                  75D
                 </ToggleGroupItem>
                 <ToggleGroupItem value='15' className='h-[33px] rounded-none data-[state=on]:pointer-events-none'>
                   15D

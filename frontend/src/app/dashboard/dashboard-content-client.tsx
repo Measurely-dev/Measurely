@@ -1,6 +1,6 @@
 'use client';
 
-import { AppsContext, UserContext } from '@/dash-context';
+import { AppsContext, defaultUser, UserContext } from '@/dash-context';
 import { useState } from 'react';
 import { Application, User } from '@/types';
 
@@ -9,14 +9,25 @@ export default function DashboardContentClient({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [applications, setApplications] = useState<Application[] | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [activeApp, setActiveApp] = useState<number>(0);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User>(defaultUser);
+  const [userLoading, setUserLoading] = useState(true);
+  const [appsLoading, setAppsLoading] = useState(true);
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider
+      value={{ user, setUser, userLoading, setUserLoading }}
+    >
       <AppsContext.Provider
-        value={{ applications, setApplications, activeApp, setActiveApp }}
+        value={{
+          applications,
+          setApplications,
+          activeApp,
+          setActiveApp,
+          appsLoading,
+          setAppsLoading,
+        }}
       >
         {children}
       </AppsContext.Provider>

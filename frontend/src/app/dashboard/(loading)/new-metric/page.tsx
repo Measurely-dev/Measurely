@@ -165,7 +165,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 name: name,
                 basevalue: baseValue,
                 type: GroupType.Base,
-                appid: applications?.[activeApp].id,
+                appid: applications[activeApp].id,
                 metrics: ['default'],
               }),
             })
@@ -182,13 +182,12 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               .then((json) => {
                 if (
                   json === null ||
-                  json === undefined ||
-                  applications === null
+                  json === undefined
                 ) {
                   return;
                 }
                 setApplications(
-                  applications?.map((v, i) =>
+                  applications.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
                         groups: [
@@ -300,7 +299,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               name: name,
               basevalue: 0,
               type: GroupType.Dual,
-              appid: applications?.[activeApp].id,
+              appid: applications[activeApp].id,
               metrics: [namePos, nameNeg],
             }),
           })
@@ -318,14 +317,13 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               if (
                 json === null ||
                 json === undefined ||
-                applications?.[activeApp].groups === null ||
-                applications === null
+                applications[activeApp].groups === null
               ) {
                 return;
               }
 
               setApplications(
-                applications?.map((v, i) =>
+                applications.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
                       groups: [

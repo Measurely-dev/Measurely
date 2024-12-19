@@ -12,20 +12,24 @@ export default function DashboardContentLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { applications, setApplications, setActiveApp, activeApp } =
-    useContext(AppsContext);
-  const { user, setUser } = useContext(UserContext);
+  const {
+    applications,
+    setApplications,
+    setActiveApp,
+    appsLoading,
+    setAppsLoading,
+  } = useContext(AppsContext);
+  const { setUser, userLoading, setUserLoading } =
+    useContext(UserContext);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (applications !== null) {
-      if (applications.length === 0) {
-        router.push('/dashboard/new-app');
-      }
+    if (applications.length === 0 && !appsLoading) {
+      router.push('/dashboard/new-app');
     }
 
-    if (user === null) {
+    if (userLoading) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/user', {
         method: 'GET',
         headers: {
@@ -47,10 +51,12 @@ export default function DashboardContentLayout({
         })
         .then((json) => {
           setUser(json);
-        });
+        }).finally(() => {
+          setUserLoading(false)
+        })
     }
 
-    if (applications === null) {
+    if (appsLoading) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/application', {
         method: 'GET',
         headers: {
@@ -91,13 +97,16 @@ export default function DashboardContentLayout({
 
           setApplications(json);
           setActiveApp(savedActiveApp);
+        })
+        .finally(() => {
+          setAppsLoading(false);
         });
     }
   }, []);
 
   return (
     <>
-      {applications === null || user === null ? (
+      {appsLoading || userLoading ? (
         <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-8 bg-accent'>
           <div className='relative flex items-center justify-center gap-2'>
             <LogoSvg className='size-14' />

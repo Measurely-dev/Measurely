@@ -24,10 +24,10 @@ export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);
   const [sortedApplications, setSortedApplications] = useState<any>([]);
 
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [selectedApp, setSelectedApp] = useState<Application>(applications[0]);
 
   useEffect(() => {
-    if (applications?.length !== 0 && applications !== null) {
+    if (applications.length !== 0) {
       const sorted = [
         ...applications.filter(
           (app) => app.name === applications[activeApp]?.name,
@@ -53,26 +53,26 @@ export default function SettingAppsPage() {
           {sortedApplications.length === 0 ? (
             <Empty>No app found</Empty>
           ) : (
-            sortedApplications.map((app: Application, i: any) => {
+            sortedApplications.map((app: Application, i: number) => {
               return (
                 <div key={i} className='flex items-center justify-between'>
                   <div className='flex flex-row items-center gap-2'>
                     <Avatar className='size-10 rounded-[12px] border bg-accent'>
                       <AvatarImage
-                        src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app?.image}`}
+                        src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`}
                       />
                       <AvatarFallback>
-                        {app?.name.charAt(0).toUpperCase()}
+                        {app.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className='flex flex-col'>
                       <p className='text-sm font-medium leading-none'>
-                        {app?.name}
+                        {app.name}
                       </p>
                     </div>
                   </div>
                   <div className='flex flex-row items-center gap-2'>
-                    <ApiDialog randomize appId={app?.id}>
+                    <ApiDialog randomize appId={app.id}>
                       <Button
                         variant={'secondary'}
                         size={'icon'}

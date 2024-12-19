@@ -25,7 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
 import { calculateTrend, loadChartData, loadMetricsGroups } from '@/utils';
@@ -44,43 +44,16 @@ export function ChartsCard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
-  const userMetrics = [
-    {
-      date: 'Jan, 05',
-      occurrences: 2488,
-    },
-    {
-      date: 'Feb, 12',
-      occurrences: 1445,
-    },
-    {
-      date: 'Mar, 20',
-      occurrences: 743,
-    },
-    {
-      date: 'Apr, 15',
-      occurrences: 281,
-    },
-    {
-      date: 'May, 08',
-      occurrences: 251,
-    },
-    {
-      date: 'Jun, 21',
-      occurrences: 232,
-    },
-    {
-      date: 'Jul, 14',
-      occurrences: 98,
-    },
-  ];
+
+  const group = useMemo(() => {
+    return applications[activeApp].groups?.[activeGroup];
+  }, [activeApp, activeGroup]);
 
   const loadData = async () => {
     setLoading(true);
-    if (applications?.[activeApp]?.groups !== null) {
-      console.log('yoyo');
-      const group = applications?.[activeApp].groups[activeGroup];
-      if (group != undefined && applications?.[activeApp] !== undefined) {
+    if (applications[activeApp].groups !== null) {
+      const group = applications[activeApp].groups[activeGroup];
+      if (group != undefined) {
         let total = 0;
         if (group.type === GroupType.Base) total = group.metrics[0].total;
         else if (group.type === GroupType.Dual)
@@ -93,7 +66,7 @@ export function ChartsCard() {
           from,
           30,
           group,
-          applications?.[activeApp],
+          applications[activeApp].id,
         );
         if (!data) {
           setData([]);
@@ -109,6 +82,21 @@ export function ChartsCard() {
     loadData();
   }, [activeGroup]);
 
+  useEffect(() => {
+    if (
+      activeGroup >
+      (applications[activeApp].groups === null
+        ? 0
+        : applications[activeApp].groups.length - 1)
+    ) {
+      setActiveGroup(
+        applications[activeApp].groups === null
+          ? 0
+          : applications[activeApp].groups.length - 1,
+      );
+    }
+  }, [activeApp]);
+
   return (
     <Card className='rounded-t-none border-input'>
       <MetricStats
@@ -116,19 +104,19 @@ export function ChartsCard() {
           {
             title: 'Metric used',
             description: 'Across this application',
-            value: applications?.[activeApp].groups?.length,
+            value: applications[activeApp].groups?.length,
           },
           {
             title: 'Number of dual metric',
             description: 'Across this application',
-            value: applications?.[activeApp].groups?.filter(
+            value: applications[activeApp].groups?.filter(
               (g) => g.type === GroupType.Dual,
             ).length,
           },
           {
             title: 'Number of basic metric',
             description: 'Across this application',
-            value: applications?.[activeApp].groups?.filter(
+            value: applications[activeApp].groups?.filter(
               (g) => g.type === GroupType.Base,
             ).length,
           },
@@ -139,13 +127,13 @@ export function ChartsCard() {
           },
         ]}
       />
-      {applications?.[activeApp].groups !== undefined &&
-        applications?.[activeApp].groups?.length! > 0 ? (
+      {applications[activeApp].groups !== undefined &&
+        applications[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
             setActiveGroup={setActiveGroup}
-            groups={applications?.[activeApp].groups ?? []}
+            groups={applications[activeApp].groups ?? []}
             total={total}
           />
           <CardContent className='flex flex-row gap-5 max-md:flex-col'>
@@ -175,28 +163,20 @@ export function ChartsCard() {
                           className='h-60 w-full'
                           data={calculateTrend(
                             data,
-                            applications?.[activeApp].groups?.[activeGroup]
-                              .metrics[0].total ?? 0,
-                            applications?.[activeApp].groups?.[activeGroup]
-                              .type ?? GroupType.Base,
-                            applications?.[activeApp].groups?.[activeGroup]
-                              .type === GroupType.Base
-                              ? (applications?.[activeApp].groups?.[activeGroup]
-                                .name ?? '')
-                              : (applications?.[activeApp].groups?.[activeGroup]
-                                .metrics[0].name ?? ''),
-                            applications?.[activeApp].groups?.[activeGroup]
-                              .type === GroupType.Base
+                            group?.metrics[0].total ?? 0,
+                            group?.type ?? GroupType.Base,
+                            group?.type === GroupType.Base
+                              ? (group?.name ?? '')
+                              : (group?.metrics[0].name ?? ''),
+                            group?.type === GroupType.Base
                               ? ''
-                              : (applications?.[activeApp].groups?.[activeGroup]
-                                .metrics[1].name ?? ''),
-                            applications?.[activeApp].groups?.[activeGroup]
-                              .name ?? '',
+                              : (group?.metrics[1].name ?? ''),
+                            group?.name ?? '',
                           )}
                           index='date'
                           color='blue'
                           categories={[
-                            applications?.[activeApp].groups?.[activeGroup]
+                            applications[activeApp].groups?.[activeGroup]
                               .name ?? '',
                           ]}
                           valueFormatter={(number: number) =>

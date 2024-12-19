@@ -66,11 +66,11 @@ export default function NewApp() {
         }
 
         json.groups = await loadMetricsGroups(json.id);
-        setApplications((apps) => [...(apps ?? []), json]);
-        setActiveApp(applications === null ? 0 : applications.length - 1);
+        setApplications((apps) => [...(apps), json]);
+        setActiveApp(applications.length - 1);
         localStorage.setItem(
           'activeApp',
-          (applications === null ? 0 : applications.length - 1).toString(),
+          (applications.length - 1).toString(),
         );
         router.push('/dashboard');
       });
@@ -79,7 +79,7 @@ export default function NewApp() {
   return (
     <div className='flex flex-col'>
       <WebContainer className='h-[100vh] w-[100vw]'>
-        {applications === null ? (
+        {applications.length === 0 ? (
           <AuthNavbar href='' button={null} />
         ) : (
           <AuthNavbar href='/dashboard' button='Dashboard' />

@@ -133,7 +133,7 @@ export default function SettingGeneralPage() {
         btn_loading={loadingProfile}
         btn_disabled={
           firstName === '' ||
-          (firstName === user?.firstname && lastName === user?.lastname)
+          (firstName === user.firstname && lastName === user.lastname)
         }
         action={handleFirstLastNameSubmit}
         content={
@@ -167,7 +167,7 @@ export default function SettingGeneralPage() {
       <SettingCard
         title='Email'
         btn_loading={loadingEmail}
-        btn_disabled={email === '' || email === user?.email}
+        btn_disabled={email === '' || email === user.email}
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
@@ -201,7 +201,7 @@ export default function SettingGeneralPage() {
           oldPassword === '' || newPassword === '' || confirmedPassword === ''
         }
         disabled={
-          user?.providers === null ? false : (user?.providers.length ?? 0) > 0
+          user.providers === null ? false : (user.providers.length ?? 0) > 0
         }
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
@@ -279,7 +279,7 @@ export default function SettingGeneralPage() {
                       </p>
                     </div>
                   </div>
-                  {(user?.providers === null
+                  {(user.providers === null
                     ? 0
                     : (user?.providers.filter((p) => p.type === provider.type)
                         .length ?? 0)) === 0 ? (
@@ -298,14 +298,14 @@ export default function SettingGeneralPage() {
                   ) : (
                     <DisconnectProviderDialog
                       userprovider={
-                        user?.providers.filter(
+                        user.providers.filter(
                           (p) => p.type === provider.type,
                         )[0] ?? null
                       }
                       providerLength={
-                        user?.providers === null
+                        user.providers === null
                           ? 0
-                          : (user?.providers.length ?? 0)
+                          : (user.providers.length ?? 0)
                       }
                     >
                       <Button

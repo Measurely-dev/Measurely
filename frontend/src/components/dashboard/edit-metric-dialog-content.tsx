@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 export default function EditMetricDialogContent(props: {
   group: Group;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  onUpdate?: (new_name: string) => void;
 }) {
   const [name, setName] = useState<string>(props.group.name);
   const [subNames, setSubNames] = useState<string[]>([]);
@@ -95,8 +96,8 @@ export default function EditMetricDialogContent(props: {
                   metrics: group.metrics.map((metric) =>
                     metric.id === props.group.metrics[i].id
                       ? Object.assign({}, metric, {
-                          name: subNames[i],
-                        })
+                        name: subNames[i],
+                      })
                       : metric,
                   ),
                 });
@@ -109,12 +110,12 @@ export default function EditMetricDialogContent(props: {
               applications.map((v) =>
                 v.id === props.group.appid
                   ? Object.assign({}, v, {
-                      groups: v.groups?.map((g) =>
-                        g.id === props.group.id
-                          ? Object.assign({}, g, group)
-                          : g,
-                      ),
-                    })
+                    groups: v.groups?.map((g) =>
+                      g.id === props.group.id
+                        ? Object.assign({}, g, group)
+                        : g,
+                    ),
+                  })
                   : v,
               ),
             );
@@ -122,6 +123,9 @@ export default function EditMetricDialogContent(props: {
           setLoading(false);
           props.setOpen(false);
           toast.success('Metric succesfully edited');
+          if (props.onUpdate) {
+            props.onUpdate(name);
+          }
         }}
         className='flex flex-col gap-4'
       >

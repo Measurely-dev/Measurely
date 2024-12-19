@@ -41,15 +41,18 @@ import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { fetchDailySummary } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
+import { warn } from 'console';
 import { addDays } from 'date-fns';
 import { ArrowLeft, ArrowRight, Calendar, Edit, Sliders } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import {
+  act,
   Dispatch,
   ReactNode,
   SetStateAction,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -181,10 +184,21 @@ const valueFormatter = (number: number) => {
 
 export default function DashboardMetricPage() {
   const router = useRouter();
-  const params = useParams();
   const { applications, activeApp } = useContext(AppsContext);
+  const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
-  const [group, setGroup] = useState<Group | null>(null);
+  const [group, setGroup] = useState(() => {
+    if (applications[activeApp]) {
+      const groupData = applications[activeApp].groups?.filter(
+        (g) => g.name === metricName,
+      )[0];
+      if (groupData !== null) {
+        return groupData;
+      }
+    }
+    router.push('/dashboard/metrics');
+    return null;
+  });
 
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
@@ -201,30 +215,26 @@ export default function DashboardMetricPage() {
   };
 
   useEffect(() => {
-    document.title = `${params.metric} | Measurely`;
+    const groupData = applications[activeApp].groups?.filter(
+      (g) => g.name === metricName,
+    )[0];
+    if(groupData === null || groupData === undefined) {
+      router.push("/dashboard/metrics")
+    }
+  }, [activeApp]);
+
+  useEffect(() => {
+    loadDailyValues(group!);
+  }, []);
+
+  useEffect(() => {
+    document.title = `${group?.name} | Measurely`;
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
         'content',
-        `Track and analyze ${params.metric} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
+        `Track and analyze ${group?.name} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
       );
-    }
-
-    if (applications !== null && applications?.[activeApp]) {
-      const groupData =
-        applications[activeApp].groups?.filter(
-          (g) => g.name === params.metric,
-        )[0] ?? null;
-
-      if (groupData === null) {
-        router.push('/dashboard/metrics');
-      } else {
-        console.log(groupData);
-        loadDailyValues(groupData);
-        setGroup(groupData);
-      }
-    } else {
-      router.push('/dashboard/metrics');
     }
   }, []);
 
@@ -243,7 +253,7 @@ export default function DashboardMetricPage() {
           </BreadcrumbLink>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{params.metric}</BreadcrumbPage>
+            <BreadcrumbPage>{group?.name}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -252,62 +262,60 @@ export default function DashboardMetricPage() {
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
               <div className='text-lg font-normal capitalize text-muted-foreground'>
-                {params.metric}
+                {group?.name}
               </div>
-              {group === null ? (
-                'LOADING...'
-              ) : (
-                <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
-                  {group.type === GroupType.Dual ? (
-                    <>
-                      {valueFormatter(
-                        group.metrics[0].total - group.metrics[1].total,
-                      )}
-                      <div className='flex flex-col gap-1'>
-                        <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                          +{valueFormatter(posDaily)}
-                        </div>
-                        <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
-                          -{valueFormatter(negDaily)}
-                        </div>
+              <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
+                {group?.type === GroupType.Dual ? (
+                  <>
+                    {valueFormatter(
+                      group?.metrics[0].total - group?.metrics[1].total,
+                    )}
+                    <div className='flex flex-col gap-1'>
+                      <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
+                        +{valueFormatter(posDaily)}
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      {valueFormatter(group.metrics[0].total)}
-                      <div className='flex flex-col gap-1'>
-                        <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                          +{valueFormatter(posDaily)}
-                        </div>
+                      <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
+                        -{valueFormatter(negDaily)}
                       </div>
-                    </>
-                  )}
-                </div>
-              )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {valueFormatter(group?.metrics[0].total ?? 0)}
+                    <div className='flex flex-col gap-1'>
+                      <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
+                        +{valueFormatter(posDaily)}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            {group === null ? (
-              'LOADING...'
-            ) : (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className='rounded-[12px] max-sm:w-full'>
-                    <Edit className='mr-2 size-4' />
-                    Edit
-                  </Button>
-                </DialogTrigger>
-                <EditMetricDialogContent group={group} setOpen={setOpen} />
-              </Dialog>
-            )}
+            <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
+              <DialogTrigger asChild>
+                <Button className='rounded-[12px] max-sm:w-full'>
+                  <Edit className='mr-2 size-4' />
+                  Edit
+                </Button>
+              </DialogTrigger>
+              <EditMetricDialogContent
+                group={group!}
+                setOpen={setOpen}
+                onUpdate={(new_name: string) => {
+                  setGroup(Object.assign({}, group, { name: new_name }));
+                }}
+              />
+            </Dialog>
           </div>
-          <OverviewChart group={group} />
-          <TrendChart group={group} />
+          <OverviewChart group={group!} />
+          <TrendChart group={group!} />
         </div>
       </TooltipProvider>
     </DashboardContentContainer>
   );
 }
 
-function OverviewChart(props: { group: Group | null }) {
+function OverviewChart(props: { group: Group }) {
   const [overviewChartType, setOverviewChartType] = useState<
     'stacked' | 'percent' | 'default'
   >('default');
@@ -321,6 +329,11 @@ function OverviewChart(props: { group: Group | null }) {
       dualMetricOverviewChartColor,
     ),
   };
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -334,12 +347,29 @@ function OverviewChart(props: { group: Group | null }) {
           <RangeSelector />
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <Button
-                className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
-                size={'icon'}
-              >
-                <Calendar className='size-4' />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+                    size={'icon'}
+                  >
+                    <Calendar className='size-4' />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className='w-auto rounded-[16px] p-0'
+                  align='start'
+                >
+                  <MetricDatePicker
+                    selected={date}
+                    onSelect={setDate}
+                    mode='range'
+                    autoFocus
+                    startMonth={new Date(1999, 11)}
+                    endMonth={new Date()}
+                  />
+                </PopoverContent>
+              </Popover>
             </TooltipTrigger>
             <TooltipContent
               side='bottom'
@@ -355,30 +385,26 @@ function OverviewChart(props: { group: Group | null }) {
           className='mx-2 h-[50%] max-sm:hidden'
         />
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
-          {props.group === null ? (
-            'LOADING...'
-          ) : (
-            <AdvancedOptions
-              chartName='overview'
-              groupId={props.group.id}
-              metricType={props.group.type}
-              chartType={overviewChartType}
-              chartColor={overviewChartColor}
-              dualMetricChartColor={dualMetricOverviewChartColor}
-              setChartColor={setOverviewChartColor}
-              setChartType={setOverviewChartType}
-              setDualMetricChartColor={
-                props.group.type === GroupType.Base
-                  ? undefined
-                  : setDualMetricOverviewChartColor
-              }
-            >
-              <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
-                <Sliders className='mr-2 size-4' />
-                Advanced
-              </Button>
-            </AdvancedOptions>
-          )}
+          <AdvancedOptions
+            chartName='overview'
+            groupId={props.group.id}
+            metricType={props.group.type}
+            chartType={overviewChartType}
+            chartColor={overviewChartColor}
+            dualMetricChartColor={dualMetricOverviewChartColor}
+            setChartColor={setOverviewChartColor}
+            setChartType={setOverviewChartType}
+            setDualMetricChartColor={
+              props.group.type === GroupType.Base
+                ? undefined
+                : setDualMetricOverviewChartColor
+            }
+          >
+            <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
+              <Sliders className='mr-2 size-4' />
+              Advanced
+            </Button>
+          </AdvancedOptions>
 
           <Separator
             orientation='vertical'
@@ -388,33 +414,33 @@ function OverviewChart(props: { group: Group | null }) {
         </div>
       </div>
 
-      {props.group === null ? (
-        'LOADING...'
-      ) : (
-        <BarChart
-          className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-          data={chartdata}
-          customTooltip={customTooltip}
-          index='date'
-          type={overviewChartType}
-          colors={props.group.type === GroupType.Dual ? dualMetricChartConfig.colors : [overviewChartColor]}
-          categories={
-            props.group.type === GroupType.Base
-              ? ["TotalUsers"]
-              : [props.group.metrics[0].name, props.group.metrics[1].name]
-          }
-          valueFormatter={(number: number) =>
-            `${Intl.NumberFormat('us').format(number).toString()}`
-          }
-          xAxisLabel='Date'
-          yAxisLabel='Total'
-        />
-      )}
+      <BarChart
+        className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
+        data={chartdata}
+        customTooltip={customTooltip}
+        index='date'
+        type={overviewChartType}
+        colors={
+          props.group.type === GroupType.Dual
+            ? dualMetricChartConfig.colors
+            : [overviewChartColor]
+        }
+        categories={
+          props.group.type === GroupType.Base
+            ? ['TotalUsers']
+            : [props.group.metrics[0].name, props.group.metrics[1].name]
+        }
+        valueFormatter={(number: number) =>
+          `${Intl.NumberFormat('us').format(number).toString()}`
+        }
+        xAxisLabel='Date'
+        yAxisLabel='Total'
+      />
     </>
   );
 }
 
-function TrendChart(props: { group: Group | null }) {
+function TrendChart(props: { group: Group }) {
   const [trendChartType, setTrendChartType] = useState<
     'default' | 'percent' | 'stacked'
   >('default');
@@ -475,24 +501,20 @@ function TrendChart(props: { group: Group | null }) {
           className='mx-2 h-[50%] max-sm:hidden'
         />
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
-          {props.group === null ? (
-            'LOADING...'
-          ) : (
-            <AdvancedOptions
-              chartName='trend'
-              groupId={props.group.id}
-              metricType={props.group.type}
-              chartType={trendChartType}
-              chartColor={trendChartColor}
-              setChartColor={setTrendChartColor}
-              setChartType={setTrendChartType}
-            >
-              <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
-                <Sliders className='mr-2 size-4' />
-                Advanced
-              </Button>
-            </AdvancedOptions>
-          )}
+          <AdvancedOptions
+            chartName='trend'
+            groupId={props.group.id}
+            metricType={props.group.type}
+            chartType={trendChartType}
+            chartColor={trendChartColor}
+            setChartColor={setTrendChartColor}
+            setChartType={setTrendChartType}
+          >
+            <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
+              <Sliders className='mr-2 size-4' />
+              Advanced
+            </Button>
+          </AdvancedOptions>
 
           <Separator
             orientation='vertical'
@@ -501,21 +523,17 @@ function TrendChart(props: { group: Group | null }) {
           <OffsetBtns />
         </div>
       </div>
-      {props.group === null ? (
-        'LOADING...'
-      ) : (
-        <AreaChart
-          className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-          data={chartdata}
-          index='date'
-          customTooltip={customTooltip}
-          colors={[trendChartColor]}
-          categories={["TotalUsers"]}
-          valueFormatter={(number: number) => valueFormatter(number)}
-          xAxisLabel='Date'
-          yAxisLabel='Total'
-        />
-      )}
+      <AreaChart
+        className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
+        data={chartdata}
+        index='date'
+        customTooltip={customTooltip}
+        colors={[trendChartColor]}
+        categories={['TotalUsers']}
+        valueFormatter={(number: number) => valueFormatter(number)}
+        xAxisLabel='Date'
+        yAxisLabel='Total'
+      />
     </>
   );
 }

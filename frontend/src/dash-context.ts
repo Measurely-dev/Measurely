@@ -1,25 +1,49 @@
-import { createContext, Dispatch } from 'react';
+import React, { createContext, Dispatch } from 'react';
 import { Application, User } from './types';
 
+export const defaultUser = {
+  firstname: '',
+  lastname: '',
+  email: '',
+  id: '',
+  image: '',
+  plan: {
+    name: '',
+    requestlimit: 0,
+    applimit: 0,
+    metric_per_app_limit: 0,
+    identifier: '',
+  },
+  providers: [],
+};
+
 export interface UserContextType {
-  user: User | null;
-  setUser: Dispatch<React.SetStateAction<User | null>>;
+  user: User;
+  setUser: Dispatch<React.SetStateAction<User>>;
+  userLoading: boolean;
+  setUserLoading: Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface AppsContextType {
-  applications: Application[] | null;
-  setApplications: Dispatch<React.SetStateAction<Application[] | null>>;
+  applications: Application[];
+  setApplications: Dispatch<React.SetStateAction<Application[]>>;
   activeApp: number;
   setActiveApp: Dispatch<React.SetStateAction<number>>;
+  appsLoading: boolean;
+  setAppsLoading: Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const UserContext = createContext<UserContextType>({
-  user: null,
-  setUser: () => {},
+  user: defaultUser,
+  setUser: () => { },
+  userLoading: true,
+  setUserLoading: () => { },
 });
 export const AppsContext = createContext<AppsContextType>({
-  applications: null,
-  setApplications: () => {},
+  applications: [],
+  setApplications: () => { },
   activeApp: -1,
-  setActiveApp: () => {},
+  setActiveApp: () => { },
+  appsLoading: true,
+  setAppsLoading: () => { },
 });

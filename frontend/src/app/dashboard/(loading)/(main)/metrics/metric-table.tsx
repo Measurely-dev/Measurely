@@ -3,14 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import Empty from '@/components/dashboard/empty';
-import MetricInformations from './metric-info';
 import { Separator } from '@radix-ui/react-separator';
 import { fetchDailySummary } from '@/utils';
+import { useRouter } from 'next/navigation';
 
 const formattedDate = (date: Date) => {
   try {
@@ -58,11 +58,10 @@ function sortByTotal(a: Group, b: Group): number {
 
 export default function MetricTable(props: { search: string; filter: string }) {
   const { applications, activeApp } = useContext(AppsContext);
-  const [groups, setGroups] = useState<Group[]>([]);
 
-  useEffect(() => {
-    setGroups(
-      applications?.[activeApp].groups
+  const filteredGroups = useMemo(() => {
+    return (
+      applications[activeApp].groups
         ?.sort((a, b) => {
           if (props.filter === 'new' || props.filter === 'old') {
             return sortbyDate(a, b, props.filter);
@@ -74,7 +73,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
         })
         .filter((group) =>
           group.name.toLowerCase().includes(props.search.toLowerCase()),
-        ) ?? [],
+        ) ?? []
     );
   }, [activeApp, props.filter, props.search, applications]);
 
@@ -84,7 +83,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
       <Header />
       <div className='flex flex-col gap-2'>
         {/* Items components */}
-        {groups.length === 0 ? (
+        {filteredGroups.length === 0 ? (
           <Empty>
             <AlertCircle className='size-10' />
             <div className='flex flex-col items-center gap-3 text-center'>
@@ -93,7 +92,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
           </Empty>
         ) : (
           <>
-            {groups.map((group, i) => {
+            {filteredGroups.map((group, i) => {
               return <Item key={group.metrics[0].id} group={group} index={i} />;
             })}
           </>
@@ -115,8 +114,7 @@ function Header() {
 const Item = (props: { group: Group; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const [total, setTotal] = useState<number | null>(null);
-
-  const { applications, activeApp } = useContext(AppsContext);
+  const router = useRouter();
 
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
@@ -177,10 +175,13 @@ const Item = (props: { group: Group; index: number }) => {
 
   return (
     <div className='relative'>
-      <a
-        href={`/dashboard/metrics/${props.group.name}`}
-        target='_blank'
+      <div
         className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none'
+        onClick={() => {
+          router.push(
+            `/dashboard/metrics/${encodeURIComponent(props.group.name)}`,
+          );
+        }}
       />
       <div
         className={`relative grid h-[50px] w-full select-none grid-cols-[2fr,1.5fr,1.5fr,150px,50px] gap-[10px] rounded-[12px] px-5 max-lg:grid max-lg:h-fit max-lg:grid-cols-3 max-lg:rounded-l-none max-lg:border-l max-lg:border-blue-500 max-lg:py-4 max-sm:p-3`}
