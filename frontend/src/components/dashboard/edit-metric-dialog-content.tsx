@@ -22,7 +22,6 @@ import { toast } from 'sonner';
 
 export default function EditMetricDialogContent(props: {
   group: Group;
-  total: number;
   setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const [name, setName] = useState<string>(props.group.name);

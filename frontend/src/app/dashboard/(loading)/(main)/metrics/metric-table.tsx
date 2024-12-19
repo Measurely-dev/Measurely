@@ -10,6 +10,7 @@ import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import Empty from '@/components/dashboard/empty';
 import MetricInformations from './metric-info';
 import { Separator } from '@radix-ui/react-separator';
+import { fetchDailySummary } from '@/utils';
 
 const formattedDate = (date: Date) => {
   try {
@@ -139,39 +140,6 @@ const Item = (props: { group: Group; index: number }) => {
     }
   };
 
-  const fetchDailySummary = async (
-    groupid: string,
-    metricid: string,
-  ): Promise<number> => {
-    const from = new Date();
-    from.setHours(0);
-    from.setMinutes(0);
-    from.setSeconds(0);
-    const to = new Date();
-    to.setHours(from.getHours() + 24);
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
-        applications?.[activeApp].id
-      }&groupid=${groupid}&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
-      {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    if (res.ok) {
-      const json = await res.json();
-      if (json != null) {
-        if (json.length > 0) {
-          return json[0].value;
-        }
-      }
-    }
-    return 0;
-  };
-
   const load = async () => {
     if (props.group.metrics.length === 0) {
       return;
@@ -181,16 +149,19 @@ const Item = (props: { group: Group; index: number }) => {
     if (props.group.type === GroupType.Base) {
       setTotal(props.group.metrics[0].total);
       daily = await fetchDailySummary(
+        props.group.appid,
         props.group.id,
         props.group.metrics[0].id,
       );
     } else if (props.group.type === GroupType.Dual) {
       setTotal(props.group.metrics[0].total - props.group.metrics[1].total);
       const pos = await fetchDailySummary(
+        props.group.appid,
         props.group.id,
         props.group.metrics[0].id,
       );
       const neg = await fetchDailySummary(
+        props.group.appid,
         props.group.id,
         props.group.metrics[1].id,
       );
@@ -206,9 +177,11 @@ const Item = (props: { group: Group; index: number }) => {
 
   return (
     <div className='relative'>
-      <MetricInformations group={props.group}>
-        <div className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none' />
-      </MetricInformations>
+      <a
+        href={`/dashboard/metrics/${props.group.name}`}
+        target='_blank'
+        className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none'
+      />
       <div
         className={`relative grid h-[50px] w-full select-none grid-cols-[2fr,1.5fr,1.5fr,150px,50px] gap-[10px] rounded-[12px] px-5 max-lg:grid max-lg:h-fit max-lg:grid-cols-3 max-lg:rounded-l-none max-lg:border-l max-lg:border-blue-500 max-lg:py-4 max-sm:p-3`}
       >
@@ -220,7 +193,7 @@ const Item = (props: { group: Group; index: number }) => {
         </div>
 
         <div className='col-span-1 flex h-full w-full items-center justify-end lg:hidden'>
-          <MetricDropdown group={props.group} total={total ?? 0}>
+          <MetricDropdown group={props.group}>
             <Button
               className='z-20 rounded-[12px] !bg-transparent'
               variant={'secondary'}
@@ -260,7 +233,7 @@ const Item = (props: { group: Group; index: number }) => {
           {formattedDate(props.group.created)}
         </div>
         <div className='flex h-full w-full items-center justify-end max-lg:hidden'>
-          <MetricDropdown group={props.group} total={total ?? 0}>
+          <MetricDropdown group={props.group}>
             <Button
               className='z-20 rounded-[12px] !bg-transparent'
               variant={'secondary'}

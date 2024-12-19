@@ -111,11 +111,10 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
-        props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-      }`}
+        }`}
       onClick={() => {
         if (props.value === 2) {
           return;
@@ -184,7 +183,6 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 if (
                   json === null ||
                   json === undefined ||
-                  applications?.[activeApp].groups === null ||
                   applications === null
                 ) {
                   return;
@@ -193,11 +191,11 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   applications?.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
-                          groups: [
-                            ...(applications[activeApp].groups ?? []),
-                            json,
-                          ],
-                        })
+                        groups: [
+                          ...(applications[activeApp].groups ?? []),
+                          json,
+                        ],
+                      })
                       : v,
                   ),
                 );
@@ -330,11 +328,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 applications?.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
-                        groups: [
-                          ...(applications[activeApp].groups ?? []),
-                          json,
-                        ],
-                      })
+                      groups: [
+                        ...(applications[activeApp].groups ?? []),
+                        json,
+                      ],
+                    })
                     : v,
                 ),
               );

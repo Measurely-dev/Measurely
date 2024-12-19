@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { AppsContext, UserContext } from '@/dash-context';
+import { loadMetricsGroups } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useState } from 'react';
@@ -16,21 +17,33 @@ import { toast } from 'sonner';
 export default function ApplicationsChip() {
   const [open, setOpen] = useState(false);
   const { user } = useContext(UserContext);
-  const { applications, activeApp, setActiveApp } = useContext(AppsContext);
+  const { applications, activeApp, setActiveApp, setApplications } =
+    useContext(AppsContext);
 
   const applicationLimitReached =
     applications &&
     user?.plan?.applimit &&
     applications.length > user.plan.applimit;
 
-  const handleAppSelect = (index: number) => {
+  const handleAppSelect = async (index: number) => {
     if (applicationLimitReached && index >= user.plan.applimit) {
       toast.error('Upgrade plan to view this application');
       return;
     }
 
-    setActiveApp(index);
-    localStorage.setItem('activeApp', index.toString());
+    if (applications !== null && applications.length >= index + 1) {
+      if (applications[index].groups === null) {
+        const groups = await loadMetricsGroups(applications?.[index].id ?? '');
+        setApplications(
+          applications?.map((app, i) =>
+            i === index ? Object.assign({}, app, { groups: groups }) : app,
+          ),
+        );
+      }
+      setActiveApp(index);
+      localStorage.setItem('activeApp', index.toString());
+    }
+
     setOpen(false);
   };
 
@@ -41,9 +54,8 @@ export default function ApplicationsChip() {
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${
-            open ? 'bg-accent' : ''
-          }`}
+          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${open ? 'bg-accent' : ''
+            }`}
         >
           <Avatar className='size-6 border bg-accent'>
             <AvatarImage
@@ -68,9 +80,8 @@ export default function ApplicationsChip() {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${
-                isBlocked ? 'cursor-not-allowed opacity-50' : ''
-              }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${isBlocked ? 'cursor-not-allowed opacity-50' : ''
+                }`}
               onClick={() => {
                 handleAppSelect(i);
               }}

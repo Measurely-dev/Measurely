@@ -38,7 +38,7 @@ import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
 
 export function ChartsCard() {
-  const { applications, setApplications, activeApp } = useContext(AppsContext);
+  const { applications, activeApp } = useContext(AppsContext);
   const [activeGroup, setActiveGroup] = useState(0);
 
   const [data, setData] = useState<any[]>([]);
@@ -75,19 +75,6 @@ export function ChartsCard() {
     },
   ];
 
-  useEffect(() => {
-    if (applications?.[activeApp].groups === null) {
-      loadMetricsGroups(applications[activeApp].id).then((json) => {
-        setApplications(
-          applications.map((v, i) =>
-            i === activeApp ? Object.assign({}, v, { groups: json }) : v,
-          ),
-        );
-      });
-      setActiveGroup(0);
-    }
-  }, [activeApp]);
-
   const loadData = async () => {
     setLoading(true);
     if (applications?.[activeApp]?.groups !== null) {
@@ -120,7 +107,7 @@ export function ChartsCard() {
 
   useEffect(() => {
     loadData();
-  }, [activeGroup, applications]);
+  }, [activeGroup]);
 
   return (
     <Card className='rounded-t-none border-input'>
@@ -153,7 +140,7 @@ export function ChartsCard() {
         ]}
       />
       {applications?.[activeApp].groups !== undefined &&
-      applications?.[activeApp].groups?.length! > 0 ? (
+        applications?.[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
@@ -195,14 +182,14 @@ export function ChartsCard() {
                             applications?.[activeApp].groups?.[activeGroup]
                               .type === GroupType.Base
                               ? (applications?.[activeApp].groups?.[activeGroup]
-                                  .name ?? '')
+                                .name ?? '')
                               : (applications?.[activeApp].groups?.[activeGroup]
-                                  .metrics[0].name ?? ''),
+                                .metrics[0].name ?? ''),
                             applications?.[activeApp].groups?.[activeGroup]
                               .type === GroupType.Base
                               ? ''
                               : (applications?.[activeApp].groups?.[activeGroup]
-                                  .metrics[1].name ?? ''),
+                                .metrics[1].name ?? ''),
                             applications?.[activeApp].groups?.[activeGroup]
                               .name ?? '',
                           )}

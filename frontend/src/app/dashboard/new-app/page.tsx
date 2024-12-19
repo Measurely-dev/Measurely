@@ -13,7 +13,7 @@ import { Image } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dispatch, useContext, useState } from 'react';
 import { toast } from 'sonner';
-import { MAXFILESIZE } from '@/utils';
+import { loadMetricsGroups, MAXFILESIZE } from '@/utils';
 
 export default function NewApp() {
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function NewApp() {
           return res.json();
         }
       })
-      .then((json) => {
+      .then(async (json) => {
         if (file !== null) {
           const formData = new FormData();
           formData.append('file', file);
@@ -65,12 +65,12 @@ export default function NewApp() {
           });
         }
 
-        json.groups = null;
+        json.groups = await loadMetricsGroups(json.id);
         setApplications((apps) => [...(apps ?? []), json]);
-        setActiveApp(applications?.length ?? 0);
+        setActiveApp(applications === null ? 0 : applications.length - 1);
         localStorage.setItem(
           'activeApp',
-          (applications?.length ?? 0).toString(),
+          (applications === null ? 0 : applications.length - 1).toString(),
         );
         router.push('/dashboard');
       });

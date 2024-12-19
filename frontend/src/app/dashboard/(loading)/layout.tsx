@@ -5,13 +5,14 @@ import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
+import { loadMetricsGroups } from '@/utils';
 
 export default function DashboardContentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { applications, setApplications, setActiveApp } =
+  const { applications, setApplications, setActiveApp, activeApp } =
     useContext(AppsContext);
   const { user, setUser } = useContext(UserContext);
 
@@ -66,18 +67,30 @@ export default function DashboardContentLayout({
             });
           }
         })
-        .then((json) => {
+        .then(async (json) => {
           if (json === undefined) return;
           if (json === null) json = [];
           if (json.length === 0) {
             router.push('/dashboard/new-app');
             return;
           }
-          for (let i = 0; i < json.length; i++) {
-            json[i].groups = null;
+          let savedActiveApp = parseInt(
+            localStorage.getItem('activeApp') ?? '0',
+          );
+          if (json.length < savedActiveApp + 1) {
+            savedActiveApp = 0;
+            localStorage.setItem('activeApp', savedActiveApp.toString());
           }
+          for (let i = 0; i < json.length; i++) {
+            if (i === savedActiveApp && json.length >= savedActiveApp + 1) {
+              json[i].groups = await loadMetricsGroups(json[savedActiveApp].id);
+            } else {
+              json[i].groups = null;
+            }
+          }
+
           setApplications(json);
-          setActiveApp(parseInt(localStorage.getItem('activeApp') ?? '0'));
+          setActiveApp(savedActiveApp);
         });
     }
   }, []);

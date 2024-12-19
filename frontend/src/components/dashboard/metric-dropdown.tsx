@@ -28,7 +28,6 @@ import EditMetricDialogContent from './edit-metric-dialog-content';
 export default function MetricDropdown(props: {
   children: any;
   group: Group;
-  total: number;
 }) {
   const { setApplications, applications } = useContext(AppsContext);
   const [open, setOpen] = useState(false);
@@ -141,7 +140,6 @@ export default function MetricDropdown(props: {
         </AlertDialog>
         <EditMetricDialogContent
           group={props.group}
-          total={props.total}
           setOpen={setOpen}
         />
       </Dialog>

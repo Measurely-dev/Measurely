@@ -31,26 +31,13 @@ import {
   useState,
 } from 'react';
 import { AppsContext } from '@/dash-context';
-import { loadMetricsGroups } from '@/utils';
 import { Loader } from 'lucide-react';
 
 export default function DashboardMetrics() {
-  const { applications, setApplications, activeApp } = useContext(AppsContext);
+  const { applications, activeApp } = useContext(AppsContext);
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('new');
-
-  useEffect(() => {
-    if (applications?.[activeApp].groups === null) {
-      loadMetricsGroups(applications[activeApp].id).then((json) => {
-        setApplications(
-          applications.map((v, i) =>
-            i === activeApp ? Object.assign({}, v, { groups: json }) : v,
-          ),
-        );
-      });
-    }
-  }, [activeApp]);
 
   useEffect(() => {
     document.title = 'Metrics | Measurely';

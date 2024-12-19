@@ -1,6 +1,7 @@
 'use client';
 import DashboardContentContainer from '@/components/dashboard/container';
 import { MetricDatePicker } from '@/components/dashboard/date-picker';
+import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
 import { AreaChart, TooltipProps } from '@/components/ui/areaChart';
 import { BarChart } from '@/components/ui/BarChart';
 import {
@@ -36,13 +37,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { AppsContext } from '@/dash-context';
+import { Group, GroupType } from '@/types';
+import { fetchDailySummary } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import { addDays } from 'date-fns';
 import { ArrowLeft, ArrowRight, Calendar, Edit, Sliders } from 'lucide-react';
+import { useRouter, useParams } from 'next/navigation';
 import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useContext,
   useEffect,
   useState,
 } from 'react';
@@ -172,21 +178,56 @@ const dualData = [
 const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
-const metricType = 'dual';
-const url = window.location.pathname.replace(/\/$/, '');
-const segments = url.split('/');
-const metricName = segments[segments.length - 1];
+
 export default function DashboardMetricPage() {
+  const router = useRouter();
+  const params = useParams();
+  const { applications, activeApp } = useContext(AppsContext);
+  const [open, setOpen] = useState(false);
+  const [group, setGroup] = useState<Group | null>(null);
+
+  const [posDaily, setPosDaily] = useState<number>(0);
+  const [negDaily, setNegDaily] = useState<number>(0);
+
+  const loadDailyValues = async (group: Group) => {
+    setPosDaily(
+      await fetchDailySummary(group.appid, group.id, group.metrics[0].id),
+    );
+    if (group.type === GroupType.Dual) {
+      setNegDaily(
+        await fetchDailySummary(group.appid, group.id, group.metrics[1].id),
+      );
+    }
+  };
+
   useEffect(() => {
-    document.title = `${metricName} | Measurely`;
+    document.title = `${params.metric} | Measurely`;
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
         'content',
-        `Track and analyze ${metricName} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
+        `Track and analyze ${params.metric} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
       );
     }
+
+    if (applications !== null && applications?.[activeApp]) {
+      const groupData =
+        applications[activeApp].groups?.filter(
+          (g) => g.name === params.metric,
+        )[0] ?? null;
+
+      if (groupData === null) {
+        router.push('/dashboard/metrics');
+      } else {
+        console.log(groupData);
+        loadDailyValues(groupData);
+        setGroup(groupData);
+      }
+    } else {
+      router.push('/dashboard/metrics');
+    }
   }, []);
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
@@ -202,7 +243,7 @@ export default function DashboardMetricPage() {
           </BreadcrumbLink>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{metricName}</BreadcrumbPage>
+            <BreadcrumbPage>{params.metric}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -211,43 +252,62 @@ export default function DashboardMetricPage() {
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
               <div className='text-lg font-normal capitalize text-muted-foreground'>
-                {metricName}
+                {params.metric}
               </div>
-              <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
-                {valueFormatter(21934810792)}
-                {metricType === 'dual' ? (
-                  <div className='flex flex-col gap-1'>
-                    <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                      +{valueFormatter(29483234)}
-                    </div>
-                    <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
-                      -{valueFormatter(9093824)}
-                    </div>
-                  </div>
-                ) : (
-                  <></>
-                )}
-              </div>
+              {group === null ? (
+                'LOADING...'
+              ) : (
+                <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
+                  {group.type === GroupType.Dual ? (
+                    <>
+                      {valueFormatter(
+                        group.metrics[0].total - group.metrics[1].total,
+                      )}
+                      <div className='flex flex-col gap-1'>
+                        <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
+                          +{valueFormatter(posDaily)}
+                        </div>
+                        <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
+                          -{valueFormatter(negDaily)}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {valueFormatter(group.metrics[0].total)}
+                      <div className='flex flex-col gap-1'>
+                        <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
+                          +{valueFormatter(posDaily)}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className='rounded-[12px] max-sm:w-full'>
-                  <Edit className='mr-2 size-4' />
-                  Edit
-                </Button>
-              </DialogTrigger>
-              {/* <EditMetricDialogContent group={{} as Group} setOpen={Boolean} total={0} /> */}
-            </Dialog>
+            {group === null ? (
+              'LOADING...'
+            ) : (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className='rounded-[12px] max-sm:w-full'>
+                    <Edit className='mr-2 size-4' />
+                    Edit
+                  </Button>
+                </DialogTrigger>
+                <EditMetricDialogContent group={group} setOpen={setOpen} />
+              </Dialog>
+            )}
           </div>
-          <OverviewChart />
-          <TrendChart />
+          <OverviewChart group={group} />
+          <TrendChart group={group} />
         </div>
       </TooltipProvider>
     </DashboardContentContainer>
   );
 }
 
-function OverviewChart() {
+function OverviewChart(props: { group: Group | null }) {
   const [overviewChartType, setOverviewChartType] = useState<
     'stacked' | 'percent' | 'default'
   >('default');
@@ -295,21 +355,31 @@ function OverviewChart() {
           className='mx-2 h-[50%] max-sm:hidden'
         />
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
-          <AdvancedOptions
-            chartName='overview'
-            metricName={metricName}
-            chartType={overviewChartType}
-            chartColor={overviewChartColor}
-            dualMetricChartColor={dualMetricOverviewChartColor}
-            setChartColor={setOverviewChartColor}
-            setChartType={setOverviewChartType}
-            setDualMetricChartColor={setDualMetricOverviewChartColor}
-          >
-            <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
-              <Sliders className='mr-2 size-4' />
-              Advanced
-            </Button>
-          </AdvancedOptions>
+          {props.group === null ? (
+            'LOADING...'
+          ) : (
+            <AdvancedOptions
+              chartName='overview'
+              groupId={props.group.id}
+              metricType={props.group.type}
+              chartType={overviewChartType}
+              chartColor={overviewChartColor}
+              dualMetricChartColor={dualMetricOverviewChartColor}
+              setChartColor={setOverviewChartColor}
+              setChartType={setOverviewChartType}
+              setDualMetricChartColor={
+                props.group.type === GroupType.Base
+                  ? undefined
+                  : setDualMetricOverviewChartColor
+              }
+            >
+              <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
+                <Sliders className='mr-2 size-4' />
+                Advanced
+              </Button>
+            </AdvancedOptions>
+          )}
+
           <Separator
             orientation='vertical'
             className='mx-2 h-[50%] max-sm:hidden'
@@ -317,29 +387,22 @@ function OverviewChart() {
           <OffsetBtns />
         </div>
       </div>
-      {metricType === 'dual' ? (
-        <BarChart
-          className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-          data={dualData}
-          customTooltip={customTooltip}
-          index='date'
-          type={overviewChartType}
-          colors={dualMetricChartConfig.colors}
-          categories={['AccountsCreated', 'AccountsDeleted']}
-          valueFormatter={(number: number) =>
-            `${Intl.NumberFormat('us').format(number).toString()}`
-          }
-          xAxisLabel='Date'
-          yAxisLabel='Total'
-        />
+
+      {props.group === null ? (
+        'LOADING...'
       ) : (
         <BarChart
           className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
           data={chartdata}
           customTooltip={customTooltip}
           index='date'
-          colors={[`${overviewChartColor}`]}
-          categories={['TotalUsers']}
+          type={overviewChartType}
+          colors={props.group.type === GroupType.Dual ? dualMetricChartConfig.colors : [overviewChartColor]}
+          categories={
+            props.group.type === GroupType.Base
+              ? ["TotalUsers"]
+              : [props.group.metrics[0].name, props.group.metrics[1].name]
+          }
           valueFormatter={(number: number) =>
             `${Intl.NumberFormat('us').format(number).toString()}`
           }
@@ -351,7 +414,7 @@ function OverviewChart() {
   );
 }
 
-function TrendChart() {
+function TrendChart(props: { group: Group | null }) {
   const [trendChartType, setTrendChartType] = useState<
     'default' | 'percent' | 'stacked'
   >('default');
@@ -412,19 +475,25 @@ function TrendChart() {
           className='mx-2 h-[50%] max-sm:hidden'
         />
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
-          <AdvancedOptions
-            chartName='trend'
-            metricName={metricName}
-            chartType={trendChartType}
-            chartColor={trendChartColor}
-            setChartColor={setTrendChartColor}
-            setChartType={setTrendChartType}
-          >
-            <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
-              <Sliders className='mr-2 size-4' />
-              Advanced
-            </Button>
-          </AdvancedOptions>
+          {props.group === null ? (
+            'LOADING...'
+          ) : (
+            <AdvancedOptions
+              chartName='trend'
+              groupId={props.group.id}
+              metricType={props.group.type}
+              chartType={trendChartType}
+              chartColor={trendChartColor}
+              setChartColor={setTrendChartColor}
+              setChartType={setTrendChartType}
+            >
+              <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
+                <Sliders className='mr-2 size-4' />
+                Advanced
+              </Button>
+            </AdvancedOptions>
+          )}
+
           <Separator
             orientation='vertical'
             className='mx-2 h-[50%] max-sm:hidden'
@@ -432,24 +501,29 @@ function TrendChart() {
           <OffsetBtns />
         </div>
       </div>
-      <AreaChart
-        className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-        data={chartdata}
-        index='date'
-        customTooltip={customTooltip}
-        colors={[`${trendChartColor}`]}
-        categories={['TotalUsers']}
-        valueFormatter={(number: number) => valueFormatter(number)}
-        xAxisLabel='Date'
-        yAxisLabel='Total'
-      />
+      {props.group === null ? (
+        'LOADING...'
+      ) : (
+        <AreaChart
+          className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
+          data={chartdata}
+          index='date'
+          customTooltip={customTooltip}
+          colors={[trendChartColor]}
+          categories={["TotalUsers"]}
+          valueFormatter={(number: number) => valueFormatter(number)}
+          xAxisLabel='Date'
+          yAxisLabel='Total'
+        />
+      )}
     </>
   );
 }
 
 function AdvancedOptions(props: {
   chartName: string;
-  metricName: string;
+  groupId: string;
+  metricType: GroupType;
   children: ReactNode;
   chartType: string;
   chartColor: string;
@@ -459,85 +533,55 @@ function AdvancedOptions(props: {
   setDualMetricChartColor?: Dispatch<
     SetStateAction<keyof DualMetricChartColors>
   >;
-  //   groupType: number;
-  //   setIsTrendActive: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   useEffect(() => {
-    const storedChartType = localStorage.getItem(
-      props.metricName.charAt(0).toUpperCase() +
-        props.metricName.slice(1) +
-        props.chartName.charAt(0).toUpperCase() +
-        props.chartName.slice(1) +
-        'ChartType',
-    );
-    if (storedChartType) {
-      props.setChartType(storedChartType as 'stacked' | 'percent' | 'default');
-    }
-
-    const storedChartColor = localStorage.getItem(
-      props.metricName.charAt(0).toUpperCase() +
-        props.metricName.slice(1) +
-        props.chartName.charAt(0).toUpperCase() +
-        props.chartName.slice(1) +
-        'ChartColor',
-    );
-    if (storedChartColor) {
-      props.setChartColor(storedChartColor as keyof ChartColors);
-    }
-
-    if (props.dualMetricChartColor && props.setDualMetricChartColor) {
-      const storedDualMetricChartColor = localStorage.getItem(
-        props.metricName.charAt(0).toUpperCase() +
-          props.metricName.slice(1) +
-          props.chartName.charAt(0).toUpperCase() +
-          props.chartName.slice(1) +
-          'ChartDualColor',
+    const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
+    const name = props.groupId + props.chartName;
+    if (!settings[name]) return;
+    if (settings[name].chartType) {
+      props.setChartType(
+        settings[name].chartType as 'stacked' | 'percent' | 'default',
       );
-      if (storedDualMetricChartColor) {
+    }
+
+    if (settings[name].chartColor) {
+      if (props.dualMetricChartColor && props.setDualMetricChartColor) {
         props.setDualMetricChartColor(
-          storedDualMetricChartColor as keyof DualMetricChartColors,
+          settings[name].chartColor as keyof DualMetricChartColors,
         );
+      } else {
+        props.setChartColor(settings[name].chartColor as keyof ChartColors);
       }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(
-      props.metricName.charAt(0).toUpperCase() +
-        props.metricName.slice(1) +
-        props.chartName.charAt(0).toUpperCase() +
-        props.chartName.slice(1) +
-        'ChartType',
-      props.chartType,
-    );
+    const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
+    const name = props.groupId + props.chartName;
+    if (!settings[name])
+      settings[name] = {
+        chartType: undefined,
+        chartColor: undefined,
+      };
 
-    localStorage.setItem(
-      props.metricName.charAt(0).toUpperCase() +
-        props.metricName.slice(1) +
-        props.chartName.charAt(0).toUpperCase() +
-        props.chartName.slice(1) +
-        'ChartColor',
-      props.chartColor,
-    );
+    settings[name].chartType = props.chartType;
 
     if (props.dualMetricChartColor && props.setDualMetricChartColor) {
-      localStorage.setItem(
-        props.metricName.charAt(0).toUpperCase() +
-          props.metricName.slice(1) +
-          props.chartName.charAt(0).toUpperCase() +
-          props.chartName.slice(1) +
-          'ChartDualColor',
-        props.dualMetricChartColor,
-      );
+      settings[name].chartColor = props.dualMetricChartColor;
+    } else {
+      settings[name].chartColor = props.chartColor;
     }
+
+    localStorage.setItem('chartsettings', JSON.stringify(settings));
   }, [props.chartType, props.chartColor, props.dualMetricChartColor]);
   return (
     <Popover open={isOpen} onOpenChange={(e) => setIsOpen(e)}>
       <PopoverTrigger asChild>{props.children}</PopoverTrigger>
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
-          {metricType === 'dual' && props.chartName !== 'trend' ? (
+          {props.metricType === GroupType.Dual &&
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -562,7 +606,8 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          {metricType === 'dual' && props.chartName !== 'trend' ? (
+          {props.metricType === GroupType.Dual &&
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -805,7 +850,7 @@ function RangeSelector() {
   );
 }
 
-const customTooltip = ({ active, label, payload }: TooltipProps) => {
+const customTooltip = ({ label, payload }: TooltipProps) => {
   if (!payload) return null;
   return (
     <>

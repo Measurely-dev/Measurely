@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
-import { useContext } from 'react';
+import { loadMetricsGroups } from '@/utils';
+import { act, useContext } from 'react';
 import { toast } from 'sonner';
 
 export default function DeleteAppDialogContent(props: {
@@ -41,7 +42,7 @@ export default function DeleteAppDialogContent(props: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({ appid: props.app?.id }),
-            }).then((resp) => {
+            }).then(async (resp) => {
               if (resp.status === 200) {
                 toast.success(
                   'Successfully deleted application: ' + props.app?.name,
@@ -52,22 +53,37 @@ export default function DeleteAppDialogContent(props: {
                   return;
                 }
 
+                let newActiveApp = 0;
                 if (applications?.[activeApp].id === props.app?.id) {
-                  setActiveApp(0);
-                  localStorage.setItem('activeApp', (0).toString());
+                  newActiveApp = 0;
                 } else {
                   const toRemove = applications?.findIndex(
                     (app) => app.id === props.app?.id,
                   );
                   if (toRemove === -1 || toRemove === undefined) return;
                   if (toRemove < activeApp) {
-                    setActiveApp(activeApp - 1);
-                    localStorage.setItem(
-                      'activeApp',
-                      (activeApp - 1).toString(),
+                    newActiveApp = activeApp - 1;
+                  }
+                }
+
+                if (applications !== null) {
+                  if (applications[newActiveApp].groups === null) {
+                    const groups = await loadMetricsGroups(
+                      applications[newActiveApp].id,
+                    );
+                    setApplications(
+                      applications.map((app, id) =>
+                        id === newActiveApp
+                          ? Object.assign({}, app, { groups: groups })
+                          : app,
+                      ),
                     );
                   }
                 }
+
+                setActiveApp(newActiveApp);
+                localStorage.setItem('activeApp', newActiveApp.toString());
+
                 setApplications(
                   applications?.filter((app) => app.id !== props.app?.id) ?? [],
                 );
