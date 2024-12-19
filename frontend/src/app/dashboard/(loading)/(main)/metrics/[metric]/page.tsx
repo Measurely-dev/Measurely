@@ -320,7 +320,7 @@ function OverviewChart(props: { group: Group }) {
 
   useEffect(() => {
     setDate((prev) => {
-      if (prev === undefined || prev.from === undefined) return;
+      if (prev === undefined || prev.from === undefined) return prev;
       const to = new Date(prev.from);
       to.setDate(prev.from.getDate() + range);
       const now = new Date();
@@ -418,7 +418,7 @@ function OverviewChart(props: { group: Group }) {
           <OffsetBtns
             onLeft={() => {
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return;
+                if (prev === undefined || prev.from === undefined) return prev;
                 const from = new Date(prev.from);
                 const toRemove = range === 0 ? 1 : range;
                 from.setDate(from.getDate() - toRemove);
@@ -430,13 +430,13 @@ function OverviewChart(props: { group: Group }) {
             }}
             onRight={() => {
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return;
+                if (prev === undefined || prev.from === undefined) return prev;
                 const from = new Date(prev.from);
                 const toAdd = range === 0 ? 1 : range;
                 from.setDate(from.getDate() + toAdd);
                 const now = new Date();
                 if (now < from) {
-                  return;
+                  return prev;
                 }
                 return {
                   from: from,
@@ -507,7 +507,7 @@ function TrendChart(props: { group: Group }) {
 
   useEffect(() => {
     setDate((prev) => {
-      if (prev === undefined || prev.from === undefined) return;
+      if (prev === undefined || prev.from === undefined) return prev;
       const to = new Date(prev.from);
       to.setDate(prev.from.getDate() + range);
       const now = new Date();
@@ -598,7 +598,7 @@ function TrendChart(props: { group: Group }) {
           <OffsetBtns
             onLeft={() => {
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return;
+                if (prev === undefined || prev.from === undefined) return prev;
                 const from = new Date(prev.from);
                 const toRemove = range === 0 ? 1 : range;
                 from.setDate(from.getDate() - toRemove);
@@ -610,13 +610,13 @@ function TrendChart(props: { group: Group }) {
             }}
             onRight={() => {
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return;
+                if (prev === undefined || prev.from === undefined) return prev;
                 const from = new Date(prev.from);
                 const toAdd = range === 0 ? 1 : range;
                 from.setDate(from.getDate() + toAdd);
                 const now = new Date();
                 if (now < from) {
-                  return;
+                  return prev;
                 }
                 return {
                   from: from,

@@ -10,7 +10,7 @@ import {
 import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
 import { loadMetricsGroups } from '@/utils';
-import { act, useContext } from 'react';
+import { useContext } from 'react';
 import { toast } from 'sonner';
 
 export default function DeleteAppDialogContent(props: {
