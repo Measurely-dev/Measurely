@@ -178,15 +178,14 @@ export function ChartsCard() {
               <>
                 {loading ? (
                   <>
-                    <Skeleton className='h-[200px] w-full rounded-[12px]' />
-                    <Skeleton className='h-[200px] w-full rounded-[12px]' />
-                  </>
+                    <Skeleton className='h-60 w-full rounded-[12px]' />
+\                  </>
                 ) : (
                   <div className='w-full'>
                     <div className='flex w-full flex-row gap-5'>
                       <div className='w-full rounded-[12px] bg-accent p-5'>
                         <AreaChart
-                          className='max-h-60 w-full'
+                          className='h-60 w-full'
                           data={calculateTrend(
                             data,
                             applications?.[activeApp].groups?.[activeGroup]
