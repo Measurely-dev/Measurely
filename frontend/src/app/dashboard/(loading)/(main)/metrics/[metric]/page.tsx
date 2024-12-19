@@ -1,7 +1,6 @@
 'use client';
 import DashboardContentContainer from '@/components/dashboard/container';
 import { MetricDatePicker } from '@/components/dashboard/date-picker';
-import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
 import { AreaChart, TooltipProps } from '@/components/ui/areaChart';
 import { BarChart } from '@/components/ui/BarChart';
 import {
@@ -37,7 +36,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Group } from '@/types';
 import { Dialog } from '@radix-ui/react-dialog';
 import { addDays } from 'date-fns';
 import { ArrowLeft, ArrowRight, Calendar, Edit, Sliders } from 'lucide-react';
@@ -570,11 +568,11 @@ function AdvancedOptions(props: {
               <Select
                 value={props.dualMetricChartColor}
                 onValueChange={(e) => {
-                  props.setDualMetricChartColor
-                    ? props.setDualMetricChartColor(
-                        e as keyof DualMetricChartColors,
-                      )
-                    : undefined;
+                  if (props.setDualMetricChartColor !== undefined) {
+                    props.setDualMetricChartColor(
+                      e as keyof DualMetricChartColors,
+                    );
+                  }
                   setIsOpen(false);
                 }}
               >
@@ -820,9 +818,9 @@ const customTooltip = ({ active, label, payload }: TooltipProps) => {
         </p>
       </div>
       <div className='mt-1 w-full space-y-2 rounded-md border border-gray-500/10 bg-white px-4 py-2 text-sm shadow-md dark:border-gray-400/20 dark:bg-gray-900'>
-        {payload.map((item) => {
+        {payload.map((item, i) => {
           return (
-            <div className='flex w-full justify-between gap-10'>
+            <div className='flex w-full justify-between gap-10' key={i}>
               <span className='flex items-center gap-2 capitalize text-gray-700 dark:text-gray-300'>
                 <div
                   className='size-1.5 rounded-full'
