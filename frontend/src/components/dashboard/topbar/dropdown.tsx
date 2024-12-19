@@ -27,7 +27,7 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
   const { user } = useContext(UserContext);
 
   function planBadge() {
-    switch (user?.plan) {
+    switch (user?.plan.identifier) {
       case 'starter':
         return (
           <PlansDialog>
@@ -40,20 +40,11 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
             </Button>
           </PlansDialog>
         );
-      case 'plus':
-        return (
-          <div className='flex w-fit flex-row items-center gap-1 rounded-full border bg-accent px-2 py-0.5 text-xs'>
-            <Sparkle className='size-3 text-purple-500' />
-            <div className='animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 bg-clip-text font-medium text-transparent'>
-              Plus
-            </div>
-          </div>
-        );
-      case 'pro':
+      default:
         return (
           <div className='flex w-fit animate-gradient flex-row items-center gap-1 rounded-full bg-accent bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 px-2 py-0.5 text-xs font-medium text-white'>
             <Sparkle className='size-3' />
-            Pro
+            {user?.plan.name}
           </div>
         );
     }
