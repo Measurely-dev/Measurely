@@ -153,7 +153,7 @@ export function ChartsCard() {
         ]}
       />
       {applications?.[activeApp].groups !== undefined &&
-        applications?.[activeApp].groups?.length! > 0 ? (
+      applications?.[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}
@@ -179,7 +179,7 @@ export function ChartsCard() {
                 {loading ? (
                   <>
                     <Skeleton className='h-60 w-full rounded-[12px]' />
-\                  </>
+                  </>
                 ) : (
                   <div className='w-full'>
                     <div className='flex w-full flex-row gap-5'>
@@ -195,14 +195,14 @@ export function ChartsCard() {
                             applications?.[activeApp].groups?.[activeGroup]
                               .type === GroupType.Base
                               ? (applications?.[activeApp].groups?.[activeGroup]
-                                .name ?? '')
+                                  .name ?? '')
                               : (applications?.[activeApp].groups?.[activeGroup]
-                                .metrics[0].name ?? ''),
+                                  .metrics[0].name ?? ''),
                             applications?.[activeApp].groups?.[activeGroup]
                               .type === GroupType.Base
                               ? ''
                               : (applications?.[activeApp].groups?.[activeGroup]
-                                .metrics[1].name ?? ''),
+                                  .metrics[1].name ?? ''),
                             applications?.[activeApp].groups?.[activeGroup]
                               .name ?? '',
                           )}
@@ -224,6 +224,7 @@ export function ChartsCard() {
                 )}
               </>
             )}
+            <TopMetricCard />
           </CardContent>
         </>
       ) : (
@@ -236,7 +237,6 @@ export function ChartsCard() {
           </Empty>
         </Link>
       )}
-      <TopMetricCard />
     </Card>
   );
 }

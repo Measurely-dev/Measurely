@@ -20,7 +20,7 @@ export default function UpgradeCard() {
                     You're using the {user?.plan.name} plan
                   </div>
                 </div>
-                <div className='text-sm text-secondary text-white/70'>
+                <div className='text-sm text-white/70'>
                   You can unlock your limits by upgrading to the next plan.
                 </div>
               </div>
@@ -41,12 +41,12 @@ export default function UpgradeCard() {
             <CardContent className='flex flex-row items-center justify-between gap-5 p-4 max-md:flex-col'>
               <div className='flex flex-col max-md:w-full'>
                 <div className='flex flex-row items-center gap-3'>
-                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium'>
+                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 text-xs font-medium'>
                     <Sparkle className='size-3' />
-                    {user?.plan.name}
+                    {user?.plan.identifier}
                   </div>
                   <div className='text-md font-semibold text-white'>
-                    Welcome back,{' '}
+                    Welcome back,{" "}
                     <span className='font-semibold capitalize'>
                       {user?.firstname}
                     </span>

@@ -6,7 +6,7 @@ import { Code, Menu, MessageSquare, Plus, User } from 'react-feather';
 import FeedbackPopover from '../feedback-popover';
 
 import AvatarDropdown from './dropdown';
-import ApplicationsChip from './application';
+import ApplicationsChip from './applications';
 import Link from 'next/link';
 import { useContext } from 'react';
 import { AppsContext, UserContext } from '@/dash-context';

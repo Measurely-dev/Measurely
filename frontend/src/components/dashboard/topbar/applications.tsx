@@ -7,15 +7,32 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { AppsContext } from '@/dash-context';
+import { AppsContext, UserContext } from '@/dash-context';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function ApplicationsChip() {
   const [open, setOpen] = useState(false);
-
+  const { user } = useContext(UserContext);
   const { applications, activeApp, setActiveApp } = useContext(AppsContext);
+
+  const applicationLimitReached =
+    applications &&
+    user?.plan?.applimit &&
+    applications.length > user.plan.applimit;
+
+  const handleAppSelect = (index: number) => {
+    if (applicationLimitReached && index >= user.plan.applimit) {
+      toast.error('Upgrade plan to view this application');
+      return;
+    }
+
+    setActiveApp(index);
+    localStorage.setItem('activeApp', index.toString());
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -46,14 +63,16 @@ export default function ApplicationsChip() {
         align='start'
       >
         {applications?.map((app, i) => {
+          const isBlocked = applicationLimitReached && i >= user.plan.applimit;
+
           return (
             <div
               key={i}
-              className='flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75'
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${
+                isBlocked ? 'cursor-not-allowed opacity-50' : ''
+              }`}
               onClick={() => {
-                setActiveApp(i);
-                localStorage.setItem('activeApp', i.toString());
-                setOpen(false);
+                handleAppSelect(i);
               }}
             >
               <div className='flex flex-row items-center justify-center gap-2'>
