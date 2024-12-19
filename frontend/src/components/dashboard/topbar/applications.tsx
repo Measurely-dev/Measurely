@@ -59,13 +59,13 @@ export default function ApplicationsChip() {
         >
           <Avatar className='size-6 border bg-accent'>
             <AvatarImage
-              src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications?.[activeApp]?.image}`}
+              src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications[activeApp]?.image}`}
             />
             <AvatarFallback>
-              {applications?.[activeApp].name.charAt(0).toUpperCase()}
+              {applications[activeApp] ? applications[activeApp].name.charAt(0).toUpperCase() : ''}
             </AvatarFallback>
           </Avatar>
-          {applications?.[activeApp].name}
+          {applications[activeApp] ? applications[activeApp].name : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>
@@ -74,7 +74,7 @@ export default function ApplicationsChip() {
         side='bottom'
         align='start'
       >
-        {applications?.map((app, i) => {
+        {applications.map((app, i) => {
           const isBlocked = applicationLimitReached && i >= user.plan.applimit;
 
           return (

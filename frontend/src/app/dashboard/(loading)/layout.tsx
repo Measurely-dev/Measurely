@@ -19,8 +19,7 @@ export default function DashboardContentLayout({
     appsLoading,
     setAppsLoading,
   } = useContext(AppsContext);
-  const { setUser, userLoading, setUserLoading } =
-    useContext(UserContext);
+  const { setUser, userLoading, setUserLoading } = useContext(UserContext);
 
   const router = useRouter();
 
@@ -51,9 +50,10 @@ export default function DashboardContentLayout({
         })
         .then((json) => {
           setUser(json);
-        }).finally(() => {
-          setUserLoading(false)
         })
+        .finally(() => {
+          setUserLoading(false);
+        });
     }
 
     if (appsLoading) {
@@ -83,7 +83,7 @@ export default function DashboardContentLayout({
           let savedActiveApp = parseInt(
             localStorage.getItem('activeApp') ?? '0',
           );
-          if (json.length < savedActiveApp + 1) {
+          if (savedActiveApp > json.length - 1 || savedActiveApp < 0) {
             savedActiveApp = 0;
             localStorage.setItem('activeApp', savedActiveApp.toString());
           }
@@ -97,8 +97,6 @@ export default function DashboardContentLayout({
 
           setApplications(json);
           setActiveApp(savedActiveApp);
-        })
-        .finally(() => {
           setAppsLoading(false);
         });
     }

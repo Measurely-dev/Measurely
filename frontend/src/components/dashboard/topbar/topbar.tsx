@@ -29,7 +29,7 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ApplicationsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog appId={applications?.[activeApp]?.id ?? ''}>
+            <ApiDialog appId={applications[activeApp]?.id ?? ''}>
               <Button
                 size={'sm'}
                 variant={'secondary'}
