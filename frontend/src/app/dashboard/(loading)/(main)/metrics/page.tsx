@@ -8,7 +8,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import Empty from '@/components/dashboard/empty';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArchiveIcon } from '@radix-ui/react-icons';
 import { Plus, Search } from 'react-feather';
 import MetricTable from './metric-table';
 import Link from 'next/link';
@@ -31,14 +29,15 @@ import {
   useState,
 } from 'react';
 import { AppsContext } from '@/dash-context';
-import { Loader } from 'lucide-react';
+import { BoxIcon, CurlyBraces, Link2Icon, Loader } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardMetrics() {
   const { applications, activeApp } = useContext(AppsContext);
-
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('new');
-
+  const router = useRouter();
   useEffect(() => {
     document.title = 'Metrics | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -85,12 +84,16 @@ export default function DashboardMetrics() {
             </div>
 
             {applications[activeApp].groups?.length === 0 ? (
-              <Empty>
-                <ArchiveIcon className='size-10' />
-                <div className='flex flex-col items-center gap-3 text-center'>
-                  No metric created yet
-                </div>
-              </Empty>
+              <EmptyState
+                className='w-full'
+                title='No Metric Created'
+                description='You can create a new metric to start tracking values.'
+                icons={[CurlyBraces, BoxIcon, Link2Icon]}
+                action={{
+                  label: 'Create metric',
+                  onClick: () => router.push('/dashboard/new-metric'),
+                }}
+              />
             ) : (
               <MetricTable search={search} filter={filter} />
             )}

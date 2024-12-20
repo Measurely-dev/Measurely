@@ -4,10 +4,9 @@ import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dash-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ApiDialog from '../api-dialog';
-import Empty from '../empty';
 import { Plus } from 'react-feather';
 import Link from 'next/link';
-import { Key, MoreHorizontal } from 'lucide-react';
+import { FileQuestion, Key, MoreHorizontal, Search } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import EditAppDialogContent from '../edit-app-dialog-content';
 import DeleteAppDialogContent from '../delete-app-dialog-content';
@@ -19,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Application } from '@/types';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function SettingAppsPage() {
   const { activeApp, applications } = useContext(AppsContext);
@@ -51,7 +51,11 @@ export default function SettingAppsPage() {
         </Link>
         <div className='flex flex-col gap-8'>
           {sortedApplications.length === 0 ? (
-            <Empty>No app found</Empty>
+            <EmptyState
+              title='No Application Found'
+              description='Try creating one.'
+              icons={[Search, FileQuestion]}
+            />
           ) : (
             sortedApplications.map((app: Application, i: number) => {
               return (

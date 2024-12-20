@@ -1,6 +1,12 @@
 'use client';
 
-import { Check, ChevronsUpDown } from 'lucide-react';
+import {
+  BoxIcon,
+  Check,
+  ChevronsUpDown,
+  CurlyBraces,
+  Link2Icon,
+} from 'lucide-react';
 import { AreaChart } from '@/components/ui/areaChart';
 
 import {
@@ -31,16 +37,16 @@ import { AppsContext } from '@/dash-context';
 import { calculateTrend, loadChartData } from '@/utils';
 import { Group, GroupType } from '@/types';
 import MetricStats from './metric-stats';
-import Empty from './empty';
-import { CubeIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
+import { EmptyState } from '../ui/empty-state';
+import { useRouter } from 'next/navigation';
 
 export function ChartsCard() {
   const { applications, activeApp } = useContext(AppsContext);
   const [activeGroup, setActiveGroup] = useState(0);
-
+  const router = useRouter();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -139,7 +145,7 @@ export function ChartsCard() {
           <CardContent className='flex flex-col'>
             {total === 0 ? (
               <div className='flex w-full flex-col items-center justify-center gap-2 rounded-[12px] bg-accent px-5 py-20'>
-                <div className='text-3xl font-semibold text-center'>
+                <div className='text-center text-3xl font-semibold'>
                   Nothing Here Yet. Check Back Soon!
                 </div>
                 <div className='text-md text-center text-secondary max-sm:text-sm'>
@@ -197,14 +203,16 @@ export function ChartsCard() {
           </CardContent>
         </>
       ) : (
-        <Link href={'/dashboard/new-metric'}>
-          <Empty className='rounded-t-none border-none'>
-            <CubeIcon className='size-10' />
-            <div className='flex flex-col items-center gap-3 text-center'>
-              Create your first metric
-            </div>
-          </Empty>
-        </Link>
+        <EmptyState
+          className='w-full border-none rounded-t-none rounded-b-[16px]'
+          title='No Metric Created'
+          description='You can create a new metric to start tracking values.'
+          icons={[CurlyBraces, BoxIcon, Link2Icon]}
+          action={{
+            label: 'Create metric',
+            onClick: () => router.push('/dashboard/new-metric'),
+          }}
+        />
       )}
     </Card>
   );

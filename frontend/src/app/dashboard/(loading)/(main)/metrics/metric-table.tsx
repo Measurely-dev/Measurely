@@ -4,14 +4,19 @@ import { Button } from '@/components/ui/button';
 import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, MoreHorizontal } from 'react-feather';
+import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
-import Empty from '@/components/dashboard/empty';
 import { Separator } from '@radix-ui/react-separator';
 import { fetchDailySummary } from '@/utils';
 import { useRouter } from 'next/navigation';
-import { ArrowUpDown, ArrowUpFromDot } from 'lucide-react';
+import {
+  ArrowUpDown,
+  ArrowUpFromDot,
+  FileQuestion,
+  Search,
+} from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const formattedDate = (date: Date) => {
   try {
@@ -85,12 +90,11 @@ export default function MetricTable(props: { search: string; filter: string }) {
       <div className='flex flex-col gap-2 pb-20'>
         {/* Items components */}
         {filteredGroups.length === 0 ? (
-          <Empty>
-            <AlertCircle className='size-10' />
-            <div className='flex flex-col items-center gap-3 text-center'>
-              No metric found with that name
-            </div>
-          </Empty>
+          <EmptyState
+            title='No Results Found'
+            description='Try adjusting your search filters.'
+            icons={[Search, FileQuestion]}
+          />
         ) : (
           <>
             {filteredGroups.map((group, i) => {
