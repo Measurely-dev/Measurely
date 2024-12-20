@@ -276,15 +276,31 @@ export default function DashboardMetricPage() {
               </div>
             </div>
             <div className='flex flex-row gap-2'>
-              <MoreDropdown group={group}>
+              {group?.type === GroupType.Dual ? (
+                <MoreDropdown group={group}>
+                  <Button
+                    variant={'secondary'}
+                    size={'icon'}
+                    className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
+                  >
+                    <Copy className='size-4' />
+                  </Button>
+                </MoreDropdown>
+              ) : (
                 <Button
                   variant={'secondary'}
                   size={'icon'}
-                  className='rounded-[12px] size-9 min-w-9 max-sm:w-full'
+                  className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      group ? group?.metrics[0].id : '',
+                    );
+                    toast.success('Succefully copied Metric ID');
+                  }}
                 >
                   <Copy className='size-4' />
                 </Button>
-              </MoreDropdown>
+              )}
               <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
                 <DialogTrigger asChild>
                   <Button className='rounded-[12px] max-sm:w-full'>
@@ -1138,43 +1154,26 @@ function MoreDropdown(props: {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
         <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-          {props.group?.type === 1 ? (
-            <>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    props.group ? props.group?.metrics[0].id : '',
-                  );
-                  toast.success('Succefully copied positive variable ID');
-                }}
-              >
-                Copy positive ID
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    props.group ? props.group?.metrics[1].id : '',
-                  );
-                  toast.success('Succefully copied degative variable ID');
-                }}
-              >
-                Copy negative ID
-              </DropdownMenuItem>
-            </>
-          ) : (
-            <>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    props.group ? props.group?.metrics[0].id : '',
-                  );
-                  toast.success('Succefully copied Metric ID');
-                }}
-              >
-                Copy metric ID
-              </DropdownMenuItem>
-            </>
-          )}
+          <DropdownMenuItem
+            onClick={() => {
+              navigator.clipboard.writeText(
+                props.group ? props.group?.metrics[0].id : '',
+              );
+              toast.success('Succefully copied positive variable ID');
+            }}
+          >
+            Copy positive ID
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              navigator.clipboard.writeText(
+                props.group ? props.group?.metrics[1].id : '',
+              );
+              toast.success('Succefully copied degative variable ID');
+            }}
+          >
+            Copy negative ID
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
