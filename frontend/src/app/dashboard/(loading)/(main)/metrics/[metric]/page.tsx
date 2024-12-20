@@ -517,9 +517,9 @@ function TrendChart(props: { group: Group }) {
         to.setDate(to.getDate() + range);
       }
 
-      let timeDiff = now.getTime() - to.getTime();
+      const timeDiff = now.getTime() - to.getTime();
 
-      let daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
+      const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
 
       let total =
         props.group.type === GroupType.Base

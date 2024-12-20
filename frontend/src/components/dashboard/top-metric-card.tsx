@@ -17,7 +17,7 @@ export const TopMetricCard = () => {
   const { applications, activeApp } = useContext(AppsContext);
 
   const topMetricData = useMemo(() => {
-    let data = [];
+    const data = [];
 
     if (applications[activeApp].groups === null) return [];
     if (applications[activeApp].groups.length === 0) return [];
