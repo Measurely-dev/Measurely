@@ -278,6 +278,15 @@ export default function DashboardMetricPage() {
               </div>
             </div>
             <div className='flex flex-row gap-2'>
+              <MoreDropdown group={group}>
+                <Button
+                  variant={'secondary'}
+                  size={'icon'}
+                  className='rounded-[12px] max-sm:w-full'
+                >
+                  <Copy className='size-4' />
+                </Button>
+              </MoreDropdown>
               <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
                 <DialogTrigger asChild>
                   <Button className='rounded-[12px] max-sm:w-full'>
@@ -293,15 +302,6 @@ export default function DashboardMetricPage() {
                   }}
                 />
               </Dialog>
-              <MoreDropdown group={group}>
-                <Button
-                  variant={'secondary'}
-                  size={'icon'}
-                  className='rounded-[12px] max-sm:w-full'
-                >
-                  <Copy className='size-4' />
-                </Button>
-              </MoreDropdown>
             </div>
           </div>
           <OverviewChart group={group!} />
