@@ -63,7 +63,7 @@ export const TopMetricCard = () => {
       </CardHeader>
       {metricsSum !== 0 || topMetricData.length === 0 ? (
         <EmptyState
-          className='py-14 mt-5'
+          className='mt-5 py-14'
           title='Nothing to display Yet. Check Back Soon!'
           description='Theres no available data for this month.'
           icons={[ChartNetwork]}

@@ -36,7 +36,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { Box } from 'react-feather';
 import { AppsContext } from '@/dash-context';
 import { calculateTrend, loadChartData } from '@/utils';
 import { Group, GroupType } from '@/types';
