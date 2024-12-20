@@ -326,8 +326,8 @@ function OverviewChart(props: { group: Group }) {
       const now = new Date();
       if (now < prev.from) {
         return {
-          from : new Date()
-        }
+          from: new Date(),
+        };
       }
       return {
         from: prev.from,
@@ -491,17 +491,56 @@ function TrendChart(props: { group: Group }) {
     to: new Date(),
   });
   const [chartData, setChartData] = useState<any[] | null>(null);
+  const [total, setTotal] = useState(0);
 
   const loadChart = async () => {
     if (date !== undefined && date.from !== undefined) {
-      setChartData(
-        (await loadChartData(
-          date.from,
-          range,
-          props.group,
-          props.group.appid,
-        )) ?? [],
+      const to = new Date(date.from);
+      const now = new Date();
+      if (range === 0) {
+        to.setHours(to.getHours() + 24);
+      } else {
+        to.setDate(to.getDate() + range);
+      }
+
+      let timeDiff = now.getTime() - to.getTime();
+
+      let daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
+
+      let total =
+        props.group.type === GroupType.Base
+          ? props.group.metrics[0].total
+          : props.group.metrics[0].total - props.group.metrics[1].total;
+      let pos = 0;
+      let neg = 0;
+
+      if (daysDiff > 0) {
+        const futurValues =
+          (await loadChartData(to, daysDiff, props.group, props.group.appid)) ??
+          [];
+
+        for (let i = 0; i < futurValues.length; i++) {
+          if (props.group.type === GroupType.Base) {
+            pos += futurValues[i][props.group.name];
+          } else {
+            pos += futurValues[i][props.group.metrics[0].name];
+            neg += futurValues[i][props.group.metrics[1].name];
+          }
+        }
+      }
+
+      total -= pos;
+      total += neg;
+
+      const data = await loadChartData(
+        date.from,
+        range,
+        props.group,
+        props.group.appid,
       );
+
+      setChartData(data ?? []);
+      setTotal(total);
     }
   };
 
@@ -513,8 +552,8 @@ function TrendChart(props: { group: Group }) {
       const now = new Date();
       if (now < prev.from) {
         return {
-          from : new Date()
-        }
+          from: new Date(),
+        };
       }
       return {
         from: prev.from,
@@ -635,9 +674,7 @@ function TrendChart(props: { group: Group }) {
           className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
           data={calculateTrend(
             chartData,
-            props.group.type === GroupType.Base
-              ? props.group.metrics[0].total
-              : props.group.metrics[0].total - props.group.metrics[1].total,
+            total,
             props.group.type,
             props.group.type === GroupType.Base
               ? props.group.name
