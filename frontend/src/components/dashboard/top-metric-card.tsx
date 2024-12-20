@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useContext, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -8,41 +8,68 @@ import {
   CardTitle,
 } from '../ui/card';
 import { BarChart } from '../ui/BarChart';
+import { AppsContext } from '@/dash-context';
+import { GroupType } from '@/types';
 
-const topMetric = [
+const defaultData = [
   {
-    action: 'Login Attempts',
-    occurrences: 2488,
+    name: 'Login Attempts',
+    total: 2488,
   },
   {
-    action: 'Page Views',
-    occurrences: 1445,
+    name: 'Page Views',
+    total: 1445,
   },
   {
-    action: 'API Requests',
-    occurrences: 743,
+    name: 'API Requests',
+    total: 743,
   },
   {
-    action: 'File Uploads',
-    occurrences: 281,
+    name: 'File Uploads',
+    total: 281,
   },
   {
-    action: 'Sign-Ups',
-    occurrences: 251,
+    name: 'Sign-Ups',
+    total: 251,
   },
   {
-    action: 'Password Resets',
-    occurrences: 232,
+    name: 'Password Resets',
+    total: 232,
   },
   {
-    action: 'Subscription Upgrades',
-    occurrences: 98,
+    name: 'Subscription Upgrades',
+    total: 98,
   },
 ];
 
 export const TopMetricCard = () => {
+  const { applications, activeApp } = useContext(AppsContext);
+
+  const topMetricData = useMemo(() => {
+    let data = [];
+
+    if (applications[activeApp].groups === null) return defaultData;
+    if (applications[activeApp].groups.length === 0) return defaultData;
+    for (let i = 0; i < applications[activeApp].groups.length; i++) {
+      const group = applications[activeApp].groups[i];
+      if (group.type === GroupType.Base) {
+        data.push({
+          name: group.name,
+          total: group.metrics[0].total,
+        });
+      } else {
+        data.push({
+          name: group.name,
+          total: group.metrics[0].total - group.metrics[1].total,
+        });
+      }
+    }
+
+    return data.sort((a, b) => b.total - a.total);
+  }, [activeApp]);
+
   return (
-    <Card className='rounded-none border-none mt-5'>
+    <Card className='mt-5 rounded-none border-none'>
       <CardHeader className='p-0'>
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
@@ -50,9 +77,9 @@ export const TopMetricCard = () => {
       <CardContent className='mt-5 rounded-[12px] bg-accent p-4'>
         <BarChart
           className='w-full'
-          data={topMetric}
-          index='action'
-          categories={['occurrences']}
+          data={topMetricData}
+          index='name'
+          categories={['total']}
           yAxisWidth={100}
           layout='vertical'
           valueFormatter={(number: number) =>
