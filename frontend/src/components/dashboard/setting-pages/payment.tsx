@@ -45,7 +45,9 @@ export default function SettingPaymentPage() {
 
   return (
     <div className='flex flex-col gap-5'>
-      <div className='flex w-full flex-row items-center justify-between rounded-[12px] bg-accent px-5 py-3 max-md:flex-col max-md:gap-4'>
+      <div
+        className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${user?.plan.identifier === 'starter' ? 'bg-accent' : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'}`}
+      >
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
             <Code className='size-5' />
@@ -53,15 +55,24 @@ export default function SettingPaymentPage() {
               You're using the {user?.plan.name} plan
             </div>
           </div>
-          <div className='text-sm text-secondary'>
-            You can unlock limits by upgrading to the next plan.
-          </div>
+          {user?.plan.identifier !== 'starter' ? (
+            ''
+          ) : (
+            <div className='text-sm text-secondary'>
+              You can unlock your limits by upgrading to the next plan.
+            </div>
+          )}
         </div>
         <PlansDialog>
-          <Button className='rounded-[12px] max-md:w-full' variant={'default'}>
+          <Button
+            className={`rounded-[12px] max-md:w-full ${user?.plan.identifier === 'starter' ? '' : 'invert'}`}
+            variant={'default'}
+          >
             {user?.plan.identifier === 'starter'
               ? 'Upgrade plan'
-              : 'Switch plan'}
+              : user?.plan.identifier === 'pro'
+                ? 'Downgrade plan'
+                : 'Switch plan'}
           </Button>
         </PlansDialog>
       </div>
