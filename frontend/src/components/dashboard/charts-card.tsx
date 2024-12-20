@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  ArrowUpDown,
+  ArrowUpFromDot,
   BoxIcon,
   Check,
   ChevronsUpDown,
@@ -105,7 +107,7 @@ export function ChartsCard() {
   }, [activeApp]);
 
   return (
-    <Card className='rounded-t-none border-input mb-20'>
+    <Card className='mb-20 rounded-t-none border-input'>
       <MetricStats
         stats={[
           {
@@ -243,7 +245,7 @@ function Header(props: {
             {props.groups.length > 0
               ? props.groups.find((_, i) => i === props.activeGroup)?.name
               : 'Select metric...'}
-            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+            <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
           </Button>
         </PopoverTrigger>
         <PopoverContent className='w-[200px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
@@ -262,9 +264,11 @@ function Header(props: {
                     }}
                   >
                     {i === props.activeGroup ? (
-                      <Check className={cn('mr-2 h-4 w-4 stroke-[3px]')} />
+                      <Check className={cn('mr-2 size-4 stroke-[3px]')} />
+                    ) : group.type === 1 ? (
+                      <ArrowUpDown className={cn('mr-2 size-4')} />
                     ) : (
-                      <Box className={cn('mr-2 h-4 w-4 text-blue-500')} />
+                      <ArrowUpFromDot className={cn('mr-2 size-4')} />
                     )}
 
                     {group.name}
