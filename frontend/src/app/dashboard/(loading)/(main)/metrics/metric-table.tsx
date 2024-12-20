@@ -11,6 +11,7 @@ import Empty from '@/components/dashboard/empty';
 import { Separator } from '@radix-ui/react-separator';
 import { fetchDailySummary } from '@/utils';
 import { useRouter } from 'next/navigation';
+import { ArrowUpDown, ArrowUpFromDot, ArrowUpRight, Shuffle, ShuffleIcon } from 'lucide-react';
 
 const formattedDate = (date: Date) => {
   try {
@@ -188,7 +189,11 @@ const Item = (props: { group: Group; index: number }) => {
       >
         <div className='flex flex-row items-center gap-[10px] text-[15px] max-lg:col-span-2'>
           <div className='rounded-full border border-input/50 bg-accent p-2'>
-            <Box className='size-5 text-blue-500' />
+            {props.group.type === 0 ? (
+              <ArrowUpFromDot className='size-4 text-black' />
+            ) : (
+              <ArrowUpDown className='size-4 text-black' />
+            )}
           </div>
           {props.group.name}
         </div>

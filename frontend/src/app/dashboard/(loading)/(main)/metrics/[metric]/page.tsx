@@ -15,6 +15,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DialogTrigger } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import {
   Popover,
@@ -46,8 +53,10 @@ import {
   ArrowLeft,
   ArrowRight,
   Calendar,
+  Copy,
   Edit,
   Loader,
+  MoreVertical,
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
@@ -60,6 +69,7 @@ import {
   useState,
 } from 'react';
 import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 
 type AllowedColors =
   | 'blue'
@@ -267,21 +277,32 @@ export default function DashboardMetricPage() {
                 )}
               </div>
             </div>
-            <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
-              <DialogTrigger asChild>
-                <Button className='rounded-[12px] max-sm:w-full'>
-                  <Edit className='mr-2 size-4' />
-                  Edit
+            <div className='flex flex-row gap-2'>
+              <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
+                <DialogTrigger asChild>
+                  <Button className='rounded-[12px] max-sm:w-full'>
+                    <Edit className='mr-2 size-4' />
+                    Edit
+                  </Button>
+                </DialogTrigger>
+                <EditMetricDialogContent
+                  group={group!}
+                  setOpen={setOpen}
+                  onUpdate={(new_name: string) => {
+                    setGroup(Object.assign({}, group, { name: new_name }));
+                  }}
+                />
+              </Dialog>
+              <MoreDropdown group={group}>
+                <Button
+                  variant={'secondary'}
+                  size={'icon'}
+                  className='rounded-[12px] max-sm:w-full'
+                >
+                  <Copy className='size-4' />
                 </Button>
-              </DialogTrigger>
-              <EditMetricDialogContent
-                group={group!}
-                setOpen={setOpen}
-                onUpdate={(new_name: string) => {
-                  setGroup(Object.assign({}, group, { name: new_name }));
-                }}
-              />
-            </Dialog>
+              </MoreDropdown>
+            </div>
           </div>
           <OverviewChart group={group!} />
           <TrendChart group={group!} />
@@ -1109,3 +1130,55 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
     </>
   );
 };
+
+function MoreDropdown(props: {
+  children: any;
+  group: Group | null | undefined;
+}) {
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
+        <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
+          {props.group?.type === 1 ? (
+            <>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    props.group ? props.group?.metrics[0].id : '',
+                  );
+                  toast.success('Succefully copied positive variable ID');
+                }}
+              >
+                Copy positive ID
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    props.group ? props.group?.metrics[1].id : '',
+                  );
+                  toast.success('Succefully copied degative variable ID');
+                }}
+              >
+                Copy negative ID
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    props.group ? props.group?.metrics[0].id : '',
+                  );
+                  toast.success('Succefully copied Metric ID');
+                }}
+              >
+                Copy metric ID
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  );
+}
