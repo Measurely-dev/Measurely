@@ -280,7 +280,7 @@ export default function DashboardMetricPage() {
                 <Button
                   variant={'secondary'}
                   size={'icon'}
-                  className='rounded-[12px] max-sm:w-full'
+                  className='rounded-[12px] size-9 min-w-9 max-sm:w-full'
                 >
                   <Copy className='size-4' />
                 </Button>
