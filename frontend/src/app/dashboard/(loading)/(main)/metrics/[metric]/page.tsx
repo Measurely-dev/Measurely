@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Tooltip,
@@ -41,7 +42,14 @@ import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { calculateTrend, fetchDailySummary, loadChartData } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
-import { ArrowLeft, ArrowRight, Calendar, Edit, Sliders } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Edit,
+  Loader,
+  Sliders,
+} from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Dispatch,
@@ -445,11 +453,17 @@ function OverviewChart(props: { group: Group }) {
               });
             }}
           />
+          <Button
+            className='pointer-events-none h-[34px] rounded-[10px] !bg-background !text-primary'
+            size={'icon'}
+          >
+            <Loader className='size-4 animate-spin' />
+          </Button>
         </div>
       </div>
 
       {chartData === null ? (
-        'LOADING...'
+        <Skeleton className='mt-2 h-[40vh] w-full rounded-[12px] bg-accent' />
       ) : (
         <BarChart
           className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
@@ -664,11 +678,17 @@ function TrendChart(props: { group: Group }) {
               });
             }}
           />
+          <Button
+            className='pointer-events-none h-[34px] rounded-[10px] !bg-background !text-primary'
+            size={'icon'}
+          >
+            <Loader className='size-4 animate-spin' />
+          </Button>
         </div>
       </div>
 
       {chartData === null ? (
-        'LOADING...'
+        <Skeleton className='mt-2 h-[40vh] w-full rounded-[12px] bg-accent' />
       ) : (
         <AreaChart
           className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
@@ -758,7 +778,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === GroupType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -784,7 +804,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === GroupType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -950,7 +970,13 @@ function AdvancedOptions(props: {
   );
 }
 
-function OffsetBtns(props: { onLeft: () => void; onRight: () => void }) {
+function OffsetBtns(props: {
+  onLeft: () => void;
+  onRight: () => void;
+  isLoadingLeft?: boolean | false;
+  isLoadingRight?: boolean | false;
+  isDisabled?: boolean | false;
+}) {
   return (
     <div className='flex gap-2'>
       <Tooltip delayDuration={300}>
@@ -960,7 +986,11 @@ function OffsetBtns(props: { onLeft: () => void; onRight: () => void }) {
             size={'icon'}
             onClick={props.onLeft}
           >
-            <ArrowLeft className='size-4' />
+            {props.isLoadingLeft ? (
+              <Loader className='size-4 animate-spin' />
+            ) : (
+              <ArrowLeft className='size-4' />
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent
@@ -977,8 +1007,13 @@ function OffsetBtns(props: { onLeft: () => void; onRight: () => void }) {
             className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
             size={'icon'}
             onClick={props.onRight}
+            disabled={props.isDisabled}
           >
-            <ArrowRight className='size-4' />
+            {props.isLoadingRight ? (
+              <Loader className='size-4 animate-spin' />
+            ) : (
+              <ArrowRight className='size-4' />
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent
