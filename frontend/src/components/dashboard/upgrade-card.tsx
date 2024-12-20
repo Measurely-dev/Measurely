@@ -41,12 +41,12 @@ export default function UpgradeCard() {
             <CardContent className='flex flex-row items-center justify-between gap-5 p-4 max-md:flex-col'>
               <div className='flex flex-col max-md:w-full'>
                 <div className='flex flex-row items-center gap-3'>
-                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 text-xs font-medium'>
+                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 px-2 text-xs font-medium'>
                     <Sparkle className='size-3' />
                     {user?.plan.name}
                   </div>
                   <div className='text-md font-semibold text-white'>
-                    Welcome back,{" "}
+                    Welcome back,{' '}
                     <span className='font-semibold capitalize'>
                       {user?.firstname}
                     </span>
