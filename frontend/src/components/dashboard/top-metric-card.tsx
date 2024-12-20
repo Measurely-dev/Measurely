@@ -10,12 +10,13 @@ import {
 import { BarChart } from '../ui/BarChart';
 import { AppsContext } from '@/dash-context';
 import { GroupType } from '@/types';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { EmptyState } from '../ui/empty-state';
+import { ChartNetwork } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export const TopMetricCard = () => {
   const { applications, activeApp } = useContext(AppsContext);
-
+  const router = useRouter();
   const topMetricData = useMemo(() => {
     const data = [];
 
@@ -55,25 +56,24 @@ export const TopMetricCard = () => {
   }, [activeApp]);
 
   return (
-    <Card className='mt-5 rounded-none border-none'>
+    <Card className='mt-10 rounded-none border-none'>
       <CardHeader className='p-0'>
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
       </CardHeader>
-      <CardContent className='mt-5 rounded-[12px] bg-accent p-4'>
-        {metricsSum !== 0 || topMetricData.length === 0 ? (
-          <div className='flex w-full flex-col items-center justify-center gap-2 rounded-[12px] bg-accent px-5 py-20'>
-            <div className='text-3xl font-semibold text-center'>Nothing to Display</div>
-            <div className='text-md text-center text-secondary max-sm:text-sm'>
-              There's no relevant top metric to show here
-            </div>
-            <div className='flex flex-row items-center gap-4'>
-              <Link href={'/docs/getting-started/introduction'}>
-                <Button className='mt-2 rounded-[12px]'>Learn more</Button>
-              </Link>
-            </div>
-          </div>
-        ) : (
+      {metricsSum !== 0 || topMetricData.length === 0 ? (
+        <EmptyState
+          className='py-14 mt-5'
+          title='Nothing to display Yet. Check Back Soon!'
+          description='Theres no available data for this month.'
+          icons={[ChartNetwork]}
+          action={{
+            label: 'Learn more',
+            onClick: () => router.push('/docs/getting-started/introduction'),
+          }}
+        />
+      ) : (
+        <CardContent className='mt-5 rounded-[12px] bg-accent p-4'>
           <BarChart
             className='w-full'
             data={topMetricData}
@@ -85,8 +85,8 @@ export const TopMetricCard = () => {
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
           />
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };

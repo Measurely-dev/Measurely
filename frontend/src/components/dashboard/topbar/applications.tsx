@@ -68,7 +68,9 @@ export default function ApplicationsChip() {
                 : ''}
             </AvatarFallback>
           </Avatar>
-          {applications[activeApp] ? applications[activeApp].name : ''}
+          {applications[activeApp]
+            ? applications[activeApp].name.toLowerCase().toWellFormed()
+            : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>
@@ -99,7 +101,9 @@ export default function ApplicationsChip() {
                     {app.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className='text-[14px] font-medium'>{app.name}</div>
+                <div className='text-[14px] font-medium'>
+                  {app.name.toLowerCase().toWellFormed()}
+                </div>
               </div>
               <CheckIcon
                 className={`size-4 ${activeApp === i ? '' : 'hidden'}`}

@@ -4,6 +4,8 @@ import {
   BoxIcon,
   Check,
   ChevronsUpDown,
+  CircleOff,
+  CircleSlash,
   CurlyBraces,
   Link2Icon,
 } from 'lucide-react';
@@ -37,7 +39,6 @@ import { AppsContext } from '@/dash-context';
 import { calculateTrend, loadChartData } from '@/utils';
 import { Group, GroupType } from '@/types';
 import MetricStats from './metric-stats';
-import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
 import { EmptyState } from '../ui/empty-state';
@@ -104,7 +105,7 @@ export function ChartsCard() {
   }, [activeApp]);
 
   return (
-    <Card className='rounded-t-none border-input'>
+    <Card className='rounded-t-none border-input mb-20'>
       <MetricStats
         stats={[
           {
@@ -144,19 +145,17 @@ export function ChartsCard() {
           />
           <CardContent className='flex flex-col'>
             {total === 0 ? (
-              <div className='flex w-full flex-col items-center justify-center gap-2 rounded-[12px] bg-accent px-5 py-20'>
-                <div className='text-center text-3xl font-semibold'>
-                  Nothing Here Yet. Check Back Soon!
-                </div>
-                <div className='text-md text-center text-secondary max-sm:text-sm'>
-                  Theres no available data for this month
-                </div>
-                <div className='flex flex-row items-center gap-4'>
-                  <Link href={'/docs/getting-started/introduction'}>
-                    <Button className='mt-2 rounded-[12px]'>Learn more</Button>
-                  </Link>
-                </div>
-              </div>
+              <EmptyState
+                className='py-14'
+                title='Nothing Here Yet. Check Back Soon!'
+                description='Theres no available data for this month.'
+                icons={[CircleOff, CircleSlash]}
+                action={{
+                  label: 'Learn more',
+                  onClick: () =>
+                    router.push('/docs/getting-started/introduction'),
+                }}
+              />
             ) : (
               <>
                 {loading ? (
@@ -204,7 +203,7 @@ export function ChartsCard() {
         </>
       ) : (
         <EmptyState
-          className='w-full border-none rounded-t-none rounded-b-[16px]'
+          className='w-full rounded-b-[16px] rounded-t-none border-none'
           title='No Metric Created'
           description='You can create a new metric to start tracking values.'
           icons={[CurlyBraces, BoxIcon, Link2Icon]}
