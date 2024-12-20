@@ -47,9 +47,9 @@ export default function DashboardNavItem(props: {
           </Link>
         </TooltipTrigger>
         <TooltipContent
-          side="right"
+          side='right'
           sideOffset={8}
-          className="rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary"
+          className='rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary'
         >
           {props.name}
         </TooltipContent>

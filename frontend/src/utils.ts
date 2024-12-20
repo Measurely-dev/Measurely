@@ -190,7 +190,8 @@ export const fetchDailySummary = async (
   const to = new Date();
   to.setHours(from.getHours() + 24);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
+      appid
     }&groupid=${groupid}&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
     {
       method: 'GET',
@@ -233,7 +234,7 @@ export const calculateTrend = (
     type === GroupType.Base
       ? data[data.length - 1][positiveName] !== undefined
       : data[data.length - 1][positiveName] !== undefined &&
-      data[data.length - 1][negativeName] !== undefined;
+        data[data.length - 1][negativeName] !== undefined;
   if (exists) {
     trendData.push({
       date: data[data.length - 1].date,
@@ -254,7 +255,7 @@ export const calculateTrend = (
       type === GroupType.Base
         ? data[i][positiveName] !== undefined
         : data[i][positiveName] !== undefined &&
-        data[i][negativeName] !== undefined;
+          data[i][negativeName] !== undefined;
 
     if (exists) {
       trendData.push({

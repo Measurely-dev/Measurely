@@ -25,10 +25,7 @@ import { useContext, useState } from 'react';
 import { toast } from 'sonner';
 import EditMetricDialogContent from './edit-metric-dialog-content';
 
-export default function MetricDropdown(props: {
-  children: any;
-  group: Group;
-}) {
+export default function MetricDropdown(props: { children: any; group: Group }) {
   const { setApplications, applications } = useContext(AppsContext);
   const [open, setOpen] = useState(false);
 
@@ -138,10 +135,7 @@ export default function MetricDropdown(props: {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <EditMetricDialogContent
-          group={props.group}
-          setOpen={setOpen}
-        />
+        <EditMetricDialogContent group={props.group} setOpen={setOpen} />
       </Dialog>
     </>
   );

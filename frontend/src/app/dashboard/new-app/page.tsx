@@ -66,12 +66,9 @@ export default function NewApp() {
         }
 
         json.groups = await loadMetricsGroups(json.id);
-        setApplications((apps) => [...(apps), json]);
+        setApplications((apps) => [...apps, json]);
         setActiveApp(applications.length - 1);
-        localStorage.setItem(
-          'activeApp',
-          (applications.length - 1).toString(),
-        );
+        localStorage.setItem('activeApp', (applications.length - 1).toString());
         router.push('/dashboard');
       });
   }

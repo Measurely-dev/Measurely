@@ -128,7 +128,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].groups !== undefined &&
-        applications[activeApp].groups?.length! > 0 ? (
+      applications[activeApp].groups?.length! > 0 ? (
         <>
           <Header
             activeGroup={activeGroup}

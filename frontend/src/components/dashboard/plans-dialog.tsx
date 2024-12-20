@@ -47,7 +47,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
         if (data !== null && data !== undefined) {
           if (plan === 'starter') {
             toast.success('Successfully downgraded to the starter plan');
-            router.refresh()
+            router.refresh();
           } else {
             toast.success('Opening checkout session...');
             setTimeout(() => router.push(data.url), 500);

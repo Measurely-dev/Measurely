@@ -96,8 +96,8 @@ export default function EditMetricDialogContent(props: {
                   metrics: group.metrics.map((metric) =>
                     metric.id === props.group.metrics[i].id
                       ? Object.assign({}, metric, {
-                        name: subNames[i],
-                      })
+                          name: subNames[i],
+                        })
                       : metric,
                   ),
                 });
@@ -110,12 +110,12 @@ export default function EditMetricDialogContent(props: {
               applications.map((v) =>
                 v.id === props.group.appid
                   ? Object.assign({}, v, {
-                    groups: v.groups?.map((g) =>
-                      g.id === props.group.id
-                        ? Object.assign({}, g, group)
-                        : g,
-                    ),
-                  })
+                      groups: v.groups?.map((g) =>
+                        g.id === props.group.id
+                          ? Object.assign({}, g, group)
+                          : g,
+                      ),
+                    })
                   : v,
               ),
             );

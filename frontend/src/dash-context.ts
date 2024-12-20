@@ -35,15 +35,15 @@ export interface AppsContextType {
 
 export const UserContext = createContext<UserContextType>({
   user: defaultUser,
-  setUser: () => { },
+  setUser: () => {},
   userLoading: true,
-  setUserLoading: () => { },
+  setUserLoading: () => {},
 });
 export const AppsContext = createContext<AppsContextType>({
   applications: [],
-  setApplications: () => { },
+  setApplications: () => {},
   activeApp: -1,
-  setActiveApp: () => { },
+  setActiveApp: () => {},
   appsLoading: true,
-  setAppsLoading: () => { },
+  setAppsLoading: () => {},
 });
