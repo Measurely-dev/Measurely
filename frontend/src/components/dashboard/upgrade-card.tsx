@@ -43,7 +43,7 @@ export default function UpgradeCard() {
                 <div className='flex flex-row items-center gap-3'>
                   <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 text-xs font-medium'>
                     <Sparkle className='size-3' />
-                    {user?.plan.identifier}
+                    {user?.plan.name}
                   </div>
                   <div className='text-md font-semibold text-white'>
                     Welcome back,{" "}
