@@ -180,10 +180,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 }
               })
               .then((json) => {
-                if (
-                  json === null ||
-                  json === undefined
-                ) {
+                if (json === null || json === undefined) {
                   return;
                 }
                 setApplications(
@@ -222,6 +219,8 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   <Input
                     placeholder='Optional'
                     type='number'
+                    min={0}
+                    max={1000000000}
                     value={
                       baseValue === 0 && !Number(baseValue) ? '' : baseValue
                     }
@@ -272,10 +271,13 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   const [nameNeg, setNameNeg] = useState('removed');
   const [namingType, setNamingType] = useState('auto');
 
+  const [baseValue, setBaseValue] = useState<number | string>(0);
+
   const [loading, setLoading] = useState(false);
 
   const { applications, setApplications, activeApp } = useContext(AppsContext);
   const router = useRouter();
+
 
   return (
     <div className='mx-auto flex flex-col gap-6'>
@@ -297,7 +299,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             credentials: 'include',
             body: JSON.stringify({
               name: name,
-              basevalue: 0,
+              basevalue: baseValue,
               type: GroupType.Dual,
               appid: applications[activeApp].id,
               metrics: [namePos, nameNeg],
@@ -389,6 +391,31 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   your specific use case and improve clarity.
                 </Label>
               </Label>
+              <div className='flex w-full flex-col gap-3'>
+                <Label>Base value</Label>
+                <div className='flex flex-col gap-1'>
+                  <Input
+                    placeholder='Optional'
+                    type='number'
+                    min={0}
+                    max={1000000000}
+                    value={
+                      baseValue === 0 && !Number(baseValue) ? '' : baseValue
+                    }
+                    onChange={(e) =>
+                      setBaseValue(
+                        e.target.value === '' ? '' : Number(e.target.value),
+                      )
+                    }
+                    className='h-11 rounded-[12px]'
+                  />
+                  <Label className='text-xs font-normal leading-tight text-secondary'>
+                    Base value stands for the value of the metric before using
+                    Measurely to measure the metric
+                  </Label>
+                </div>
+              </div>
+
               {namingType === 'auto' ? (
                 <></>
               ) : (
