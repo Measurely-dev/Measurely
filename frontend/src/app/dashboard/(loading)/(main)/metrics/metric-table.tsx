@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { AppsContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Box, MoreHorizontal } from 'react-feather';
+import { AlertCircle, MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import Empty from '@/components/dashboard/empty';
 import { Separator } from '@radix-ui/react-separator';
 import { fetchDailySummary } from '@/utils';
 import { useRouter } from 'next/navigation';
-import { ArrowUpDown, ArrowUpFromDot, ArrowUpRight, Shuffle, ShuffleIcon } from 'lucide-react';
+import { ArrowUpDown, ArrowUpFromDot } from 'lucide-react';
 
 const formattedDate = (date: Date) => {
   try {

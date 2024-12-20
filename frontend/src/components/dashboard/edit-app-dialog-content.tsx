@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
 import { MAXFILESIZE } from '@/utils';
-import { Image } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -130,7 +130,7 @@ export default function EditAppDialogContent(props: {
                 alt='Application image'
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>
-                <Image className='text-secondary' />
+                <ImageIcon className='text-secondary' />
               </AvatarFallback>
               <Input
                 onChange={(event) => {

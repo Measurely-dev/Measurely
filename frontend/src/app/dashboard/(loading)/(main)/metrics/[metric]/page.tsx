@@ -19,7 +19,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
@@ -56,7 +55,6 @@ import {
   Copy,
   Edit,
   Loader,
-  MoreVertical,
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';

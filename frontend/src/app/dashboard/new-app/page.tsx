@@ -9,7 +9,7 @@ import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
 import { AppsContext } from '@/dash-context';
-import { Image } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dispatch, useContext, useState } from 'react';
 import { toast } from 'sonner';
@@ -157,7 +157,7 @@ function Inputs(props: {
               alt='Application image'
             />
             <AvatarFallback className='h-full w-full !rounded-[16px]'>
-              <Image className='text-secondary' />
+              <ImageIcon className='text-secondary' />
             </AvatarFallback>
             <Input
               onChange={(event) => {
