@@ -188,7 +188,7 @@ const Item = (props: { group: Group; index: number }) => {
         className={`relative grid h-[50px] w-full select-none grid-cols-[2fr,1.5fr,1.5fr,150px,50px] gap-[10px] rounded-[12px] px-5 max-lg:grid max-lg:h-fit max-lg:grid-cols-3 max-lg:rounded-l-none max-lg:border-l max-lg:border-blue-500 max-lg:py-4 max-sm:p-3`}
       >
         <div className='flex flex-row items-center gap-[10px] text-[15px] max-lg:col-span-2'>
-          <div className='rounded-full border border-input/50 bg-accent p-2'>
+          <div className='rounded-full bg-accent p-2'>
             {props.group.type === 0 ? (
               <ArrowUpFromDot className='size-4 text-black' />
             ) : (
