@@ -139,7 +139,7 @@ export function ChartsCard() {
           <CardContent className='flex flex-col'>
             {total === 0 ? (
               <div className='flex w-full flex-col items-center justify-center gap-2 rounded-[12px] bg-accent px-5 py-20'>
-                <div className='text-3xl font-semibold'>
+                <div className='text-3xl font-semibold text-center'>
                   Nothing Here Yet. Check Back Soon!
                 </div>
                 <div className='text-md text-center text-secondary max-sm:text-sm'>
