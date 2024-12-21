@@ -341,7 +341,6 @@ function OverviewChart(props: { group: Group }) {
       dualMetricOverviewChartColor,
     ),
   };
-  const [datas, setDatas] = useState<any>(null);
   const [range, setRange] = useState<number>(0);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
@@ -352,6 +351,23 @@ function OverviewChart(props: { group: Group }) {
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
+
+  const rangeSummary = useMemo(() => {
+    if (chartData === null) return 0;
+    let total = 0;
+
+    for (let i = 0; i < chartData.length; i++) {
+      if (props.group.type === GroupType.Base) {
+        total += chartData[i][props.group.name] ?? 0;
+      } else {
+        total =
+          total +
+          ((chartData[i][props.group.metrics[0].name] ?? 0) -
+            (chartData[i][props.group.metrics[1].name] ?? 0));
+      }
+    }
+    return total;
+  }, [chartData]);
 
   const loadChart = async () => {
     if (!loadingLeft && !loadingRight) {
@@ -391,9 +407,6 @@ function OverviewChart(props: { group: Group }) {
 
     loadChart();
   }, [date?.from, range]);
-  const payload = datas?.payload?.[0];
-  const relativeTotal = 21873276324923;
-  const value = payload?.value ? payload.value : relativeTotal;
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -530,8 +543,11 @@ function OverviewChart(props: { group: Group }) {
         <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
       ) : (
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
-          <div className='text-md text-secondary'>Total</div>
-          <div className='text-xl font-medium'>{valueFormatter(value)}</div>
+          <div className='text-md text-secondary'>Summary</div>
+          <div className='text-xl font-medium'>
+            {rangeSummary >= 0 ? '+' : '-'}
+            {valueFormatter(rangeSummary)}
+          </div>
           <Separator className='my-4' />
           <BarChart
             className='min-h-[40vh] w-full'
@@ -553,17 +569,6 @@ function OverviewChart(props: { group: Group }) {
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
             yAxisLabel='Total'
-            tooltipCallback={(props) => {
-              if (props.active) {
-                setDatas((prev: any) => {
-                  if (prev?.label === props.label) return prev;
-                  return props;
-                });
-              } else {
-                setDatas(null);
-              }
-              return null;
-            }}
           />
         </div>
       )}
@@ -585,7 +590,6 @@ function TrendChart(props: { group: Group }) {
   });
   const [chartData, setChartData] = useState<any[] | null>(null);
   const [total, setTotal] = useState(0);
-  const [datas, setDatas] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
@@ -667,9 +671,6 @@ function TrendChart(props: { group: Group }) {
 
     loadChart();
   }, [date?.from, range]);
-  const payload = datas?.payload?.[0];
-  const relativeTotal = 21873276324923;
-  const value = payload?.value ? payload.value : relativeTotal;
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -801,7 +802,7 @@ function TrendChart(props: { group: Group }) {
       ) : (
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
           <div className='text-md text-secondary'>Total</div>
-          <div className='text-xl font-medium'>{valueFormatter(value)}</div>
+          <div className='text-xl font-medium'>{valueFormatter(total)}</div>
           <Separator className='my-4' />
           <AreaChart
             className='min-h-[40vh] w-full'
@@ -823,17 +824,6 @@ function TrendChart(props: { group: Group }) {
             categories={[props.group.name]}
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
-            tooltipCallback={(props) => {
-              if (props.active) {
-                setDatas((prev: any) => {
-                  if (prev?.label === props.label) return prev;
-                  return props;
-                });
-              } else {
-                setDatas(null);
-              }
-              return null;
-            }}
           />
         </div>
       )}
