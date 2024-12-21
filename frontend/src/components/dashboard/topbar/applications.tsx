@@ -26,7 +26,9 @@ export default function ApplicationsChip() {
 
   const handleAppSelect = async (index: number) => {
     if (applicationsLimitReached && index > user.plan.applimit - 1) {
-      toast.error('Upgrade plan to view this application');
+      toast.error(
+        'You have exceeded your plan limits. Please upgrade to unlock your applications',
+      );
       return;
     }
 

@@ -1,7 +1,7 @@
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AppsContext } from '@/dash-context';
+import { AppsContext, UserContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
@@ -18,6 +18,7 @@ import {
   Search,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { toast } from 'sonner';
 
 const formattedDate = (date: Date) => {
   try {
@@ -67,6 +68,15 @@ function sortByTotal(a: Group, b: Group): number {
 
 export default function MetricTable(props: { search: string; filter: string }) {
   const { applications, activeApp } = useContext(AppsContext);
+  const { user } = useContext(UserContext);
+
+  const metricsLimitReached = useMemo(() => {
+    if (applications[activeApp].groups === null) return false;
+    else
+      return (
+        applications[activeApp].groups.length > user.plan.metric_per_app_limit
+      );
+  }, [applications[activeApp].groups]);
 
   const filteredGroups = useMemo(() => {
     return (
@@ -101,7 +111,20 @@ export default function MetricTable(props: { search: string; filter: string }) {
         ) : (
           <>
             {filteredGroups.map((group, i) => {
-              return <Item key={group.metrics[0].id} group={group} index={i} />;
+              const isBlocked =
+                metricsLimitReached &&
+                (applications[activeApp].groups?.findIndex(
+                  (g) => g.id === group.id,
+                ) ?? 0) >
+                  user.plan.metric_per_app_limit - 1;
+              return (
+                <Item
+                  key={group.metrics[0].id}
+                  group={group}
+                  index={i}
+                  blocked={isBlocked}
+                />
+              );
             })}
           </>
         )}
@@ -119,7 +142,7 @@ function Header() {
     </div>
   );
 }
-const Item = (props: { group: Group; index: number }) => {
+const Item = (props: { group: Group; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const [total, setTotal] = useState<number | null>(null);
   const router = useRouter();
@@ -184,12 +207,18 @@ const Item = (props: { group: Group; index: number }) => {
   return (
     <div className='relative'>
       <div
-        className='absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none'
+        className={`absolute z-10 h-full w-full cursor-pointer rounded-[12px] opacity-60 transition-all duration-200 hover:bg-accent max-lg:rounded-l-none ${props.blocked ? 'cursor-not-allowed opacity-50' : ''}`}
         onClick={() => {
-          setIsLoading(true);
-          router.push(
-            `/dashboard/metrics/${encodeURIComponent(props.group.name)}`,
-          );
+          if (props.blocked) {
+            toast.error(
+              'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
+            );
+          } else {
+            setIsLoading(true);
+            router.push(
+              `/dashboard/metrics/${encodeURIComponent(props.group.name)}`,
+            );
+          }
         }}
       />
       <div

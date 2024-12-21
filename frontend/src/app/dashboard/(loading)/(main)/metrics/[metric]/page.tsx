@@ -44,7 +44,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { AppsContext } from '@/dash-context';
+import { AppsContext, UserContext } from '@/dash-context';
 import { Group, GroupType } from '@/types';
 import { calculateTrend, fetchDailySummary, loadChartData } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
@@ -170,15 +170,26 @@ const valueFormatter = (number: number) => {
 export default function DashboardMetricPage() {
   const router = useRouter();
   const { applications, activeApp } = useContext(AppsContext);
+  const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
   const [group, setGroup] = useState(() => {
     if (applications[activeApp]) {
-      const groupData = applications[activeApp].groups?.filter(
+      const index = applications[activeApp].groups?.findIndex(
         (g) => g.name === metricName,
-      )[0];
-      if (groupData !== null) {
-        return groupData;
+      );
+      if (index && index !== -1) {
+        const groupData = applications[activeApp].groups?.[index];
+
+        if (index > user.plan.metric_per_app_limit - 1) {
+          toast.error(
+            'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
+          );
+        } else {
+          if (groupData !== null) {
+            return groupData;
+          }
+        }
       }
     }
     router.push('/dashboard/metrics');
@@ -205,6 +216,8 @@ export default function DashboardMetricPage() {
     )[0];
     if (groupData === null || groupData === undefined) {
       router.push('/dashboard/metrics');
+    } else {
+      setGroup(groupData);
     }
   }, [activeApp]);
 
