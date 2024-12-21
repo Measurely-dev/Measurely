@@ -149,7 +149,7 @@ export function ChartsCard() {
               <EmptyState
                 className='py-14'
                 title='Nothing Here Yet. Check Back Soon!'
-                description='Theres no available data for this month.'
+                description='This chart is empty for now. Check back when new data is collected.'
                 icons={[CircleOff, CircleSlash]}
                 action={{
                   label: 'Learn more',
