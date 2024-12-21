@@ -546,7 +546,6 @@ function OverviewChart(props: { group: Group }) {
           valueFormatter={(number: number) =>
             `${Intl.NumberFormat('us').format(number).toString()}`
           }
-          xAxisLabel='Date'
           yAxisLabel='Total'
         />
       )}
@@ -800,7 +799,6 @@ function TrendChart(props: { group: Group }) {
           colors={[trendChartColor]}
           categories={[props.group.name]}
           valueFormatter={(number: number) => valueFormatter(number)}
-          xAxisLabel='Date'
           yAxisLabel='Total'
         />
       )}
