@@ -71,7 +71,7 @@ export default function SettingAppsPage() {
                     </Avatar>
                     <div className='flex flex-col'>
                       <p className='text-sm font-medium leading-none'>
-                        {app.name}
+                        {app.name.charAt(0).toUpperCase() + app.name.slice(1).toLowerCase()}
                       </p>
                     </div>
                   </div>
