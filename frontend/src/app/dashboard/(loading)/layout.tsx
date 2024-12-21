@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
 import { loadMetricsGroups } from '@/utils';
+import { LoaderIcon } from 'lucide-react';
 
 export default function DashboardContentLayout({
   children,
@@ -106,10 +107,10 @@ export default function DashboardContentLayout({
     <>
       {appsLoading || userLoading ? (
         <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-8 bg-accent'>
-          <div className='relative flex items-center justify-center gap-2'>
-            <LogoSvg className='size-14' />
-            <div className='text-xl font-semibold'>Measurely</div>
+          <div className='relative flex flex-col items-center justify-center gap-2'>
+            <LogoSvg className='size-20' />
           </div>
+          <LoaderIcon className='size-5 animate-spin' />
         </div>
       ) : (
         <>{children}</>

@@ -527,7 +527,7 @@ function OverviewChart(props: { group: Group }) {
       </div>
 
       {chartData === null ? (
-        <Skeleton className='mt-2 h-[40vh] w-full rounded-[12px] bg-accent' />
+        <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
       ) : (
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
           <div className='text-md text-secondary'>Total</div>
@@ -797,7 +797,7 @@ function TrendChart(props: { group: Group }) {
       </div>
 
       {chartData === null ? (
-        <Skeleton className='mt-2 h-[40vh] w-full rounded-[12px] bg-accent' />
+        <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
       ) : (
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
           <div className='text-md text-secondary'>Total</div>
