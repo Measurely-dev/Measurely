@@ -81,7 +81,7 @@ export default function SettingPaymentPage() {
         className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
         stats={[
           {
-            title: `Metrics limit for ${applications?.[activeApp].name}`,
+            title: `Metrics limit for ${applications?.[activeApp].name.charAt(0).toUpperCase() + applications?.[activeApp].name.slice(1).toLowerCase()}`,
             description: 'On this plan',
             value: `${applications?.[activeApp].groups === null ? 0 : applications?.[activeApp].groups.length}/${user?.plan.metric_per_app_limit}`,
           },

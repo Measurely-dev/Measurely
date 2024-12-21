@@ -69,7 +69,8 @@ export default function ApplicationsChip() {
             </AvatarFallback>
           </Avatar>
           {applications[activeApp]
-            ? applications[activeApp].name.toLowerCase().toWellFormed()
+            ? applications?.[activeApp].name.charAt(0).toUpperCase() +
+              applications?.[activeApp].name.slice(1).toLowerCase()
             : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
@@ -102,7 +103,7 @@ export default function ApplicationsChip() {
                   </AvatarFallback>
                 </Avatar>
                 <div className='text-[14px] font-medium'>
-                  {app.name.toLowerCase().toWellFormed()}
+                  {app.name.charAt(0).toUpperCase() + app.name.slice(1).toLowerCase()}
                 </div>
               </div>
               <CheckIcon
