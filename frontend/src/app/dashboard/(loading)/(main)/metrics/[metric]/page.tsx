@@ -341,7 +341,7 @@ function OverviewChart(props: { group: Group }) {
       dualMetricOverviewChartColor,
     ),
   };
-
+  const [datas, setDatas] = useState<any>(null);
   const [range, setRange] = useState<number>(0);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
@@ -391,7 +391,9 @@ function OverviewChart(props: { group: Group }) {
 
     loadChart();
   }, [date?.from, range]);
-
+  const payload = datas?.payload?.[0];
+  const relativeTotal = 21873276324923;
+  const value = payload?.value ? payload.value : relativeTotal;
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -509,7 +511,7 @@ function OverviewChart(props: { group: Group }) {
               const now = new Date();
               const from = new Date(date.from);
               const toAdd = range === 0 ? 1 : range;
-              from.setDate(from.getDate() + toAdd)
+              from.setDate(from.getDate() + toAdd);
               const result = now < from;
               return result;
             }, [date])}
@@ -527,27 +529,43 @@ function OverviewChart(props: { group: Group }) {
       {chartData === null ? (
         <Skeleton className='mt-2 h-[40vh] w-full rounded-[12px] bg-accent' />
       ) : (
-        <BarChart
-          className='mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-          data={chartData}
-          customTooltip={customTooltip}
-          index='date'
-          type={overviewChartType}
-          colors={
-            props.group.type === GroupType.Dual
-              ? dualMetricChartConfig.colors
-              : [overviewChartColor]
-          }
-          categories={
-            props.group.type === GroupType.Base
-              ? [props.group.name]
-              : [props.group.metrics[0].name, props.group.metrics[1].name]
-          }
-          valueFormatter={(number: number) =>
-            `${Intl.NumberFormat('us').format(number).toString()}`
-          }
-          yAxisLabel='Total'
-        />
+        <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
+          <div className='text-md text-secondary'>Total</div>
+          <div className='text-xl font-medium'>{valueFormatter(value)}</div>
+          <Separator className='my-4' />
+          <BarChart
+            className='min-h-[40vh] w-full'
+            data={chartData}
+            customTooltip={customTooltip}
+            index='date'
+            type={overviewChartType}
+            colors={
+              props.group.type === GroupType.Dual
+                ? dualMetricChartConfig.colors
+                : [overviewChartColor]
+            }
+            categories={
+              props.group.type === GroupType.Base
+                ? [props.group.name]
+                : [props.group.metrics[0].name, props.group.metrics[1].name]
+            }
+            valueFormatter={(number: number) =>
+              `${Intl.NumberFormat('us').format(number).toString()}`
+            }
+            yAxisLabel='Total'
+            tooltipCallback={(props) => {
+              if (props.active) {
+                setDatas((prev: any) => {
+                  if (prev?.label === props.label) return prev;
+                  return props;
+                });
+              } else {
+                setDatas(null);
+              }
+              return null;
+            }}
+          />
+        </div>
       )}
     </>
   );
@@ -567,16 +585,14 @@ function TrendChart(props: { group: Group }) {
   });
   const [chartData, setChartData] = useState<any[] | null>(null);
   const [total, setTotal] = useState(0);
-
+  const [datas, setDatas] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
 
-
-
   const loadChart = async () => {
     if (!loadingLeft && !loadingRight) {
-      setLoading(true)
+      setLoading(true);
     }
     if (date !== undefined && date.from !== undefined) {
       const to = new Date(date.from);
@@ -627,9 +643,9 @@ function TrendChart(props: { group: Group }) {
       setTotal(total);
     }
 
-    setLoading(false)
-    setLoadingLeft(false)
-    setLoadingRight(false)
+    setLoading(false);
+    setLoadingLeft(false);
+    setLoadingRight(false);
   };
 
   useEffect(() => {
@@ -651,6 +667,9 @@ function TrendChart(props: { group: Group }) {
 
     loadChart();
   }, [date?.from, range]);
+  const payload = datas?.payload?.[0];
+  const relativeTotal = 21873276324923;
+  const value = payload?.value ? payload.value : relativeTotal;
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -762,7 +781,7 @@ function TrendChart(props: { group: Group }) {
               const now = new Date();
               const from = new Date(date.from);
               const toAdd = range === 0 ? 1 : range;
-              from.setDate(from.getDate() + toAdd)
+              from.setDate(from.getDate() + toAdd);
               const result = now < from;
               return result;
             }, [date])}
@@ -780,27 +799,43 @@ function TrendChart(props: { group: Group }) {
       {chartData === null ? (
         <Skeleton className='mt-2 h-[40vh] w-full rounded-[12px] bg-accent' />
       ) : (
-        <AreaChart
-          className='mb-20 mt-2 min-h-[40vh] w-full rounded-[12px] bg-accent p-5'
-          data={calculateTrend(
-            chartData,
-            total,
-            props.group.type,
-            props.group.type === GroupType.Base
-              ? props.group.name
-              : props.group.metrics[0].name,
-            props.group.type === GroupType.Dual
-              ? props.group.metrics[1].name
-              : '',
-            props.group.name,
-          )}
-          index='date'
-          customTooltip={customTooltip}
-          colors={[trendChartColor]}
-          categories={[props.group.name]}
-          valueFormatter={(number: number) => valueFormatter(number)}
-          yAxisLabel='Total'
-        />
+        <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
+          <div className='text-md text-secondary'>Total</div>
+          <div className='text-xl font-medium'>{valueFormatter(value)}</div>
+          <Separator className='my-4' />
+          <AreaChart
+            className='min-h-[40vh] w-full'
+            data={calculateTrend(
+              chartData,
+              total,
+              props.group.type,
+              props.group.type === GroupType.Base
+                ? props.group.name
+                : props.group.metrics[0].name,
+              props.group.type === GroupType.Dual
+                ? props.group.metrics[1].name
+                : '',
+              props.group.name,
+            )}
+            index='date'
+            customTooltip={customTooltip}
+            colors={[trendChartColor]}
+            categories={[props.group.name]}
+            valueFormatter={(number: number) => valueFormatter(number)}
+            yAxisLabel='Total'
+            tooltipCallback={(props) => {
+              if (props.active) {
+                setDatas((prev: any) => {
+                  if (prev?.label === props.label) return prev;
+                  return props;
+                });
+              } else {
+                setDatas(null);
+              }
+              return null;
+            }}
+          />
+        </div>
       )}
     </>
   );
@@ -867,7 +902,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === GroupType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -893,7 +928,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === GroupType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
