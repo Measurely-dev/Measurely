@@ -49,7 +49,7 @@ export default function SettingAppsPage() {
             Create application
           </Button>
         </Link>
-        <div className='flex flex-col gap-8'>
+        <div className='flex flex-col gap-4'>
           {sortedApplications.length === 0 ? (
             <EmptyState
               title='No Application Found'
@@ -59,7 +59,7 @@ export default function SettingAppsPage() {
           ) : (
             sortedApplications.map((app: Application, i: number) => {
               return (
-                <div key={i} className='flex items-center justify-between'>
+                <div key={i} className='flex items-center justify-between hover:bg-accent/50 p-0.5 rounded-[12px] transition-all duration-100'>
                   <div className='flex flex-row items-center gap-2'>
                     <Avatar className='size-10 rounded-[12px] border bg-accent'>
                       <AvatarImage
