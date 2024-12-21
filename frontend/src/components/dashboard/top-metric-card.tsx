@@ -52,7 +52,7 @@ export const TopMetricCard = () => {
         total = total + (group.metrics[0].total - group.metrics[1].total);
       }
     }
-    return;
+    return total;
   }, [activeApp]);
 
   return (
@@ -61,7 +61,7 @@ export const TopMetricCard = () => {
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
       </CardHeader>
-      {metricsSum !== 0 || topMetricData.length === 0 ? (
+      {metricsSum === 0 || topMetricData.length === 0 ? (
         <EmptyState
           className='mt-5 py-14'
           title='No items to show at the moment.'
