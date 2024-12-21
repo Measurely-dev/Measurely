@@ -11,7 +11,7 @@ import { AppsContext, UserContext } from '@/dash-context';
 import { loadMetricsGroups } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ApplicationsChip() {
@@ -20,13 +20,12 @@ export default function ApplicationsChip() {
   const { applications, activeApp, setActiveApp, setApplications } =
     useContext(AppsContext);
 
-  const applicationLimitReached =
-    applications &&
-    user?.plan?.applimit &&
-    applications.length > user.plan.applimit;
+  const applicationsLimitReached = useMemo(() => {
+    return applications.length > user.plan.applimit;
+  }, [applications]);
 
   const handleAppSelect = async (index: number) => {
-    if (applicationLimitReached && index >= user.plan.applimit) {
+    if (applicationsLimitReached && index > user.plan.applimit - 1) {
       toast.error('Upgrade plan to view this application');
       return;
     }
@@ -81,7 +80,8 @@ export default function ApplicationsChip() {
         align='start'
       >
         {applications.map((app, i) => {
-          const isBlocked = applicationLimitReached && i >= user.plan.applimit;
+          const isBlocked =
+            applicationsLimitReached && i > user.plan.applimit - 1;
 
           return (
             <div
@@ -103,7 +103,8 @@ export default function ApplicationsChip() {
                   </AvatarFallback>
                 </Avatar>
                 <div className='text-[14px] font-medium'>
-                  {app.name.charAt(0).toUpperCase() + app.name.slice(1).toLowerCase()}
+                  {app.name.charAt(0).toUpperCase() +
+                    app.name.slice(1).toLowerCase()}
                 </div>
               </div>
               <CheckIcon
