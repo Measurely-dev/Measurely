@@ -64,6 +64,7 @@ import {
   SetStateAction,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -348,7 +349,14 @@ function OverviewChart(props: { group: Group }) {
   });
   const [chartData, setChartData] = useState<any[] | null>(null);
 
+  const [loading, setLoading] = useState(false);
+  const [loadingRight, setLoadingRight] = useState(false);
+  const [loadingLeft, setLoadingLeft] = useState(false);
+
   const loadChart = async () => {
+    if (!loadingLeft && !loadingRight) {
+      setLoading(true);
+    }
     if (date !== undefined && date.from !== undefined) {
       setChartData(
         (await loadChartData(
@@ -359,6 +367,9 @@ function OverviewChart(props: { group: Group }) {
         )) ?? [],
       );
     }
+    setLoading(false);
+    setLoadingLeft(false);
+    setLoadingRight(false);
   };
 
   useEffect(() => {
@@ -465,6 +476,7 @@ function OverviewChart(props: { group: Group }) {
                 const from = new Date(prev.from);
                 const toRemove = range === 0 ? 1 : range;
                 from.setDate(from.getDate() - toRemove);
+                setLoadingLeft(true);
                 return {
                   from: from,
                   to: prev.to,
@@ -481,19 +493,34 @@ function OverviewChart(props: { group: Group }) {
                 if (now < from) {
                   return prev;
                 }
+                setLoadingRight(true);
                 return {
                   from: from,
                   to: prev.to,
                 };
               });
             }}
+            isLoadingLeft={loadingLeft}
+            isLoadingRight={loadingRight}
+            isDisabled={useMemo(() => {
+              if (date === undefined || date.from === undefined) {
+                return false;
+              }
+              const now = new Date();
+              const from = new Date(date.from);
+              const toAdd = range === 0 ? 1 : range;
+              from.setDate(from.getDate() + toAdd)
+              const result = now < from;
+              return result;
+            }, [date])}
           />
-          <Button
-            className='pointer-events-none h-[34px] rounded-[10px] !bg-background !text-primary'
-            size={'icon'}
-          >
-            <Loader className='size-4 animate-spin' />
-          </Button>
+          {loading ? (
+            <div className='p-1'>
+              <Loader className='size-4 animate-spin' />
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
 
@@ -542,7 +569,16 @@ function TrendChart(props: { group: Group }) {
   const [chartData, setChartData] = useState<any[] | null>(null);
   const [total, setTotal] = useState(0);
 
+  const [loading, setLoading] = useState(false);
+  const [loadingRight, setLoadingRight] = useState(false);
+  const [loadingLeft, setLoadingLeft] = useState(false);
+
+
+
   const loadChart = async () => {
+    if (!loadingLeft && !loadingRight) {
+      setLoading(true)
+    }
     if (date !== undefined && date.from !== undefined) {
       const to = new Date(date.from);
       const now = new Date();
@@ -591,6 +627,10 @@ function TrendChart(props: { group: Group }) {
       setChartData(data ?? []);
       setTotal(total);
     }
+
+    setLoading(false)
+    setLoadingLeft(false)
+    setLoadingRight(false)
   };
 
   useEffect(() => {
@@ -690,6 +730,7 @@ function TrendChart(props: { group: Group }) {
                 const from = new Date(prev.from);
                 const toRemove = range === 0 ? 1 : range;
                 from.setDate(from.getDate() - toRemove);
+                setLoadingLeft(true);
                 return {
                   from: from,
                   to: prev.to,
@@ -706,19 +747,34 @@ function TrendChart(props: { group: Group }) {
                 if (now < from) {
                   return prev;
                 }
+                setLoadingRight(true);
                 return {
                   from: from,
                   to: prev.to,
                 };
               });
             }}
+            isLoadingLeft={loadingLeft}
+            isLoadingRight={loadingRight}
+            isDisabled={useMemo(() => {
+              if (date === undefined || date.from === undefined) {
+                return false;
+              }
+              const now = new Date();
+              const from = new Date(date.from);
+              const toAdd = range === 0 ? 1 : range;
+              from.setDate(from.getDate() + toAdd)
+              const result = now < from;
+              return result;
+            }, [date])}
           />
-          <Button
-            className='pointer-events-none h-[34px] rounded-[10px] !bg-background !text-primary'
-            size={'icon'}
-          >
-            <Loader className='size-4 animate-spin' />
-          </Button>
+          {loading ? (
+            <div className='p-1'>
+              <Loader className='size-4 animate-spin' />
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
 
@@ -813,7 +869,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === GroupType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -839,7 +895,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === GroupType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
