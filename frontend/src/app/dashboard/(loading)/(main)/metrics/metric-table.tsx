@@ -18,7 +18,6 @@ import {
   Search,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
-import { toast } from 'sonner';
 
 const formattedDate = (date: Date) => {
   try {
