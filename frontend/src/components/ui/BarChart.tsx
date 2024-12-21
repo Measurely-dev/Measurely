@@ -647,7 +647,25 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       }
       setActiveBar(undefined);
     }
-
+    const abbreviateNumber = (value: any) => {
+      if (value >= 1e9) {
+        const formatted = (value / 1e9).toFixed(1);
+        return formatted.endsWith('.0')
+          ? `${(value / 1e9).toFixed(0)}B`
+          : `${formatted}B`;
+      } else if (value >= 1e6) {
+        const formatted = (value / 1e6).toFixed(1);
+        return formatted.endsWith('.0')
+          ? `${(value / 1e6).toFixed(0)}M`
+          : `${formatted}M`;
+      } else if (value >= 1e3) {
+        const formatted = (value / 1e3).toFixed(1);
+        return formatted.endsWith('.0')
+          ? `${(value / 1e3).toFixed(0)}K`
+          : `${formatted}K`;
+      }
+      return value;
+    };
     return (
       <div
         ref={forwardedRef}
@@ -756,7 +774,9 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                     type: 'number',
                     domain: yAxisDomain as AxisDomain,
                     tickFormatter:
-                      type === 'percent' ? valueToPercent : valueFormatter,
+                      type === 'percent'
+                        ? valueToPercent
+                        : (value) => abbreviateNumber(value),
                     allowDecimals: allowDecimals,
                   }
                 : {

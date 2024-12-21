@@ -44,7 +44,9 @@ import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
 import { EmptyState } from '../ui/empty-state';
 import { useRouter } from 'next/navigation';
-
+const valueFormatter = (number: number) => {
+  return Intl.NumberFormat('us').format(number).toString();
+};
 export function ChartsCard() {
   const { applications, activeApp } = useContext(AppsContext);
   const [activeGroup, setActiveGroup] = useState(0);
@@ -229,7 +231,7 @@ function Header(props: {
     <CardHeader className='flex flex-row justify-between max-sm:flex-col max-sm:gap-3'>
       <div className='flex flex-col gap-1'>
         <CardTitle>
-          {props.total} {props.groups[props.activeGroup]?.name}
+          {valueFormatter(props.total)} {props.groups[props.activeGroup]?.name}
         </CardTitle>
         <CardDescription>Trend of the last month</CardDescription>
       </div>

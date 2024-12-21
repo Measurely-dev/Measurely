@@ -37,7 +37,9 @@ function sortbyDate(a: Group, b: Group, order: string): number {
     return 0;
   }
 }
-
+const valueFormatter = (number: number) => {
+  return Intl.NumberFormat('us').format(number).toString();
+};
 function sortByTotal(a: Group, b: Group): number {
   let aTotal = 0;
   let bTotal = 0;
@@ -225,7 +227,7 @@ const Item = (props: { group: Group; index: number }) => {
           <div className='font-sans font-semibold text-blue-500 lg:hidden'>
             Total value
           </div>
-          {total === null ? '0' : total}
+          {valueFormatter(total === null ? 0 : total)}
         </div>
         <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
           <div className='text-sm font-semibold text-primary lg:hidden'>
@@ -237,7 +239,7 @@ const Item = (props: { group: Group; index: number }) => {
             )}}`}
           >
             {todayBadgeSign(dailyUpdate)}
-            {dailyUpdate === null ? '0' : dailyUpdate}
+            {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate)}
           </Badge>
         </div>
         <div className='flex items-center justify-end text-sm font-light text-secondary max-lg:flex-col max-lg:place-items-start max-lg:gap-2 max-sm:col-span-3'>
