@@ -14,9 +14,11 @@ import {
   ArrowUpDown,
   ArrowUpFromDot,
   FileQuestion,
+  Loader,
   Search,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
+import { toast } from 'sonner';
 
 const formattedDate = (date: Date) => {
   try {
@@ -120,7 +122,7 @@ const Item = (props: { group: Group; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const [total, setTotal] = useState<number | null>(null);
   const router = useRouter();
-
+  const [isLoading, setIsLoading] = useState(false);
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
       return '';
@@ -186,6 +188,7 @@ const Item = (props: { group: Group; index: number }) => {
           router.push(
             `/dashboard/metrics/${encodeURIComponent(props.group.name)}`,
           );
+          setIsLoading(true);
         }}
       />
       <div
@@ -193,7 +196,9 @@ const Item = (props: { group: Group; index: number }) => {
       >
         <div className='flex flex-row items-center gap-[10px] text-[15px] max-lg:col-span-2'>
           <div className='rounded-full bg-accent p-2'>
-            {props.group.type === 0 ? (
+            {isLoading ? (
+              <Loader className='size-4 animate-spin text-black' />
+            ) : props.group.type === 0 ? (
               <ArrowUpFromDot className='size-4 text-black' />
             ) : (
               <ArrowUpDown className='size-4 text-black' />

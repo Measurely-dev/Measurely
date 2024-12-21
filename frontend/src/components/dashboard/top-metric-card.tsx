@@ -64,7 +64,7 @@ export const TopMetricCard = () => {
       {metricsSum !== 0 || topMetricData.length === 0 ? (
         <EmptyState
           className='mt-5 py-14'
-          title='No items to show at the moment. Please revisit later.'
+          title='No items to show at the moment.'
           description="No metrics to display yet. Data will populate as soon as it's available."
           icons={[ChartNetwork]}
           action={{
