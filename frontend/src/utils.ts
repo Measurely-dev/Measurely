@@ -68,12 +68,13 @@ export const loadChartData = async (
 
   const from = new Date(date);
   const to = new Date(date);
-  if(range === 0) to.setHours(to.getHours() + 24)
+  if (range === 0) to.setHours(to.getHours() + 24)
   else to.setDate(to.getDate() + range);
 
   const dateCounter = new Date(from);
   const dataLength = range === 0 ? 24 : range;
   const now = new Date();
+  const useDaily = range === 0 ? '' : '&daily=1'
   for (let i = 0; i < dataLength; i++) {
     const eventDate = new Date(dateCounter);
     tmpData.push({
@@ -92,7 +93,7 @@ export const loadChartData = async (
   }
 
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[0].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[0].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -137,7 +138,7 @@ export const loadChartData = async (
     });
   if (group.type === GroupType.Dual) {
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[1].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[1].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
       { method: 'GET', credentials: 'include' },
     )
       .then((resp) => {
@@ -207,7 +208,7 @@ export const fetchDailySummary = async (
     if (json != null) {
       if (json.length > 0) {
         let sum = 0;
-        for(let  i =0 ; i < json.length; i++){
+        for (let i = 0; i < json.length; i++) {
           sum += json[i].value
         }
         return sum;
