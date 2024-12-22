@@ -70,7 +70,7 @@ export default function TeamPage() {
 
               setLoading(true);
               fetch(
-                `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/a27e32df-5d85-44d5-a578-d5fd3fc1c204`,
+                `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/99b449d0-8af6-4c83-b357-2f61bdf4c301`,
                 {
                   method: 'POST',
                   headers: {

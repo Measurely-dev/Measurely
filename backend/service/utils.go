@@ -21,19 +21,19 @@ import (
 )
 
 var metricIds = map[string]string{
-	"feedbacks":    "3a1d7f3c-fe7e-440f-b595-cb476b20fc97",
-	"metrics-pos":  "93052127-5583-4154-abf5-756d409c9892",
-	"metrics-neg":  "23971131-90c8-4de0-a63b-05b5f5dba1f0",
-	"apps-pos":     "1bfd37b1-c937-4833-89c6-abf5991dbc28",
-	"apps-neg":     "d5f3d643-e08c-4e8a-a3d1-d3b2c711ebba",
-	"pro-pos":      "aaea34dc-af05-4b46-96a2-5b8b45a0f13f",
-	"pro-neg":      "5b6d0dd6-4992-41b4-b2a9-70664e4ea65d",
-	"plus-pos":     "59d1c7da-eae3-4d03-a5de-2ea6740021c5",
-	"plus-neg":     "932593b2-bb9d-4f0e-9bca-bac9ecfc64e9",
-	"starter-pos":  "a6304271-7e0b-42d3-b142-ec5238aab2d1",
-	"starter-neg":  "7cb981c0-c408-41aa-b6b1-6a0d0b658d98",
-	"users-pos":    "5d999958-4f45-42c8-aa74-c6bad013b747",
-	"users-neg":    "7d6578b8-d2f0-49d0-bba0-0d9b1abf6e20",
+	"feedbacks":   "3a1d7f3c-fe7e-440f-b595-cb476b20fc97",
+	"metrics-pos": "93052127-5583-4154-abf5-756d409c9892",
+	"metrics-neg": "23971131-90c8-4de0-a63b-05b5f5dba1f0",
+	"apps-pos":    "1bfd37b1-c937-4833-89c6-abf5991dbc28",
+	"apps-neg":    "d5f3d643-e08c-4e8a-a3d1-d3b2c711ebba",
+	"pro-pos":     "aaea34dc-af05-4b46-96a2-5b8b45a0f13f",
+	"pro-neg":     "5b6d0dd6-4992-41b4-b2a9-70664e4ea65d",
+	"plus-pos":    "59d1c7da-eae3-4d03-a5de-2ea6740021c5",
+	"plus-neg":    "932593b2-bb9d-4f0e-9bca-bac9ecfc64e9",
+	"starter-pos": "a6304271-7e0b-42d3-b142-ec5238aab2d1",
+	"starter-neg": "7cb981c0-c408-41aa-b6b1-6a0d0b658d98",
+	"users-pos":   "5d999958-4f45-42c8-aa74-c6bad013b747",
+	"users-neg":   "7d6578b8-d2f0-49d0-bba0-0d9b1abf6e20",
 }
 
 func isEmailValid(e string) bool {

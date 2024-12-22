@@ -9,7 +9,7 @@ export default async function Home() {
 
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
     fetch(
-      `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/113e733c-970b-471e-92a8-f6a5bc9fbd1f`,
+      `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/29bee8ac-b93a-4aa3-805f-0c16c092808f`,
       {
         method: 'POST',
         headers: {
