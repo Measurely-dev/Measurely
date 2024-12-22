@@ -386,14 +386,13 @@ function OverviewChart(props: { group: Group }) {
     if (!loadingLeft && !loadingRight) {
       setLoading(true);
     }
-    setChartData(
-      (await loadChartData(
-        from,
-        range === 0 ? 0 : range + 1,
-        props.group,
-        props.group.appid,
-      )) ?? [],
+    const data = await loadChartData(
+      from,
+      range === 0 ? 0 : range + 1,
+      props.group,
+      props.group.appid,
     );
+    setChartData(data ?? []);
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
@@ -621,7 +620,7 @@ function TrendChart(props: { group: Group }) {
     if (range === 0) {
       to.setHours(to.getHours() + 24);
     } else {
-      to.setDate(to.getDate() + range+1);
+      to.setDate(to.getDate() + range + 1);
     }
 
     const timeDiff = now.getTime() - to.getTime();
@@ -637,12 +636,8 @@ function TrendChart(props: { group: Group }) {
 
     if (daysDiff > 0) {
       const futurValues =
-        (await loadChartData(
-          to,
-          daysDiff,
-          props.group,
-          props.group.appid,
-        )) ?? [];
+        (await loadChartData(to, daysDiff, props.group, props.group.appid)) ??
+        [];
 
       for (let i = 0; i < futurValues.length; i++) {
         if (props.group.type === GroupType.Base) {
