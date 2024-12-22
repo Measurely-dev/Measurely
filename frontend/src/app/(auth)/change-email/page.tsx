@@ -78,9 +78,9 @@ export default function PasswordReset() {
             {view === 1 || view === 0 ? (
               <div className='mt-[10px] text-sm'>
                 Need help?{' '}
-                <span className='cursor-pointer font-semibold'>
+                <a href='mailto:info@measurely.dev' className='cursor-pointer font-semibold'>
                   Contact support
-                </span>
+                </a>
               </div>
             ) : (
               <></>
