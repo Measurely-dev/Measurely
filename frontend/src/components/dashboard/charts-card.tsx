@@ -11,7 +11,7 @@ import {
   CurlyBraces,
   Link2Icon,
 } from 'lucide-react';
-import { AreaChart } from '@/components/ui/areaChart';
+import { AreaChart } from '@/components/ui/area-chart';
 
 import {
   Card,

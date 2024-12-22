@@ -1,4 +1,4 @@
-// Tremor AreaChart [v0.3.1]
+// Tremor BarChart [v0.2.1]
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 'use client';
@@ -6,12 +6,10 @@
 import React from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import {
-  Area,
+  Bar,
   CartesianGrid,
-  Dot,
   Label,
-  Line,
-  AreaChart as RechartsAreaChart,
+  BarChart as RechartsBarChart,
   Legend as RechartsLegend,
   ResponsiveContainer,
   Tooltip,
@@ -26,10 +24,69 @@ import {
   constructCategoryColors,
   getColorClassName,
   getYAxisDomain,
-  hasOnlyOneValueForKey,
-} from '@/lib/chartUtils';
-import { useOnWindowResize } from '@/lib/onWindowResize';
-import { cx } from '@/lib/utils';
+} from '../../lib/chartUtils';
+import { useOnWindowResize } from '../../lib/onWindowResize';
+import { cx } from '../../lib/utils';
+
+//#region Shape
+
+function deepEqual<T>(obj1: T, obj2: T): boolean {
+  if (obj1 === obj2) return true;
+
+  if (
+    typeof obj1 !== 'object' ||
+    typeof obj2 !== 'object' ||
+    obj1 === null ||
+    obj2 === null
+  ) {
+    return false;
+  }
+
+  const keys1 = Object.keys(obj1) as Array<keyof T>;
+  const keys2 = Object.keys(obj2) as Array<keyof T>;
+
+  if (keys1.length !== keys2.length) return false;
+
+  for (const key of keys1) {
+    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
+  }
+
+  return true;
+}
+
+const renderShape = (
+  props: any,
+  activeBar: any | undefined,
+  activeLegend: string | undefined,
+  layout: string,
+) => {
+  const { fillOpacity, name, payload, value } = props;
+  let { x, width, y, height } = props;
+
+  if (layout === 'horizontal' && height < 0) {
+    y += height;
+    height = Math.abs(height); // height must be a positive number
+  } else if (layout === 'vertical' && width < 0) {
+    x += width;
+    width = Math.abs(width); // width must be a positive number
+  }
+
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      opacity={
+        activeBar || (activeLegend && activeLegend !== name)
+          ? deepEqual(activeBar, { ...payload, value })
+            ? fillOpacity
+            : 0.3
+          : fillOpacity
+      }
+    />
+  );
+};
 
 //#region Legend
 
@@ -63,7 +120,7 @@ const LegendItem = ({
     >
       <span
         className={cx(
-          'h-[3px] w-3.5 shrink-0 rounded-full',
+          'size-2 shrink-0 rounded-sm',
           getColorClassName(color, 'bg'),
           activeLegend && activeLegend !== name ? 'opacity-40' : 'opacity-100',
         )}
@@ -333,25 +390,31 @@ const ChartLegend = (
     setLegendHeight(calculateHeight(legendRef.current?.clientHeight));
   });
 
-  const legendPayload = payload.filter((item: any) => item.type !== 'none');
+  const filteredPayload = payload.filter((item: any) => item.type !== 'none');
 
   const paddingLeft =
     legendPosition === 'left' && yAxisWidth ? yAxisWidth - 8 : 0;
 
   return (
     <div
-      ref={legendRef}
       style={{ paddingLeft: paddingLeft }}
+      ref={legendRef}
       className={cx(
         'flex items-center',
         { 'justify-center': legendPosition === 'center' },
-        { 'justify-start': legendPosition === 'left' },
+        {
+          'justify-start': legendPosition === 'left',
+        },
         { 'justify-end': legendPosition === 'right' },
       )}
     >
       <Legend
-        categories={legendPayload.map((entry: any) => entry.value)}
-        colors={legendPayload.map((entry: any) =>
+        categories={filteredPayload.map(
+          (entry: any) =>
+            entry.value.charAt(0).toUpperCase() +
+            entry.value.slice(1).toLowerCase(),
+        )}
+        colors={filteredPayload.map((entry: any) =>
           categoryColors.get(entry.value),
         )}
         onClickLegendItem={onClick}
@@ -422,7 +485,7 @@ const ChartTooltip = ({
                 <span
                   aria-hidden='true'
                   className={cx(
-                    'h-[3px] w-3.5 shrink-0 rounded-full',
+                    'size-2 shrink-0 rounded-sm',
                     getColorClassName(color, 'bg'),
                   )}
                 />
@@ -456,22 +519,17 @@ const ChartTooltip = ({
   return null;
 };
 
-//#region AreaChart
-
-interface ActiveDot {
-  index?: number;
-  dataKey?: string;
-}
+//#region BarChart
 
 type BaseEventProps = {
-  eventType: 'dot' | 'category';
+  eventType: 'category' | 'bar';
   categoryClicked: string;
   [key: string]: number | string;
 };
 
-type AreaChartEventProps = BaseEventProps | null | undefined;
+type BarChartEventProps = BaseEventProps | null | undefined;
 
-interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
+interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   data: Record<string, any>[];
   index: string;
   categories: string[];
@@ -489,21 +547,21 @@ interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
   minValue?: number;
   maxValue?: number;
   allowDecimals?: boolean;
-  onValueChange?: (value: AreaChartEventProps) => void;
+  onValueChange?: (value: BarChartEventProps) => void;
   enableLegendSlider?: boolean;
   tickGap?: number;
-  connectNulls?: boolean;
+  barCategoryGap?: string | number;
   xAxisLabel?: string;
   yAxisLabel?: string;
+  layout?: 'vertical' | 'horizontal';
   type?: 'default' | 'stacked' | 'percent';
   legendPosition?: 'left' | 'center' | 'right';
-  fill?: 'gradient' | 'solid' | 'none';
   tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void;
   customTooltip?: React.ComponentType<TooltipProps>;
 }
 
-const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
-  (props, ref) => {
+const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
+  (props, forwardedRef) => {
     const {
       data = [],
       categories = [],
@@ -522,16 +580,16 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       minValue,
       maxValue,
       allowDecimals = true,
-      connectNulls = false,
       className,
       onValueChange,
       enableLegendSlider = false,
+      barCategoryGap,
       tickGap = 5,
       xAxisLabel,
       yAxisLabel,
+      layout = 'horizontal',
       type = 'default',
       legendPosition = 'right',
-      fill = 'gradient',
       tooltipCallback,
       customTooltip,
       ...other
@@ -540,96 +598,48 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     const paddingValue =
       (!showXAxis && !showYAxis) || (startEndOnly && !showYAxis) ? 0 : 20;
     const [legendHeight, setLegendHeight] = React.useState(60);
-    const [activeDot, setActiveDot] = React.useState<ActiveDot | undefined>(
-      undefined,
-    );
     const [activeLegend, setActiveLegend] = React.useState<string | undefined>(
       undefined,
     );
     const categoryColors = constructCategoryColors(categories, colors);
-
+    const [activeBar, setActiveBar] = React.useState<any | undefined>(
+      undefined,
+    );
     const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue);
     const hasOnValueChange = !!onValueChange;
     const stacked = type === 'stacked' || type === 'percent';
-    const areaId = React.useId();
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined);
     const prevLabelRef = React.useRef<string | undefined>(undefined);
-
-    const getFillContent = ({
-      fillType,
-      activeDot,
-      activeLegend,
-      category,
-    }: {
-      fillType: AreaChartProps['fill'];
-      activeDot: ActiveDot | undefined;
-      activeLegend: string | undefined;
-      category: string;
-    }) => {
-      const stopOpacity =
-        activeDot || (activeLegend && activeLegend !== category) ? 0.1 : 0.3;
-
-      switch (fillType) {
-        case 'none':
-          return <stop stopColor='currentColor' stopOpacity={0} />;
-        case 'gradient':
-          return (
-            <>
-              <stop
-                offset='5%'
-                stopColor='currentColor'
-                stopOpacity={stopOpacity}
-              />
-              <stop offset='95%' stopColor='currentColor' stopOpacity={0} />
-            </>
-          );
-        case 'solid':
-        default:
-          return <stop stopColor='currentColor' stopOpacity={stopOpacity} />;
-      }
-    };
 
     function valueToPercent(value: number) {
       return `${(value * 100).toFixed(0)}%`;
     }
 
-    function onDotClick(itemData: any, event: React.MouseEvent) {
+    function onBarClick(data: any, _: any, event: React.MouseEvent) {
       event.stopPropagation();
-
-      if (!hasOnValueChange) return;
-      if (
-        (itemData.index === activeDot?.index &&
-          itemData.dataKey === activeDot?.dataKey) ||
-        (hasOnlyOneValueForKey(data, itemData.dataKey) &&
-          activeLegend &&
-          activeLegend === itemData.dataKey)
-      ) {
+      if (!onValueChange) return;
+      if (deepEqual(activeBar, { ...data.payload, value: data.value })) {
         setActiveLegend(undefined);
-        setActiveDot(undefined);
+        setActiveBar(undefined);
         onValueChange?.(null);
       } else {
-        setActiveLegend(itemData.dataKey);
-        setActiveDot({
-          index: itemData.index,
-          dataKey: itemData.dataKey,
+        setActiveLegend(data.tooltipPayload?.[0]?.dataKey);
+        setActiveBar({
+          ...data.payload,
+          value: data.value,
         });
         onValueChange?.({
-          eventType: 'dot',
-          categoryClicked: itemData.dataKey,
-          ...itemData.payload,
+          eventType: 'bar',
+          categoryClicked: data.tooltipPayload?.[0]?.dataKey,
+          ...data.payload,
         });
       }
     }
 
     function onCategoryClick(dataKey: string) {
       if (!hasOnValueChange) return;
-      if (
-        (dataKey === activeLegend && !activeDot) ||
-        (hasOnlyOneValueForKey(data, dataKey) &&
-          activeDot &&
-          activeDot.dataKey === dataKey)
-      ) {
+      if (dataKey === activeLegend && !activeBar) {
         setActiveLegend(undefined);
         onValueChange?.(null);
       } else {
@@ -639,35 +649,41 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
           categoryClicked: dataKey,
         });
       }
-      setActiveDot(undefined);
+      setActiveBar(undefined);
     }
     const abbreviateNumber = (value: any) => {
       if (value >= 1e9) {
         const formatted = (value / 1e9).toFixed(1);
-        return formatted.endsWith('.0') ? `${(value / 1e9).toFixed(0)}B` : `${formatted}B`;
+        return formatted.endsWith('.0')
+          ? `${(value / 1e9).toFixed(0)}B`
+          : `${formatted}B`;
       } else if (value >= 1e6) {
         const formatted = (value / 1e6).toFixed(1);
-        return formatted.endsWith('.0') ? `${(value / 1e6).toFixed(0)}M` : `${formatted}M`;
+        return formatted.endsWith('.0')
+          ? `${(value / 1e6).toFixed(0)}M`
+          : `${formatted}M`;
       } else if (value >= 1e3) {
         const formatted = (value / 1e3).toFixed(1);
-        return formatted.endsWith('.0') ? `${(value / 1e3).toFixed(0)}K` : `${formatted}K`;
+        return formatted.endsWith('.0')
+          ? `${(value / 1e3).toFixed(0)}K`
+          : `${formatted}K`;
       }
       return value;
     };
     return (
       <div
-        ref={ref}
+        ref={forwardedRef}
         className={cx('h-80 w-full', className)}
         tremor-id='tremor-raw'
         {...other}
       >
         <ResponsiveContainer>
-          <RechartsAreaChart
+          <RechartsBarChart
             data={data}
             onClick={
-              hasOnValueChange && (activeLegend || activeDot)
+              hasOnValueChange && (activeLegend || activeBar)
                 ? () => {
-                    setActiveDot(undefined);
+                    setActiveBar(undefined);
                     setActiveLegend(undefined);
                     onValueChange?.(null);
                   }
@@ -680,25 +696,22 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               top: 5,
             }}
             stackOffset={type === 'percent' ? 'expand' : undefined}
+            layout={layout}
+            barCategoryGap={barCategoryGap}
           >
             {showGridLines ? (
               <CartesianGrid
                 className={cx('stroke-gray-200 stroke-1 dark:stroke-gray-800')}
-                horizontal={true}
-                vertical={false}
+                horizontal={layout !== 'vertical'}
+                vertical={layout === 'vertical'}
               />
             ) : null}
             <XAxis
-              padding={{ left: paddingValue, right: paddingValue }}
               hide={!showXAxis}
-              dataKey={index}
-              interval={startEndOnly ? 'preserveStartEnd' : intervalType}
-              tick={{ transform: 'translate(0, 6)' }}
-              ticks={
-                startEndOnly
-                  ? [data[0][index], data[data.length - 1][index]]
-                  : undefined
-              }
+              tick={{
+                transform:
+                  layout !== 'vertical' ? 'translate(0, 6)' : undefined,
+              }}
               fill=''
               stroke=''
               className={cx(
@@ -706,10 +719,30 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 'text-xs',
                 // text fill
                 'fill-gray-500 dark:fill-gray-500',
+                { 'mt-4': layout !== 'vertical' },
               )}
               tickLine={false}
               axisLine={false}
               minTickGap={tickGap}
+              {...(layout !== 'vertical'
+                ? {
+                    padding: {
+                      left: paddingValue,
+                      right: paddingValue,
+                    },
+                    dataKey: index,
+                    interval: startEndOnly ? 'preserveStartEnd' : intervalType,
+                    ticks: startEndOnly
+                      ? [data[0][index], data[data.length - 1][index]]
+                      : undefined,
+                  }
+                : {
+                    type: 'number',
+                    domain: yAxisDomain as AxisDomain,
+                    tickFormatter:
+                      type === 'percent' ? valueToPercent : valueFormatter,
+                    allowDecimals: allowDecimals,
+                  })}
             >
               {xAxisLabel && (
                 <Label
@@ -726,9 +759,6 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               hide={!showYAxis}
               axisLine={false}
               tickLine={false}
-              type='number'
-              domain={yAxisDomain as AxisDomain}
-              tick={{ transform: 'translate(-3, 0)' }}
               fill=''
               stroke=''
               className={cx(
@@ -737,10 +767,30 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 // text fill
                 'fill-gray-500 dark:fill-gray-500',
               )}
-              tickFormatter={
-                type === 'percent' ? valueToPercent : (value) => abbreviateNumber(value)
-              }
-              allowDecimals={allowDecimals}
+              tick={{
+                transform:
+                  layout !== 'vertical'
+                    ? 'translate(-3, 0)'
+                    : 'translate(0, 0)',
+              }}
+              {...(layout !== 'vertical'
+                ? {
+                    type: 'number',
+                    domain: yAxisDomain as AxisDomain,
+                    tickFormatter:
+                      type === 'percent'
+                        ? valueToPercent
+                        : (value) => abbreviateNumber(value),
+                    allowDecimals: allowDecimals,
+                  }
+                : {
+                    dataKey: index,
+                    ticks: startEndOnly
+                      ? [data[0][index], data[data.length - 1][index]]
+                      : undefined,
+                    type: 'category',
+                    interval: 'equidistantPreserveStart',
+                  })}
             >
               {yAxisLabel && (
                 <Label
@@ -758,9 +808,12 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
               wrapperStyle={{ outline: 'none' }}
               isAnimationActive={true}
               animationDuration={100}
-              cursor={{ stroke: '#d1d5db', strokeWidth: 1 }}
+              cursor={{ fill: '#d1d5db', opacity: '0.15' }}
               offset={20}
-              position={{ y: 0 }}
+              position={{
+                y: layout === 'horizontal' ? 0 : undefined,
+                x: layout === 'horizontal' ? undefined : yAxisWidth + 20,
+              }}
               content={({ active, payload, label }) => {
                 const cleanPayload: TooltipProps['payload'] = payload
                   ? payload.map((item: any) => ({
@@ -803,7 +856,6 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 ) : null;
               }}
             />
-
             {showLegend ? (
               <RechartsLegend
                 verticalAlign='top'
@@ -825,177 +877,35 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                 }
               />
             ) : null}
-            {categories.map((category) => {
-              const categoryId = `${areaId}-${category.replace(/[^a-zA-Z0-9]/g, '')}`;
-              return (
-                <React.Fragment key={category}>
-                  <defs key={category}>
-                    <linearGradient
-                      key={category}
-                      className={cx(
-                        getColorClassName(
-                          categoryColors.get(
-                            category,
-                          ) as AvailableChartColorsKeys,
-                          'text',
-                        ),
-                      )}
-                      id={categoryId}
-                      x1='0'
-                      y1='0'
-                      x2='0'
-                      y2='1'
-                    >
-                      {getFillContent({
-                        fillType: fill,
-                        activeDot: activeDot,
-                        activeLegend: activeLegend,
-                        category: category,
-                      })}
-                    </linearGradient>
-                  </defs>
-                  <Area
-                    className={cx(
-                      getColorClassName(
-                        categoryColors.get(
-                          category,
-                        ) as AvailableChartColorsKeys,
-                        'stroke',
-                      ),
-                    )}
-                    strokeOpacity={
-                      activeDot || (activeLegend && activeLegend !== category)
-                        ? 0.3
-                        : 1
-                    }
-                    activeDot={(props: any) => {
-                      const {
-                        cx: cxCoord,
-                        cy: cyCoord,
-                        stroke,
-                        strokeLinecap,
-                        strokeLinejoin,
-                        strokeWidth,
-                        dataKey,
-                      } = props;
-                      return (
-                        <Dot
-                          className={cx(
-                            'stroke-white dark:stroke-gray-950',
-                            onValueChange ? 'cursor-pointer' : '',
-                            getColorClassName(
-                              categoryColors.get(
-                                dataKey,
-                              ) as AvailableChartColorsKeys,
-                              'fill',
-                            ),
-                          )}
-                          cx={cxCoord}
-                          cy={cyCoord}
-                          r={5}
-                          fill=''
-                          stroke={stroke}
-                          strokeLinecap={strokeLinecap}
-                          strokeLinejoin={strokeLinejoin}
-                          strokeWidth={strokeWidth}
-                          onClick={(_, event) => onDotClick(props, event)}
-                        />
-                      );
-                    }}
-                    dot={(props: any) => {
-                      const {
-                        stroke,
-                        strokeLinecap,
-                        strokeLinejoin,
-                        strokeWidth,
-                        cx: cxCoord,
-                        cy: cyCoord,
-                        dataKey,
-                        index,
-                      } = props;
-
-                      if (
-                        (hasOnlyOneValueForKey(data, category) &&
-                          !(
-                            activeDot ||
-                            (activeLegend && activeLegend !== category)
-                          )) ||
-                        (activeDot?.index === index &&
-                          activeDot?.dataKey === category)
-                      ) {
-                        return (
-                          <Dot
-                            key={index}
-                            cx={cxCoord}
-                            cy={cyCoord}
-                            r={5}
-                            stroke={stroke}
-                            fill=''
-                            strokeLinecap={strokeLinecap}
-                            strokeLinejoin={strokeLinejoin}
-                            strokeWidth={strokeWidth}
-                            className={cx(
-                              'stroke-white dark:stroke-gray-950',
-                              onValueChange ? 'cursor-pointer' : '',
-                              getColorClassName(
-                                categoryColors.get(
-                                  dataKey,
-                                ) as AvailableChartColorsKeys,
-                                'fill',
-                              ),
-                            )}
-                          />
-                        );
-                      }
-                      return <React.Fragment key={index}></React.Fragment>;
-                    }}
-                    key={category}
-                    name={category}
-                    type='linear'
-                    dataKey={category}
-                    stroke=''
-                    strokeWidth={2}
-                    strokeLinejoin='round'
-                    strokeLinecap='round'
-                    isAnimationActive={false}
-                    connectNulls={connectNulls}
-                    stackId={stacked ? 'stack' : undefined}
-                    fill={`url(#${categoryId})`}
-                  />
-                </React.Fragment>
-              );
-            })}
-            {/* hidden lines to increase clickable target area */}
-            {onValueChange
-              ? categories.map((category) => (
-                  <Line
-                    className={cx('cursor-pointer')}
-                    strokeOpacity={0}
-                    key={category}
-                    name={category}
-                    type='linear'
-                    dataKey={category}
-                    stroke='transparent'
-                    fill='transparent'
-                    legendType='none'
-                    tooltipType='none'
-                    strokeWidth={12}
-                    connectNulls={connectNulls}
-                    onClick={(props: any, event) => {
-                      event.stopPropagation();
-                      const { name } = props;
-                      onCategoryClick(name);
-                    }}
-                  />
-                ))
-              : null}
-          </RechartsAreaChart>
+            {categories.map((category) => (
+              <Bar
+                className={cx(
+                  getColorClassName(
+                    categoryColors.get(category) as AvailableChartColorsKeys,
+                    'fill',
+                  ),
+                  onValueChange ? 'cursor-pointer' : '',
+                )}
+                key={category}
+                name={category}
+                type='linear'
+                dataKey={category}
+                stackId={stacked ? 'stack' : undefined}
+                isAnimationActive={false}
+                fill=''
+                shape={(props: any) =>
+                  renderShape(props, activeBar, activeLegend, layout)
+                }
+                onClick={onBarClick}
+              />
+            ))}
+          </RechartsBarChart>
         </ResponsiveContainer>
       </div>
     );
   },
 );
 
-AreaChart.displayName = 'AreaChart';
+BarChart.displayName = 'BarChart';
 
-export { AreaChart, type AreaChartEventProps, type TooltipProps };
+export { BarChart, type BarChartEventProps, type TooltipProps };

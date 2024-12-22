@@ -234,7 +234,7 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
               <ArrowUpDown className='size-4 text-black' />
             )}
           </div>
-          {props.group.name}
+          {props.group.name.charAt(0).toUpperCase() + props.group.name.slice(1).toLowerCase()}
         </div>
 
         <div className='col-span-1 flex h-full w-full items-center justify-end lg:hidden'>

@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../ui/card';
-import { BarChart } from '../ui/BarChart';
+import { BarChart } from '../ui/bar-chart';
 import { AppsContext } from '@/dash-context';
 import { GroupType } from '@/types';
 import { EmptyState } from '../ui/empty-state';

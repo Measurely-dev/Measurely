@@ -2,8 +2,8 @@
 import DashboardContentContainer from '@/components/dashboard/container';
 import { MetricDatePicker } from '@/components/dashboard/date-picker';
 import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
-import { AreaChart, TooltipProps } from '@/components/ui/areaChart';
-import { BarChart } from '@/components/ui/BarChart';
+import { AreaChart, TooltipProps } from '@/components/ui/area-chart';
+import { BarChart } from '@/components/ui/bar-chart';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -251,7 +251,12 @@ export default function DashboardMetricPage() {
           </BreadcrumbLink>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{group?.name}</BreadcrumbPage>
+            <BreadcrumbPage>
+              {group?.name
+                ? group?.name.charAt(0).toUpperCase() +
+                  group?.name.slice(1).toLowerCase()
+                : 'Undefined'}
+            </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -260,7 +265,10 @@ export default function DashboardMetricPage() {
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
               <div className='text-lg font-normal capitalize text-muted-foreground'>
-                {group?.name}
+                {group?.name
+                  ? group?.name.charAt(0).toUpperCase() +
+                    group?.name.slice(1).toLowerCase()
+                  : 'Undefined'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
                 {group?.type === GroupType.Dual ? (
@@ -913,7 +921,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === GroupType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -939,7 +947,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === GroupType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1167,6 +1175,7 @@ function RangeSelector(props: {
   range: number;
   setRange: Dispatch<SetStateAction<number>>;
 }) {
+  const { user } = useContext(UserContext);
   return (
     <ToggleGroup
       type='single'
@@ -1205,6 +1214,21 @@ function RangeSelector(props: {
       >
         30D
       </ToggleGroupItem>
+      <div
+        onClick={() => {
+          user?.plan.identifier === 'starter'
+            ? toast.warning('Upgrade plan to access the year view')
+            : {};
+        }}
+      >
+        <ToggleGroupItem
+          value='365'
+          disabled={user?.plan.identifier === 'starter' ? true : false}
+          className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
+        >
+          12M
+        </ToggleGroupItem>
+      </div>
     </ToggleGroup>
   );
 }
@@ -1230,7 +1254,7 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
                   className='size-1.5 rounded-full'
                   style={{ backgroundColor: item.color }}
                 />
-                {item.category}
+                {item.category.charAt(0).toUpperCase() + item.category.slice(1).toLowerCase()}
               </span>
               <div className='flex items-center space-x-1'>
                 <span className='font-medium capitalize text-gray-900 dark:text-gray-50'>
