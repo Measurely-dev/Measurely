@@ -116,7 +116,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].groups?.findIndex(
                   (g) => g.id === group.id,
                 ) ?? 0) >
-                  user.plan.metric_per_app_limit - 1;
+                user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={group.metrics[0].id}
@@ -174,30 +174,24 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
       return;
     }
 
-    let daily = 0;
-    if (props.group.type === GroupType.Base) {
-      setTotal(props.group.metrics[0].total);
-      daily = await fetchDailySummary(
+    let total = 0;
+    let pos = 0;
+    let neg = 0;
+    total += props.group.metrics[0].total
+    pos = await fetchDailySummary(
+      props.group.appid,
+      props.group.metrics[0].id,
+    );
+    if (props.group.type === GroupType.Dual) {
+      total -= props.group.metrics[1].total;
+      neg = await fetchDailySummary(
         props.group.appid,
-        props.group.id,
-        props.group.metrics[0].id,
-      );
-    } else if (props.group.type === GroupType.Dual) {
-      setTotal(props.group.metrics[0].total - props.group.metrics[1].total);
-      const pos = await fetchDailySummary(
-        props.group.appid,
-        props.group.id,
-        props.group.metrics[0].id,
-      );
-      const neg = await fetchDailySummary(
-        props.group.appid,
-        props.group.id,
         props.group.metrics[1].id,
       );
-      daily = pos - neg;
     }
 
-    setDailyUpdate(daily);
+    setTotal(total)
+    setDailyUpdate(pos - neg);
   };
 
   useEffect(() => {

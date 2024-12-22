@@ -190,6 +190,41 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 	return plan, ok
 }
 
+func (s *Service) GetUserPlan(userid uuid.UUID) (types.Plan, error) {
+	value, ok := s.cache.usersPlan.Load(userid)
+	var planCache UserPlanCache
+	expired := false
+
+	if ok {
+		planCache = value.(UserPlanCache)
+		if time.Now().After(planCache.expiry) {
+			expired = true
+		}
+	}
+
+	if !ok || expired {
+
+		user, err := s.db.GetUserById(userid)
+		if err != nil {
+			return types.Plan{}, nil
+		}
+
+		plan, exists := s.GetPlan(user.CurrentPlan)
+		if !exists {
+			return types.Plan{}, errors.New("plan does not exist")
+		}
+
+		s.cache.usersPlan.Store(userid, UserPlanCache{
+			plan:   plan,
+			expiry: time.Now().Add(30 * time.Minute),
+		})
+
+		return plan, nil
+	}
+
+	return planCache.plan, nil
+}
+
 func GetOrigin() string {
 	if os.Getenv("ENV") == "production" {
 		return "https://measurely.dev"

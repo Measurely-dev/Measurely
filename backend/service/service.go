@@ -33,14 +33,14 @@ type MetricToKeyCache struct {
 	expiry time.Time
 }
 
-type UserLimitCache struct {
-	limit  int
+type UserPlanCache struct {
+	plan   types.Plan
 	expiry time.Time
 }
 
 type Cache struct {
 	plans             sync.Map
-	userLimits        sync.Map
+	usersPlan         sync.Map
 	metricIdToApiKeys sync.Map
 }
 
@@ -94,7 +94,7 @@ func New() Service {
 		providers: providers,
 		cache: Cache{
 			plans:             sync.Map{},
-			userLimits:        sync.Map{},
+			usersPlan:         sync.Map{},
 			metricIdToApiKeys: sync.Map{},
 		},
 	}

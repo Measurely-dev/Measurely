@@ -93,7 +93,7 @@ export const loadChartData = async (
   }
 
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[0].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${group.metrics[0].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -138,7 +138,7 @@ export const loadChartData = async (
     });
   if (group.type === GroupType.Dual) {
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/events?groupid=${group.id}&metricid=${group.metrics[1].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${group.metrics[1].id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
       { method: 'GET', credentials: 'include' },
     )
       .then((resp) => {
@@ -183,7 +183,6 @@ export const loadChartData = async (
 
 export const fetchDailySummary = async (
   appid: string,
-  groupid: string,
   metricid: string,
 ): Promise<number> => {
   const from = new Date();
@@ -194,7 +193,7 @@ export const fetchDailySummary = async (
   to.setHours(from.getHours() + 24);
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
-    }&groupid=${groupid}&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
+    }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
     {
       method: 'GET',
       credentials: 'include',

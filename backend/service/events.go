@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -46,7 +47,7 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 
 		s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
 			key:    apikey,
-			expiry: time.Now().Add(30 * time.Minute),
+			expiry: time.Now().Add(1 * time.Hour),
 		})
 
 		return true
@@ -130,11 +131,6 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-	groupid, err := uuid.Parse(r.URL.Query().Get("groupid"))
-	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
 
 	start, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("start"))
 	if err != nil {
@@ -151,50 +147,54 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	daily := r.URL.Query().Get("daily")
 
 	// Get application
-	_, err = s.db.GetApplication(appid, token.Id)
+	app, err := s.db.GetApplication(appid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	// Get Group
-	_, err = s.db.GetMetricGroup(groupid, appid)
-	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	valid := s.VerifyKeyToMetric(metricid, app.ApiKey)
+	if !valid {
+		http.Error(w, "metric not found", http.StatusNotFound)
 		return
 	}
 
-	// Get Metric
-	_, err = s.db.GetMetric(metricid, groupid)
+	plan, err := s.GetUserPlan(token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "internal error", http.StatusNotFound)
+		return
+	}
+
+	nbrDays := float64(end.Sub(start).Abs()) / float64(24*time.Hour)
+
+	if nbrDays > float64(plan.Range) {
+		http.Error(w, "you have exceeded your plans limit, you can view a maximum of "+strconv.Itoa(plan.Range)+" days", http.StatusUnauthorized)
 		return
 	}
 
 	var bytes []byte
 	if daily != "1" {
-    if end.Sub(start) > 24 * time.Hour {
-      http.Error(w, "You cannot fetch more than 24 hours of precise events", http.StatusBadRequest)
-      return
-    }
+		if end.Sub(start) > 24*time.Hour {
+			http.Error(w, "You cannot fetch more than 24 hours of precise events", http.StatusBadRequest)
+			return
+		}
 		// get the metric events
 		metrics, err := s.db.GetMetricEvents(metricid, start, end)
 		if err != nil {
-      log.Println("here")
-      log.Println(err)
+			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 
 		bytes, err = json.Marshal(metrics)
 		if err != nil {
-      log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	} else {
 		metricevents, err := s.db.GetDailyMetricSummary(metricid, start, end)
 		if err != nil {
+			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}

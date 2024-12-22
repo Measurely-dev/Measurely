@@ -22,37 +22,26 @@ export const TopMetricCard = () => {
 
     if (applications[activeApp].groups === null) return [];
     if (applications[activeApp].groups.length === 0) return [];
+    let addedMetrics = 0;
     for (let i = 0; i < applications[activeApp].groups.length; i++) {
       const group = applications[activeApp].groups[i];
-      if (group.type === GroupType.Base) {
-        data.push({
-          name: group.name,
-          total: group.metrics[0].total,
-        });
-      } else {
-        data.push({
-          name: group.name,
-          total: group.metrics[0].total - group.metrics[1].total,
-        });
+      let total = group.metrics[0].total;
+      if (group.type === GroupType.Dual) {
+        total - group.metrics[1].total
       }
+
+      if (total !== 0) {
+        data.push({
+          name: group.name,
+          total: total,
+        });
+        addedMetrics += 1
+      }
+
+      if (addedMetrics >= 7) break;
     }
 
     return data.sort((a, b) => b.total - a.total);
-  }, [activeApp]);
-
-  const metricsSum = useMemo(() => {
-    let total = 0;
-    if (applications[activeApp].groups === null) return 0;
-    if (applications[activeApp].groups.length === 0) return 0;
-    for (let i = 0; i < applications[activeApp].groups.length; i++) {
-      const group = applications[activeApp].groups[i];
-      if (group.type === GroupType.Base) {
-        total += group.metrics[0].total;
-      } else {
-        total = total + (group.metrics[0].total - group.metrics[1].total);
-      }
-    }
-    return total;
   }, [activeApp]);
 
   return (
@@ -61,7 +50,7 @@ export const TopMetricCard = () => {
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
       </CardHeader>
-      {metricsSum === 0 || topMetricData.length === 0 ? (
+      {topMetricData.length === 0 ? (
         <EmptyState
           className='mt-5 py-14'
           title='No items to show at the moment.'

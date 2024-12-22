@@ -201,11 +201,11 @@ export default function DashboardMetricPage() {
 
   const loadDailyValues = async (group: Group) => {
     setPosDaily(
-      await fetchDailySummary(group.appid, group.id, group.metrics[0].id),
+      await fetchDailySummary(group.appid, group.metrics[0].id),
     );
     if (group.type === GroupType.Dual) {
       setNegDaily(
-        await fetchDailySummary(group.appid, group.id, group.metrics[1].id),
+        await fetchDailySummary(group.appid, group.metrics[1].id)
       );
     }
   };
@@ -254,7 +254,7 @@ export default function DashboardMetricPage() {
             <BreadcrumbPage>
               {group?.name
                 ? group?.name.charAt(0).toUpperCase() +
-                  group?.name.slice(1).toLowerCase()
+                group?.name.slice(1).toLowerCase()
                 : 'Undefined'}
             </BreadcrumbPage>
           </BreadcrumbItem>
@@ -267,7 +267,7 @@ export default function DashboardMetricPage() {
               <div className='text-lg font-normal capitalize text-muted-foreground'>
                 {group?.name
                   ? group?.name.charAt(0).toUpperCase() +
-                    group?.name.slice(1).toLowerCase()
+                  group?.name.slice(1).toLowerCase()
                   : 'Undefined'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
@@ -921,7 +921,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === GroupType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -947,7 +947,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === GroupType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
