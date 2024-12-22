@@ -125,7 +125,7 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email is tokenid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Intokenid email ", http.StatusBadRequest)
+		http.Error(w, "Invalide email ", http.StatusBadRequest)
 		return
 	}
 
@@ -169,7 +169,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email and password are tokenid
 	if !isEmailValid(strings.ToLower(request.Email)) {
-		http.Error(w, "Intokenid email", http.StatusBadRequest)
+		http.Error(w, "Invalide email", http.StatusBadRequest)
 		return
 	}
 
@@ -322,7 +322,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Intokenid user identifier", http.StatusMovedPermanently)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Invalide user identifier", http.StatusMovedPermanently)
 				return
 			}
 			user, err = s.db.GetUserById(parsedId)
@@ -452,7 +452,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email and password are tokenid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Intokenid email", http.StatusBadRequest)
+		http.Error(w, "Invalide email", http.StatusBadRequest)
 		return
 	}
 	if !isPasswordValid(request.Password) {
@@ -619,7 +619,7 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email is valid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Intokenid email ", http.StatusBadRequest)
+		http.Error(w, "Invalide email ", http.StatusBadRequest)
 		return
 	}
 
@@ -667,14 +667,14 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 
 	// check if the new password is tokenid
 	if !isPasswordValid(request.NewPassword) {
-		http.Error(w, "Intokenid password", http.StatusBadRequest)
+		http.Error(w, "Invalide password", http.StatusBadRequest)
 		return
 	}
 
 	// fetch the account recovery
 	account_recovery, gerr := s.db.GetAccountRecovery(request.RequestId)
 	if gerr != nil {
-		http.Error(w, "Intokenid account recovery link", http.StatusBadRequest)
+		http.Error(w, "Invalide account recovery link", http.StatusBadRequest)
 		return
 	}
 
@@ -916,7 +916,7 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	// fetch the account recovery
 	emailchange, gerr := s.db.GetEmailChangeRequest(request.RequestId)
 	if gerr != nil {
-		http.Error(w, "Intokenid email change link", http.StatusBadRequest)
+		http.Error(w, "Invalide email change link", http.StatusBadRequest)
 		return
 	}
 
@@ -1328,7 +1328,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Type != types.BASE && request.Type != types.DUAL {
-		http.Error(w, "Intokenid metric type", http.StatusBadRequest)
+		http.Error(w, "Invalide metric type", http.StatusBadRequest)
 		return
 	}
 

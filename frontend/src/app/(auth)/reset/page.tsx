@@ -36,10 +36,10 @@ export default function PasswordReset() {
 
   return (
     <WebContainer>
-      <div className='mb-[150px]'>
+      <div className=''>
         <AuthNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer>
+      <ContentContainer type='page'>
         {view === 0 ? (
           <AuthForm
             title='Email'
@@ -151,7 +151,7 @@ export default function PasswordReset() {
         ) : (
           <></>
         )}
-        <div className='flex h-screen w-full items-center justify-center'>
+        <div className='flex w-full items-center justify-center'>
           <div className='flex w-fit flex-col gap-[10px]'>
             {view === 1 ? (
               <>

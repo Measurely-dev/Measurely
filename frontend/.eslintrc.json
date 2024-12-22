@@ -1,13 +1,21 @@
 {
-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
-  "plugins": ["unused-imports", "react"],
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "unused-imports",
+    "react"
+  ],
   "rules": {
     "unused-imports/no-unused-imports": "error", // Enforce removal of unused imports
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "off",
     "@typescript-eslint/no-empty-object-type": "off",
-    "react/no-unescaped-entities": ["off"], // React rule for unescaped entities
+    "react/no-unescaped-entities": [
+      "off"
+    ], // React rule for unescaped entities
     "react-hooks/exhaustive-deps": "off",
     "unused-imports/no-unused-vars": [
       "warn", // Warn for unused vars
@@ -19,5 +27,8 @@
       }
     ],
     "react/jsx-key": "error" // Add a rule for missing key props
-  }
+  },
+  "ignores": [
+    ".src/docs-contents/*"
+  ]
 }

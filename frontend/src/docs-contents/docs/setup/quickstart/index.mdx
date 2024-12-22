@@ -1,47 +1,90 @@
 ---
 title: Quickstart
-description: Gatsby guide for our application.
+description: A 5-minute guide to getting started with the Measurely API.
 ---
 
-## Overview
+## Quick Overview
 
-Welcome to the Gatsby guide. Here, you'll find all the information you need to get started.
+This guide will help you:
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ut metus ligula. Proin vehicula velit quis justo facilisis, in facilisis dolor interdum.
+1. Create a basic metric in the Measurely dashboard.
+2. Update the metric value using the API.
 
-## Prerequisites
+## Creating a Basic Metric
 
-Before proceeding, ensure you have the following:
+<Stepper>
+  <StepperItem title='Step 1: Access the Metrics Page'>
+    Navigate to the **Metrics** section in the Measurely dashboard.
+  </StepperItem>
+  <StepperItem title='Step 2: Click Create Metric'>
+    Here, you'll have the option to select between a **Basic Metric** or a
+    **Dual Metric**. Choose **Basic Metric**.
+  </StepperItem>
+  <StepperItem title='Step 3: Enter Metric Details'>
+    Provide a name for your metric (e.g., "Sales Count").
+  </StepperItem>
+  <StepperItem title='Step 4: API ID Integration'>
+    To send data to this metric, integrate your Measurely API ID into your
+    application.
+  </StepperItem>
+</Stepper>
+## 
+## Updating a Metric via API
 
-- Node.js installed
-- Basic knowledge of command-line interface (CLI)
-- A code editor (e.g., VSCode)
+To update a metric value:
 
-## Installation Steps
+1. Make a POST request to the endpoint:
 
-1. **Clone the Repository**:
-   Clone the repository using the following command:
-
-   ```bash
-   git clone https://github.com/your-repo/your-project.git
+   ```
+   POST https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
    ```
 
-2. **Navigate to the Project Directory**:
-   Use the `cd` command to navigate to your project directory:
+2. Include a JSON body with the value you want to add:
 
-   ```bash
-   cd your-project
+   ```json
+   {
+     "value": 100
+   }
    ```
+##
 
-3. **Install Dependencies**:
-   Install the required dependencies using npm or yarn:
+## Code Examples
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+<Tabs defaultValue="javascript" className="pt-5 pb-1">
+  <TabsList>
+    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
+  </TabsList>
+  <TabsContent value="javascript">
 
-## Additional Information
+```javascript
+export const updateMetric = async (API_KEY, METRIC_ID, value) => {
+  const response = await fetch(`https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value: value }),
+  });
+  return response.status;
+};
+```
 
-For more details, please refer to our official [documentation](#).
+  </TabsContent>
+  <TabsContent value="typescript">
+
+```typescript
+export const updateMetric = async (API_KEY: string, METRIC_ID: string, value: number): Promise<number> => {
+  const response = await fetch(`https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value: value }),
+  });
+  return response.status;
+};
+```
+
+  </TabsContent>
+</Tabs>

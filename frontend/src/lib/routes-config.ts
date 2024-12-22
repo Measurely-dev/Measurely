@@ -20,7 +20,6 @@ export const ROUTES: EachRoute[] = [
     noLink: true,
     items: [
       { title: 'Quickstart', href: '/quickstart' },
-      { title: 'Development', href: '/development' },
     ],
   },
   {
