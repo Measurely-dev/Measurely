@@ -17,7 +17,7 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 	expired := false
 
 	if ok {
-		relation := value.(MetricToKeyCache)
+		relation = value.(MetricToKeyCache)
 		if time.Now().After(relation.expiry) {
 			expired = true
 		}
@@ -79,6 +79,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 
 	if request.Value <= 0 {
 		http.Error(w, "Value cannot be negative or null", http.StatusBadRequest)
+		return
 	}
 
 	valid := s.VerifyKeyToMetric(metricid, apikey)
