@@ -386,14 +386,10 @@ function OverviewChart(props: { group: Group }) {
     if (!loadingLeft && !loadingRight) {
       setLoading(true);
     }
-    if (date !== undefined && date.from !== undefined) {
+    if (date !== undefined && date.to !== undefined) {
       setChartData(
-        (await loadChartData(
-          date.from,
-          range,
-          props.group,
-          props.group.appid,
-        )) ?? [],
+        (await loadChartData(date.to, range, props.group, props.group.appid)) ??
+        [],
       );
     }
     setLoading(false);
@@ -405,9 +401,9 @@ function OverviewChart(props: { group: Group }) {
     setDate((prev) => {
       if (prev === undefined || prev.from === undefined) return prev;
       const to = new Date(prev.from);
-      to.setDate(prev.from.getDate() + range);
+      to.setDate(prev.from.getDate() - range);
       const now = new Date();
-      if (now < prev.from) {
+      if (now < to) {
         return {
           from: new Date(),
         };
@@ -513,12 +509,19 @@ function OverviewChart(props: { group: Group }) {
             }}
             onRight={() => {
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return prev;
+                if (
+                  prev === undefined ||
+                  prev.from === undefined ||
+                  prev.to === undefined
+                )
+                  return prev;
                 const from = new Date(prev.from);
+                const to = new Date(prev.to);
                 const toAdd = range === 0 ? 1 : range;
                 from.setDate(from.getDate() + toAdd);
+                to.setDate(to.getDate() + toAdd);
                 const now = new Date();
-                if (now < from) {
+                if (now < to) {
                   return prev;
                 }
                 setLoadingRight(true);
@@ -531,14 +534,14 @@ function OverviewChart(props: { group: Group }) {
             isLoadingLeft={loadingLeft}
             isLoadingRight={loadingRight}
             isDisabled={useMemo(() => {
-              if (date === undefined || date.from === undefined) {
+              if (date === undefined || date.to === undefined) {
                 return false;
               }
               const now = new Date();
-              const from = new Date(date.from);
+              const to = new Date(date.to);
               const toAdd = range === 0 ? 1 : range;
-              from.setDate(from.getDate() + toAdd);
-              const result = now < from;
+              to.setDate(to.getDate() + toAdd);
+              const result = now < to;
               return result;
             }, [date])}
           />

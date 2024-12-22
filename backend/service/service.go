@@ -1276,6 +1276,11 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+type GroupResponse struct {
+	types.MetricGroup
+	Metrics []types.Metric `json:"metrics"`
+}
+
 func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
@@ -1374,10 +1379,9 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	response := struct {
-		Metrics []types.Metric `json:"metrics"`
-	}{}
+	response := GroupResponse{
+		MetricGroup: group,
+	}
 
 	for i, metric := range request.Metrics {
 		created_metric, err := s.db.CreateMetric(types.Metric{
@@ -1394,29 +1398,23 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response.Metrics = append(response.Metrics, created_metric)
-
 		if request.BaseValue != 0 && i == 0 {
 			data := map[string]interface{}{
 				"value": request.BaseValue,
 			}
 			jsonData, err := json.Marshal(data)
-			if err != nil {
-				log.Println("Error marshaling JSON:", err)
-				continue
-			}
-			request, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			_, err = http.DefaultClient.Do(request)
-			if err != nil {
-				log.Println(err)
-				continue
+			if err == nil {
+				req, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
+				if err == nil {
+					resp, err := http.DefaultClient.Do(req)
+					if err == nil && resp.StatusCode == 200 {
+						created_metric.Total = request.BaseValue
+					}
+				}
 			}
 		}
+
+		response.Metrics = append(response.Metrics, created_metric)
 	}
 
 	bytes, jerr := json.Marshal(response)
@@ -1501,10 +1499,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := []struct {
-		types.MetricGroup
-		Metrics []types.Metric `json:"metrics"`
-	}{}
+	response := []GroupResponse{}
 
 	for _, metric := range metrics {
 		subs, err := s.db.GetMetrics(metric.Id)
@@ -1512,10 +1507,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		response = append(response, struct {
-			types.MetricGroup
-			Metrics []types.Metric `json:"metrics"`
-		}{
+		response = append(response, GroupResponse{
 			MetricGroup: metric,
 			Metrics:     subs,
 		})
