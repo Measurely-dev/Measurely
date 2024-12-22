@@ -54,6 +54,11 @@ export default function TeamPage() {
           <form
             onSubmit={(e: FormEvent<HTMLFormElement>) => {
               e.preventDefault();
+
+              if (process.env.NEXT_PUBLIC_ENV !== 'production') {
+                return;
+              }
+
               const requested =
                 window.localStorage.getItem('request-team-feature') === 'true'
                   ? true
@@ -65,7 +70,7 @@ export default function TeamPage() {
 
               setLoading(true);
               fetch(
-                'https://api.measurely.dev/event/172d63973353a619be298e8dc1b22aab/069854fd-a94d-4a82-9d72-545e973347db',
+                `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/a27e32df-5d85-44d5-a578-d5fd3fc1c204`,
                 {
                   method: 'POST',
                   headers: {

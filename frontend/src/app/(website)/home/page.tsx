@@ -6,6 +6,20 @@ import { headers } from 'next/headers';
 export default async function Home() {
   const headersList = headers();
   const is_authentificated = headersList.get('is-authentificated');
+
+  if (process.env.NEXT_PUBLIC_ENV === 'production') {
+    fetch(
+      `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/113e733c-970b-471e-92a8-f6a5bc9fbd1f`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: 1 }),
+      },
+    );
+  }
+
   return (
     <WebContainer>
       <ShowcaseLandingSection />

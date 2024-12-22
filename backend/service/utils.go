@@ -2,10 +2,13 @@ package service
 
 import (
 	"Measurely/types"
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -16,6 +19,22 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var metricIds = map[string]string{
+	"feedbacks":    "15f5fc91-17fb-4ee4-bbdb-b8acca129c2a",
+	"metrics-pos":  "76f36d78-c547-49ab-b13d-a31ee9614e76",
+	"metrics-neg":  "022517ef-f5f6-4cfd-bd68-d5f96ff45220",
+	"apps-pos":     "e07a31ed-b89e-46c8-8ab2-a361b7c568a9",
+	"apps-neg":     "fc61add8-36be-4307-b8d7-70e749e07894",
+	"pro-pos":      "83f99bbb-ca1f-4050-998b-f3310a01af5b",
+	"pro-neg":      "1dfab73c-e0eb-46ad-8457-1f5ba727500f",
+	"plus-pos":     "1e502b44-1014-42cc-994e-16cc1fa5c082",
+	"plus-neg":     "38155176-d92b-46d0-9dd3-55d5ac6f63e1",
+	"starter-pos":  "33e74281-318b-4afd-ab0a-668c5256d537",
+	"starter-neg":  "14bd6ac5-0197-4f2a-9134-c55d3699391b",
+	"users-pos":    "594391de-e76a-43fc-94fd-f6d4f9927c9b",
+	"users-neg":    "6e728a5c-3756-44d1-b069-38ca18d389a5",
+}
 
 func isEmailValid(e string) bool {
 	_, err := netmail.ParseAddress(e)
@@ -196,4 +215,34 @@ func SetupCacheControl(w http.ResponseWriter, maxAge int) {
 		maxAgeStr := strconv.Itoa(maxAge)
 		w.Header().Set("Cache-Control", "max-age="+maxAgeStr+", public")
 	}
+}
+
+func SendMeasurelyMetricEvent(name string, value int) {
+	id, exists := metricIds[name]
+	if !exists {
+		log.Println("Metric with name " + name + " does not exist")
+		return
+	}
+	if os.Getenv("ENV") != "production" {
+		return
+	}
+	url := fmt.Sprintf("https://api.measurely.dev/event/%s/%s", os.Getenv("MEASURELY_API_KEY"), id)
+	jsonData := map[string]interface{}{
+		"value": value,
+	}
+	jsonValue, _ := json.Marshal(jsonData)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
+	if err != nil {
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
 }
