@@ -178,7 +178,7 @@ export default function DashboardMetricPage() {
       const index = applications[activeApp].groups?.findIndex(
         (g) => g.name === metricName,
       );
-      if (index && index !== -1) {
+      if (index !== undefined && index !== -1) {
         const groupData = applications[activeApp].groups?.[index];
 
         if (index > user.plan.metric_per_app_limit - 1) {
@@ -905,7 +905,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === GroupType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -931,7 +931,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === GroupType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
