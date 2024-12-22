@@ -109,7 +109,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {

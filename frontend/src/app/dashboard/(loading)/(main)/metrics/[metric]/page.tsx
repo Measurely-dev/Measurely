@@ -382,40 +382,42 @@ function OverviewChart(props: { group: Group }) {
     return total;
   }, [chartData]);
 
-  const loadChart = async () => {
+  const loadChart = async (from: Date) => {
     if (!loadingLeft && !loadingRight) {
       setLoading(true);
     }
-    if (date !== undefined && date.to !== undefined) {
-      setChartData(
-        (await loadChartData(date.to, range, props.group, props.group.appid)) ??
-        [],
-      );
-    }
+    setChartData(
+      (await loadChartData(
+        from,
+        range === 0 ? 0 : range + 1,
+        props.group,
+        props.group.appid,
+      )) ?? [],
+    );
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
   };
 
   useEffect(() => {
-    setDate((prev) => {
-      if (prev === undefined || prev.from === undefined) return prev;
-      const to = new Date(prev.from);
-      to.setDate(prev.from.getDate() - range);
+    if (date !== undefined && date.from !== undefined) {
+      const to = new Date(date.from);
+      to.setDate(date.from.getDate() - range);
       const now = new Date();
       if (now < to) {
-        return {
+        setDate({
           from: new Date(),
-        };
+        });
+      } else {
+        loadChart(to);
+        setDate({
+          from: date.from,
+          to: to,
+        });
       }
-      return {
-        from: prev.from,
-        to: to,
-      };
-    });
-
-    loadChart();
+    }
   }, [date?.from, range]);
+
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -610,58 +612,60 @@ function TrendChart(props: { group: Group }) {
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
 
-  const loadChart = async () => {
+  const loadChart = async (from: Date) => {
     if (!loadingLeft && !loadingRight) {
       setLoading(true);
     }
-    if (date !== undefined && date.from !== undefined) {
-      const to = new Date(date.from);
-      const now = new Date();
-      if (range === 0) {
-        to.setHours(to.getHours() + 24);
-      } else {
-        to.setDate(to.getDate() + range);
-      }
+    const to = new Date(from);
+    const now = new Date();
+    if (range === 0) {
+      to.setHours(to.getHours() + 24);
+    } else {
+      to.setDate(to.getDate() + range+1);
+    }
 
-      const timeDiff = now.getTime() - to.getTime();
+    const timeDiff = now.getTime() - to.getTime();
 
-      const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
+    const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
 
-      let total =
-        props.group.type === GroupType.Base
-          ? props.group.metrics[0].total
-          : props.group.metrics[0].total - props.group.metrics[1].total;
-      let pos = 0;
-      let neg = 0;
+    let total =
+      props.group.type === GroupType.Base
+        ? props.group.metrics[0].total
+        : props.group.metrics[0].total - props.group.metrics[1].total;
+    let pos = 0;
+    let neg = 0;
 
-      if (daysDiff > 0) {
-        const futurValues =
-          (await loadChartData(to, daysDiff, props.group, props.group.appid)) ??
-          [];
+    if (daysDiff > 0) {
+      const futurValues =
+        (await loadChartData(
+          to,
+          daysDiff,
+          props.group,
+          props.group.appid,
+        )) ?? [];
 
-        for (let i = 0; i < futurValues.length; i++) {
-          if (props.group.type === GroupType.Base) {
-            pos += futurValues[i][props.group.name];
-          } else {
-            pos += futurValues[i][props.group.metrics[0].name];
-            neg += futurValues[i][props.group.metrics[1].name];
-          }
+      for (let i = 0; i < futurValues.length; i++) {
+        if (props.group.type === GroupType.Base) {
+          pos += futurValues[i][props.group.name];
+        } else {
+          pos += futurValues[i][props.group.metrics[0].name];
+          neg += futurValues[i][props.group.metrics[1].name];
         }
       }
-
-      total -= pos;
-      total += neg;
-
-      const data = await loadChartData(
-        date.from,
-        range,
-        props.group,
-        props.group.appid,
-      );
-
-      setChartData(data ?? []);
-      setTotal(total);
     }
+
+    total -= pos;
+    total += neg;
+
+    const data = await loadChartData(
+      from,
+      range === 0 ? 0 : range + 1,
+      props.group,
+      props.group.appid,
+    );
+
+    setChartData(data ?? []);
+    setTotal(total);
 
     setLoading(false);
     setLoadingLeft(false);
@@ -669,23 +673,22 @@ function TrendChart(props: { group: Group }) {
   };
 
   useEffect(() => {
-    setDate((prev) => {
-      if (prev === undefined || prev.from === undefined) return prev;
-      const to = new Date(prev.from);
-      to.setDate(prev.from.getDate() + range);
+    if (date !== undefined && date.from !== undefined) {
+      const to = new Date(date.from);
+      to.setDate(date.from.getDate() - range);
       const now = new Date();
-      if (now < prev.from) {
-        return {
+      if (now < to) {
+        setDate({
           from: new Date(),
-        };
+        });
+      } else {
+        loadChart(to);
+        setDate({
+          from: date.from,
+          to: to,
+        });
       }
-      return {
-        from: prev.from,
-        to: to,
-      };
-    });
-
-    loadChart();
+    }
   }, [date?.from, range]);
   return (
     <>
@@ -774,12 +777,19 @@ function TrendChart(props: { group: Group }) {
             }}
             onRight={() => {
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return prev;
+                if (
+                  prev === undefined ||
+                  prev.from === undefined ||
+                  prev.to === undefined
+                )
+                  return prev;
                 const from = new Date(prev.from);
+                const to = new Date(prev.to);
                 const toAdd = range === 0 ? 1 : range;
                 from.setDate(from.getDate() + toAdd);
+                to.setDate(to.getDate() + toAdd);
                 const now = new Date();
-                if (now < from) {
+                if (now < to) {
                   return prev;
                 }
                 setLoadingRight(true);
@@ -792,14 +802,14 @@ function TrendChart(props: { group: Group }) {
             isLoadingLeft={loadingLeft}
             isLoadingRight={loadingRight}
             isDisabled={useMemo(() => {
-              if (date === undefined || date.from === undefined) {
+              if (date === undefined || date.to === undefined) {
                 return false;
               }
               const now = new Date();
-              const from = new Date(date.from);
+              const to = new Date(date.to);
               const toAdd = range === 0 ? 1 : range;
-              from.setDate(from.getDate() + toAdd);
-              const result = now < from;
+              to.setDate(to.getDate() + toAdd);
+              const result = now < to;
               return result;
             }, [date])}
           />
@@ -1183,7 +1193,7 @@ function RangeSelector(props: {
         D
       </ToggleGroupItem>
       <ToggleGroupItem
-        value='7'
+        value='6'
         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
       >
         7D
