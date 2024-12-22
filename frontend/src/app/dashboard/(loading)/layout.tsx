@@ -40,10 +40,10 @@ export default function DashboardContentLayout({
         .then((res) => {
           if (res.ok) {
             return res.json();
-          } else if (res.status === 404) {
+          } else {
             res.text().then((text) => {
               toast.error(text);
-              window.location.replace("/sign-in")
+              router.push('sign-in');
             });
           }
         })
