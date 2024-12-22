@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+SET timezone = "UTC";
 
 -- Create Plans table first since it is referenced by Users
 CREATE TABLE IF NOT EXISTS Plans (

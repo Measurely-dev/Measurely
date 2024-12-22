@@ -259,9 +259,10 @@ func (db *DB) GetMetricCount(groupid uuid.UUID) (int, error) {
 	return count, err
 }
 
-func (db *DB) GetMetricEvents(metricid uuid.UUID, day time.Time) ([]types.MetricEvent, error) {
-	formattedDate := day.Format("2006-01-02")
-	rows, err := db.Conn.Query(`SELECT * FROM metricevents WHERE metricid = $1 AND date::date = $2 ORDER BY date DESC`, metricid, formattedDate)
+func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time) ([]types.MetricEvent, error) {
+	formattedStart := start.Format("2006-01-02")
+	formattedEnd := end.Format("2006-01-02")
+	rows, err := db.Conn.Query(`SELECT * FROM metricevents WHERE metricid = $1 AND date::date BETWEEN $2 AND $3 ORDER BY date DESC`, metricid, formattedStart, formattedEnd)
 	if err != nil {
 		return []types.MetricEvent{}, err
 	}

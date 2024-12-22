@@ -172,16 +172,23 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var bytes []byte
-	if end.Year() == start.Year() && end.Month() == start.Month() && end.Day() == start.Day() && daily != "1" {
+	if daily != "1" {
+    if end.Sub(start) > 24 * time.Hour {
+      http.Error(w, "You cannot fetch more than 24 hours of precise events", http.StatusBadRequest)
+      return
+    }
 		// get the metric events
-		metrics, err := s.db.GetMetricEvents(metricid, start)
+		metrics, err := s.db.GetMetricEvents(metricid, start, end)
 		if err != nil {
+      log.Println("here")
+      log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 
 		bytes, err = json.Marshal(metrics)
 		if err != nil {
+      log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

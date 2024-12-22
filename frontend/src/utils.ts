@@ -66,9 +66,10 @@ export const loadChartData = async (
   date.setMinutes(0);
   date.setSeconds(0);
 
-  const from = date;
+  const from = new Date(date);
   const to = new Date(date);
-  to.setDate(from.getDate() + range);
+  if(range === 0) to.setHours(to.getHours() + 24)
+  else to.setDate(to.getDate() + range);
 
   const dateCounter = new Date(from);
   const dataLength = range === 0 ? 24 : range;
@@ -188,7 +189,7 @@ export const fetchDailySummary = async (
   from.setHours(0);
   from.setMinutes(0);
   from.setSeconds(0);
-  const to = new Date();
+  const to = new Date(from);
   to.setHours(from.getHours() + 24);
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
@@ -205,7 +206,11 @@ export const fetchDailySummary = async (
     const json = await res.json();
     if (json != null) {
       if (json.length > 0) {
-        return json[0].value;
+        let sum = 0;
+        for(let  i =0 ; i < json.length; i++){
+          sum += json[i].value
+        }
+        return sum;
       }
     }
   }
