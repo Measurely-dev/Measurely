@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Plans (
     AppLimit INT NOT NULL,
     MetricPerAppLimit INT NOT NULL,
     RequestLimit INT NOT NULL,
-    TimeFrames TEXT NOT NULL
+    RANGE INT NOT NULL
 );
 
 -- Create Users table
@@ -94,7 +94,6 @@ CREATE TABLE IF NOT EXISTS AccountRecovery (
 -- Create Email Change table
 CREATE TABLE IF NOT EXISTS EmailChange (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    Code TEXT NOT NULL UNIQUE,
     UserId UUID NOT NULL,
     NewEmail TEXT NOT NULL,
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE

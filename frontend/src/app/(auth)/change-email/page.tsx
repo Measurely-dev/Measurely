@@ -16,7 +16,7 @@ export default function PasswordReset() {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/changeemail`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: searchParams.get('code') }),
+        body: JSON.stringify({ requestid: searchParams.get('code') }),
       }).then((resp) => {
         if (resp.status === 200) {
           set_view(1);

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Measurely/email"
 	"Measurely/types"
 	"encoding/json"
 	"fmt"
@@ -23,7 +24,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -42,7 +43,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, jerr := json.Marshal(ManageBillingResponse{
+	bytes, jerr := json.Marshal(struct{ URL string }{
 		URL: result.URL,
 	})
 	if jerr != nil {
@@ -78,7 +79,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -143,18 +144,16 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	if request.Plan == "starter" {
 		w.WriteHeader(http.StatusOK)
 
-		s.DB.UpdateUserPlan(token.Id, "starter")
+		s.db.UpdateUserPlan(token.Id, "starter")
 
 		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: user.Email,
-			Fields: MailFields{
-				Subject: "You are now on the starter plan",
-				Content: "You have been downgraded to the starter plan.",
+		go s.email.SendEmail(email.MailFields{
+			To:      user.Email,
+			Subject: "You are now on the starter plan",
+			Content: "You have been downgraded to the starter plan.",
 
-				Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
-				ButtonTitle: "View Dashboard",
-			},
+			Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
+			ButtonTitle: "View Dashboard",
 		})
 	} else {
 		new_session, err := session.New(params)
@@ -164,7 +163,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		bytes, jerr := json.Marshal(SubscribeResponse{
+		bytes, jerr := json.Marshal(struct{ URL string }{
 			URL: new_session.URL,
 		})
 		if jerr != nil {
@@ -219,25 +218,23 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		user, err := s.DB.GetUserByCustomerId(session.Customer.ID)
+		user, err := s.db.GetUserByCustomerId(session.Customer.ID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 
-		s.DB.UpdateUserPlan(user.Id, planData.Identifier)
+		s.db.UpdateUserPlan(user.Id, planData.Identifier)
 
 		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: user.Email,
-			Fields: MailFields{
-				Subject: "Thank you for subscribing!",
-				Content: "Your " + planData.Name + " subscription has been successfully created.",
+		go s.email.SendEmail(email.MailFields{
+			To:      user.Email,
+			Subject: "Thank you for subscribing!",
+			Content: "Your " + planData.Name + " subscription has been successfully created.",
 
-				Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
-				ButtonTitle: "View Dashboard",
-			},
+			Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
+			ButtonTitle: "View Dashboard",
 		})
 
 	case "invoice.payment_succeeded":
@@ -255,7 +252,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		user, err := s.DB.GetUserByCustomerId(invoice.Customer.ID)
+		user, err := s.db.GetUserByCustomerId(invoice.Customer.ID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -263,15 +260,13 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: user.Email,
-			Fields: MailFields{
-				Subject: "Invoice Paid",
-				Content: "Your invoice has been successfully paid." + "Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
+		go s.email.SendEmail(email.MailFields{
+			To:      user.Email,
+			Subject: "Invoice Paid",
+			Content: "Your invoice has been successfully paid." + "Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
 
-				Link:        GetOrigin() + "/dashboard",
-				ButtonTitle: "View Dashboard",
-			},
+			Link:        GetOrigin() + "/dashboard",
+			ButtonTitle: "View Dashboard",
 		})
 
 	case "invoice.payment_failed":
@@ -289,7 +284,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		user, err := s.DB.GetUserByCustomerId(invoice.Customer.ID)
+		user, err := s.db.GetUserByCustomerId(invoice.Customer.ID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -312,18 +307,16 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		s.DB.UpdateUserPlan(user.Id, "starter")
+		s.db.UpdateUserPlan(user.Id, "starter")
 
 		// send email
-		s.ScheduleEmail(SendEmailRequest{
-			To: user.Email,
-			Fields: MailFields{
-				Subject: "Invoice Failed",
-				Content: "Your invoice payment has failed." + "Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
+		go s.email.SendEmail(email.MailFields{
+			To:      user.Email,
+			Subject: "Invoice Failed",
+			Content: "Your invoice payment has failed." + "Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
 
-				Link:        GetOrigin() + "/dashboard",
-				ButtonTitle: "View Dashboard",
-			},
+			Link:        GetOrigin() + "/dashboard",
+			ButtonTitle: "View Dashboard",
 		})
 
 	default:

@@ -2,6 +2,7 @@ package service
 
 import (
 	"Measurely/db"
+	"Measurely/email"
 	"Measurely/types"
 	"bytes"
 	"context"
@@ -13,12 +14,11 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
-	"github.com/gorilla/securecookie"
 	"github.com/lib/pq"
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/customer"
@@ -26,24 +26,30 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
-	"gopkg.in/gomail.v2"
 )
 
-type Service struct {
-	DB          *db.DB
-	scookie     *securecookie.SecureCookie
-	dialer      *gomail.Dialer
-	connManager *ConnectionManager
-	redisClient *redis.Client
-	redisCtx    context.Context
-	providers   map[string]Provider
+type MetricToKeyCache struct {
+	key    string
+	expiry time.Time
 }
 
-const (
-	defaultProcessRate = 10000
-	defaultStorageRate = 10000
-	defaultEmailRate   = 10000
-)
+type UserLimitCache struct {
+	limit  int
+	expiry time.Time
+}
+
+type Cache struct {
+	plans             sync.Map
+	userLimits        sync.Map
+	metricIdToApiKeys sync.Map
+}
+
+type Service struct {
+	db        *db.DB
+	email     *email.Email
+	providers map[string]Provider
+	cache     Cache
+}
 
 func New() Service {
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
@@ -51,35 +57,12 @@ func New() Service {
 		log.Fatalln(err)
 	}
 
-	hash_key := []byte(os.Getenv("HASH_KEY"))
-	block_key := []byte(os.Getenv("BLOCK_KEY"))
-	securecookie := securecookie.New(hash_key, block_key)
-
-	dialer := gomail.NewDialer("smtp.gmail.com", 587, "Info@measurely.dev", os.Getenv("APP_PWD"))
-	if dialer == nil {
-		log.Fatalln("Failed to create dialer")
-	}
-
-	connManager := NewConnectionManager()
-
-	stripe.Key = os.Getenv("STRIPE_SK")
-
-	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+	email, err := email.NewEmail()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	redis_client := redis.NewClient(&redis.Options{
-		Addr:     opt.Addr,
-		DB:       opt.DB,
-		Password: opt.Password,
-	})
-
-	redis_ctx := context.Background()
-	_, rerr := redis_client.Ping(redis_ctx).Result()
-	if rerr != nil {
-		log.Fatalln(rerr)
-	}
+	stripe.Key = os.Getenv("STRIPE_SK")
 
 	providers := make(map[string]Provider)
 	providers["github"] = Provider{
@@ -106,95 +89,32 @@ func New() Service {
 	}
 
 	return Service{
-		DB:          db,
-		scookie:     securecookie,
-		dialer:      dialer,
-		connManager: connManager,
-		redisClient: redis_client,
-		redisCtx:    redis_ctx,
-		providers:   providers,
+		db:        db,
+		email:     email,
+		providers: providers,
+		cache: Cache{
+			plans:             sync.Map{},
+			userLimits:        sync.Map{},
+			metricIdToApiKeys: sync.Map{},
+		},
 	}
 }
 
-func (s *Service) SetupSharedVariables() {
-	defaultProcessRate := 10000
-	defaultStorageRate := 10000
-	defaultEmailRate := 10000
-
-	if _, err := s.redisClient.Get(s.redisCtx, "rate:event").Result(); err == redis.Nil {
-		s.redisClient.Set(s.redisCtx, "rate:event", defaultProcessRate, 0)
-	}
-
-	if _, err := s.redisClient.Get(s.redisCtx, "rate:storage").Result(); err == redis.Nil {
-		s.redisClient.Set(s.redisCtx, "rate:storage", defaultStorageRate, 0)
-	}
-
-	if _, err := s.redisClient.Get(s.redisCtx, "rate:email").Result(); err == redis.Nil {
-		s.redisClient.Set(s.redisCtx, "rate:email", defaultEmailRate, 0)
-	}
-
-	plans, err := s.DB.GetPlans()
-	if err != nil && err != sql.ErrNoRows {
-		log.Fatalln(err)
-	}
-
-	if len(plans) == 0 {
-		starter := types.Plan{
-			Price:             "",
-			Identifier:        "starter",
-			Name:              "Starter",
-			AppLimit:          5,
-			MetricPerAppLimit: 2,
-			RequestLimit:      100,
-			TimeFrames:        []int{types.YEAR, types.MONTH},
-		}
-
-		plus := types.Plan{
-			Price:             "price_1QVJwOKSu0h3NTsFEXJo7ORd",
-			Identifier:        "plus",
-			Name:              "Plus",
-			AppLimit:          5,
-			MetricPerAppLimit: 5,
-			RequestLimit:      100,
-			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
-		}
-
-		pro := types.Plan{
-			Price:             "price_1QVJwGKSu0h3NTsFaIS0vBeF",
-			Identifier:        "pro",
-			Name:              "Pro",
-			AppLimit:          15,
-			MetricPerAppLimit: 15,
-			RequestLimit:      1000,
-			TimeFrames:        []int{types.YEAR, types.MONTH, types.WEEK, types.DAY, types.HOUR, types.MINUTE, types.SECOND},
-		}
-
-		plans = []types.Plan{starter, plus, pro}
-
-		s.DB.CreatePlan(starter)
-		s.DB.CreatePlan(plus)
-		s.DB.CreatePlan(pro)
-	}
-
-	for _, plan := range plans {
-		bytes, err := json.Marshal(plan)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		key := fmt.Sprintf("plan:%s", plan.Identifier)
-		if err := s.redisClient.Set(s.redisCtx, key, bytes, 0).Err(); err != nil {
-			log.Fatalln("Failed to update plans in redis: ", err)
-		}
-	}
+func (s *Service) SetupBasicPlans() {
+	s.GetPlan("starter")
+	s.GetPlan("plus")
+	s.GetPlan("pro")
 }
 
 func (s *Service) CleanUp() {
-	s.DB.Close()
+	s.db.Close()
 }
 
 func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
-	var request EmailValidRequest
+	var request struct {
+		Email string `json:"email"`
+		Type  int    `json:"type"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -209,7 +129,7 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, derr := s.DB.GetUserByEmail(request.Email)
+	_, derr := s.db.GetUserByEmail(request.Email)
 	if request.Type == 0 {
 		if derr == sql.ErrNoRows {
 			http.Error(w, "No user account uses this email address", http.StatusNotFound)
@@ -230,7 +150,10 @@ func (s *Service) IsConnected(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
-	var request AuthRequest
+	var request struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -256,7 +179,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if a user with the chosen email exists
-	user, err := s.DB.GetUserByEmail(strings.ToLower(request.Email))
+	user, err := s.db.GetUserByEmail(strings.ToLower(request.Email))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "User not found", http.StatusNotFound)
@@ -268,7 +191,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providers, err := s.DB.GetProvidersByUserId(user.Id)
+	providers, err := s.db.GetProvidersByUserId(user.Id)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -301,14 +224,12 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// send email
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject:     "A new login has been detected",
-			Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
-			Link:        GetOrigin() + "/dashboard",
-			ButtonTitle: "Update password",
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     "A new login has been detected",
+		Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
+		Link:        GetOrigin() + "/dashboard",
+		ButtonTitle: "Update password",
 	})
 }
 
@@ -365,7 +286,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user types.User
-	provider, gerr := s.DB.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
+	provider, gerr := s.db.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
 	if gerr == sql.ErrNoRows {
 		if action == "auth" {
 			stripe_params := &stripe.CustomerParams{
@@ -379,7 +300,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			user, err = s.DB.CreateUser(types.User{
+			user, err = s.db.CreateUser(types.User{
 				Email:            strings.ToLower(providerUser.Email),
 				Password:         "",
 				FirstName:        providerUser.Name,
@@ -401,7 +322,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Intokenid user identifier", http.StatusMovedPermanently)
 				return
 			}
-			user, err = s.DB.GetUserById(parsedId)
+			user, err = s.db.GetUserById(parsedId)
 			if err != nil {
 				log.Println(err)
 				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusMovedPermanently)
@@ -409,7 +330,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		provider, err = s.DB.CreateProvider(types.UserProvider{
+		provider, err = s.db.CreateProvider(types.UserProvider{
 			UserId:         user.Id,
 			Type:           chosenProvider.Type,
 			ProviderUserId: providerUser.Id,
@@ -422,7 +343,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if gerr == nil {
-		user, err = s.DB.GetUserById(provider.UserId)
+		user, err = s.db.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println(err)
 			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
@@ -465,7 +386,7 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providers, err := s.DB.GetProvidersByUserId(token.Id)
+	providers, err := s.db.GetProvidersByUserId(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			providers = []types.UserProvider{}
@@ -486,7 +407,7 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := s.DB.UpdateUserPassword(token.Id, hashed_password); err != nil {
+		if err := s.db.UpdateUserPassword(token.Id, hashed_password); err != nil {
 			http.Error(w, "Failed to update password", http.StatusInternalServerError)
 			return
 		}
@@ -495,7 +416,7 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 
 	for _, provider := range providers {
 		if provider.Type == chosenProvider.Type {
-			if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
+			if err := s.db.DeleteUserProvider(provider.Id); err != nil {
 				http.Error(w, "Failed to disconnect provider", http.StatusInternalServerError)
 				return
 			}
@@ -507,7 +428,12 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
-	var request RegisterRequest
+	var request struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"firstname"`
+		LastName  string `json:"lastname"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -549,7 +475,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	new_user, err := s.DB.CreateUser(types.User{
+	new_user, err := s.db.CreateUser(types.User{
 		Email:            strings.ToLower(request.Email),
 		Password:         hashed_password,
 		FirstName:        request.FirstName,
@@ -581,14 +507,12 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// send email
-	s.ScheduleEmail(SendEmailRequest{
-		To: new_user.Email,
-		Fields: MailFields{
-			Subject:     "Thank you for joining Measurely.",
-			Content:     "You can now access your account's dashboard by using the following link.",
-			Link:        GetOrigin() + "/dashboard",
-			ButtonTitle: "Access dashboard",
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:          new_user.Email,
+		Subject:     "Thank you for joining Measurely.",
+		Content:     "You can now access your account's dashboard by using the following link.",
+		Link:        GetOrigin() + "/dashboard",
+		ButtonTitle: "Access dashboard",
 	})
 }
 
@@ -607,7 +531,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			cookie := DeleteCookie()
@@ -621,7 +545,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providers, err := s.DB.GetProvidersByUserId(user.Id)
+	providers, err := s.db.GetProvidersByUserId(user.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			providers = []types.UserProvider{}
@@ -642,24 +566,31 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	plan, exists := s.GetPlan(user.CurrentPlan)
 	if !exists {
-    log.Println("hey")
+		log.Println("hey")
 		http.Error(w, "Plan not found", http.StatusNotFound)
 		return
 	}
 
 	plan.Price = ""
+	log.Println(plan)
 
-	resp := GetUserResponse{
-		Id:          user.Id,
-		Email:       user.Email,
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		CurrentPlan: user.CurrentPlan,
-		Plan:        plan,
-		Providers:   finalProviders,
+	response := struct {
+		Id        uuid.UUID            `json:"id"`
+		Email     string               `json:"email"`
+		FirstName string               `json:"firstname"`
+		LastName  string               `json:"lastname"`
+		Plan      types.Plan           `json:"plan"`
+		Providers []types.UserProvider `json:"providers"`
+	}{
+		Id:        user.Id,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Plan:      plan,
+		Providers: finalProviders,
 	}
 
-	bytes, jerr := json.Marshal(resp)
+	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusInternalServerError)
 		return
@@ -670,7 +601,9 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
-	var request ForgotPasswordRequest
+	var request struct {
+		Email string `json:"email"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -679,50 +612,24 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email is tokenid
+	// Check if the email is valid
 	if !isEmailValid(request.Email) {
 		http.Error(w, "Intokenid email ", http.StatusBadRequest)
 		return
 	}
 
 	// Check if a user with the chosen email exists
-	user, derr := s.DB.GetUserByEmail(request.Email)
+	user, derr := s.db.GetUserByEmail(request.Email)
 	if derr == sql.ErrNoRows {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	var account_recovery types.AccountRecovery
-	account_recovery, gerr := s.DB.GetAccountRecoveryByUserId(user.Id)
-	if gerr == sql.ErrNoRows {
-		tries := 5
-		var code string = ""
-		var aerr error
-		for {
-			if tries <= 0 {
-				break
-			}
-			tries -= 1
-			code, aerr = GenerateRandomKey()
-			if aerr != nil {
-				continue
-			}
-
-			_, aerr = s.DB.GetAccountRecovery(code)
-			if aerr == sql.ErrNoRows {
-				break
-			}
-		}
-
-		if code == "" {
-			http.Error(w, "Timeout, please try again later", http.StatusRequestTimeout)
-			return
-		}
-
-		var cerr error
-		account_recovery, cerr = s.DB.CreateAccountRecovery(user.Id, code)
-		if cerr != nil {
-			log.Println(cerr)
+	account_recovery, err := s.db.GetAccountRecoveryByUserId(user.Id)
+	if err == sql.ErrNoRows {
+		account_recovery, err = s.db.CreateAccountRecovery(user.Id)
+		if err != nil {
+			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
@@ -731,19 +638,20 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Send email
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject:     "Recover your account",
-			Content:     "A request has been made to recover your account. If you do not recall making this request, please update your password immediately.",
-			Link:        GetOrigin() + "/reset?code=" + account_recovery.Code,
-			ButtonTitle: "Recover my account",
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     "Recover your account",
+		Content:     "A request has been made to recover your account. If you do not recall making this request, please update your password immediately.",
+		Link:        GetOrigin() + "/reset?code=" + account_recovery.Id.String(),
+		ButtonTitle: "Recover my account",
 	})
 }
 
 func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
-	var request RecoverAccountRequest
+	var request struct {
+		RequestId   uuid.UUID `json:"requestid"`
+		NewPassword string    `json:"newpassword"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -759,7 +667,7 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// fetch the account recovery
-	account_recovery, gerr := s.DB.GetAccountRecovery(request.Code)
+	account_recovery, gerr := s.db.GetAccountRecovery(request.RequestId)
 	if gerr != nil {
 		http.Error(w, "Intokenid account recovery link", http.StatusBadRequest)
 		return
@@ -774,7 +682,7 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update the user password
-	err := s.DB.UpdateUserPassword(account_recovery.UserId, hashed_password)
+	err := s.db.UpdateUserPassword(account_recovery.UserId, hashed_password)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -782,7 +690,7 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// delete the account recovery
-	derr := s.DB.DeleteAccountRecovery(account_recovery.Code)
+	derr := s.db.DeleteAccountRecovery(account_recovery.Id)
 	if derr != nil {
 		log.Println(derr)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -820,7 +728,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "user not found", http.StatusNotFound)
@@ -831,7 +739,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send email
-	cerr := s.DB.CreateFeedback(types.Feedback{
+	cerr := s.db.CreateFeedback(types.Feedback{
 		Email:   user.Email,
 		Content: request.Content,
 		Date:    time.Now(),
@@ -843,19 +751,15 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject: "Feedback received",
-			Content: "Thank you for your feedback. We will try to improve our service as soon as possible.",
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:      user.Email,
+		Subject: "Feedback received",
+		Content: "Thank you for your feedback. We will try to improve our service as soon as possible.",
 	})
-	s.ScheduleEmail(SendEmailRequest{
-		To: "info@measurely.dev",
-		Fields: MailFields{
-			Subject: "Feedback Received from " + user.Email,
-			Content: request.Content,
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:      "info@measurely.dev",
+		Subject: "Feedback Received from " + user.Email,
+		Content: request.Content,
 	})
 }
 
@@ -867,7 +771,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the user
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -907,7 +811,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providers, err := s.DB.GetProvidersByUserId(token.Id)
+	providers, err := s.db.GetProvidersByUserId(token.Id)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -915,7 +819,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		for _, provider := range providers {
-			if err := s.DB.DeleteUserProvider(provider.Id); err != nil {
+			if err := s.db.DeleteUserProvider(provider.Id); err != nil {
 				http.Error(w, "Failed to disconnect provider", http.StatusInternalServerError)
 				return
 			}
@@ -923,19 +827,17 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the user
-	err = s.DB.DeleteUser(user.Id)
+	err = s.db.DeleteUser(user.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject: "We're sorry to see you go!",
-			Content: "Your account has been successfully deleted.",
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:      user.Email,
+		Subject: "We're sorry to see you go!",
+		Content: "Your account has been successfully deleted.",
 	})
 
 	// logout
@@ -961,43 +863,17 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	var emailchange types.EmailChangeRequest
-	emailchange, gerr := s.DB.GetEmailChangeRequestByUserId(token.Id, strings.ToLower(request.NewEmail))
-	if gerr == sql.ErrNoRows {
-		tries := 5
-		var code string = ""
-		var aerr error
-		for {
-			if tries <= 0 {
-				break
-			}
-			tries -= 1
-			code, aerr = GenerateRandomKey()
-			if aerr != nil {
-				continue
-			}
-
-			_, aerr = s.DB.GetEmailChangeRequest(code)
-			if aerr == sql.ErrNoRows {
-				break
-			}
-		}
-
-		if code == "" {
-			http.Error(w, "Timeout, please try again later", http.StatusRequestTimeout)
-			return
-		}
-
-		var cerr error
-		emailchange, cerr = s.DB.CreateEmailChangeRequest(token.Id, code, strings.ToLower(request.NewEmail))
-		if cerr != nil {
-			log.Println(cerr)
+	emailchange, err := s.db.GetEmailChangeRequestByUserId(token.Id, strings.ToLower(request.NewEmail))
+	if err == sql.ErrNoRows {
+		emailchange, err = s.db.CreateEmailChangeRequest(token.Id, strings.ToLower(request.NewEmail))
+		if err != nil {
+			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
@@ -1006,20 +882,18 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Send email
-	s.ScheduleEmail(SendEmailRequest{
-		To: user.Email,
-		Fields: MailFields{
-			Subject:     "Change your email",
-			Content:     "A request has been made to change your email. If you do not recall making this request, please update your password immediately.",
-			Link:        GetOrigin() + "/change-email?code=" + emailchange.Code,
-			ButtonTitle: "Change my email",
-		},
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     "Change your email",
+		Content:     "A request has been made to change your email. If you do not recall making this request, please update your password immediately.",
+		Link:        GetOrigin() + "/change-email?code=" + emailchange.Id.String(),
+		ButtonTitle: "Change my email",
 	})
 }
 
 func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		Code string `json:"code"`
+		RequestId uuid.UUID `json:"requestid"`
 	}
 
 	// Try to unmarshal the request body
@@ -1030,13 +904,13 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// fetch the account recovery
-	emailchange, gerr := s.DB.GetEmailChangeRequest(request.Code)
+	emailchange, gerr := s.db.GetEmailChangeRequest(request.RequestId)
 	if gerr != nil {
 		http.Error(w, "Intokenid email change link", http.StatusBadRequest)
 		return
 	}
 
-	user, err := s.DB.GetUserById(emailchange.UserId)
+	user, err := s.db.GetUserById(emailchange.UserId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "User not found", http.StatusNotFound)
@@ -1047,7 +921,7 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update the user password
-	if err = s.DB.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail); err != nil {
+	if err = s.db.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1059,13 +933,13 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	_, err = customer.Update(user.StripeCustomerId, &params)
 	if err != nil {
 		log.Println("Failed to update stripe customer email")
-		s.DB.UpdateUserEmail(user.Id, user.Email)
+		s.db.UpdateUserEmail(user.Id, user.Email)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	// delete the account recovery
-	if err := s.DB.DeleteEmailChangeRequest(emailchange.Code); err != nil {
+	if err := s.db.DeleteEmailChangeRequest(emailchange.Id); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1091,7 +965,7 @@ func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := s.DB.UpdateUserFirstAndLastName(token.Id, request.FirstName, request.LastName); err != nil {
+	if err := s.db.UpdateUserFirstAndLastName(token.Id, request.FirstName, request.LastName); err != nil {
 		http.Error(w, "Failed to update the user's first name and/or last name", http.StatusInternalServerError)
 		return
 	}
@@ -1121,7 +995,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1138,7 +1012,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.DB.UpdateUserPassword(token.Id, hashed); err != nil {
+	if err := s.db.UpdateUserPassword(token.Id, hashed); err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -1153,7 +1027,9 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request CreateApplicationRequest
+	var request struct {
+		Name string `json:"name"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1173,14 +1049,14 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch application
-	_, gerr := s.DB.GetApplicationByName(token.Id, request.Name)
+	_, gerr := s.db.GetApplicationByName(token.Id, request.Name)
 	if gerr == nil {
 		http.Error(w, "Application with this name already exists", http.StatusBadRequest)
 		return
 	}
 
 	// Get user
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
@@ -1191,7 +1067,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	if plan.AppLimit >= 0 {
 
 		// Get application count
-		count, cerr := s.DB.GetApplicationCountByUser(token.Id)
+		count, cerr := s.db.GetApplicationCountByUser(token.Id)
 		if cerr != nil {
 			log.Println(cerr)
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
@@ -1219,7 +1095,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		_, aerr = s.DB.GetApplicationByApi(api_key)
+		_, aerr = s.db.GetApplicationByApi(api_key)
 		if aerr != nil {
 			break
 		}
@@ -1230,7 +1106,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	new_app, err := s.DB.CreateApplication(types.Application{
+	new_app, err := s.db.CreateApplication(types.Application{
 		ApiKey: api_key,
 		Name:   request.Name,
 		UserId: token.Id,
@@ -1258,7 +1134,9 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request RandomizeApiKeyRequest
+	var request struct {
+		AppId uuid.UUID `json:"appid"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1268,7 +1146,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, gerr := s.DB.GetApplication(request.AppId, token.Id)
+	_, gerr := s.db.GetApplication(request.AppId, token.Id)
 	if gerr != nil {
 		log.Println(gerr)
 		http.Error(w, "Application does not exist.", http.StatusNotFound)
@@ -1288,7 +1166,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		_, aerr = s.DB.GetApplicationByApi(api_key)
+		_, aerr = s.db.GetApplicationByApi(api_key)
 		if aerr != nil {
 			break
 		}
@@ -1300,7 +1178,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the app's api key
-	err := s.DB.UpdateApplicationApiKey(request.AppId, token.Id, api_key)
+	err := s.db.UpdateApplicationApiKey(request.AppId, token.Id, api_key)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1318,7 +1196,9 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request DeleteApplicationRequest
+	var request struct {
+		AppId uuid.UUID `json:"appid"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1328,7 +1208,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the application
-	err := s.DB.DeleteApplication(request.AppId, token.Id)
+	err := s.db.DeleteApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1355,7 +1235,7 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := s.DB.UpdateApplicationName(request.AppId, token.Id, request.NewName); err != nil {
+	if err := s.db.UpdateApplicationName(request.AppId, token.Id, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "The application was not found", http.StatusBadRequest)
 			return
@@ -1377,7 +1257,7 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch Applications
-	apps, err := s.DB.GetApplications(token.Id)
+	apps, err := s.db.GetApplications(token.Id)
 	if err == sql.ErrNoRows {
 		apps = []types.Application{}
 	} else if err != nil {
@@ -1403,7 +1283,13 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request CreateGroupRequest
+	var request struct {
+		Name      string
+		AppId     uuid.UUID
+		Type      int
+		BaseValue int
+		Metrics   []string
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1443,7 +1329,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	app, err := s.DB.GetApplication(request.AppId, token.Id)
+	app, err := s.db.GetApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1451,7 +1337,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get Metric Count
-	count, err := s.DB.GetMetricGroupCount(request.AppId)
+	count, err := s.db.GetMetricGroupCount(request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1459,7 +1345,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the user
-	user, err := s.DB.GetUserById(token.Id)
+	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1474,7 +1360,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the metric
-	group, err := s.DB.CreateMetricGroup(types.MetricGroup{
+	group, err := s.db.CreateMetricGroup(types.MetricGroup{
 		Name:  request.Name,
 		AppId: request.AppId,
 		Type:  request.Type,
@@ -1489,12 +1375,12 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metricsResp := MetricGroupResponse{
-		MetricGroup: group,
-	}
+	response := struct {
+		Metrics []types.Metric `json:"metrics"`
+	}{}
 
 	for i, metric := range request.Metrics {
-		created_metric, err := s.DB.CreateMetric(types.Metric{
+		created_metric, err := s.db.CreateMetric(types.Metric{
 			Name:    metric,
 			GroupId: group.Id,
 		})
@@ -1508,7 +1394,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		metricsResp.Metrics = append(metricsResp.Metrics, created_metric)
+		response.Metrics = append(response.Metrics, created_metric)
 
 		if request.BaseValue != 0 && i == 0 {
 			data := map[string]interface{}{
@@ -1533,14 +1419,11 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	bytes, jerr := json.Marshal(metricsResp)
+	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return
 	}
-
-	// remove the redis cache
-	s.redisClient.Del(s.redisCtx, app.ApiKey)
 
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
@@ -1553,7 +1436,10 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request DeleteGroupRequest
+	var request struct {
+		GroupId uuid.UUID `json:"groupid"`
+		AppId   uuid.UUID `json:"appid"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1563,7 +1449,7 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, token.Id)
+	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1571,7 +1457,7 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the metric
-	err = s.DB.DeleteMetricGroup(request.GroupId, request.AppId)
+	err = s.db.DeleteMetricGroup(request.GroupId, request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1595,7 +1481,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get application
-	_, err := s.DB.GetApplication(appid, token.Id)
+	_, err := s.db.GetApplication(appid, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1606,7 +1492,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch Metrics
-	metrics, err := s.DB.GetMetricGroups(appid)
+	metrics, err := s.db.GetMetricGroups(appid)
 	if err == sql.ErrNoRows {
 		metrics = []types.MetricGroup{}
 	} else if err != nil {
@@ -1615,21 +1501,27 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metricsResp := []MetricGroupResponse{}
+	response := []struct {
+		types.MetricGroup
+		Metrics []types.Metric `json:"metrics"`
+	}{}
 
 	for _, metric := range metrics {
-		subs, err := s.DB.GetMetrics(metric.Id)
+		subs, err := s.db.GetMetrics(metric.Id)
 		if err != nil && err != sql.ErrNoRows {
 			log.Println(err)
 		}
 
-		metricsResp = append(metricsResp, MetricGroupResponse{
+		response = append(response, struct {
+			types.MetricGroup
+			Metrics []types.Metric `json:"metrics"`
+		}{
 			MetricGroup: metric,
 			Metrics:     subs,
 		})
 	}
 
-	bytes, jerr := json.Marshal(metricsResp)
+	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return
@@ -1646,7 +1538,11 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request UpdateGroupRequest
+	var request struct {
+		AppId   uuid.UUID `json:"appid"`
+		GroupId uuid.UUID `json:"groupid"`
+		Name    string    `json:"name"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1656,7 +1552,7 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, token.Id)
+	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1667,7 +1563,7 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric
-	err = s.DB.UpdateMetricGroup(request.GroupId, request.AppId, request.Name)
+	err = s.db.UpdateMetricGroup(request.GroupId, request.AppId, request.Name)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1684,7 +1580,12 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request UpdateMetricRequest
+	var request struct {
+		AppId    uuid.UUID `json:"appid"`
+		GroupId  uuid.UUID `json:"groupid"`
+		MetricId uuid.UUID `json:"metricid"`
+		Name     string    `json:"name"`
+	}
 
 	// Try to unmarshal the request body
 	jerr := json.NewDecoder(r.Body).Decode(&request)
@@ -1694,7 +1595,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.DB.GetApplication(request.AppId, token.Id)
+	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1705,7 +1606,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the metric group
-	_, err = s.DB.GetMetricGroup(request.Groupid, request.AppId)
+	_, err = s.db.GetMetricGroup(request.GroupId, request.AppId)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -1716,7 +1617,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the metric group
-	err = s.DB.UpdateMetric(request.MetricId, request.Groupid, request.Name)
+	err = s.db.UpdateMetric(request.MetricId, request.GroupId, request.Name)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			http.Error(w, "A metric with the same name already exists", http.StatusBadRequest)
@@ -1758,168 +1659,97 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Service) UpdateRates(w http.ResponseWriter, r *http.Request) {
-	secret := os.Getenv("UPGRADE_SECRET")
+// TODO: update this function
+// func (s *Service) UpdatePlans(w http.ResponseWriter, r *http.Request) {
+// 	secret := os.Getenv("UPGRADE_SECRET")
+//
+// 	var request UpdatePlanRequest
+//
+// 	// Try to unmarshal the request body
+// 	jerr := json.NewDecoder(r.Body).Decode(&request)
+// 	if jerr != nil {
+// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+//
+// 	if request.Secret != secret {
+// 		http.Error(w, "Intokenid Request", http.StatusBadRequest)
+// 		return
+// 	}
+//
+// 	key := fmt.Sprintf("plan:%s", request.Name)
+//
+// 	// Get the plan
+// 	_, exists := s.GetPlan(request.Name)
+// 	if !exists {
+// 		request.Plan.Identifier = request.Name
+// 		if err := s.db.CreatePlan(request.Plan); err != nil {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 			return
+// 		}
+// 	} else {
+// 		if err := s.db.UpdatePlan(request.Name, request.Plan); err != nil {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 			return
+// 		}
+// 	}
+//
+// 	bytes, err := json.Marshal(request.Plan)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+//
+// 	w.Write([]byte("Successfully updated the plan."))
+// 	w.WriteHeader(http.StatusOK)
+// }
 
-	var request UpgradeRateRequest
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if request.Secret != secret {
-		http.Error(w, "Intokenid Request", http.StatusBadRequest)
-		return
-	}
-
-	newRate := request.NewRate
-
-	// Update global variables
-	key := fmt.Sprintf("rate:%s", request.Name)
-	s.redisClient.Set(s.redisCtx, key, newRate, 0)
-
-	w.Write([]byte("Successfully changed the rate"))
-	w.WriteHeader(http.StatusOK)
-}
-
-func (s *Service) UpdatePlans(w http.ResponseWriter, r *http.Request) {
-	secret := os.Getenv("UPGRADE_SECRET")
-
-	var request UpdatePlanRequest
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if request.Secret != secret {
-		http.Error(w, "Intokenid Request", http.StatusBadRequest)
-		return
-	}
-
-	key := fmt.Sprintf("plan:%s", request.Name)
-
-	// Get the plan
-	_, exists := s.GetPlan(request.Name)
-	if !exists {
-		request.Plan.Identifier = request.Name
-		if err := s.DB.CreatePlan(request.Plan); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		if err := s.DB.UpdatePlan(request.Name, request.Plan); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	bytes, err := json.Marshal(request.Plan)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	s.redisClient.Set(s.redisCtx, key, bytes, 0)
-
-	w.Write([]byte("Successfully updated the plan."))
-	w.WriteHeader(http.StatusOK)
-}
-
-func (s *Service) GetRates(w http.ResponseWriter, r *http.Request) {
-	secret := os.Getenv("UPGRADE_SECRET")
-
-	var request GetRates
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if request.Secret != secret {
-		http.Error(w, "Intokenid Request", http.StatusBadRequest)
-		return
-	}
-
-	keys, err := s.redisClient.Keys(s.redisCtx, "rate:*").Result()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	rates := make(map[string]float64)
-	for _, key := range keys {
-		rate, err := s.redisClient.Get(s.redisCtx, key).Float64()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		rates[strings.TrimPrefix(key, "rate:")] = rate
-	}
-
-	bytes, jerr := json.Marshal(rates)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
-		return
-	}
-
-	w.Write(bytes)
-	w.Header().Set("Content-Type", "application/json")
-}
-
-func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
-	secret := os.Getenv("UPGRADE_SECRET")
-
-	var request GetPlans
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if request.Secret != secret {
-		http.Error(w, "Intokenid Request", http.StatusBadRequest)
-		return
-	}
-
-	keys, err := s.redisClient.Keys(s.redisCtx, "plan:*").Result()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	rates := make(map[string]types.Plan)
-	for _, key := range keys {
-		token, err := s.redisClient.Get(s.redisCtx, key).Result()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		var plan types.Plan
-		err = json.Unmarshal([]byte(token), &plan)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		rates[strings.TrimPrefix(key, "plan:")] = plan
-	}
-
-	bytes, jerr := json.Marshal(rates)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
-		return
-	}
-
-	w.Write(bytes)
-	w.Header().Set("Content-Type", "application/json")
-}
+// func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
+// 	secret := os.Getenv("UPGRADE_SECRET")
+//
+// 	var request GetPlans
+//
+// 	// Try to unmarshal the request body
+// 	jerr := json.NewDecoder(r.Body).Decode(&request)
+// 	if jerr != nil {
+// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+//
+// 	if request.Secret != secret {
+// 		http.Error(w, "Intokenid Request", http.StatusBadRequest)
+// 		return
+// 	}
+//
+// 	keys, err := s.redisClient.Keys(s.redisCtx, "plan:*").Result()
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+//
+// 	rates := make(map[string]types.Plan)
+// 	for _, key := range keys {
+// 		token, err := s.redisClient.Get(s.redisCtx, key).Result()
+// 		if err != nil {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 			return
+// 		}
+//
+// 		var plan types.Plan
+// 		err = json.Unmarshal([]byte(token), &plan)
+// 		if err != nil {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 			return
+// 		}
+// 		rates[strings.TrimPrefix(key, "plan:")] = plan
+// 	}
+//
+// 	bytes, jerr := json.Marshal(rates)
+// 	if jerr != nil {
+// 		http.Error(w, jerr.Error(), http.StatusContinue)
+// 		return
+// 	}
+//
+// 	w.Write(bytes)
+// 	w.Header().Set("Content-Type", "application/json")
+// }

@@ -133,7 +133,7 @@ export default function PasswordReset() {
                 },
                 body: JSON.stringify({
                   newpassword: password,
-                  code: searchParams.get('code'),
+                  requestid: searchParams.get('code'),
                 }),
                 credentials: 'include',
               }).then((res) => {

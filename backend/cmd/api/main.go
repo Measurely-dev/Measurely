@@ -1,17 +1,15 @@
 package main
 
 import (
-	"log"
-	"os"
-
 	"Measurely/handler"
 	"Measurely/service"
+	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-
 	if _, exists := os.LookupEnv("RAILWAY_ENVIRONMENT"); !exists {
 		env_err := godotenv.Load()
 		if env_err != nil {
@@ -21,7 +19,7 @@ func main() {
 	}
 
 	service := service.New()
-	service.SetupSharedVariables()
+	service.SetupBasicPlans()
 
 	handler := handler.New(&service)
 

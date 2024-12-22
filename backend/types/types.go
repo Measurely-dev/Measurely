@@ -86,13 +86,11 @@ type MetricEvent struct {
 
 type AccountRecovery struct {
 	Id     uuid.UUID
-	Code   string
 	UserId uuid.UUID
 }
 
 type EmailChangeRequest struct {
 	Id       uuid.UUID
-	Code     string
 	UserId   uuid.UUID
 	NewEmail string
 }
@@ -110,8 +108,8 @@ type Plan struct {
 	Price             string `json:"price"`
 	AppLimit          int    `json:"applimit"`
 	MetricPerAppLimit int    `json:"metric_per_app_limit"`
-	TimeFrames        []int  `json:"timeframes"`
 	RequestLimit      int    `json:"requestlimit"`
+	Range             int    `json:"range"`
 }
 
 type DailyMetricSummary struct {

@@ -31,11 +31,6 @@ func (h *Handler) Start(port string) error {
 	h.setup_api()
 	file.SetupFileServer(h.router)
 
-	go h.service.ProcessMetricEvents()
-	go h.service.ProcessEmails()
-	go h.service.StoreMetricEvents()
-	go h.service.UpdateMeterTotal()
-
 	defer h.service.CleanUp()
 
 	return http.ListenAndServe(port, h.router)
@@ -78,10 +73,10 @@ func (h *Handler) setup_api() {
 
 	privateRouter.HandleFunc("/webhook", h.service.Webhook)
 
-	privateRouter.Post("/update-rates", h.service.UpdateRates)
-	privateRouter.Post("/update-plans", h.service.UpdatePlans)
-	privateRouter.Get("/rates", h.service.GetRates)
-	privateRouter.Get("/plans", h.service.GetPlans)
+	// privateRouter.Post("/update-rates", h.service.UpdateRates)
+	// privateRouter.Post("/update-plans", h.service.UpdatePlans)
+	// privateRouter.Get("/rates", h.service.GetRates)
+	// privateRouter.Get("/plans", h.service.GetPlans)
 
 	privateRouter.Patch("/changeemail", h.service.UpdateUserEmail)
 	////
@@ -105,7 +100,6 @@ func (h *Handler) setup_api() {
 	authRouter.Get("/metric-groups", h.service.GetMetricGroups)
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
 	authRouter.Get("/events", h.service.GetMetricEvents)
-	authRouter.Get("/connect", h.service.HandleWebSocket)
 
 	authRouter.Post("/group", h.service.CreateGroup)
 	authRouter.Patch("/group", h.service.UpdateGroup)
@@ -128,5 +122,5 @@ func (h *Handler) setup_api() {
 
 	privateRouter.Mount("/", authRouter)
 	h.router.Mount("/", privateRouter)
-  h.router.Mount("/event", publicRouter)
+	h.router.Mount("/event", publicRouter)
 }

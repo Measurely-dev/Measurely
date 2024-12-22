@@ -2,23 +2,19 @@ package service
 
 import (
 	"Measurely/types"
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	netmail "net/mail"
 	"os"
 	"strconv"
-	"text/template"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/gomail.v2"
 )
 
 func isEmailValid(e string) bool {
@@ -43,8 +39,8 @@ func CheckPasswordHash(password, hash string) bool {
 func CreateCookie(user *types.User, w http.ResponseWriter) (http.Cookie, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"id":           user.Id,
-			"email":        user.Email,
+			"id":    user.Id,
+			"email": user.Email,
 		})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -102,8 +98,8 @@ func VerifyToken(tokenStr string) (types.Token, error) {
 		}
 
 		return types.Token{
-			Id:           id,
-			Email:        fmt.Sprint(claims["email"]),
+			Id:    id,
+			Email: fmt.Sprint(claims["email"]),
 		}, nil
 	} else {
 		return types.Token{}, errors.New("invalid jwt token")
@@ -115,31 +111,6 @@ func IsUUIDValid(id string) bool {
 	return err == nil
 }
 
-func (s *Service) SendEmail(to string, fields MailFields) error {
-	t, err := template.ParseFiles("template.html")
-	if err != nil {
-		return err
-	}
-
-	buffer := new(bytes.Buffer)
-
-	if err := t.Execute(buffer, fields); err != nil {
-		return err
-	}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", "Info@measurely.dev")
-	m.SetHeader("To", to)
-	m.SetHeader("Subject", fields.Subject)
-	m.SetBody("text/html", buffer.String())
-
-	// Send the email to Bob, Cora and Dan.
-	if err := s.dialer.DialAndSend(m); err != nil {
-		return err
-	}
-	return nil
-}
-
 func GenerateRandomKey() (string, error) {
 	bytes := make([]byte, 16)
 	_, err := rand.Read(bytes)
@@ -149,42 +120,55 @@ func GenerateRandomKey() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func (s *Service) GetRate(name string) int {
-	key := fmt.Sprintf("rate_limit:%s", name)
-	val, err := s.redisClient.Get(s.redisCtx, key).Result()
-
-	result, serr := strconv.Atoi(val)
-
-	if err != nil || serr != nil {
-		switch name {
-		case "event":
-			return defaultProcessRate
-		case "storage":
-			return defaultStorageRate
-		case "email":
-			return defaultEmailRate
-		default:
-			return 0
-		}
-	}
-
-	return result
-}
-
 func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
-	key := fmt.Sprintf("plan:%s", identifier)
-	val, err := s.redisClient.Get(s.redisCtx, key).Result()
-	if err != nil {
-		return types.Plan{}, false
-	}
-
+	value, ok := s.cache.plans.Load(identifier)
 	var plan types.Plan
-	err = json.Unmarshal([]byte(val), &plan)
-	if err != nil {
-		return types.Plan{}, false
+
+	if !ok {
+		switch identifier {
+		case "starter":
+			plan = types.Plan{
+				Price:             "",
+				Identifier:        "starter",
+				Name:              "Starter",
+				AppLimit:          5,
+				MetricPerAppLimit: 2,
+				RequestLimit:      100,
+				Range:             30,
+			}
+			s.db.CreatePlan(plan)
+			ok = true
+
+		case "plus":
+			plan = types.Plan{
+				Price:             "price_1QVJwOKSu0h3NTsFEXJo7ORd",
+				Identifier:        "plus",
+				Name:              "Plus",
+				AppLimit:          5,
+				MetricPerAppLimit: 5,
+				RequestLimit:      100,
+				Range:             100,
+			}
+			s.db.CreatePlan(plan)
+			ok = true
+		case "pro":
+			plan = types.Plan{
+				Price:             "price_1QVJwGKSu0h3NTsFaIS0vBeF",
+				Identifier:        "pro",
+				Name:              "Pro",
+				AppLimit:          15,
+				MetricPerAppLimit: 15,
+				RequestLimit:      1000,
+				Range:             365,
+			}
+			s.db.CreatePlan(plan)
+			ok = true
+		}
+	} else {
+		plan = value.(types.Plan)
 	}
 
-	return plan, true
+	return plan, ok
 }
 
 func GetOrigin() string {

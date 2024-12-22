@@ -3,8 +3,6 @@ package db
 import (
 	"Measurely/types"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -152,6 +150,11 @@ func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
 	return err
 }
 
+func (db *DB) CreateMetricEvent(event types.MetricEvent) error {
+	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value) VALUES (:metricid, :value)", event)
+	return err
+}
+
 func (db *DB) CreateDailyMetricSummary(summary types.DailyMetricSummary) error {
 	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (id, metricid, value) VALUES (:id, :metricid, :value) ON CONFLICT (id) DO UPDATE SET value = metricdailysummary.value + EXCLUDED.value`, summary)
 	return err
@@ -203,9 +206,17 @@ func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
 	return groups, nil
 }
 
+// Gets the metric group with the id and the group id
 func (db *DB) GetMetricGroup(id uuid.UUID, appid uuid.UUID) (types.MetricGroup, error) {
 	var group types.MetricGroup
 	err := db.Conn.Get(&group, "SELECT * FROM metricgroups WHERE id = $1 AND appid = $2", id, appid)
+	return group, err
+}
+
+// Gets the metric group with the id
+func (db *DB) GetMetricGroupById(id uuid.UUID) (types.MetricGroup, error) {
+	var group types.MetricGroup
+	err := db.Conn.Get(&group, "SELECT * FROM metricgroups WHERE id = $1", id)
 	return group, err
 }
 
@@ -228,9 +239,17 @@ func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
 	return metrics, nil
 }
 
+// Gets the metric by id and group id
 func (db *DB) GetMetric(id uuid.UUID, groupid uuid.UUID) (types.Metric, error) {
 	var metric types.Metric
 	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1 AND groupid = $2", id, groupid)
+	return metric, err
+}
+
+// Gets the metric by id
+func (db *DB) GetMetricById(id uuid.UUID) (types.Metric, error) {
+	var metric types.Metric
+	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1", id)
 	return metric, err
 }
 
@@ -281,8 +300,8 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	return dailysummarymetrics, err
 }
 
-func (db *DB) UpdateMetricTotal(id uuid.UUID, total int) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET total = total + $1 WHERE id = $2", total, id)
+func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET total = total + $1 WHERE id = $2", toAdd, id)
 	return err
 }
 
@@ -360,15 +379,15 @@ func (db *DB) DeleteApplication(id uuid.UUID, userid uuid.UUID) error {
 	return err
 }
 
-func (db *DB) CreateAccountRecovery(userid uuid.UUID, code string) (types.AccountRecovery, error) {
+func (db *DB) CreateAccountRecovery(userid uuid.UUID) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
-	err := db.Conn.QueryRow("INSERT INTO accountrecovery (userid, code) VALUES ($1, $2) RETURNING *", userid, code).Scan(&account_recovery.Id, &account_recovery.Code, &account_recovery.UserId)
+	err := db.Conn.QueryRow("INSERT INTO accountrecovery (userid) VALUES ($1) RETURNING *", userid).Scan(&account_recovery.Id, &account_recovery.UserId)
 	return account_recovery, err
 }
 
-func (db *DB) GetAccountRecovery(code string) (types.AccountRecovery, error) {
+func (db *DB) GetAccountRecovery(id uuid.UUID) (types.AccountRecovery, error) {
 	var account_recovery types.AccountRecovery
-	err := db.Conn.Get(&account_recovery, "SELECT * FROM accountrecovery WHERE code = $1", code)
+	err := db.Conn.Get(&account_recovery, "SELECT * FROM accountrecovery WHERE id = $1", id)
 	return account_recovery, err
 }
 
@@ -378,9 +397,9 @@ func (db *DB) GetAccountRecoveryByUserId(userid uuid.UUID) (types.AccountRecover
 	return account_recovery, err
 }
 
-func (db *DB) GetEmailChangeRequest(code string) (types.EmailChangeRequest, error) {
+func (db *DB) GetEmailChangeRequest(id uuid.UUID) (types.EmailChangeRequest, error) {
 	var emailchange types.EmailChangeRequest
-	err := db.Conn.Get(&emailchange, "SELECT * FROM emailchange WHERE code = $1", code)
+	err := db.Conn.Get(&emailchange, "SELECT * FROM emailchange WHERE id = $1", id)
 	return emailchange, err
 }
 
@@ -390,19 +409,19 @@ func (db *DB) GetEmailChangeRequestByUserId(userid uuid.UUID, newemail string) (
 	return emailchange, err
 }
 
-func (db *DB) CreateEmailChangeRequest(userid uuid.UUID, code string, newemail string) (types.EmailChangeRequest, error) {
+func (db *DB) CreateEmailChangeRequest(userid uuid.UUID, newemail string) (types.EmailChangeRequest, error) {
 	var emailchange types.EmailChangeRequest
-	err := db.Conn.QueryRow("INSERT INTO emailchange (userid, code, newemail) VALUES ($1, $2, $3) RETURNING *", userid, code, newemail).Scan(&emailchange.Id, &emailchange.Code, &emailchange.UserId, &emailchange.NewEmail)
+	err := db.Conn.QueryRow("INSERT INTO emailchange (userid, newemail) VALUES ($1, $3) RETURNING *", userid, newemail).Scan(&emailchange.Id, &emailchange.UserId, &emailchange.NewEmail)
 	return emailchange, err
 }
 
-func (db *DB) DeleteEmailChangeRequest(code string) error {
-	_, err := db.Conn.Exec("DELETE FROM emailchange WHERE code = $1", code)
+func (db *DB) DeleteEmailChangeRequest(id uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM emailchange WHERE id = $1", id)
 	return err
 }
 
-func (db *DB) DeleteAccountRecovery(code string) error {
-	_, err := db.Conn.Exec("DELETE FROM accountrecovery WHERE code = $1", code)
+func (db *DB) DeleteAccountRecovery(id uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM accountrecovery WHERE id = $1", id)
 	return err
 }
 
@@ -420,17 +439,10 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 	var plans []types.Plan
 	for rows.Next() {
 		var plan types.Plan
-		var timeframes string
-		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &timeframes)
+		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &plan.Range)
 		if err != nil {
 			return []types.Plan{}, err
 		}
-
-		plan.TimeFrames, err = StringToIntArray(timeframes)
-		if err != nil {
-			return []types.Plan{}, err
-		}
-
 		plans = append(plans, plan)
 	}
 
@@ -438,35 +450,11 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 }
 
 func (db *DB) CreatePlan(plan types.Plan) error {
-	timeframes := IntArrayToString(plan.TimeFrames)
-	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, timeframes) VALUES ($1, $2, $3, $4, $5, $6, $7)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, &plan.RequestLimit, timeframes)
+	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, plan.RequestLimit, plan.Range)
 	return err
 }
 
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
-	timeframes := IntArrayToString(new_plan.TimeFrames)
-	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, timeframes = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, timeframes, new_plan.RequestLimit, identifier)
+	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, new_plan.Range, new_plan.RequestLimit, identifier)
 	return err
-}
-
-func IntArrayToString(arr []int) string {
-	var strArr []string
-	for _, num := range arr {
-		strArr = append(strArr, strconv.Itoa(num))
-	}
-	return strings.Join(strArr, ",")
-}
-
-func StringToIntArray(str string) ([]int, error) {
-	strArr := strings.Split(str, ",")
-	var intArr []int
-
-	for _, s := range strArr {
-		num, err := strconv.Atoi(s)
-		if err != nil {
-			return nil, err
-		}
-		intArr = append(intArr, num)
-	}
-	return intArr, nil
 }
