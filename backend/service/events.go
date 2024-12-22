@@ -47,7 +47,7 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 
 		s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
 			key:    apikey,
-			expiry: time.Now().Add(1 * time.Hour),
+			expiry: time.Now().Add(15 * time.Minute),
 		})
 
 		return true

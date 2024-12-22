@@ -144,9 +144,10 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 	var plan types.Plan
 
 	if !ok {
+		var new_plan *types.Plan = nil
 		switch identifier {
 		case "starter":
-			plan = types.Plan{
+			new_plan = &types.Plan{
 				Price:             "",
 				Identifier:        "starter",
 				Name:              "Starter",
@@ -155,11 +156,8 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				RequestLimit:      100,
 				Range:             30,
 			}
-			s.db.CreatePlan(plan)
-			ok = true
-
 		case "plus":
-			plan = types.Plan{
+			new_plan = &types.Plan{
 				Price:             "price_1QVJwOKSu0h3NTsFEXJo7ORd",
 				Identifier:        "plus",
 				Name:              "Plus",
@@ -168,10 +166,8 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				RequestLimit:      100,
 				Range:             100,
 			}
-			s.db.CreatePlan(plan)
-			ok = true
 		case "pro":
-			plan = types.Plan{
+			new_plan = &types.Plan{
 				Price:             "price_1QVJwGKSu0h3NTsFaIS0vBeF",
 				Identifier:        "pro",
 				Name:              "Pro",
@@ -180,9 +176,16 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				RequestLimit:      1000,
 				Range:             365,
 			}
-			s.db.CreatePlan(plan)
-			ok = true
 		}
+
+		if new_plan != nil {
+			s.db.CreatePlan(*new_plan)
+			s.cache.plans.Store(new_plan.Identifier, new_plan)
+			return *new_plan, true
+		}
+
+		return types.Plan{}, false
+
 	} else {
 		plan = value.(types.Plan)
 	}

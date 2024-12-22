@@ -1059,21 +1059,13 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch application
-	_, gerr := s.db.GetApplicationByName(token.Id, request.Name)
-	if gerr == nil {
+	_, err := s.db.GetApplicationByName(token.Id, request.Name)
+	if err == nil {
 		http.Error(w, "Application with this name already exists", http.StatusBadRequest)
 		return
 	}
 
-	// Get user
-	user, err := s.db.GetUserById(token.Id)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
-		return
-	}
-
-	plan, _ := s.GetPlan(user.CurrentPlan)
+	plan, _ := s.GetUserPlan(token.Id)
 	if plan.AppLimit >= 0 {
 
 		// Get application count
@@ -1363,15 +1355,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the user
-	user, err := s.db.GetUserById(token.Id)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	plan, _ := s.GetPlan(user.CurrentPlan)
+	plan, _ := s.GetUserPlan(token.Id)
 
 	if count >= plan.MetricPerAppLimit {
 		http.Error(w, "You have reached the limit of metrics for this app", http.StatusUnauthorized)
