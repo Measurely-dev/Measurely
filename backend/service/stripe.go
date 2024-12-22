@@ -75,7 +75,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	plan, exists := s.GetPlan(request.Plan)
 	if !exists {
-		http.Error(w, "Invalide plan", http.StatusBadRequest)
+		http.Error(w, "Invalid plan", http.StatusBadRequest)
 		return
 	}
 
