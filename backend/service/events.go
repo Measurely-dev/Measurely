@@ -44,6 +44,7 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 			key:         apikey,
 			metric_type: metric.Type,
 			total:       metric.Total,
+			user_id:     app.UserId,
 			expiry:      time.Now().Add(15 * time.Minute),
 		})
 

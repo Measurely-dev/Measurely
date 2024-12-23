@@ -32,6 +32,7 @@ type MetricToKeyCache struct {
 	key         string
 	metric_type int
 	total       int64
+	user_id     uuid.UUID
 	expiry      time.Time
 }
 
