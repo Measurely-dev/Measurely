@@ -94,10 +94,10 @@ export default function MetricDropdown(props: {
                         applications?.map((v) =>
                           v.id === props.metric.appid
                             ? Object.assign({}, v, {
-                              metrics: v.metrics?.filter(
-                                (m) => m.id !== props.metric.id,
-                              ),
-                            })
+                                metrics: v.metrics?.filter(
+                                  (m) => m.id !== props.metric.id,
+                                ),
+                              })
                             : v,
                         ),
                       );

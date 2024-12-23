@@ -600,7 +600,9 @@ function OverviewChart(props: { metric: Metric }) {
         <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
       ) : (
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
-          <div className='text-md text-secondary'>Summary</div>
+          <div className='text-md text-secondary'>
+            {range === 365 ? `Summary of ${year}` : 'Summary'}
+          </div>
           <div className='text-xl font-medium'>
             {rangeSummary > 0 ? '+' : ''}
             {valueFormatter(rangeSummary)}
@@ -892,7 +894,10 @@ function TrendChart(props: { metric: Metric }) {
         <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
       ) : (
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
-          <div className='text-md text-secondary'>Total</div>
+          <div className='text-md text-secondary'>
+            {' '}
+            {range === 365 ? `Total of ${year}` : 'Total'}
+          </div>
           <div className='text-xl font-medium'>{valueFormatter(total)}</div>
           <Separator className='my-4' />
           <AreaChart
@@ -1269,9 +1274,9 @@ function RangeSelector(props: {
       </ToggleGroupItem>
       <div
         onClick={() => {
-          user?.plan.identifier === 'starter'
-            ? toast.warning('Upgrade plan to access the year view')
-            : {};
+          if (user?.plan.identifier === 'starter') {
+            toast.warning('Upgrade plan to access the year view');
+          }
         }}
       >
         <ToggleGroupItem

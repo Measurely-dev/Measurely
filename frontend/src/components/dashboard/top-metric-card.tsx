@@ -24,7 +24,7 @@ export const TopMetricCard = () => {
     let addedMetrics = 0;
     for (let i = 0; i < applications[activeApp].metrics.length; i++) {
       const metric = applications[activeApp].metrics[i];
-      let total = metric.total;
+      const total = metric.total;
 
       if (total !== 0) {
         data.push({

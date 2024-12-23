@@ -6,7 +6,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserContext } from '@/dash-context';
@@ -14,7 +13,6 @@ import { RocketIcon, Sparkle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext } from 'react';
-import { ArrowUpRight } from 'react-feather';
 import PlansDialog from '../plans-dialog';
 
 function Capitalize(str: string) {

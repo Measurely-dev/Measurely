@@ -101,7 +101,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                user.plan.metric_per_app_limit - 1;
+                  user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={metric.id}

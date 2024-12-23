@@ -139,7 +139,7 @@ export const loadChartData = async (
             if (matches) {
               let fieldName = null;
               let value = json[i].value;
-              let relativetotal = json[i].relativetotal;
+              const relativetotal = json[i].relativetotal;
 
               if (value >= 0) {
                 fieldName =

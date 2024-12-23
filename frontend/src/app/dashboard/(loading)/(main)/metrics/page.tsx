@@ -68,7 +68,7 @@ export default function DashboardMetrics() {
       <div className='mt-5 flex h-full flex-row gap-5'>
         {applications[activeApp].metrics === null ? (
           <div className='flex h-[calc(100vh-50px-15px-200px)] w-full items-center justify-center'>
-            <Loader className='size-8 animate-spin' />
+            <Loader className='size-5 animate-spin' />
           </div>
         ) : (
           <div className='flex w-full flex-col gap-[10px]'>

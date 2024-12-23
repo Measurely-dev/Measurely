@@ -9,14 +9,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { UserContext } from '@/dash-context';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useContext } from 'react';
+import { ReactNode } from 'react';
 import { toast } from 'sonner';
 
 export default function DeleteAccountAlert(props: { children: ReactNode }) {
   const router = useRouter();
-  const { user } = useContext(UserContext);
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
