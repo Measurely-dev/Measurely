@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import { Metric, MetricType } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
-export const INTERVAL = 10000;
+export const INTERVAL = 5000;
 
 export async function loadMetrics(appid: string) {
   const res = await fetch(
