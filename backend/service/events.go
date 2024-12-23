@@ -256,7 +256,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	SetupCacheControl(w, 10)
+	SetupCacheControl(w, 5)
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 }
