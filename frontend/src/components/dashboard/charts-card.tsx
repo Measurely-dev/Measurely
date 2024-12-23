@@ -35,9 +35,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dash-context';
-import { calculateTrend, loadChartData } from '@/utils';
+import { loadChartData } from '@/utils';
 import { Metric, MetricType } from '@/types';
 import MetricStats from './metric-stats';
 import { Skeleton } from '../ui/skeleton';
@@ -54,10 +54,6 @@ export function ChartsCard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
-
-  const metric = useMemo(() => {
-    return applications[activeApp].metrics?.[activeMetric];
-  }, [activeApp, activeMetric]);
 
   const loadData = async () => {
     setLoading(true);
@@ -134,7 +130,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-        applications[activeApp].metrics?.length! > 0 ? (
+      applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -167,24 +163,10 @@ export function ChartsCard() {
                       <div className='w-full rounded-[12px] bg-accent p-5'>
                         <AreaChart
                           className='h-60 min-h-60 w-full'
-                          data={calculateTrend(
-                            data,
-                            metric?.total ?? 0,
-                            metric?.type ?? MetricType.Base,
-                            metric?.type === MetricType.Base
-                              ? (metric?.name ?? '')
-                              : (metric?.namepos ?? ''),
-                            metric?.type === MetricType.Base
-                              ? ''
-                              : (metric?.nameneg ?? ''),
-                            metric?.name ?? '',
-                          )}
+                          data={data}
                           index='date'
                           color='blue'
-                          categories={[
-                            applications[activeApp].metrics?.[activeMetric]
-                              .name ?? '',
-                          ]}
+                          categories={['total']}
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }

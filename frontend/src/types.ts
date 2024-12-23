@@ -21,6 +21,7 @@ export interface MetricEvent {
   id: string;
   date: Date;
   value: number;
+  relativetotal: number;
 }
 
 export interface User {

@@ -66,8 +66,8 @@ export default function SignIn() {
           action={(form) => {
             setLoading(true);
 
-            const password = form.get('password');
-            const email = form.get('email');
+            const password = form.get('password')?.toString().trim();
+            const email = form.get('email')?.toString().trim().toLowerCase();
 
             if (password === '' || email === '') {
               toast.error('Please enter email and password');

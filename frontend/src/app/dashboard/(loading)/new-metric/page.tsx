@@ -111,10 +111,11 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
+        props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-        }`}
+      }`}
       onClick={() => {
         if (props.value === 2) {
           return;
@@ -188,11 +189,11 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   applications.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
-                        metrics: [
-                          ...(applications[activeApp].metrics ?? []),
-                          json,
-                        ],
-                      })
+                          metrics: [
+                            ...(applications[activeApp].metrics ?? []),
+                            json,
+                          ],
+                        })
                       : v,
                   ),
                 );
@@ -211,7 +212,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   type='text'
                   className='h-11 rounded-[12px]'
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value.trim())}
                 />
               </div>
               <div className='flex w-full flex-col gap-3'>
@@ -291,6 +292,21 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             return;
           }
 
+          if (namePos === '' || nameNeg === '') {
+            toast.error('You cannot have empty variable names');
+            setLoading(false);
+            return;
+          }
+
+          if (
+            namePos.toLowerCase() === 'total' ||
+            nameNeg.toLowerCase() === 'total'
+          ) {
+            toast.error("You cannot use the name 'total' for your variables");
+            setLoading(false);
+            return;
+          }
+
           fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
             method: 'POST',
             headers: {
@@ -329,11 +345,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 applications.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
-                      metrics: [
-                        ...(applications[activeApp].metrics ?? []),
-                        json,
-                      ],
-                    })
+                        metrics: [
+                          ...(applications[activeApp].metrics ?? []),
+                          json,
+                        ],
+                      })
                     : v,
                 ),
               );
@@ -357,7 +373,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   placeholder='Accounts, Transfers'
                   type='text'
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value.trim())}
                   className='h-11 rounded-[12px]'
                 />
               </div>
@@ -398,7 +414,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   <Input
                     placeholder='Optional'
                     type='number'
-                    min={0}
+                    min={-1000000000}
                     max={1000000000}
                     value={
                       baseValue === 0 && !Number(baseValue) ? '' : baseValue
@@ -430,7 +446,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                       className='h-11 rounded-[12px]'
                       value={namePos}
                       onChange={(e) => {
-                        setNamePos(e.target.value);
+                        setNamePos(e.target.value.trim());
                       }}
                     />
                   </div>
@@ -443,7 +459,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                       className='h-11 rounded-[12px]'
                       value={nameNeg}
                       onChange={(e) => {
-                        setNameNeg(e.target.value);
+                        setNameNeg(e.target.value.trim());
                       }}
                     />
                   </div>

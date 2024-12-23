@@ -10,13 +10,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AppsContext } from '@/dash-context';
-import { Metric } from '@/types';
-import {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useState,
-} from 'react';
+import { Metric, MetricType } from '@/types';
+import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function EditMetricDialogContent(props: {
@@ -42,6 +37,27 @@ export default function EditMetricDialogContent(props: {
           let metric = props.metric;
 
           let res;
+
+          if (name === '') {
+            toast.error('A metric must have a name');
+            setLoading(false);
+            return;
+          }
+
+          if (props.metric.type === MetricType.Dual) {
+            if (posName === '' || negName === '') {
+              toast.error('A dual metric must have variable names');
+              setLoading(false);
+              return;
+            } else if (
+              posName.toLowerCase() === 'total' ||
+              negName.toLowerCase() === 'total'
+            ) {
+              toast.error("You cannot use the name 'total' for your variables");
+              setLoading(false);
+              return;
+            }
+          }
 
           if (name !== props.metric.name) {
             res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
@@ -73,12 +89,12 @@ export default function EditMetricDialogContent(props: {
               applications.map((v) =>
                 v.id === props.metric.appid
                   ? Object.assign({}, v, {
-                    metrics: v.metrics?.map((m) =>
-                      m.id === props.metric.id
-                        ? Object.assign({}, m, metric)
-                        : m,
-                    ),
-                  })
+                      metrics: v.metrics?.map((m) =>
+                        m.id === props.metric.id
+                          ? Object.assign({}, m, metric)
+                          : m,
+                      ),
+                    })
                   : v,
               ),
             );
@@ -101,7 +117,7 @@ export default function EditMetricDialogContent(props: {
                 type='text'
                 className='h-11 rounded-[12px]'
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value.trim())}
               />
             </div>
             {props.metric.type !== 0 ? (
@@ -113,7 +129,7 @@ export default function EditMetricDialogContent(props: {
                     type='text'
                     className='h-11 rounded-[12px]'
                     value={posName}
-                    onChange={(e) => setPosName(e.target.value)}
+                    onChange={(e) => setPosName(e.target.value.trim())}
                   />
                 </div>
                 <div className='flex w-full flex-col gap-3'>
@@ -123,7 +139,7 @@ export default function EditMetricDialogContent(props: {
                     type='text'
                     className='h-11 rounded-[12px]'
                     value={negName}
-                    onChange={(e) => setNegName(e.target.value)}
+                    onChange={(e) => setNegName(e.target.value.trim())}
                   />
                 </div>
               </>

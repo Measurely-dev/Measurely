@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/tooltip';
 import { AppsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
-import { calculateTrend, fetchDailySummary, loadChartData } from '@/utils';
+import { fetchDailySummary, loadChartData } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
@@ -542,7 +542,7 @@ function OverviewChart(props: { metric: Metric }) {
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
           <div className='text-md text-secondary'>Summary</div>
           <div className='text-xl font-medium'>
-            {rangeSummary > 0 ? '+' : rangeSummary < 0 ? '-' : ''}
+            {rangeSummary > 0 ? '+' : ''}
             {valueFormatter(rangeSummary)}
           </div>
           <Separator className='my-4' />
@@ -595,50 +595,23 @@ function TrendChart(props: { metric: Metric }) {
     if (!loadingLeft && !loadingRight) {
       setLoading(true);
     }
-    const to = new Date(from);
-    const now = new Date();
-    if (range === 0) {
-      to.setHours(to.getHours() + 24);
-    } else {
-      to.setDate(to.getDate() + range + 1);
-    }
+    const data =
+      (await loadChartData(
+        from,
+        range === 0 ? 0 : range + 1,
+        props.metric,
+        props.metric.appid,
+      )) ?? [];
 
-    const timeDiff = now.getTime() - to.getTime();
-
-    const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
-
-    let total = props.metric.total;
-    let pos = 0;
-    let neg = 0;
-
-    if (daysDiff > 0) {
-      const futurValues =
-        (await loadChartData(to, daysDiff, props.metric, props.metric.appid)) ??
-        [];
-
-      for (let i = 0; i < futurValues.length; i++) {
-        if (props.metric.type === MetricType.Base) {
-          pos += futurValues[i][props.metric.name];
-        } else {
-          pos += futurValues[i][props.metric.namepos];
-          neg += futurValues[i][props.metric.nameneg];
-        }
+    let totalValue = null;
+    for (let i = data.length - 1; i > 0; i--) {
+      if (data[i].total !== undefined) {
+        totalValue = data[i].total;
+        break;
       }
     }
-
-    total -= pos;
-    total += neg;
-
-    const data = await loadChartData(
-      from,
-      range === 0 ? 0 : range + 1,
-      props.metric,
-      props.metric.appid,
-    );
-
+    setTotal(totalValue ?? 0);
     setChartData(data ?? []);
-    setTotal(total);
-
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
@@ -804,20 +777,11 @@ function TrendChart(props: { metric: Metric }) {
           <Separator className='my-4' />
           <AreaChart
             className='min-h-[40vh] w-full'
-            data={calculateTrend(
-              chartData,
-              total,
-              props.metric.type,
-              props.metric.type === MetricType.Base
-                ? props.metric.name
-                : props.metric.namepos,
-              props.metric.type === MetricType.Dual ? props.metric.nameneg : '',
-              props.metric.name,
-            )}
+            data={chartData}
             index='date'
             customTooltip={customTooltip}
             colors={[trendChartColor]}
-            categories={[props.metric.name]}
+            categories={['total']}
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
           />

@@ -71,11 +71,18 @@ export default function Password() {
           action={async (formdata) => {
             set_loading(true);
 
-            const email = searchParams.get('email')?.toString() ?? '';
-            const first_name = searchParams.get('first_name')?.toString() ?? '';
-            const last_name = searchParams.get('last_name')?.toString() ?? '';
-            const password = formdata.get('password')?.toString() ?? '';
-            const retype = formdata.get('retyped_password')?.toString() ?? '';
+            const email = searchParams
+              .get('email')
+              ?.toString()
+              .trim()
+              .toLowerCase();
+            const first_name = searchParams
+              .get('first_name')
+              ?.toString()
+              .trim();
+            const last_name = searchParams.get('last_name')?.toString().trim();
+            const password = formdata.get('password')?.toString().trim();
+            const retype = formdata.get('retyped_password')?.toString().trim();
 
             if (
               password === '' ||

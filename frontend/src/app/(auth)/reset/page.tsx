@@ -57,7 +57,7 @@ export default function PasswordReset() {
             btn_loading={loading}
             action={(form) => {
               setLoading(true);
-              const email = form.get('email');
+              const email = form.get('email')?.toString().trim().toLowerCase();
               if (email === '') {
                 toast.error('Email is required');
                 setLoading(false);
@@ -79,7 +79,7 @@ export default function PasswordReset() {
                   });
                   setLoading(false);
                 } else {
-                  setEmail(email?.toString() ?? '');
+                  setEmail(email ?? '');
                   set_view(1);
                 }
               });

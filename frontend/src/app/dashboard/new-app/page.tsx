@@ -26,6 +26,12 @@ export default function NewApp() {
     useContext(AppsContext);
 
   function createApp() {
+    if (name === '') {
+      toast.error('Please choose a valid name');
+      setLoading(false);
+      return;
+    }
+
     fetch(process.env.NEXT_PUBLIC_API_URL + '/application', {
       method: 'POST',
       headers: {
@@ -187,7 +193,7 @@ function Inputs(props: {
           <Input
             value={props.name}
             type='text'
-            onChange={(e) => props.setName(e.target.value)}
+            onChange={(e) => props.setName(e.target.value.trim())}
             className='h-[40px] rounded-[12px] border-none bg-accent'
             placeholder='Name...'
           />

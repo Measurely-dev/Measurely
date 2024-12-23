@@ -56,17 +56,18 @@ type Metric struct {
 	AppId   uuid.UUID `json:"appid"`
 	Name    string    `json:"name"`
 	Type    int       `json:"type"`
-	Total   int       `json:"total"`
+	Total   int64     `json:"total"`
 	NamePos string    `json:"namepos"`
 	NameNeg string    `json:"nameneg"`
 	Created time.Time `json:"created"`
 }
 
 type MetricEvent struct {
-	Id       uuid.UUID `json:"id"`
-	MetricId uuid.UUID `json:"metricid"`
-	Date     time.Time `json:"date"`
-	Value    int       `json:"value"`
+	Id            uuid.UUID `json:"id"`
+	MetricId      uuid.UUID `json:"metricid"`
+	Date          time.Time `json:"date"`
+	Value         int64     `json:"value"`
+	RelativeTotal int64     `json:"relativetotal"`
 }
 
 type AccountRecovery struct {
@@ -101,5 +102,5 @@ type DailyMetricSummary struct {
 	Id       string    `json:"id"`
 	Date     time.Time `json:"date"`
 	MetricId uuid.UUID `json:"metricid"`
-	Value    int       `json:"value"`
+	Value    int64       `json:"value"`
 }

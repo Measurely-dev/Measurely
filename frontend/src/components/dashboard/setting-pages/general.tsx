@@ -75,7 +75,7 @@ export default function SettingGeneralPage() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ new_email: email }),
+      body: JSON.stringify({ new_email: email.toLowerCase() }),
     })
       .then((resp) => {
         if (resp.status === 200) {

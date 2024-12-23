@@ -156,7 +156,7 @@ func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
 }
 
 func (db *DB) CreateMetricEvent(event types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value) VALUES (:metricid, :value)", event)
+	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value, relativetotal) VALUES (:metricid, :value, :relativetotal)", event)
 	return err
 }
 
@@ -226,7 +226,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.Date, &event.Value)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.Date, &event.Value, &event.RelativeTotal)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
@@ -257,7 +257,7 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	return dailysummarymetrics, err
 }
 
-func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int) error {
+func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int64) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET total = total + $1 WHERE id = $2", toAdd, id)
 	return err
 }

@@ -62,9 +62,21 @@ export default function Register() {
           action={async (formdata) => {
             set_loading(true);
 
-            const email = formdata.get('email');
-            const first_name = formdata.get('first_name');
-            const last_name = formdata.get('last_name');
+            const email = formdata
+              .get('email')
+              ?.toString()
+              .trim()
+              .toLowerCase();
+            const first_name = formdata
+              .get('first_name')
+              ?.toString()
+              .trim()
+              .toLowerCase();
+            const last_name = formdata
+              .get('last_name')
+              ?.toString()
+              .trim()
+              .toLowerCase();
 
             if (email === '' || first_name === '' || last_name === '') {
               toast.error('Please fill in all fields');

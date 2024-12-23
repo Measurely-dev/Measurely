@@ -43,6 +43,7 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 		s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
 			key:         apikey,
 			metric_type: metric.Type,
+			total:       metric.Total,
 			expiry:      time.Now().Add(15 * time.Minute),
 		})
 
@@ -65,7 +66,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	var request struct {
-		Value int `json:"value"`
+		Value int64 `json:"value"`
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
@@ -94,12 +95,21 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.db.CreateMetricEvent(types.MetricEvent{
-		MetricId: metricid,
-		Value:    request.Value,
+		MetricId:      metricid,
+		Value:         request.Value,
+		RelativeTotal: metricCache.total + request.Value,
 	}); err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
+
+	// Update the cache
+	s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
+		key:         apikey,
+		metric_type: metricCache.metric_type,
+		total:       metricCache.total + request.Value,
+		expiry:      time.Now().Add(15 * time.Minute),
+	})
 
 	if err := s.db.CreateDailyMetricSummary(types.DailyMetricSummary{
 		Id:       metricid.String() + time.Now().UTC().Format("2006-01-02"),

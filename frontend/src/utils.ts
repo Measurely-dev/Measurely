@@ -66,26 +66,37 @@ export const loadChartData = async (
   else to.setDate(to.getDate() + range);
 
   const dateCounter = new Date(from);
-  const dataLength = range === 0 ? 24 : range;
+  let dataLength = 0;
+
+  if (range === 0) {
+    dataLength = 24;
+  } else if (range >= 365) {
+    dataLength = 12;
+  } else {
+    dataLength = range;
+  }
+
   const now = new Date();
   const useDaily = range === 0 ? '' : '&daily=1';
   for (let i = 0; i < dataLength; i++) {
     const eventDate = new Date(dateCounter);
-    tmpData.push({
+    const data: any = {
       date: eventDate,
-    });
+    };
     if (eventDate <= now) {
-      tmpData[tmpData.length - 1][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
-      ] = 0;
-      if (metric.type === MetricType.Base) {
-        tmpData[tmpData.length - 1][metric.nameneg] = 0;
+      data[metric.type === MetricType.Base ? metric.name : metric.namepos] = 0;
+      if (metric.type === MetricType.Dual) {
+        data[metric.nameneg] = 0;
       }
+      data['total'] = 0;
     }
-    if (range === 0) dateCounter.setHours(dateCounter.getHours() + 1);
-    else dateCounter.setDate(dateCounter.getDate() + 1);
+    tmpData.push(data);
+    if (range === 0) {
+      dateCounter.setHours(dateCounter.getHours() + 1);
+    } else {
+      dateCounter.setDate(dateCounter.getDate() + 1);
+    }
   }
-
 
   await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
@@ -110,14 +121,17 @@ export const loadChartData = async (
               eventDate.getMonth() === tmpData[j].date.getMonth() &&
               eventDate.getFullYear() === tmpData[j].date.getFullYear()
             ) {
-              let fieldName = '';
-              let value = 0;
+              let fieldName = null;
+              let value = null;
+              let relativetotal = 0;
               if (range === 0) {
                 if (eventDate.getHours() === tmpData[j].date.getHours()) {
                   value = json[i].value;
+                  relativetotal = json[i].relativetotal;
                 }
               } else {
                 value = json[i].value;
+                relativetotal = json[i].relativetotal;
               }
 
               if (value >= 0) {
@@ -125,11 +139,15 @@ export const loadChartData = async (
                   metric.type === MetricType.Base
                     ? metric.name
                     : metric.namepos;
-              } else {
+              } else if (value < 0) {
                 fieldName = metric.nameneg;
                 value = -value;
               }
-              tmpData[j][fieldName] += value;
+
+              if (fieldName !== null && value !== null) {
+                tmpData[j][fieldName] += value;
+                tmpData[j]['total'] = relativetotal;
+              }
             }
           }
         }
@@ -154,7 +172,8 @@ export const fetchDailySummary = async (
   const to = new Date(from);
   to.setHours(from.getHours() + 24);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
+      appid
     }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
     {
       method: 'GET',
@@ -190,59 +209,4 @@ export const parseXAxis = (value: Date, range: number) => {
   } else {
     return getMonthsFromDate(value) + ', ' + value.getDate().toString();
   }
-};
-
-export const calculateTrend = (
-  data: any[],
-  total: number,
-  type: MetricType,
-  positiveName: string,
-  negativeName: string,
-  metricName: string,
-): any[] => {
-  const trendData: any[] = [];
-  let currentTotal = total;
-  let exists =
-    type === MetricType.Base
-      ? data[data.length - 1][positiveName] !== undefined
-      : data[data.length - 1][positiveName] !== undefined &&
-      data[data.length - 1][negativeName] !== undefined;
-  if (exists) {
-    trendData.push({
-      date: data[data.length - 1].date,
-      [metricName]: currentTotal,
-    });
-    currentTotal =
-      currentTotal -
-      data[data.length - 1][positiveName] +
-      (data[data.length - 1][negativeName] ?? 0);
-  } else {
-    trendData.push({
-      date: data[data.length - 1].date,
-    });
-  }
-
-  for (let i = data.length - 2; i >= 0; i--) {
-    exists =
-      type === MetricType.Base
-        ? data[i][positiveName] !== undefined
-        : data[i][positiveName] !== undefined &&
-        data[i][negativeName] !== undefined;
-
-    if (exists) {
-      trendData.push({
-        date: data[i].date,
-        [metricName]: currentTotal,
-      });
-      currentTotal =
-        currentTotal - data[i][positiveName] + (data[i][negativeName] ?? 0);
-    } else {
-      trendData.push({
-        date: data[i].date,
-      });
-    }
-  }
-  const reversedArray = trendData.reverse();
-
-  return reversedArray;
 };

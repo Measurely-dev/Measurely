@@ -31,6 +31,7 @@ import (
 type MetricToKeyCache struct {
 	key         string
 	metric_type int
+	total       int64
 	expiry      time.Time
 }
 
@@ -124,7 +125,9 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email is tokenid
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+
+	// Check if the email is valid
 	if !isEmailValid(request.Email) {
 		http.Error(w, "Invalid email ", http.StatusBadRequest)
 		return
@@ -163,12 +166,14 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+
 	if strings.Contains(request.Password, " ") {
 		http.Error(w, "The password cannot contain spaces", http.StatusBadRequest)
 		return
 	}
 
-	// Check if the email and password are tokenid
+	// Check if the email and password are valid
 	if !isEmailValid(strings.ToLower(request.Email)) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
@@ -451,7 +456,11 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the email and password are tokenid
+	request.Email = strings.ToLower(strings.TrimSpace(request.Email))
+	request.FirstName = strings.TrimSpace(request.FirstName)
+	request.LastName = strings.TrimSpace(request.LastName)
+
+	// Check if the email and password are valid
 	if !isEmailValid(request.Email) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
@@ -480,7 +489,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_user, err := s.db.CreateUser(types.User{
-		Email:            strings.ToLower(request.Email),
+		Email:            request.Email,
 		Password:         hashed_password,
 		FirstName:        request.FirstName,
 		LastName:         request.LastName,
@@ -615,6 +624,8 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+
 	// Check if the email is valid
 	if !isEmailValid(request.Email) {
 		http.Error(w, "Invalid email ", http.StatusBadRequest)
@@ -663,7 +674,7 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if the new password is tokenid
+	// check if the new password is valid
 	if !isPasswordValid(request.NewPassword) {
 		http.Error(w, "Invalid password", http.StatusBadRequest)
 		return
@@ -871,15 +882,17 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	request.NewEmail = strings.TrimSpace(strings.ToLower(request.NewEmail))
+
 	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	emailchange, err := s.db.GetEmailChangeRequestByUserId(token.Id, strings.ToLower(request.NewEmail))
+	emailchange, err := s.db.GetEmailChangeRequestByUserId(token.Id, request.NewEmail)
 	if err == sql.ErrNoRows {
-		emailchange, err = s.db.CreateEmailChangeRequest(token.Id, strings.ToLower(request.NewEmail))
+		emailchange, err = s.db.CreateEmailChangeRequest(token.Id, request.NewEmail)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -973,6 +986,9 @@ func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	request.FirstName = strings.TrimSpace(request.FirstName)
+	request.LastName = strings.TrimSpace(request.LastName)
+
 	if err := s.db.UpdateUserFirstAndLastName(token.Id, request.FirstName, request.LastName); err != nil {
 		http.Error(w, "Failed to update the user's first name and/or last name", http.StatusInternalServerError)
 		return
@@ -1045,6 +1061,8 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, jerr.Error(), http.StatusBadRequest)
 		return
 	}
+
+	request.Name = strings.TrimSpace(request.Name)
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9_ ]+$`, request.Name)
 	if reerr != nil {
@@ -1239,6 +1257,8 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	request.NewName = strings.TrimSpace(request.NewName)
+
 	if err := s.db.UpdateApplicationName(request.AppId, token.Id, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "The application was not found", http.StatusBadRequest)
@@ -1291,7 +1311,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		Name      string    `json:"name"`
 		AppId     uuid.UUID `json:"appid"`
 		Type      int       `json:"type"`
-		BaseValue int       `json:"basevalue"`
+		BaseValue int64     `json:"basevalue"`
 		NamePos   string    `json:"namepos"`
 		NameNeg   string    `json:"nameneg"`
 	}
@@ -1302,6 +1322,10 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, jerr.Error(), http.StatusBadRequest)
 		return
 	}
+
+	request.Name = strings.TrimSpace(request.Name)
+	request.NamePos = strings.TrimSpace(request.NamePos)
+	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 ]+$`, request.Name)
 	if reerr != nil {
@@ -1501,6 +1525,10 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	request.Name = strings.TrimSpace(request.Name)
+	request.NamePos = strings.TrimSpace(request.NamePos)
+	request.NameNeg = strings.TrimSpace(request.NameNeg)
+
 	// Get the application
 	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err == sql.ErrNoRows {
@@ -1565,7 +1593,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 // 	}
 //
 // 	if request.Secret != secret {
-// 		http.Error(w, "Intokenid Request", http.StatusBadRequest)
+// 		http.Error(w, "Invalid request", http.StatusBadRequest)
 // 		return
 // 	}
 //
@@ -1609,7 +1637,7 @@ func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
 // 	}
 //
 // 	if request.Secret != secret {
-// 		http.Error(w, "Intokenid Request", http.StatusBadRequest)
+// 		http.Error(w, "Invalid Request", http.StatusBadRequest)
 // 		return
 // 	}
 //
