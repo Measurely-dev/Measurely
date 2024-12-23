@@ -33,7 +33,7 @@ export default function Card4(props: { className?: string }) {
       </CardHeader>
       <Separator className='w-full' />
       <CardContent className='flex flex-col p-5'>
-        <span className='text-sm'>Project descripiton</span>
+        <span className='text-sm'>Project description</span>
         <span className='mt-1 text-xs text-secondary'>
           Introducing our cutting-edge Client Portal Software, a revolutionary
           SaaS application designed specifically for modern Design and Creative

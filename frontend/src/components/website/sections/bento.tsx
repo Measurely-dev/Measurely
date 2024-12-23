@@ -63,7 +63,7 @@ export default function BentoUiSection(props: {
         <WebBentoBox
           type={bentoBoxType}
           className='mt-5'
-          title='Multiple metric type'
+          title='Multiple metric types'
           description='Measurely tracks single (basic) and dual metrics. Basic metrics monitor growth, while dual metrics compare positive and negative influences on a key metric.'
           img={Image2}
         />
@@ -71,7 +71,7 @@ export default function BentoUiSection(props: {
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
-          title={`Measure What Matters with Measurely`}
+          title={`Focus on What Matters with Measurely`}
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <WebBox
