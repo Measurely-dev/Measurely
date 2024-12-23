@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import { Metric, MetricType } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
-export const INTERVAL = 3000;
+export const INTERVAL = 7000;
 
 export async function loadMetrics(appid: string) {
   const res = await fetch(
@@ -89,7 +89,7 @@ export const loadChartData = async (
       if (metric.type === MetricType.Dual) {
         data[metric.nameneg] = 0;
       }
-      data['total'] = 0;
+      data['total'] = null;
     }
     tmpData.push(data);
     if (range === 0) {
@@ -162,7 +162,13 @@ export const loadChartData = async (
       }
     });
 
+  let lastTotal = 0;
   for (let i = 0; i < tmpData.length; i++) {
+    if (tmpData[i]['total'] === null) {
+      tmpData[i]['total'] = lastTotal;
+    } else {
+      lastTotal = tmpData[i]['total'];
+    }
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
 

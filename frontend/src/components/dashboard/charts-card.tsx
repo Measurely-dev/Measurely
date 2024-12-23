@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/popover';
 import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dash-context';
-import { loadChartData } from '@/utils';
+import { INTERVAL, loadChartData } from '@/utils';
 import { Metric, MetricType } from '@/types';
 import MetricStats from './metric-stats';
 import { Skeleton } from '../ui/skeleton';
@@ -56,7 +56,6 @@ export function ChartsCard() {
   const [total, setTotal] = useState(0);
 
   const loadData = async () => {
-    setLoading(true);
     if (applications[activeApp].metrics !== null) {
       const metric = applications[activeApp].metrics[activeMetric];
       if (metric != undefined) {
@@ -81,10 +80,11 @@ export function ChartsCard() {
   };
 
   useEffect(() => {
+    setLoading(true);
     loadData();
     const interval = setInterval(() => {
       loadData();
-    }, 3000);
+    }, INTERVAL);
     return () => {
       clearInterval(interval);
     };

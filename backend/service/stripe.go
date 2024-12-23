@@ -53,6 +53,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetupCacheControl(w, 0)
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -179,6 +180,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		SetupCacheControl(w, 0)
 		w.Write(bytes)
 		w.Header().Set("Content-Type", "application/json")
 	}

@@ -261,7 +261,7 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 
 	url := BeginProviderAuth(provider, state)
 
-	SetupCacheControl(w, 20)
+	SetupCacheControl(w, 60)
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
@@ -619,6 +619,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetupCacheControl(w, 60)
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -1307,6 +1308,7 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetupCacheControl(w, 60)
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -1424,6 +1426,8 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+	SetupCacheControl(w, 60)
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 
@@ -1511,6 +1515,8 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+	SetupCacheControl(w, 60)
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 }
