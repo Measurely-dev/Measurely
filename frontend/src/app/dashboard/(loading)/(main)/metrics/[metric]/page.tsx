@@ -243,7 +243,7 @@ export default function DashboardMetricPage() {
             <BreadcrumbPage>
               {metric?.name
                 ? metric?.name.charAt(0).toUpperCase() +
-                metric?.name.slice(1).toLowerCase()
+                  metric?.name.slice(1).toLowerCase()
                 : 'Undefined'}
             </BreadcrumbPage>
           </BreadcrumbItem>
@@ -256,7 +256,7 @@ export default function DashboardMetricPage() {
               <div className='text-lg font-normal capitalize text-muted-foreground'>
                 {metric?.name
                   ? metric?.name.charAt(0).toUpperCase() +
-                  metric?.name.slice(1).toLowerCase()
+                    metric?.name.slice(1).toLowerCase()
                   : 'Undefined'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
@@ -542,7 +542,7 @@ function OverviewChart(props: { metric: Metric }) {
         <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
           <div className='text-md text-secondary'>Summary</div>
           <div className='text-xl font-medium'>
-            {rangeSummary >= 0 ? '+' : '-'}
+            {rangeSummary > 0 ? '+' : rangeSummary < 0 ? '-' : ''}
             {valueFormatter(rangeSummary)}
           </div>
           <Separator className='my-4' />
@@ -888,7 +888,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -914,7 +914,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
