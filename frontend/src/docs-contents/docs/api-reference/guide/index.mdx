@@ -27,7 +27,7 @@ To update a metric's value, you need to make a POST request to the following end
 **POST** https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
 ```
 
-## Request Body
+### Request Body
 
 The request body should contain the value you wish to add to the metric. The body format should be JSON:
 
@@ -39,7 +39,7 @@ The request body should contain the value you wish to add to the metric. The bod
 
 **value**: The value to add to the metric.
 
-## Code exemples
+### Code exemples
 
 <Tabs defaultValue="javascript" className="pt-5 pb-1">
   <TabsList>
@@ -148,7 +148,7 @@ The request body should contain the value you wish to add to the metric. The bod
 
 The Measurely API responds with different status codes based on the outcome of your request. Here's what each response code means:
 
-## 201 - Created
+### 201 - Created
 
 The request was successful, and the metric's value has been updated.
 
@@ -159,7 +159,7 @@ The request was successful, and the metric's value has been updated.
 }
 ```
 
-## 400 - Bad Request
+### 400 - Bad Request
 
 The request was invalid. This may happen if the request body is missing or incorrectly formatted. Check the request body and try again.
 
@@ -170,7 +170,7 @@ The request was invalid. This may happen if the request body is missing or incor
 }
 ```
 
-## 404 - Not Found
+### 404 - Not Found
 
 The metric ID provided does not exist. Ensure that you are using a valid metric ID.
 
@@ -181,7 +181,7 @@ The metric ID provided does not exist. Ensure that you are using a valid metric 
 }
 ```
 
-## 500 - Internal Server Error
+### 500 - Internal Server Error
 
 An unexpected error occurred on the server while processing your request. This is usually a server-side issue, and you should try again later.
 
@@ -192,7 +192,7 @@ An unexpected error occurred on the server while processing your request. This i
 }
 ```
 
-## 504 - Gateway Timeout
+### 504 - Gateway Timeout
 
 The request timed out while waiting for a response from the server. This could be due to network issues or a slow server. Please try again.
 
