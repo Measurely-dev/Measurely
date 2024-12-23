@@ -3,22 +3,18 @@ export interface Application {
   apikey: string;
   name: string;
   image: string;
-  groups: null | Group[];
-}
-
-export interface Group {
-  id: string;
-  appid: string;
-  name: string;
-  metrics: Metric[];
-  created: Date;
-  type: GroupType;
+  metrics: null | Metric[];
 }
 
 export interface Metric {
   id: string;
+  appid: string;
   name: string;
+  type: MetricType;
   total: number;
+  namepos: string;
+  nameneg: string;
+  created: Date;
 }
 
 export interface MetricEvent {
@@ -50,13 +46,12 @@ export interface Plan {
   requestlimit: number;
 }
 
-export enum GroupType {
+export enum MetricType {
   Base,
   Dual,
 }
 
 export enum Provider {
-  EMAIL,
   GITHUB,
   GOOGLE,
 }

@@ -15,12 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DialogTrigger } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import {
   Popover,
@@ -45,7 +39,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AppsContext, UserContext } from '@/dash-context';
-import { Group, GroupType } from '@/types';
+import { Metric, MetricType } from '@/types';
 import { calculateTrend, fetchDailySummary, loadChartData } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
@@ -173,21 +167,21 @@ export default function DashboardMetricPage() {
   const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
-  const [group, setGroup] = useState(() => {
+  const [metric, setMetric] = useState(() => {
     if (applications[activeApp]) {
-      const index = applications[activeApp].groups?.findIndex(
+      const index = applications[activeApp].metrics?.findIndex(
         (g) => g.name === metricName,
       );
       if (index !== undefined && index !== -1) {
-        const groupData = applications[activeApp].groups?.[index];
+        const metricData = applications[activeApp].metrics?.[index];
 
         if (index > user.plan.metric_per_app_limit - 1) {
           toast.error(
             'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
           );
         } else {
-          if (groupData !== null) {
-            return groupData;
+          if (metricData !== null) {
+            return metricData;
           }
         }
       }
@@ -199,39 +193,34 @@ export default function DashboardMetricPage() {
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
 
-  const loadDailyValues = async (group: Group) => {
-    setPosDaily(
-      await fetchDailySummary(group.appid, group.metrics[0].id),
-    );
-    if (group.type === GroupType.Dual) {
-      setNegDaily(
-        await fetchDailySummary(group.appid, group.metrics[1].id)
-      );
-    }
+  const loadDailyValues = async (metric: Metric) => {
+    const { pos, neg } = await fetchDailySummary(metric.appid, metric.id);
+    setPosDaily(pos);
+    setNegDaily(neg);
   };
 
   useEffect(() => {
-    const groupData = applications[activeApp].groups?.filter(
+    const metricData = applications[activeApp].metrics?.filter(
       (g) => g.name === metricName,
     )[0];
-    if (groupData === null || groupData === undefined) {
+    if (metricData === null || metricData === undefined) {
       router.push('/dashboard/metrics');
     } else {
-      setGroup(groupData);
+      setMetric(metricData);
     }
   }, [activeApp]);
 
   useEffect(() => {
-    loadDailyValues(group!);
+    loadDailyValues(metric!);
   }, []);
 
   useEffect(() => {
-    document.title = `${group?.name} | Measurely`;
+    document.title = `${metric?.name} | Measurely`;
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
         'content',
-        `Track and analyze ${group?.name} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
+        `Track and analyze ${metric?.name} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
       );
     }
   }, []);
@@ -252,9 +241,9 @@ export default function DashboardMetricPage() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage>
-              {group?.name
-                ? group?.name.charAt(0).toUpperCase() +
-                group?.name.slice(1).toLowerCase()
+              {metric?.name
+                ? metric?.name.charAt(0).toUpperCase() +
+                metric?.name.slice(1).toLowerCase()
                 : 'Undefined'}
             </BreadcrumbPage>
           </BreadcrumbItem>
@@ -265,17 +254,15 @@ export default function DashboardMetricPage() {
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
               <div className='text-lg font-normal capitalize text-muted-foreground'>
-                {group?.name
-                  ? group?.name.charAt(0).toUpperCase() +
-                  group?.name.slice(1).toLowerCase()
+                {metric?.name
+                  ? metric?.name.charAt(0).toUpperCase() +
+                  metric?.name.slice(1).toLowerCase()
                   : 'Undefined'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
-                {group?.type === GroupType.Dual ? (
+                {valueFormatter(metric?.total ?? 0)}
+                {metric?.type === MetricType.Dual ? (
                   <>
-                    {valueFormatter(
-                      group?.metrics[0].total - group?.metrics[1].total,
-                    )}
                     <div className='flex flex-col gap-1'>
                       <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
                         +{valueFormatter(posDaily)}
@@ -287,7 +274,6 @@ export default function DashboardMetricPage() {
                   </>
                 ) : (
                   <>
-                    {valueFormatter(group?.metrics[0].total ?? 0)}
                     <div className='flex flex-col gap-1'>
                       <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
                         +{valueFormatter(posDaily)}
@@ -298,31 +284,17 @@ export default function DashboardMetricPage() {
               </div>
             </div>
             <div className='flex flex-row gap-2'>
-              {group?.type === GroupType.Dual ? (
-                <MoreDropdown group={group}>
-                  <Button
-                    variant={'secondary'}
-                    size={'icon'}
-                    className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
-                  >
-                    <Copy className='size-4' />
-                  </Button>
-                </MoreDropdown>
-              ) : (
-                <Button
-                  variant={'secondary'}
-                  size={'icon'}
-                  className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      group ? group?.metrics[0].id : '',
-                    );
-                    toast.success('Succefully copied Metric ID');
-                  }}
-                >
-                  <Copy className='size-4' />
-                </Button>
-              )}
+              <Button
+                variant={'secondary'}
+                size={'icon'}
+                className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
+                onClick={() => {
+                  navigator.clipboard.writeText(metric ? metric.id : '');
+                  toast.success('Succefully copied Metric ID');
+                }}
+              >
+                <Copy className='size-4' />
+              </Button>
               <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
                 <DialogTrigger asChild>
                   <Button className='rounded-[12px] max-sm:w-full'>
@@ -331,24 +303,24 @@ export default function DashboardMetricPage() {
                   </Button>
                 </DialogTrigger>
                 <EditMetricDialogContent
-                  group={group!}
+                  metric={metric!}
                   setOpen={setOpen}
                   onUpdate={(new_name: string) => {
-                    setGroup(Object.assign({}, group, { name: new_name }));
+                    setMetric(Object.assign({}, metric, { name: new_name }));
                   }}
                 />
               </Dialog>
             </div>
           </div>
-          <OverviewChart group={group!} />
-          <TrendChart group={group!} />
+          <OverviewChart metric={metric!} />
+          <TrendChart metric={metric!} />
         </div>
       </TooltipProvider>
     </DashboardContentContainer>
   );
 }
 
-function OverviewChart(props: { group: Group }) {
+function OverviewChart(props: { metric: Metric }) {
   const [overviewChartType, setOverviewChartType] = useState<
     'stacked' | 'percent' | 'default'
   >('default');
@@ -378,13 +350,13 @@ function OverviewChart(props: { group: Group }) {
     let total = 0;
 
     for (let i = 0; i < chartData.length; i++) {
-      if (props.group.type === GroupType.Base) {
-        total += chartData[i][props.group.name] ?? 0;
+      if (props.metric.type === MetricType.Base) {
+        total += chartData[i][props.metric.name] ?? 0;
       } else {
         total =
           total +
-          ((chartData[i][props.group.metrics[0].name] ?? 0) -
-            (chartData[i][props.group.metrics[1].name] ?? 0));
+          ((chartData[i][props.metric.namepos] ?? 0) -
+            (chartData[i][props.metric.nameneg] ?? 0));
       }
     }
     return total;
@@ -397,8 +369,8 @@ function OverviewChart(props: { group: Group }) {
     const data = await loadChartData(
       from,
       range === 0 ? 0 : range + 1,
-      props.group,
-      props.group.appid,
+      props.metric,
+      props.metric.appid,
     );
     setChartData(data ?? []);
     setLoading(false);
@@ -479,15 +451,15 @@ function OverviewChart(props: { group: Group }) {
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
           <AdvancedOptions
             chartName='overview'
-            groupId={props.group.id}
-            metricType={props.group.type}
+            metricId={props.metric.id}
+            metricType={props.metric.type}
             chartType={overviewChartType}
             chartColor={overviewChartColor}
             dualMetricChartColor={dualMetricOverviewChartColor}
             setChartColor={setOverviewChartColor}
             setChartType={setOverviewChartType}
             setDualMetricChartColor={
-              props.group.type === GroupType.Base
+              props.metric.type === MetricType.Base
                 ? undefined
                 : setDualMetricOverviewChartColor
             }
@@ -581,14 +553,14 @@ function OverviewChart(props: { group: Group }) {
             index='date'
             type={overviewChartType}
             colors={
-              props.group.type === GroupType.Dual
+              props.metric.type === MetricType.Dual
                 ? dualMetricChartConfig.colors
                 : [overviewChartColor]
             }
             categories={
-              props.group.type === GroupType.Base
-                ? [props.group.name]
-                : [props.group.metrics[0].name, props.group.metrics[1].name]
+              props.metric.type === MetricType.Base
+                ? [props.metric.name]
+                : [props.metric.namepos, props.metric.nameneg]
             }
             valueFormatter={(number: number) =>
               `${Intl.NumberFormat('us').format(number).toString()}`
@@ -601,7 +573,7 @@ function OverviewChart(props: { group: Group }) {
   );
 }
 
-function TrendChart(props: { group: Group }) {
+function TrendChart(props: { metric: Metric }) {
   const [trendChartType, setTrendChartType] = useState<
     'default' | 'percent' | 'stacked'
   >('default');
@@ -635,24 +607,21 @@ function TrendChart(props: { group: Group }) {
 
     const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
 
-    let total =
-      props.group.type === GroupType.Base
-        ? props.group.metrics[0].total
-        : props.group.metrics[0].total - props.group.metrics[1].total;
+    let total = props.metric.total;
     let pos = 0;
     let neg = 0;
 
     if (daysDiff > 0) {
       const futurValues =
-        (await loadChartData(to, daysDiff, props.group, props.group.appid)) ??
+        (await loadChartData(to, daysDiff, props.metric, props.metric.appid)) ??
         [];
 
       for (let i = 0; i < futurValues.length; i++) {
-        if (props.group.type === GroupType.Base) {
-          pos += futurValues[i][props.group.name];
+        if (props.metric.type === MetricType.Base) {
+          pos += futurValues[i][props.metric.name];
         } else {
-          pos += futurValues[i][props.group.metrics[0].name];
-          neg += futurValues[i][props.group.metrics[1].name];
+          pos += futurValues[i][props.metric.namepos];
+          neg += futurValues[i][props.metric.nameneg];
         }
       }
     }
@@ -663,8 +632,8 @@ function TrendChart(props: { group: Group }) {
     const data = await loadChartData(
       from,
       range === 0 ? 0 : range + 1,
-      props.group,
-      props.group.appid,
+      props.metric,
+      props.metric.appid,
     );
 
     setChartData(data ?? []);
@@ -747,8 +716,8 @@ function TrendChart(props: { group: Group }) {
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
           <AdvancedOptions
             chartName='trend'
-            groupId={props.group.id}
-            metricType={props.group.type}
+            metricId={props.metric.id}
+            metricType={props.metric.type}
             chartType={trendChartType}
             chartColor={trendChartColor}
             setChartColor={setTrendChartColor}
@@ -838,19 +807,17 @@ function TrendChart(props: { group: Group }) {
             data={calculateTrend(
               chartData,
               total,
-              props.group.type,
-              props.group.type === GroupType.Base
-                ? props.group.name
-                : props.group.metrics[0].name,
-              props.group.type === GroupType.Dual
-                ? props.group.metrics[1].name
-                : '',
-              props.group.name,
+              props.metric.type,
+              props.metric.type === MetricType.Base
+                ? props.metric.name
+                : props.metric.namepos,
+              props.metric.type === MetricType.Dual ? props.metric.nameneg : '',
+              props.metric.name,
             )}
             index='date'
             customTooltip={customTooltip}
             colors={[trendChartColor]}
-            categories={[props.group.name]}
+            categories={[props.metric.name]}
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
           />
@@ -862,8 +829,8 @@ function TrendChart(props: { group: Group }) {
 
 function AdvancedOptions(props: {
   chartName: string;
-  groupId: string;
-  metricType: GroupType;
+  metricId: string;
+  metricType: MetricType;
   children: ReactNode;
   chartType: string;
   chartColor: string;
@@ -877,7 +844,7 @@ function AdvancedOptions(props: {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
-    const name = props.groupId + props.chartName;
+    const name = props.metricId + props.chartName;
     if (!settings[name]) return;
     if (settings[name].chartType) {
       props.setChartType(
@@ -898,7 +865,7 @@ function AdvancedOptions(props: {
 
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
-    const name = props.groupId + props.chartName;
+    const name = props.metricId + props.chartName;
     if (!settings[name])
       settings[name] = {
         chartType: undefined,
@@ -920,7 +887,7 @@ function AdvancedOptions(props: {
       <PopoverTrigger asChild>{props.children}</PopoverTrigger>
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
-          {props.metricType === GroupType.Dual &&
+          {props.metricType === MetricType.Dual &&
             props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
@@ -946,7 +913,7 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          {props.metricType === GroupType.Dual &&
+          {props.metricType === MetricType.Dual &&
             props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
@@ -1254,7 +1221,8 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
                   className='size-1.5 rounded-full'
                   style={{ backgroundColor: item.color }}
                 />
-                {item.category.charAt(0).toUpperCase() + item.category.slice(1).toLowerCase()}
+                {item.category.charAt(0).toUpperCase() +
+                  item.category.slice(1).toLowerCase()}
               </span>
               <div className='flex items-center space-x-1'>
                 <span className='font-medium capitalize text-gray-900 dark:text-gray-50'>
@@ -1268,38 +1236,3 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
     </>
   );
 };
-
-function MoreDropdown(props: {
-  children: any;
-  group: Group | null | undefined;
-}) {
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
-        <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-          <DropdownMenuItem
-            onClick={() => {
-              navigator.clipboard.writeText(
-                props.group ? props.group?.metrics[0].id : '',
-              );
-              toast.success('Succefully copied positive variable ID');
-            }}
-          >
-            Copy positive ID
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              navigator.clipboard.writeText(
-                props.group ? props.group?.metrics[1].id : '',
-              );
-              toast.success('Succefully copied degative variable ID');
-            }}
-          >
-            Copy negative ID
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
-  );
-}

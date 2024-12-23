@@ -46,24 +46,17 @@ CREATE TABLE IF NOT EXISTS Applications (
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
--- Create Metric Group table
-CREATE TABLE IF NOT EXISTS MetricGroups (
-    Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    AppId UUID NOT NULL,
-    Type INT NOT NULL,
-    Name TEXT NOT NULL,
-    Created TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(Name, AppId),
-    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
-);
-
 -- Create Metrics table
 CREATE TABLE IF NOT EXISTS Metrics (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    GroupId UUID NOT NULL,
+    AppId UUID NOT NULL,
     Name TEXT NOT NULL,
+    Type INT NOT NULL,
     Total BIGINT NOT NULL DEFAULT 0,
-    FOREIGN KEY (GroupId) REFERENCES MetricGroups(Id) ON DELETE CASCADE
+    NamePos TEXT NOT NULL,
+    NameNeg TEXT NOT NULL,
+    Created TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Appid) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
 -- Create Metric events table
@@ -79,8 +72,8 @@ CREATE TABLE IF NOT EXISTS MetricEvents (
 CREATE TABLE IF NOT EXISTS MetricDailySummary (
     Id TEXT PRIMARY KEY,
     MetricId UUID NOT NULL,
+    Value BIGINT NOT NULL,
     Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    VALUE BIGINT NOT NULL,
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
@@ -107,10 +100,3 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
     Email TEXT NOT NULL,
     Content TEXT NOT NULL
 );
-
--- Create Indexes
-CREATE INDEX IF NOT EXISTS idx__userid ON Users (Id);
-CREATE INDEX IF NOT EXISTS idx_metrics_events_metricid_id ON MetricEvents (MetricId);
-CREATE INDEX IF NOT EXISTS idx_metrics_app_id ON Metrics (GroupId, Id);
-CREATE INDEX IF NOT EXISTS idx_apikey_id ON Applications (ApiKey);
-

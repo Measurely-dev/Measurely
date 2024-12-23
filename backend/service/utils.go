@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-chi/cors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -180,12 +181,11 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 
 		if new_plan != nil {
 			s.db.CreatePlan(*new_plan)
-			s.cache.plans.Store(new_plan.Identifier, new_plan)
+			s.cache.plans.Store(new_plan.Identifier, *new_plan)
 			return *new_plan, true
 		}
 
 		return types.Plan{}, false
-
 	} else {
 		plan = value.(types.Plan)
 	}
@@ -226,6 +226,22 @@ func (s *Service) GetUserPlan(userid uuid.UUID) (types.Plan, error) {
 	}
 
 	return planCache.plan, nil
+}
+
+func SetupCors() *cors.Cors {
+	var allowed_origins []string
+	if os.Getenv("ENV") == "production" {
+		allowed_origins = []string{"https://measurely.dev", "https://www.measurely.dev"}
+	} else {
+		allowed_origins = []string{"http://localhost:3000"}
+	}
+
+	return cors.New(cors.Options{
+		AllowedOrigins:   allowed_origins, // Allow all origins for this route
+		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: true,
+	})
 }
 
 func GetOrigin() string {

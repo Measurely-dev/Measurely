@@ -29,8 +29,9 @@ import (
 )
 
 type MetricToKeyCache struct {
-	key    string
-	expiry time.Time
+	key         string
+	metric_type int
+	expiry      time.Time
 }
 
 type UserPlanCache struct {
@@ -67,7 +68,7 @@ func New() Service {
 	providers := make(map[string]Provider)
 	providers["github"] = Provider{
 		UserURL: os.Getenv("GITHUB_USER"),
-		Type:    types.GITHUB,
+		Type:    types.GITHUB_PROVIDER,
 		Config: &oauth2.Config{
 			ClientID:     os.Getenv("GITHUB_KEY"),
 			ClientSecret: os.Getenv("GITHUB_SECRET"),
@@ -78,7 +79,7 @@ func New() Service {
 	}
 	providers["google"] = Provider{
 		UserURL: os.Getenv("GOOGLE_USER"),
-		Type:    types.GOOGLE,
+		Type:    types.GOOGLE_PROVIDER,
 		Config: &oauth2.Config{
 			ClientID:     os.Getenv("GOOGLE_KEY"),
 			ClientSecret: os.Getenv("GOOGLE_SECRET"),
@@ -571,14 +572,11 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	plan, exists := s.GetPlan(user.CurrentPlan)
 	if !exists {
-		log.Println("hey")
 		http.Error(w, "Plan not found", http.StatusNotFound)
 		return
 	}
 
 	plan.Price = ""
-	log.Println(plan)
-
 	response := struct {
 		Id        uuid.UUID            `json:"id"`
 		Email     string               `json:"email"`
@@ -1282,12 +1280,7 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-type GroupResponse struct {
-	types.MetricGroup
-	Metrics []types.Metric `json:"metrics"`
-}
-
-func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
+func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1295,11 +1288,12 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Name      string
-		AppId     uuid.UUID
-		Type      int
-		BaseValue int
-		Metrics   []string
+		Name      string    `json:"name"`
+		AppId     uuid.UUID `json:"appid"`
+		Type      int       `json:"type"`
+		BaseValue int       `json:"basevalue"`
+		NamePos   string    `json:"namepos"`
+		NameNeg   string    `json:"nameneg"`
 	}
 
 	// Try to unmarshal the request body
@@ -1319,28 +1313,18 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Type != types.BASE && request.Type != types.DUAL {
+	if request.Type != types.BASE_METRIC && request.Type != types.DUAL_METRIC {
 		http.Error(w, "Invalid metric type", http.StatusBadRequest)
 		return
 	}
 
-	if request.Type == types.BASE && len(request.Metrics) != 1 {
-		http.Error(w, "A base metric group cannot contain more than one 1 metric", http.StatusBadRequest)
-		return
-	}
-
-	if request.Type == types.DUAL && len(request.Metrics) != 2 {
-		http.Error(w, "A dual metric group cannot contain more than 2 metrics", http.StatusBadRequest)
-		return
-	}
-
-	if request.BaseValue < 0 {
+	if request.BaseValue < 0 && request.Type == types.BASE_METRIC {
 		http.Error(w, "The base value cannot be negative", http.StatusBadRequest)
 		return
 	}
 
 	// Get the application
-	app, err := s.db.GetApplication(request.AppId, token.Id)
+	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1348,7 +1332,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get Metric Count
-	count, err := s.db.GetMetricGroupCount(request.AppId)
+	count, err := s.db.GetMetricsCount(request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1363,10 +1347,12 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the metric
-	group, err := s.db.CreateMetricGroup(types.MetricGroup{
-		Name:  request.Name,
-		AppId: request.AppId,
-		Type:  request.Type,
+	metric, err := s.db.CreateMetric(types.Metric{
+		Name:    request.Name,
+		AppId:   request.AppId,
+		Type:    request.Type,
+		NamePos: request.NamePos,
+		NameNeg: request.NameNeg,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1377,45 +1363,27 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	response := GroupResponse{
-		MetricGroup: group,
-	}
 
-	for i, metric := range request.Metrics {
-		created_metric, err := s.db.CreateMetric(types.Metric{
-			Name:    metric,
-			GroupId: group.Id,
-		})
-		if err != nil {
-			if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-				http.Error(w, "A name with the same metric already exists", http.StatusBadRequest)
-			} else {
-				log.Println(err)
-				http.Error(w, "Internal error, failed to create metric", http.StatusInternalServerError)
-			}
-			return
-		}
-
-		if request.BaseValue != 0 && i == 0 {
+	if request.BaseValue != 0 {
+		app, err := s.db.GetApplication(request.AppId, token.Id)
+		if err == nil {
 			data := map[string]interface{}{
 				"value": request.BaseValue,
 			}
 			jsonData, err := json.Marshal(data)
 			if err == nil {
-				req, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+created_metric.Id.String(), bytes.NewBuffer(jsonData))
+				req, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+metric.Id.String(), bytes.NewBuffer(jsonData))
 				if err == nil {
 					resp, err := http.DefaultClient.Do(req)
 					if err == nil && resp.StatusCode == 200 {
-						created_metric.Total = request.BaseValue
+						metric.Total = request.BaseValue
 					}
 				}
 			}
 		}
-
-		response.Metrics = append(response.Metrics, created_metric)
 	}
 
-	bytes, jerr := json.Marshal(response)
+	bytes, jerr := json.Marshal(metric)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return
@@ -1427,7 +1395,7 @@ func (s *Service) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	go SendMeasurelyMetricEvent("metrics-pos", 1)
 }
 
-func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1435,8 +1403,8 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		GroupId uuid.UUID `json:"groupid"`
-		AppId   uuid.UUID `json:"appid"`
+		MetricId uuid.UUID `json:"metricid"`
+		AppId    uuid.UUID `json:"appid"`
 	}
 
 	// Try to unmarshal the request body
@@ -1455,7 +1423,7 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the metric
-	err = s.db.DeleteMetricGroup(request.GroupId, request.AppId)
+	err = s.db.DeleteMetric(request.MetricId, request.AppId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1467,7 +1435,7 @@ func (s *Service) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	go SendMeasurelyMetricEvent("metrics-neg", 1)
 }
 
-func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1492,30 +1460,16 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch Metrics
-	metrics, err := s.db.GetMetricGroups(appid)
+	metrics, err := s.db.GetMetrics(appid)
 	if err == sql.ErrNoRows {
-		metrics = []types.MetricGroup{}
+		metrics = []types.Metric{}
 	} else if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	response := []GroupResponse{}
-
-	for _, metric := range metrics {
-		subs, err := s.db.GetMetrics(metric.Id)
-		if err != nil && err != sql.ErrNoRows {
-			log.Println(err)
-		}
-
-		response = append(response, GroupResponse{
-			MetricGroup: metric,
-			Metrics:     subs,
-		})
-	}
-
-	bytes, jerr := json.Marshal(response)
+	bytes, jerr := json.Marshal(metrics)
 	if jerr != nil {
 		http.Error(w, jerr.Error(), http.StatusContinue)
 		return
@@ -1525,7 +1479,7 @@ func (s *Service) GetMetricGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -1533,9 +1487,11 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		AppId   uuid.UUID `json:"appid"`
-		GroupId uuid.UUID `json:"groupid"`
-		Name    string    `json:"name"`
+		AppId    uuid.UUID `json:"appid"`
+		MetricId uuid.UUID `json:"metricid"`
+		Name     string    `json:"name"`
+		NamePos  string    `json:"namepos"`
+		NameNeg  string    `json:"nameneg"`
 	}
 
 	// Try to unmarshal the request body
@@ -1557,68 +1513,10 @@ func (s *Service) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric
-	err = s.db.UpdateMetricGroup(request.GroupId, request.AppId, request.Name)
+	err = s.db.UpdateMetric(request.MetricId, request.AppId, request.Name, request.NamePos, request.NameNeg)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
-	token, ok := r.Context().Value(types.TOKEN).(types.Token)
-	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	var request struct {
-		AppId    uuid.UUID `json:"appid"`
-		GroupId  uuid.UUID `json:"groupid"`
-		MetricId uuid.UUID `json:"metricid"`
-		Name     string    `json:"name"`
-	}
-
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Get the application
-	_, err := s.db.GetApplication(request.AppId, token.Id)
-	if err == sql.ErrNoRows {
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return
-	} else if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	// Get the metric group
-	_, err = s.db.GetMetricGroup(request.GroupId, request.AppId)
-	if err == sql.ErrNoRows {
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return
-	} else if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	// Get the metric group
-	err = s.db.UpdateMetric(request.MetricId, request.GroupId, request.Name)
-	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			http.Error(w, "A metric with the same name already exists", http.StatusBadRequest)
-		} else {
-			log.Println(err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-		}
 		return
 	}
 

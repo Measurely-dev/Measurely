@@ -141,8 +141,13 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (groupid, name, total) VALUES ($1, $2, $3) RETURNING *", metric.GroupId, metric.Name, metric.Total).Scan(&new_metric.Id, &new_metric.GroupId, &new_metric.Name, &new_metric.Total)
+	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.Total, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
 	return new_metric, err
+}
+
+func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND appid = $2", id, appid)
+	return err
 }
 
 func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
@@ -160,68 +165,19 @@ func (db *DB) CreateDailyMetricSummary(summary types.DailyMetricSummary) error {
 	return err
 }
 
-func (db *DB) CreateMetricGroup(group types.MetricGroup) (types.MetricGroup, error) {
-	var new_group types.MetricGroup
-	err := db.Conn.QueryRow("INSERT INTO metricgroups (appid, type, name) VALUES ($1, $2, $3) RETURNING *", group.AppId, group.Type, group.Name).Scan(&new_group.Id, &new_group.AppId, &new_group.Type, &new_group.Name, &new_group.Created)
-	return new_group, err
-}
-
-func (db *DB) DeleteMetricGroup(metricid uuid.UUID, appid uuid.UUID) error {
-	_, err := db.Conn.Exec("DELETE FROM metricgroups WHERE id = $1 AND appid = $2", metricid, appid)
-	return err
-}
-
-func (db *DB) GetMetricGroupCount(appid uuid.UUID) (int, error) {
+func (db *DB) GetMetricsCount(appid uuid.UUID) (int, error) {
 	var count int = 0
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metricgroups WHERE appid = $1", appid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE appid = $1", appid)
 	return count, err
 }
 
-func (db *DB) UpdateMetricGroup(groupid uuid.UUID, appid uuid.UUID, name string) error {
-	_, err := db.Conn.Exec("UPDATE metricgroups SET name = $1 WHERE id = $2 AND appid = $3", name, groupid, appid)
+func (db *DB) UpdateMetric(id uuid.UUID, appid uuid.UUID, name string, namepos string, nameneg string) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET name = $1, namepos = $2, nameneg = $3 WHERE id = $4 AND appid = $5", name, namepos, nameneg, id, appid)
 	return err
 }
 
-func (db *DB) UpdateMetric(metricid uuid.UUID, groupid uuid.UUID, name string) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET name = $1 WHERE groupid = $2 AND id = $3", name, groupid, metricid)
-	return err
-}
-
-func (db *DB) GetMetricGroups(appid uuid.UUID) ([]types.MetricGroup, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metricgroups WHERE appid = $1", appid)
-	if err != nil {
-		return []types.MetricGroup{}, err
-	}
-	defer rows.Close()
-	var groups []types.MetricGroup
-	for rows.Next() {
-		var group types.MetricGroup
-		err := rows.Scan(&group.Id, &group.AppId, &group.Type, &group.Name, &group.Created)
-		if err != nil {
-			return []types.MetricGroup{}, err
-		}
-		groups = append(groups, group)
-	}
-
-	return groups, nil
-}
-
-// Gets the metric group with the id and the group id
-func (db *DB) GetMetricGroup(id uuid.UUID, appid uuid.UUID) (types.MetricGroup, error) {
-	var group types.MetricGroup
-	err := db.Conn.Get(&group, "SELECT * FROM metricgroups WHERE id = $1 AND appid = $2", id, appid)
-	return group, err
-}
-
-// Gets the metric group with the id
-func (db *DB) GetMetricGroupById(id uuid.UUID) (types.MetricGroup, error) {
-	var group types.MetricGroup
-	err := db.Conn.Get(&group, "SELECT * FROM metricgroups WHERE id = $1", id)
-	return group, err
-}
-
-func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE groupid = $1", groupid)
+func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
+	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE appid = $1", appid)
 	if err != nil {
 		return []types.Metric{}, err
 	}
@@ -229,7 +185,7 @@ func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
 	var metrics []types.Metric
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.GroupId, &metric.Name, &metric.Total)
+		err := rows.Scan(&metric.Id, &metric.AppId, &metric.Name, &metric.Type, &metric.Total, &metric.NamePos, &metric.NameNeg, &metric.Created)
 		if err != nil {
 			return []types.Metric{}, err
 		}
@@ -240,9 +196,9 @@ func (db *DB) GetMetrics(groupid uuid.UUID) ([]types.Metric, error) {
 }
 
 // Gets the metric by id and group id
-func (db *DB) GetMetric(id uuid.UUID, groupid uuid.UUID) (types.Metric, error) {
+func (db *DB) GetMetric(id uuid.UUID, appid uuid.UUID) (types.Metric, error) {
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1 AND groupid = $2", id, groupid)
+	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1 AND groupid = $2", id, appid)
 	return metric, err
 }
 
@@ -291,7 +247,7 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	var dailysummarymetrics []types.DailyMetricSummary
 	for rows.Next() {
 		var summary types.DailyMetricSummary
-		err := rows.Scan(&summary.Id, &summary.MetricId, &summary.Date, &summary.Value)
+		err := rows.Scan(&summary.Id, &summary.MetricId, &summary.Value, &summary.Date)
 		if err != nil {
 			return []types.DailyMetricSummary{}, err
 		}
@@ -303,11 +259,6 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 
 func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int) error {
 	_, err := db.Conn.Exec("UPDATE metrics SET total = total + $1 WHERE id = $2", toAdd, id)
-	return err
-}
-
-func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
-	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND appid = $2", id, appid)
 	return err
 }
 

@@ -13,7 +13,7 @@ import { ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dispatch, useContext, useState } from 'react';
 import { toast } from 'sonner';
-import { loadMetricsGroups, MAXFILESIZE } from '@/utils';
+import { loadMetrics, MAXFILESIZE } from '@/utils';
 
 export default function NewApp() {
   const [loading, setLoading] = useState(false);
@@ -65,7 +65,7 @@ export default function NewApp() {
           });
         }
 
-        json.groups = await loadMetricsGroups(json.id);
+        json.metrics = await loadMetrics(json.id);
         setApplications((apps) => [...apps, json]);
         setActiveApp(applications.length - 1);
         localStorage.setItem('activeApp', (applications.length - 1).toString());

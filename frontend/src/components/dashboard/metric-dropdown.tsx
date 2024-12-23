@@ -20,12 +20,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AppsContext } from '@/dash-context';
-import { Group } from '@/types';
+import { Metric } from '@/types';
 import { useContext, useState } from 'react';
 import { toast } from 'sonner';
 import EditMetricDialogContent from './edit-metric-dialog-content';
 
-export default function MetricDropdown(props: { children: any; group: Group }) {
+export default function MetricDropdown(props: {
+  children: any;
+  metric: Metric;
+}) {
   const { setApplications, applications } = useContext(AppsContext);
   const [open, setOpen] = useState(false);
 
@@ -39,43 +42,17 @@ export default function MetricDropdown(props: { children: any; group: Group }) {
               <DialogTrigger asChild>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </DialogTrigger>
-
-              {props.group.type === 1 ? (
-                <>
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    onClick={() => {
-                      navigator.clipboard.writeText(props.group.metrics[0].id);
-                      toast.success('Copied Positive Variable ID');
-                    }}
-                  >
-                    Copy positive ID
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      navigator.clipboard.writeText(props.group.metrics[1].id);
-                      toast.success('Copied Negative Variable ID');
-                    }}
-                  >
-                    Copy negative ID
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      navigator.clipboard.writeText(props.group.metrics[0].id);
-                      toast.success('Copied Metric ID');
-                    }}
-                  >
-                    Copy ID
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
+              <>
+                <DropdownMenuItem
+                  onClick={() => {
+                    navigator.clipboard.writeText(props.metric.id);
+                    toast.success('Copied Metric ID');
+                  }}
+                >
+                  Copy ID
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'>
                   Delete
@@ -100,14 +77,14 @@ export default function MetricDropdown(props: { children: any; group: Group }) {
               <AlertDialogAction
                 className='rounded-[8px] border border-red-500 bg-red-500 text-red-100 hover:bg-red-500/90'
                 onClick={() => {
-                  fetch(process.env.NEXT_PUBLIC_API_URL + '/group', {
+                  fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
                     method: 'DELETE',
                     headers: {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      appid: props.group.appid,
-                      groupid: props.group.id,
+                      appid: props.metric.appid,
+                      metricid: props.metric.id,
                     }),
                     credentials: 'include',
                   }).then((res) => {
@@ -115,12 +92,12 @@ export default function MetricDropdown(props: { children: any; group: Group }) {
                       toast.success('Metric succesfully deleted');
                       setApplications(
                         applications?.map((v) =>
-                          v.id === props.group.appid
+                          v.id === props.metric.appid
                             ? Object.assign({}, v, {
-                                groups: v.groups?.filter(
-                                  (m) => m.id !== props.group.id,
-                                ),
-                              })
+                              metrics: v.metrics?.filter(
+                                (m) => m.id !== props.metric.id,
+                              ),
+                            })
                             : v,
                         ),
                       );
@@ -135,7 +112,7 @@ export default function MetricDropdown(props: { children: any; group: Group }) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <EditMetricDialogContent group={props.group} setOpen={setOpen} />
+        <EditMetricDialogContent metric={props.metric} setOpen={setOpen} />
       </Dialog>
     </>
   );

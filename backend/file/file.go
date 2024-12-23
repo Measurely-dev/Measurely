@@ -17,7 +17,6 @@ import (
 const MAX_SIZE = 500 * 1024
 
 func SetupFileServer(router *chi.Mux) {
-
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalln(err)
@@ -105,7 +104,7 @@ func SetupFileServer(router *chi.Mux) {
 			return
 		}
 
-    token, err := service.VerifyToken(cookie.Value)
+		token, err := service.VerifyToken(cookie.Value)
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
@@ -157,5 +156,4 @@ func SetupFileServer(router *chi.Mux) {
 
 		fmt.Fprintf(w, "File uploaded successfully: %s", fileName)
 	})
-
 }

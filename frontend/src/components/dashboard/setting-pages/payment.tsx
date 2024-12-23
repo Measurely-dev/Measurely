@@ -83,7 +83,7 @@ export default function SettingPaymentPage() {
           {
             title: `Metrics limit for ${applications?.[activeApp].name.charAt(0).toUpperCase() + applications?.[activeApp].name.slice(1).toLowerCase()}`,
             description: 'On this plan',
-            value: `${applications?.[activeApp].groups === null ? 0 : applications?.[activeApp].groups.length}/${user?.plan.metric_per_app_limit}`,
+            value: `${applications?.[activeApp].metrics === null ? 0 : applications?.[activeApp].metrics.length}/${user?.plan.metric_per_app_limit}`,
           },
           {
             title: 'Applications limit',

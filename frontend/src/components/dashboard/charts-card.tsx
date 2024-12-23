@@ -38,7 +38,7 @@ import {
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AppsContext } from '@/dash-context';
 import { calculateTrend, loadChartData } from '@/utils';
-import { Group, GroupType } from '@/types';
+import { Metric, MetricType } from '@/types';
 import MetricStats from './metric-stats';
 import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
@@ -49,33 +49,29 @@ const valueFormatter = (number: number) => {
 };
 export function ChartsCard() {
   const { applications, activeApp } = useContext(AppsContext);
-  const [activeGroup, setActiveGroup] = useState(0);
+  const [activeMetric, setActiveMetric] = useState(0);
   const router = useRouter();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
 
-  const group = useMemo(() => {
-    return applications[activeApp].groups?.[activeGroup];
-  }, [activeApp, activeGroup]);
+  const metric = useMemo(() => {
+    return applications[activeApp].metrics?.[activeMetric];
+  }, [activeApp, activeMetric]);
 
   const loadData = async () => {
     setLoading(true);
-    if (applications[activeApp].groups !== null) {
-      const group = applications[activeApp].groups[activeGroup];
-      if (group != undefined) {
-        let total = 0;
-        if (group.type === GroupType.Base) total = group.metrics[0].total;
-        else if (group.type === GroupType.Dual)
-          total = group.metrics[0].total - group.metrics[1].total;
-        setTotal(total);
+    if (applications[activeApp].metrics !== null) {
+      const metric = applications[activeApp].metrics[activeMetric];
+      if (metric != undefined) {
+        setTotal(metric.total);
         const from = new Date();
         from.setDate(0);
 
         const data = await loadChartData(
           from,
           30,
-          group,
+          metric,
           applications[activeApp].id,
         );
         if (!data) {
@@ -90,19 +86,19 @@ export function ChartsCard() {
 
   useEffect(() => {
     loadData();
-  }, [activeGroup]);
+  }, [activeMetric]);
 
   useEffect(() => {
     if (
-      activeGroup >
-      (applications[activeApp].groups === null
+      activeMetric >
+      (applications[activeApp].metrics === null
         ? 0
-        : applications[activeApp].groups.length - 1)
+        : applications[activeApp].metrics.length - 1)
     ) {
-      setActiveGroup(
-        applications[activeApp].groups === null
+      setActiveMetric(
+        applications[activeApp].metrics === null
           ? 0
-          : applications[activeApp].groups.length - 1,
+          : applications[activeApp].metrics.length - 1,
       );
     }
   }, [activeApp]);
@@ -114,20 +110,20 @@ export function ChartsCard() {
           {
             title: 'Metric used',
             description: 'Across this application',
-            value: applications[activeApp].groups?.length,
+            value: applications[activeApp].metrics?.length,
           },
           {
             title: 'Number of dual metric',
             description: 'Across this application',
-            value: applications[activeApp].groups?.filter(
-              (g) => g.type === GroupType.Dual,
+            value: applications[activeApp].metrics?.filter(
+              (m) => m.type === MetricType.Dual,
             ).length,
           },
           {
             title: 'Number of basic metric',
             description: 'Across this application',
-            value: applications[activeApp].groups?.filter(
-              (g) => g.type === GroupType.Base,
+            value: applications[activeApp].metrics?.filter(
+              (m) => m.type === MetricType.Base,
             ).length,
           },
           {
@@ -137,13 +133,13 @@ export function ChartsCard() {
           },
         ]}
       />
-      {applications[activeApp].groups !== undefined &&
-      applications[activeApp].groups?.length! > 0 ? (
+      {applications[activeApp].metrics !== undefined &&
+        applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
-            activeGroup={activeGroup}
-            setActiveGroup={setActiveGroup}
-            groups={applications[activeApp].groups ?? []}
+            activeMetric={activeMetric}
+            setActiveMetric={setActiveMetric}
+            metrics={applications[activeApp].metrics ?? []}
             total={total}
           />
           <CardContent className='flex flex-col'>
@@ -173,20 +169,20 @@ export function ChartsCard() {
                           className='h-60 min-h-60 w-full'
                           data={calculateTrend(
                             data,
-                            group?.metrics[0].total ?? 0,
-                            group?.type ?? GroupType.Base,
-                            group?.type === GroupType.Base
-                              ? (group?.name ?? '')
-                              : (group?.metrics[0].name ?? ''),
-                            group?.type === GroupType.Base
+                            metric?.total ?? 0,
+                            metric?.type ?? MetricType.Base,
+                            metric?.type === MetricType.Base
+                              ? (metric?.name ?? '')
+                              : (metric?.namepos ?? ''),
+                            metric?.type === MetricType.Base
                               ? ''
-                              : (group?.metrics[1].name ?? ''),
-                            group?.name ?? '',
+                              : (metric?.nameneg ?? ''),
+                            metric?.name ?? '',
                           )}
                           index='date'
                           color='blue'
                           categories={[
-                            applications[activeApp].groups?.[activeGroup]
+                            applications[activeApp].metrics?.[activeMetric]
                               .name ?? '',
                           ]}
                           valueFormatter={(number: number) =>
@@ -221,9 +217,9 @@ export function ChartsCard() {
 }
 
 function Header(props: {
-  activeGroup: number;
-  setActiveGroup: React.Dispatch<React.SetStateAction<number>>;
-  groups: Group[];
+  activeMetric: number;
+  setActiveMetric: React.Dispatch<React.SetStateAction<number>>;
+  metrics: Metric[];
   total: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -231,7 +227,8 @@ function Header(props: {
     <CardHeader className='flex flex-row justify-between max-sm:flex-col max-sm:gap-3'>
       <div className='flex flex-col gap-1'>
         <CardTitle>
-          {valueFormatter(props.total)} {props.groups[props.activeGroup]?.name}
+          {valueFormatter(props.total)}{' '}
+          {props.metrics[props.activeMetric]?.name}
         </CardTitle>
         <CardDescription>Trend of the last month</CardDescription>
       </div>
@@ -243,8 +240,8 @@ function Header(props: {
             aria-expanded={open}
             className='w-[200px] justify-between rounded-[12px]'
           >
-            {props.groups.length > 0
-              ? props.groups.find((_, i) => i === props.activeGroup)?.name
+            {props.metrics.length > 0
+              ? props.metrics.find((_, i) => i === props.activeMetric)?.name
               : 'Select metric...'}
             <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
           </Button>
@@ -255,24 +252,24 @@ function Header(props: {
             <CommandList>
               <CommandEmpty>No metric found.</CommandEmpty>
               <CommandGroup>
-                {props.groups.map((group, i) => (
+                {props.metrics.map((metric, i) => (
                   <CommandItem
-                    key={group.id}
+                    key={metric.id}
                     className='rounded-[10px]'
                     onSelect={() => {
-                      props.setActiveGroup(i);
+                      props.setActiveMetric(i);
                       setOpen(false);
                     }}
                   >
-                    {i === props.activeGroup ? (
+                    {i === props.activeMetric ? (
                       <Check className={cn('mr-2 size-4 stroke-[3px]')} />
-                    ) : group.type === 1 ? (
+                    ) : metric.type === MetricType.Dual ? (
                       <ArrowUpDown className={cn('mr-2 size-4')} />
                     ) : (
                       <ArrowUpFromDot className={cn('mr-2 size-4')} />
                     )}
 
-                    {group.name}
+                    {metric.name}
                   </CommandItem>
                 ))}
               </CommandGroup>

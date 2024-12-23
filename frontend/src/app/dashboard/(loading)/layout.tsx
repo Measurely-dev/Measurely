@@ -5,7 +5,7 @@ import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
-import { loadMetricsGroups } from '@/utils';
+import { loadMetrics } from '@/utils';
 import { LoaderIcon } from 'lucide-react';
 
 export default function DashboardContentLayout({
@@ -56,7 +56,7 @@ export default function DashboardContentLayout({
     }
 
     if (appsLoading) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/application', {
+      fetch(process.env.NEXT_PUBLIC_API_URL + '/applications', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -88,9 +88,9 @@ export default function DashboardContentLayout({
           }
           for (let i = 0; i < json.length; i++) {
             if (i === savedActiveApp && json.length >= savedActiveApp + 1) {
-              json[i].groups = await loadMetricsGroups(json[savedActiveApp].id);
+              json[i].metrics = await loadMetrics(json[savedActiveApp].id);
             } else {
-              json[i].groups = null;
+              json[i].metrics = null;
             }
           }
 

@@ -10,38 +10,25 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AppsContext } from '@/dash-context';
-import { Group } from '@/types';
+import { Metric } from '@/types';
 import {
   Dispatch,
   SetStateAction,
   useContext,
-  useEffect,
   useState,
 } from 'react';
 import { toast } from 'sonner';
 
 export default function EditMetricDialogContent(props: {
-  group: Group;
+  metric: Metric;
   setOpen: Dispatch<SetStateAction<boolean>>;
   onUpdate?: (new_name: string) => void;
 }) {
-  const [name, setName] = useState<string>(props.group.name);
-  const [subNames, setSubNames] = useState<string[]>([]);
+  const [name, setName] = useState<string>(props.metric.name);
+  const [posName, setPosName] = useState<string>(props.metric.namepos);
+  const [negName, setNegName] = useState<string>(props.metric.nameneg);
   const [loading, setLoading] = useState<boolean>(false);
   const { applications, setApplications } = useContext(AppsContext);
-
-  function areNamesEqual(names: string[]) {
-    for (let i = 0; i < names.length; i++) {
-      if (names[i] !== props.group.metrics[i].name) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  useEffect(() => {
-    setSubNames(props.group.metrics.map((m) => m.name));
-  }, [props.group]);
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
@@ -52,68 +39,44 @@ export default function EditMetricDialogContent(props: {
         onSubmit={async (e) => {
           e.preventDefault();
           setLoading(true);
-          let group = props.group;
+          let metric = props.metric;
 
           let res;
 
-          if (name !== props.group.name) {
-            res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/group', {
+          if (name !== props.metric.name) {
+            res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                appid: props.group.appid,
-                groupid: props.group.id,
+                appid: props.metric.appid,
+                metricid: props.metric.id,
                 name: name,
+                namepos: posName,
+                nameneg: negName,
               }),
               credentials: 'include',
             });
 
             if (res.ok && applications !== null) {
-              group = Object.assign({}, group, { name: name });
-            }
-          }
-
-          for (let i = 0; i < subNames.length; i++) {
-            if (subNames[i] !== props.group.metrics[i].name) {
-              res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  appid: props.group.appid,
-                  groupid: props.group.id,
-                  metricid: props.group.metrics[i].id,
-                  name: subNames[i],
-                }),
-                credentials: 'include',
+              metric = Object.assign({}, metric, {
+                name: name,
+                namepos: posName,
+                nameneg: negName,
               });
-
-              if (res.ok && applications !== null) {
-                group = Object.assign({}, group, {
-                  metrics: group.metrics.map((metric) =>
-                    metric.id === props.group.metrics[i].id
-                      ? Object.assign({}, metric, {
-                        name: subNames[i],
-                      })
-                      : metric,
-                  ),
-                });
-              }
             }
           }
 
           if (applications !== null) {
             setApplications(
               applications.map((v) =>
-                v.id === props.group.appid
+                v.id === props.metric.appid
                   ? Object.assign({}, v, {
-                    groups: v.groups?.map((g) =>
-                      g.id === props.group.id
-                        ? Object.assign({}, g, group)
-                        : g,
+                    metrics: v.metrics?.map((m) =>
+                      m.id === props.metric.id
+                        ? Object.assign({}, m, metric)
+                        : m,
                     ),
                   })
                   : v,
@@ -141,7 +104,7 @@ export default function EditMetricDialogContent(props: {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            {props.group.type !== 0 ? (
+            {props.metric.type !== 0 ? (
               <>
                 <div className='flex w-full flex-col gap-3'>
                   <Label>Positive name</Label>
@@ -149,12 +112,8 @@ export default function EditMetricDialogContent(props: {
                     placeholder='New users, Deleted projects, Suspended accounts'
                     type='text'
                     className='h-11 rounded-[12px]'
-                    value={subNames[0]}
-                    onChange={(e) =>
-                      setSubNames(
-                        subNames.map((v, i) => (i === 0 ? e.target.value : v)),
-                      )
-                    }
+                    value={posName}
+                    onChange={(e) => setPosName(e.target.value)}
                   />
                 </div>
                 <div className='flex w-full flex-col gap-3'>
@@ -163,12 +122,8 @@ export default function EditMetricDialogContent(props: {
                     placeholder='New users, Deleted projects, Suspended accounts'
                     type='text'
                     className='h-11 rounded-[12px]'
-                    value={subNames[1]}
-                    onChange={(e) =>
-                      setSubNames(
-                        subNames.map((v, i) => (i === 1 ? e.target.value : v)),
-                      )
-                    }
+                    value={negName}
+                    onChange={(e) => setNegName(e.target.value)}
                   />
                 </div>
               </>
@@ -184,8 +139,9 @@ export default function EditMetricDialogContent(props: {
               variant='secondary'
               className='w-full rounded-[12px]'
               onClick={() => {
-                setName(props.group.name);
-                setSubNames(props.group.metrics.map((m) => m.name));
+                setName(props.metric.name);
+                setPosName(props.metric.namepos);
+                setNegName(props.metric.nameneg);
               }}
             >
               Cancel
@@ -197,7 +153,10 @@ export default function EditMetricDialogContent(props: {
             className='w-full rounded-[12px]'
             loading={loading}
             disabled={
-              (name === props.group.name && areNamesEqual(subNames)) || loading
+              (name === props.metric.name &&
+                props.metric.namepos === posName &&
+                props.metric.nameneg === negName) ||
+              loading
             }
           >
             Update

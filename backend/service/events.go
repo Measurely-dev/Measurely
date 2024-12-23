@@ -30,24 +30,20 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 			log.Println(err)
 			return false
 		}
-		group, err := s.db.GetMetricGroupById(metric.GroupId)
-		if err != nil {
-			log.Println(err)
-			return false
-		}
 		app, err := s.db.GetApplicationByApi(apikey)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
 
-		if app.Id != group.AppId {
+		if app.Id != metric.AppId {
 			return false
 		}
 
 		s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
-			key:    apikey,
-			expiry: time.Now().Add(15 * time.Minute),
+			key:         apikey,
+			metric_type: metric.Type,
+			expiry:      time.Now().Add(15 * time.Minute),
 		})
 
 		return true
@@ -78,14 +74,22 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Value <= 0 {
-		http.Error(w, "Value cannot be negative or null", http.StatusBadRequest)
-		return
-	}
-
 	valid := s.VerifyKeyToMetric(metricid, apikey)
 	if !valid {
 		http.Error(w, "Invalid api key and/or metric id", http.StatusBadRequest)
+		return
+	}
+
+	value, _ := s.cache.metricIdToApiKeys.Load(metricid)
+	metricCache := value.(MetricToKeyCache)
+
+	if metricCache.metric_type == types.BASE_METRIC && request.Value < 0 {
+		http.Error(w, "A base metric cannot have a negative value", http.StatusBadRequest)
+		return
+	}
+
+	if request.Value == 0 {
+		http.Error(w, "A value cannot be null", http.StatusBadRequest)
 		return
 	}
 
@@ -165,7 +169,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nbrDays := float64(end.Sub(start).Abs()) / float64(24*time.Hour)
+	nbrDays := (float64(end.Sub(start).Abs()) / float64(24*time.Hour)) - 1
 
 	if nbrDays > float64(plan.Range) {
 		http.Error(w, "you have exceeded your plans limit, you can view a maximum of "+strconv.Itoa(plan.Range)+" days", http.StatusUnauthorized)

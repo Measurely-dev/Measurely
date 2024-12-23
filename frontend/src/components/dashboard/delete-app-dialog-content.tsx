@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AppsContext } from '@/dash-context';
 import { Application } from '@/types';
-import { loadMetricsGroups } from '@/utils';
+import { loadMetrics } from '@/utils';
 import { useContext } from 'react';
 import { toast } from 'sonner';
 
@@ -67,14 +67,14 @@ export default function DeleteAppDialogContent(props: {
                 }
 
                 if (applications !== null) {
-                  if (applications[newActiveApp].groups === null) {
-                    const groups = await loadMetricsGroups(
+                  if (applications[newActiveApp].metrics === null) {
+                    const metrics = await loadMetrics(
                       applications[newActiveApp].id,
                     );
                     setApplications(
                       applications.map((app, id) =>
                         id === newActiveApp
-                          ? Object.assign({}, app, { groups: groups })
+                          ? Object.assign({}, app, { metrics: metrics })
                           : app,
                       ),
                     );

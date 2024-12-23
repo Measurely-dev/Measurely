@@ -66,7 +66,7 @@ export default function DashboardMetrics() {
       </Breadcrumb>
       {/* /Breadcrumb */}
       <div className='mt-5 flex h-full flex-row gap-5'>
-        {applications[activeApp].groups === null ? (
+        {applications[activeApp].metrics === null ? (
           <div className='flex h-[calc(100vh-50px-15px-200px)] w-full items-center justify-center'>
             <Loader className='size-8 animate-spin' />
           </div>
@@ -83,7 +83,7 @@ export default function DashboardMetrics() {
               </Link>
             </div>
 
-            {applications[activeApp].groups?.length === 0 ? (
+            {applications[activeApp].metrics?.length === 0 ? (
               <EmptyState
                 className='w-full'
                 title='No Metric Created'

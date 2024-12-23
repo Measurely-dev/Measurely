@@ -9,7 +9,6 @@ import {
 } from '../ui/card';
 import { BarChart } from '../ui/bar-chart';
 import { AppsContext } from '@/dash-context';
-import { GroupType } from '@/types';
 import { EmptyState } from '../ui/empty-state';
 import { ChartNetwork } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -20,22 +19,19 @@ export const TopMetricCard = () => {
   const topMetricData = useMemo(() => {
     const data = [];
 
-    if (applications[activeApp].groups === null) return [];
-    if (applications[activeApp].groups.length === 0) return [];
+    if (applications[activeApp].metrics === null) return [];
+    if (applications[activeApp].metrics.length === 0) return [];
     let addedMetrics = 0;
-    for (let i = 0; i < applications[activeApp].groups.length; i++) {
-      const group = applications[activeApp].groups[i];
-      let total = group.metrics[0].total;
-      if (group.type === GroupType.Dual) {
-        total - group.metrics[1].total
-      }
+    for (let i = 0; i < applications[activeApp].metrics.length; i++) {
+      const metric = applications[activeApp].metrics[i];
+      let total = metric.total;
 
       if (total !== 0) {
         data.push({
-          name: group.name,
+          name: metric.name,
           total: total,
         });
-        addedMetrics += 1
+        addedMetrics += 1;
       }
 
       if (addedMetrics >= 7) break;

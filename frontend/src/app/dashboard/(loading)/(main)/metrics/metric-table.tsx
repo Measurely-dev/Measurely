@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AppsContext, UserContext } from '@/dash-context';
-import { Group, GroupType } from '@/types';
+import { Metric } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,7 +29,7 @@ const formattedDate = (date: Date) => {
   }
 };
 
-function sortbyDate(a: Group, b: Group, order: string): number {
+function sortbyDate(a: Metric, b: Metric, order: string): number {
   if (a.created < b.created) {
     return order === 'new' ? 1 : -1;
   } else if (a.created > b.created) {
@@ -41,25 +41,10 @@ function sortbyDate(a: Group, b: Group, order: string): number {
 const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
-function sortByTotal(a: Group, b: Group): number {
-  let aTotal = 0;
-  let bTotal = 0;
-
-  if (a.type === GroupType.Base) {
-    aTotal = a.metrics[0].total;
-  } else if (a.type === GroupType.Dual) {
-    aTotal = a.metrics[0].total - a.metrics[1].total;
-  }
-
-  if (b.type === GroupType.Base) {
-    bTotal = b.metrics[0].total;
-  } else if (b.type === GroupType.Dual) {
-    bTotal = b.metrics[0].total - b.metrics[1].total;
-  }
-
-  if (aTotal < bTotal) {
+function sortByTotal(a: Metric, b: Metric): number {
+  if (a.total < b.total) {
     return 1;
-  } else if (aTotal > bTotal) {
+  } else if (a.total > b.total) {
     return -1;
   } else {
     return 0;
@@ -71,16 +56,16 @@ export default function MetricTable(props: { search: string; filter: string }) {
   const { user } = useContext(UserContext);
 
   const metricsLimitReached = useMemo(() => {
-    if (applications[activeApp].groups === null) return false;
+    if (applications[activeApp].metrics === null) return false;
     else
       return (
-        applications[activeApp].groups.length > user.plan.metric_per_app_limit
+        applications[activeApp].metrics.length > user.plan.metric_per_app_limit
       );
-  }, [applications[activeApp].groups]);
+  }, [applications[activeApp].metrics]);
 
-  const filteredGroups = useMemo(() => {
+  const filteredMetrics = useMemo(() => {
     return (
-      applications[activeApp].groups
+      applications[activeApp].metrics
         ?.sort((a, b) => {
           if (props.filter === 'new' || props.filter === 'old') {
             return sortbyDate(a, b, props.filter);
@@ -102,7 +87,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
       <Header />
       <div className='flex flex-col gap-2 pb-20'>
         {/* Items components */}
-        {filteredGroups.length === 0 ? (
+        {filteredMetrics.length === 0 ? (
           <EmptyState
             title='No Results Found'
             description='Try adjusting your search filters.'
@@ -110,17 +95,17 @@ export default function MetricTable(props: { search: string; filter: string }) {
           />
         ) : (
           <>
-            {filteredGroups.map((group, i) => {
+            {filteredMetrics.map((metric, i) => {
               const isBlocked =
                 metricsLimitReached &&
-                (applications[activeApp].groups?.findIndex(
-                  (g) => g.id === group.id,
+                (applications[activeApp].metrics?.findIndex(
+                  (m) => m.id === metric.id,
                 ) ?? 0) >
                 user.plan.metric_per_app_limit - 1;
               return (
                 <Item
-                  key={group.metrics[0].id}
-                  group={group}
+                  key={metric.id}
+                  metric={metric}
                   index={i}
                   blocked={isBlocked}
                 />
@@ -142,9 +127,8 @@ function Header() {
     </div>
   );
 }
-const Item = (props: { group: Group; index: number; blocked: boolean }) => {
+const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
-  const [total, setTotal] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const todayBadgeColor = (v: number | null) => {
@@ -170,27 +154,10 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
   };
 
   const load = async () => {
-    if (props.group.metrics.length === 0) {
-      return;
-    }
-
-    let total = 0;
-    let pos = 0;
-    let neg = 0;
-    total += props.group.metrics[0].total
-    pos = await fetchDailySummary(
-      props.group.appid,
-      props.group.metrics[0].id,
+    const { pos, neg } = await fetchDailySummary(
+      props.metric.appid,
+      props.metric.id,
     );
-    if (props.group.type === GroupType.Dual) {
-      total -= props.group.metrics[1].total;
-      neg = await fetchDailySummary(
-        props.group.appid,
-        props.group.metrics[1].id,
-      );
-    }
-
-    setTotal(total)
     setDailyUpdate(pos - neg);
   };
 
@@ -210,7 +177,7 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
           } else {
             setIsLoading(true);
             router.push(
-              `/dashboard/metrics/${encodeURIComponent(props.group.name)}`,
+              `/dashboard/metrics/${encodeURIComponent(props.metric.name)}`,
             );
           }
         }}
@@ -222,17 +189,18 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
           <div className='rounded-full bg-accent p-2'>
             {isLoading ? (
               <Loader className='size-4 animate-spin text-black' />
-            ) : props.group.type === 0 ? (
+            ) : props.metric.type === 0 ? (
               <ArrowUpFromDot className='size-4 text-black' />
             ) : (
               <ArrowUpDown className='size-4 text-black' />
             )}
           </div>
-          {props.group.name.charAt(0).toUpperCase() + props.group.name.slice(1).toLowerCase()}
+          {props.metric.name.charAt(0).toUpperCase() +
+            props.metric.name.slice(1).toLowerCase()}
         </div>
 
         <div className='col-span-1 flex h-full w-full items-center justify-end lg:hidden'>
-          <MetricDropdown group={props.group}>
+          <MetricDropdown metric={props.metric}>
             <Button
               className='z-20 rounded-[12px] !bg-transparent'
               variant={'secondary'}
@@ -250,7 +218,7 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
           <div className='font-sans font-semibold text-blue-500 lg:hidden'>
             Total value
           </div>
-          {valueFormatter(total === null ? 0 : total)}
+          {valueFormatter(props.metric.total)}
         </div>
         <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
           <div className='text-sm font-semibold text-primary lg:hidden'>
@@ -269,10 +237,10 @@ const Item = (props: { group: Group; index: number; blocked: boolean }) => {
           <div className='text-sm font-semibold text-primary lg:hidden'>
             Created
           </div>
-          {formattedDate(props.group.created)}
+          {formattedDate(props.metric.created)}
         </div>
         <div className='flex h-full w-full items-center justify-end max-lg:hidden'>
-          <MetricDropdown group={props.group}>
+          <MetricDropdown metric={props.metric}>
             <Button
               className='z-20 rounded-[12px] !bg-transparent'
               variant={'secondary'}

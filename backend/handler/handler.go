@@ -4,7 +4,6 @@ import (
 	"Measurely/file"
 	"Measurely/service"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,7 +28,6 @@ func (h *Handler) Start(port string) error {
 	h.router.Use(middleware.Recoverer)
 
 	h.setup_api()
-	file.SetupFileServer(h.router)
 
 	defer h.service.CleanUp()
 
@@ -37,19 +35,7 @@ func (h *Handler) Start(port string) error {
 }
 
 func (h *Handler) setup_api() {
-	var allowed_origins []string
-	if os.Getenv("ENV") == "production" {
-		allowed_origins = []string{"https://measurely.dev", "https://www.measurely.dev"}
-	} else {
-		allowed_origins = []string{"http://localhost:3000"}
-	}
-
-	privateCors := cors.New(cors.Options{
-		AllowedOrigins:   allowed_origins, // Allow all origins for this route
-		AllowedMethods:   []string{"POST", "GET", "DELETE", "OPTIONS", "PATCH"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true,
-	}).Handler
+	privateCors := service.SetupCors().Handler
 
 	publicCors := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -93,18 +79,17 @@ func (h *Handler) setup_api() {
 
 	authRouter.Get("/user", h.service.GetUser)
 
-	authRouter.Get("/application", h.service.GetApplications)
+	authRouter.Get("/applications", h.service.GetApplications)
 	authRouter.Post("/application", h.service.CreateApplication)
 	authRouter.Delete("/application", h.service.DeleteApplication)
 	authRouter.Patch("/app-name", h.service.UpdateApplicationName)
-	authRouter.Get("/metric-groups", h.service.GetMetricGroups)
+	authRouter.Get("/metrics", h.service.GetMetrics)
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
 	authRouter.Get("/events", h.service.GetMetricEvents)
 
-	authRouter.Post("/group", h.service.CreateGroup)
-	authRouter.Patch("/group", h.service.UpdateGroup)
-	authRouter.Delete("/group", h.service.DeleteGroup)
+	authRouter.Post("/metric", h.service.CreateMetric)
 	authRouter.Patch("/metric", h.service.UpdateMetric)
+	authRouter.Delete("/metric", h.service.DeleteMetric)
 
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)
@@ -118,6 +103,10 @@ func (h *Handler) setup_api() {
 	// PUBLIC API ENDPOINT
 	publicRouter.Use(publicCors)
 	publicRouter.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
+	////
+
+	/// SETUP FILE SERVER
+	file.SetupFileServer(privateRouter)
 	////
 
 	privateRouter.Mount("/", authRouter)

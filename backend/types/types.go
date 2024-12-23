@@ -7,25 +7,14 @@ import (
 )
 
 const (
-	EMAIL = iota
-	GITHUB
-	GOOGLE
+	GITHUB_PROVIDER = iota
+	GOOGLE_PROVIDER
 )
 
 const (
-	YEAR = iota
-	MONTH
-	WEEK
-	DAY
-	HOUR
-	MINUTE
-	SECOND
-)
-
-const (
-	BASE = iota
-	DUAL
-	MULTI
+	BASE_METRIC = iota
+	DUAL_METRIC
+	MULTI_METRIC
 )
 
 type key int
@@ -62,19 +51,15 @@ type Application struct {
 	Image  string    `json:"image"`
 }
 
-type MetricGroup struct {
+type Metric struct {
 	Id      uuid.UUID `json:"id"`
 	AppId   uuid.UUID `json:"appid"`
 	Name    string    `json:"name"`
 	Type    int       `json:"type"`
-	Created time.Time `json:"created"`
-}
-
-type Metric struct {
-	Id      uuid.UUID `json:"id"`
-	GroupId uuid.UUID `json:"groupid"`
-	Name    string    `json:"name"`
 	Total   int       `json:"total"`
+	NamePos string    `json:"namepos"`
+	NameNeg string    `json:"nameneg"`
+	Created time.Time `json:"created"`
 }
 
 type MetricEvent struct {

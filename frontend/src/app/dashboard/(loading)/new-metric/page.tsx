@@ -16,7 +16,7 @@ import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
 import { AppsContext } from '@/dash-context';
-import { GroupType } from '@/types';
+import { MetricType } from '@/types';
 import { useRouter } from 'next/navigation';
 import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import { toast } from 'sonner';
@@ -28,13 +28,13 @@ export default function NewMetric() {
   const metricTypes = [
     {
       name: 'Basic metric',
-      value: GroupType.Base,
+      value: MetricType.Base,
       description:
         'Tracks a single, always-positive variable, perfect for monitoring growth, like total active users or daily logins.',
     },
     {
       name: 'Dual Variable Metric',
-      value: GroupType.Dual,
+      value: MetricType.Dual,
       description:
         'This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.',
     },
@@ -48,9 +48,9 @@ export default function NewMetric() {
 
   const renderStep = () => {
     switch (value) {
-      case GroupType.Base:
+      case MetricType.Base:
         return <BasicStep setStep={setStep} />;
-      case GroupType.Dual:
+      case MetricType.Dual:
         return <DualStep setStep={setStep} />;
     }
   };
@@ -111,11 +111,10 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
-        props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-      }`}
+        }`}
       onClick={() => {
         if (props.value === 2) {
           return;
@@ -156,7 +155,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               return;
             }
 
-            fetch(process.env.NEXT_PUBLIC_API_URL + '/group', {
+            fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -164,10 +163,11 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               credentials: 'include',
               body: JSON.stringify({
                 name: name,
-                basevalue: baseValue,
-                type: GroupType.Base,
                 appid: applications[activeApp].id,
-                metrics: ['default'],
+                basevalue: baseValue,
+                type: MetricType.Base,
+                namepos: '',
+                nameneg: '',
               }),
             })
               .then((res) => {
@@ -188,11 +188,11 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   applications.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
-                          groups: [
-                            ...(applications[activeApp].groups ?? []),
-                            json,
-                          ],
-                        })
+                        metrics: [
+                          ...(applications[activeApp].metrics ?? []),
+                          json,
+                        ],
+                      })
                       : v,
                   ),
                 );
@@ -291,7 +291,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             return;
           }
 
-          fetch(process.env.NEXT_PUBLIC_API_URL + '/group', {
+          fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -299,10 +299,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             credentials: 'include',
             body: JSON.stringify({
               name: name,
-              basevalue: baseValue,
-              type: GroupType.Dual,
               appid: applications[activeApp].id,
-              metrics: [namePos, nameNeg],
+              basevalue: baseValue,
+              type: MetricType.Dual,
+              namepos: namePos,
+              nameneg: nameNeg,
             }),
           })
             .then((res) => {
@@ -319,7 +320,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               if (
                 json === null ||
                 json === undefined ||
-                applications[activeApp].groups === null
+                applications[activeApp].metrics === null
               ) {
                 return;
               }
@@ -328,11 +329,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 applications.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
-                        groups: [
-                          ...(applications[activeApp].groups ?? []),
-                          json,
-                        ],
-                      })
+                      metrics: [
+                        ...(applications[activeApp].metrics ?? []),
+                        json,
+                      ],
+                    })
                     : v,
                 ),
               );

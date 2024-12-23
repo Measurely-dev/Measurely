@@ -59,11 +59,18 @@ export default function SettingAppsPage() {
           ) : (
             sortedApplications.map((app: Application, i: number) => {
               return (
-                <div key={i} className='flex items-center justify-between hover:bg-accent/50 p-0.5 rounded-[12px] transition-all duration-100'>
+                <div
+                  key={i}
+                  className='flex items-center justify-between rounded-[12px] p-0.5 transition-all duration-100 hover:bg-accent/50'
+                >
                   <div className='flex flex-row items-center gap-2'>
                     <Avatar className='size-10 rounded-[12px] border bg-accent'>
                       <AvatarImage
-                        src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`}
+                        src={
+                          app.image === ''
+                            ? ''
+                            : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`
+                        }
                       />
                       <AvatarFallback>
                         {app.name.charAt(0).toUpperCase()}
@@ -71,7 +78,8 @@ export default function SettingAppsPage() {
                     </Avatar>
                     <div className='flex flex-col'>
                       <p className='text-sm font-medium leading-none'>
-                        {app.name.charAt(0).toUpperCase() + app.name.slice(1).toLowerCase()}
+                        {app.name.charAt(0).toUpperCase() +
+                          app.name.slice(1).toLowerCase()}
                       </p>
                     </div>
                   </div>

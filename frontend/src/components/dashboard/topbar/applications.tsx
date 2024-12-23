@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { AppsContext, UserContext } from '@/dash-context';
-import { loadMetricsGroups } from '@/utils';
+import { loadMetrics } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
@@ -33,11 +33,11 @@ export default function ApplicationsChip() {
     }
 
     if (applications !== null && applications.length >= index + 1) {
-      if (applications[index].groups === null) {
-        const groups = await loadMetricsGroups(applications?.[index].id ?? '');
+      if (applications[index].metrics === null) {
+        const metrics = await loadMetrics(applications?.[index].id ?? '');
         setApplications(
           applications?.map((app, i) =>
-            i === index ? Object.assign({}, app, { groups: groups }) : app,
+            i === index ? Object.assign({}, app, { metrics: metrics }) : app,
           ),
         );
       }
@@ -55,13 +55,16 @@ export default function ApplicationsChip() {
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${
-            open ? 'bg-accent' : ''
-          }`}
+          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${open ? 'bg-accent' : ''
+            }`}
         >
           <Avatar className='size-6 border bg-accent'>
             <AvatarImage
-              src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications[activeApp]?.image}`}
+              src={
+                applications[activeApp].image === ''
+                  ? ''
+                  : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications[activeApp].image}`
+              }
             />
             <AvatarFallback>
               {applications[activeApp]
@@ -70,8 +73,8 @@ export default function ApplicationsChip() {
             </AvatarFallback>
           </Avatar>
           {applications[activeApp]
-            ? applications?.[activeApp].name.charAt(0).toUpperCase() +
-              applications?.[activeApp].name.slice(1).toLowerCase()
+            ? applications[activeApp].name.charAt(0).toUpperCase() +
+            applications[activeApp].name.slice(1).toLowerCase()
             : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
@@ -88,9 +91,8 @@ export default function ApplicationsChip() {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${
-                isBlocked ? 'cursor-not-allowed opacity-50' : ''
-              }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${isBlocked ? 'cursor-not-allowed opacity-50' : ''
+                }`}
               onClick={() => {
                 handleAppSelect(i);
               }}

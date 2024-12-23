@@ -22,12 +22,13 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Switch } from '../ui/switch';
+import { MetricType } from '@/types';
 
 export default function AdvancedOptionsMetricDialog(props: {
   children: ReactNode;
   chartType: string;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent'>>;
-  groupType: number;
+  metricType: number;
   isTrendActive: boolean;
   setIsTrendActive: Dispatch<SetStateAction<boolean>>;
 }) {
@@ -72,7 +73,7 @@ export default function AdvancedOptionsMetricDialog(props: {
               checked={props.isTrendActive}
             />
           </Label>
-          {props.groupType === 0 ? (
+          {props.metricType === MetricType.Base ? (
             <></>
           ) : (
             <Label className='flex flex-col gap-2'>
