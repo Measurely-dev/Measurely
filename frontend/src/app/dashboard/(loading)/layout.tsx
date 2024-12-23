@@ -88,7 +88,8 @@ export default function DashboardContentLayout({
           }
           for (let i = 0; i < json.length; i++) {
             if (i === savedActiveApp && json.length >= savedActiveApp + 1) {
-              json[i].metrics = await loadMetrics(json[savedActiveApp].id);
+              const metrics = await loadMetrics(json[savedActiveApp].id);
+              json[i].metrics = metrics ?? [];
             } else {
               json[i].metrics = null;
             }
