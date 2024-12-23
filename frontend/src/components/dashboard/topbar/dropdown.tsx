@@ -42,7 +42,7 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
         );
       default:
         return (
-          <div className='flex w-fit animate-gradient flex-row items-center gap-1 rounded-full bg-accent bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 px-2 py-0.5 text-xs font-medium text-white'>
+          <div className='ml-2 flex w-fit animate-gradient flex-row items-center gap-1 rounded-full bg-accent bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 px-2 py-0.5 text-xs font-medium text-white'>
             <Sparkle className='size-3' />
             {user?.plan.name}
           </div>
