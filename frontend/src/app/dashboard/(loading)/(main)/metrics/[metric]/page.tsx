@@ -344,6 +344,7 @@ function OverviewChart(props: { metric: Metric }) {
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
+  const [year, setYear] = useState(new Date().getFullYear());
 
   const rangeSummary = useMemo(() => {
     if (chartData === null) return 0;
@@ -366,6 +367,7 @@ function OverviewChart(props: { metric: Metric }) {
     if (!loadingLeft && !loadingRight) {
       setLoading(true);
     }
+
     const data = await loadChartData(
       from,
       range === 0 ? 0 : range + 1,
@@ -379,20 +381,26 @@ function OverviewChart(props: { metric: Metric }) {
   };
 
   useEffect(() => {
-    if (date !== undefined && date.from !== undefined) {
-      const to = new Date(date.from);
-      to.setDate(date.from.getDate() - range);
-      const now = new Date();
-      if (now < to) {
-        setDate({
-          from: new Date(),
-        });
-      } else {
-        loadChart(to);
-        setDate({
-          from: date.from,
-          to: to,
-        });
+    if (range >= 365) {
+      const start = new Date(year, 1, 0);
+      start.setDate(1);
+      loadChart(start);
+    } else {
+      if (date !== undefined && date.from !== undefined) {
+        const to = new Date(date.from);
+        to.setDate(date.from.getDate() - range);
+        const now = new Date();
+        if (now < to) {
+          setDate({
+            from: new Date(),
+          });
+        } else {
+          loadChart(to);
+          setDate({
+            from: date.from,
+            to: to,
+          });
+        }
       }
     }
   }, [date?.from, range]);
@@ -431,6 +439,7 @@ function OverviewChart(props: { metric: Metric }) {
                     startMonth={new Date(1999, 11)}
                     endMonth={new Date()}
                     max={1}
+                    disabled={range >= 365}
                   />
                 </PopoverContent>
               </Popover>
@@ -476,11 +485,29 @@ function OverviewChart(props: { metric: Metric }) {
           />
           <OffsetBtns
             onLeft={() => {
+              if (range >= 365) {
+                const new_year = new Date().getFullYear() - 1;
+                if (new_year < 1999) {
+                  return;
+                }
+                setYear(new_year);
+                return;
+              }
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return prev;
+                if (
+                  prev === undefined ||
+                  prev.from === undefined ||
+                  prev.to === undefined
+                )
+                  return prev;
                 const from = new Date(prev.from);
+                const to = new Date(prev.to);
                 const toRemove = range === 0 ? 1 : range;
                 from.setDate(from.getDate() - toRemove);
+                to.setDate(to.getDate() - toRemove);
+                if (to.getFullYear() < 1999) {
+                  return;
+                }
                 setLoadingLeft(true);
                 return {
                   from: from,
@@ -489,6 +516,16 @@ function OverviewChart(props: { metric: Metric }) {
               });
             }}
             onRight={() => {
+              if (range >= 365) {
+                const new_year = new Date().getFullYear() + 1;
+                const current_year = new Date().getFullYear();
+                if (new_year > current_year) {
+                  return;
+                }
+                setYear(new_year);
+                return;
+              }
+
               setDate((prev) => {
                 if (
                   prev === undefined ||
@@ -514,16 +551,38 @@ function OverviewChart(props: { metric: Metric }) {
             }}
             isLoadingLeft={loadingLeft}
             isLoadingRight={loadingRight}
-            isDisabled={useMemo(() => {
-              if (date === undefined || date.to === undefined) {
-                return false;
+            isDisabledLeft={useMemo(() => {
+              if (range >= 365) {
+                const new_year = new Date().getFullYear() - 1;
+                return new_year < 1999;
+              } else {
+                if (date === undefined || date.to === undefined) {
+                  return false;
+                }
+                const to = new Date(date.to);
+                const toAdd = range === 0 ? 1 : range;
+                to.setDate(to.getDate() - toAdd);
+                const result = to.getFullYear() < 1999;
+                return result;
               }
-              const now = new Date();
-              const to = new Date(date.to);
-              const toAdd = range === 0 ? 1 : range;
-              to.setDate(to.getDate() + toAdd);
-              const result = now < to;
-              return result;
+            }, [date])}
+            isDisabledRight={useMemo(() => {
+              if (range >= 365) {
+                const current_year = new Date().getFullYear();
+                const new_year = new Date().getFullYear() + 1;
+
+                return new_year > current_year;
+              } else {
+                if (date === undefined || date.to === undefined) {
+                  return false;
+                }
+                const now = new Date();
+                const to = new Date(date.to);
+                const toAdd = range === 0 ? 1 : range;
+                to.setDate(to.getDate() + toAdd);
+                const result = now < to;
+                return result;
+              }
             }, [date])}
           />
           {loading ? (
@@ -590,6 +649,7 @@ function TrendChart(props: { metric: Metric }) {
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
+  const [year, setYear] = useState(new Date().getFullYear());
 
   const loadChart = async (from: Date) => {
     if (!loadingLeft && !loadingRight) {
@@ -618,23 +678,30 @@ function TrendChart(props: { metric: Metric }) {
   };
 
   useEffect(() => {
-    if (date !== undefined && date.from !== undefined) {
-      const to = new Date(date.from);
-      to.setDate(date.from.getDate() - range);
-      const now = new Date();
-      if (now < to) {
-        setDate({
-          from: new Date(),
-        });
-      } else {
-        loadChart(to);
-        setDate({
-          from: date.from,
-          to: to,
-        });
+    if (range >= 365) {
+      const start = new Date(year, 1, 0);
+      start.setDate(1);
+      loadChart(start);
+    } else {
+      if (date !== undefined && date.from !== undefined) {
+        const to = new Date(date.from);
+        to.setDate(date.from.getDate() - range);
+        const now = new Date();
+        if (now < to) {
+          setDate({
+            from: new Date(),
+          });
+        } else {
+          loadChart(to);
+          setDate({
+            from: date.from,
+            to: to,
+          });
+        }
       }
     }
   }, [date?.from, range]);
+
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -669,6 +736,7 @@ function TrendChart(props: { metric: Metric }) {
                     startMonth={new Date(1999, 11)}
                     endMonth={new Date()}
                     max={1}
+                    disabled={range >= 365}
                   />
                 </PopoverContent>
               </Popover>
@@ -708,11 +776,29 @@ function TrendChart(props: { metric: Metric }) {
           />
           <OffsetBtns
             onLeft={() => {
+              if (range >= 365) {
+                const new_year = new Date().getFullYear() - 1;
+                if (new_year < 1999) {
+                  return;
+                }
+                setYear(new_year);
+                return;
+              }
               setDate((prev) => {
-                if (prev === undefined || prev.from === undefined) return prev;
+                if (
+                  prev === undefined ||
+                  prev.from === undefined ||
+                  prev.to === undefined
+                )
+                  return prev;
                 const from = new Date(prev.from);
+                const to = new Date(prev.to);
                 const toRemove = range === 0 ? 1 : range;
                 from.setDate(from.getDate() - toRemove);
+                to.setDate(to.getDate() - toRemove);
+                if (to.getFullYear() < 1999) {
+                  return;
+                }
                 setLoadingLeft(true);
                 return {
                   from: from,
@@ -721,6 +807,16 @@ function TrendChart(props: { metric: Metric }) {
               });
             }}
             onRight={() => {
+              if (range >= 365) {
+                const new_year = new Date().getFullYear() + 1;
+                const current_year = new Date().getFullYear();
+                if (new_year > current_year) {
+                  return;
+                }
+                setYear(new_year);
+                return;
+              }
+
               setDate((prev) => {
                 if (
                   prev === undefined ||
@@ -746,16 +842,38 @@ function TrendChart(props: { metric: Metric }) {
             }}
             isLoadingLeft={loadingLeft}
             isLoadingRight={loadingRight}
-            isDisabled={useMemo(() => {
-              if (date === undefined || date.to === undefined) {
-                return false;
+            isDisabledLeft={useMemo(() => {
+              if (range >= 365) {
+                const new_year = new Date().getFullYear() - 1;
+                return new_year < 1999;
+              } else {
+                if (date === undefined || date.to === undefined) {
+                  return false;
+                }
+                const to = new Date(date.to);
+                const toAdd = range === 0 ? 1 : range;
+                to.setDate(to.getDate() - toAdd);
+                const result = to.getFullYear() < 1999;
+                return result;
               }
-              const now = new Date();
-              const to = new Date(date.to);
-              const toAdd = range === 0 ? 1 : range;
-              to.setDate(to.getDate() + toAdd);
-              const result = now < to;
-              return result;
+            }, [date])}
+            isDisabledRight={useMemo(() => {
+              if (range >= 365) {
+                const current_year = new Date().getFullYear();
+                const new_year = new Date().getFullYear() + 1;
+
+                return new_year > current_year;
+              } else {
+                if (date === undefined || date.to === undefined) {
+                  return false;
+                }
+                const now = new Date();
+                const to = new Date(date.to);
+                const toAdd = range === 0 ? 1 : range;
+                to.setDate(to.getDate() + toAdd);
+                const result = now < to;
+                return result;
+              }
             }, [date])}
           />
           {loading ? (
@@ -1049,7 +1167,8 @@ function OffsetBtns(props: {
   onRight: () => void;
   isLoadingLeft?: boolean | false;
   isLoadingRight?: boolean | false;
-  isDisabled?: boolean | false;
+  isDisabledLeft?: boolean | false;
+  isDisabledRight?: boolean | false;
 }) {
   return (
     <div className='flex gap-2'>
@@ -1059,6 +1178,7 @@ function OffsetBtns(props: {
             className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
             size={'icon'}
             onClick={props.onLeft}
+            disabled={props.isDisabledLeft}
           >
             {props.isLoadingLeft ? (
               <Loader className='size-4 animate-spin' />
@@ -1081,7 +1201,7 @@ function OffsetBtns(props: {
             className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
             size={'icon'}
             onClick={props.onRight}
-            disabled={props.isDisabled}
+            disabled={props.isDisabledRight}
           >
             {props.isLoadingRight ? (
               <Loader className='size-4 animate-spin' />

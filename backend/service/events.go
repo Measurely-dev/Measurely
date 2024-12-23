@@ -103,18 +103,11 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update the cache
-	s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
-		key:         apikey,
-		metric_type: metricCache.metric_type,
-		total:       metricCache.total + request.Value,
-		expiry:      time.Now().Add(15 * time.Minute),
-	})
-
 	if err := s.db.CreateDailyMetricSummary(types.DailyMetricSummary{
-		Id:       metricid.String() + time.Now().UTC().Format("2006-01-02"),
-		MetricId: metricid,
-		Value:    request.Value,
+		Id:            metricid.String() + time.Now().UTC().Format("2006-01-02"),
+		MetricId:      metricid,
+		Value:         request.Value,
+		RelativeTotal: metricCache.total + request.Value,
 	}); err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -124,6 +117,14 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
+
+	// Update the cache
+	s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
+		key:         apikey,
+		metric_type: metricCache.metric_type,
+		total:       metricCache.total + request.Value,
+		expiry:      time.Now().Add(15 * time.Minute),
+	})
 
 	w.WriteHeader(http.StatusOK)
 }

@@ -212,7 +212,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   type='text'
                   className='h-11 rounded-[12px]'
                   value={name}
-                  onChange={(e) => setName(e.target.value.trim())}
+                  onChange={(e) => setName(e.target.value.trimStart())}
                 />
               </div>
               <div className='flex w-full flex-col gap-3'>
@@ -373,7 +373,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   placeholder='Accounts, Transfers'
                   type='text'
                   value={name}
-                  onChange={(e) => setName(e.target.value.trim())}
+                  onChange={(e) => setName(e.target.value.trimStart())}
                   className='h-11 rounded-[12px]'
                 />
               </div>
@@ -446,7 +446,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                       className='h-11 rounded-[12px]'
                       value={namePos}
                       onChange={(e) => {
-                        setNamePos(e.target.value.trim());
+                        setNamePos(e.target.value.trimStart());
                       }}
                     />
                   </div>
@@ -459,7 +459,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                       className='h-11 rounded-[12px]'
                       value={nameNeg}
                       onChange={(e) => {
-                        setNameNeg(e.target.value.trim());
+                        setNameNeg(e.target.value.trimStart());
                       }}
                     />
                   </div>

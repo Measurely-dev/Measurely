@@ -161,7 +161,7 @@ func (db *DB) CreateMetricEvent(event types.MetricEvent) error {
 }
 
 func (db *DB) CreateDailyMetricSummary(summary types.DailyMetricSummary) error {
-	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (id, metricid, value) VALUES (:id, :metricid, :value) ON CONFLICT (id) DO UPDATE SET value = metricdailysummary.value + EXCLUDED.value`, summary)
+	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (id, metricid, value, relativetotal) VALUES (:id, :metricid, :value, :relativetotal) ON CONFLICT (id) DO UPDATE SET value = metricdailysummary.value + EXCLUDED.value, relativetotal = metricdailysummary.relativetotal + EXCLUDED.value`, summary)
 	return err
 }
 
@@ -218,7 +218,7 @@ func (db *DB) GetMetricCount(groupid uuid.UUID) (int, error) {
 func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time) ([]types.MetricEvent, error) {
 	formattedStart := start.Format("2006-01-02")
 	formattedEnd := end.Format("2006-01-02")
-	rows, err := db.Conn.Query(`SELECT * FROM metricevents WHERE metricid = $1 AND date::date BETWEEN $2 AND $3 ORDER BY date DESC`, metricid, formattedStart, formattedEnd)
+	rows, err := db.Conn.Query(`SELECT * FROM metricevents WHERE metricid = $1 AND date::date BETWEEN $2 AND $3 ORDER BY date ASC`, metricid, formattedStart, formattedEnd)
 	if err != nil {
 		return []types.MetricEvent{}, err
 	}
@@ -226,7 +226,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.Date, &event.Value, &event.RelativeTotal)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.Value, &event.RelativeTotal, &event.Date)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
@@ -239,7 +239,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end time.Time) ([]types.DailyMetricSummary, error) {
 	formattedStart := start.Format("2006-01-02")
 	formattedEnd := end.Format("2006-01-02")
-	rows, err := db.Conn.Query(`SELECT * FROM metricdailysummary WHERE metricid = $1 AND date::date BETWEEN $2 AND $3 ORDER BY date DESC`, metricid, formattedStart, formattedEnd)
+	rows, err := db.Conn.Query(`SELECT * FROM metricdailysummary WHERE metricid = $1 AND date::date BETWEEN $2 AND $3 ORDER BY date ASC`, metricid, formattedStart, formattedEnd)
 	if err != nil {
 		return []types.DailyMetricSummary{}, err
 	}
@@ -247,7 +247,7 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	var dailysummarymetrics []types.DailyMetricSummary
 	for rows.Next() {
 		var summary types.DailyMetricSummary
-		err := rows.Scan(&summary.Id, &summary.MetricId, &summary.Value, &summary.Date)
+		err := rows.Scan(&summary.Id, &summary.MetricId, &summary.Value, &summary.RelativeTotal, &summary.Date)
 		if err != nil {
 			return []types.DailyMetricSummary{}, err
 		}

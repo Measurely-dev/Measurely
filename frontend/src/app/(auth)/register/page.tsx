@@ -70,12 +70,12 @@ export default function Register() {
             const first_name = formdata
               .get('first_name')
               ?.toString()
-              .trim()
+              .trimStart()
               .toLowerCase();
             const last_name = formdata
               .get('last_name')
               ?.toString()
-              .trim()
+              .trimStart()
               .toLowerCase();
 
             if (email === '' || first_name === '' || last_name === '') {

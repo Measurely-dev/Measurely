@@ -1453,6 +1453,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
+	s.cache.metricIdToApiKeys.Delete(request.MetricId)
 
 	w.WriteHeader(http.StatusOK)
 

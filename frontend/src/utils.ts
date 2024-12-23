@@ -93,6 +93,8 @@ export const loadChartData = async (
     tmpData.push(data);
     if (range === 0) {
       dateCounter.setHours(dateCounter.getHours() + 1);
+    } else if (range >= 365) {
+      dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
       dateCounter.setDate(dateCounter.getDate() + 1);
     }
@@ -116,23 +118,29 @@ export const loadChartData = async (
         for (let i = 0; i < json.length; i++) {
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
-            if (
-              eventDate.getDate() === tmpData[j].date.getDate() &&
-              eventDate.getMonth() === tmpData[j].date.getMonth() &&
-              eventDate.getFullYear() === tmpData[j].date.getFullYear()
-            ) {
+            let matches = false;
+            if (range === 0) {
+              matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                eventDate.getHours() === tmpData[j].date.getHours();
+            } else if (range >= 365) {
+              matches =
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear();
+            } else {
+              matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear();
+            }
+
+            if (matches) {
+              console.log(json[i]);
               let fieldName = null;
-              let value = null;
-              let relativetotal = 0;
-              if (range === 0) {
-                if (eventDate.getHours() === tmpData[j].date.getHours()) {
-                  value = json[i].value;
-                  relativetotal = json[i].relativetotal;
-                }
-              } else {
-                value = json[i].value;
-                relativetotal = json[i].relativetotal;
-              }
+              let value = json[i].value;
+              let relativetotal = json[i].relativetotal;
 
               if (value >= 0) {
                 fieldName =
@@ -157,6 +165,8 @@ export const loadChartData = async (
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
+
+  console.log(tmpData);
 
   return tmpData;
 };
@@ -206,7 +216,9 @@ export const fetchDailySummary = async (
 export const parseXAxis = (value: Date, range: number) => {
   if (range === 0) {
     return value.getHours().toString() + ' H';
+  } else if (range >= 365) {
+    return getMonthsFromDate(value);
   } else {
-    return getMonthsFromDate(value) + ', ' + value.getDate().toString();
+    return getMonthsFromDate(value) + ' ' + value.getDate().toString();
   }
 };

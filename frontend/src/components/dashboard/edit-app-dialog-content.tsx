@@ -162,7 +162,7 @@ export default function EditAppDialogContent(props: {
               type='text'
               className='h-11 rounded-[12px]'
               value={name}
-              onChange={(e) => setName(e.target.value.trim())}
+              onChange={(e) => setName(e.target.value.trimStart())}
             />
           </div>
         </div>

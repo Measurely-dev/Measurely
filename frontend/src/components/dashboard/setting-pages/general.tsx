@@ -145,7 +145,7 @@ export default function SettingGeneralPage() {
                 name='first_name'
                 type='text'
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value.trim())}
+                onChange={(e) => setFirstName(e.target.value.trimStart())}
               />
             </Label>
 
@@ -156,7 +156,7 @@ export default function SettingGeneralPage() {
                 name='last_name'
                 type='text'
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value.trim())}
+                onChange={(e) => setLastName(e.target.value.trimStart())}
               />
             </Label>
           </div>

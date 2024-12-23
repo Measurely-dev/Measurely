@@ -193,7 +193,7 @@ function Inputs(props: {
           <Input
             value={props.name}
             type='text'
-            onChange={(e) => props.setName(e.target.value.trim())}
+            onChange={(e) => props.setName(e.target.value.trimStart())}
             className='h-[40px] rounded-[12px] border-none bg-accent'
             placeholder='Name...'
           />
