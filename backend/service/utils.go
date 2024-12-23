@@ -152,7 +152,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				Price:             "",
 				Identifier:        "starter",
 				Name:              "Starter",
-				AppLimit:          5,
+				AppLimit:          1,
 				MetricPerAppLimit: 2,
 				RequestLimit:      100,
 				Range:             30,
@@ -173,7 +173,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				Identifier:        "pro",
 				Name:              "Pro",
 				AppLimit:          10,
-				MetricPerAppLimit: 35,
+				MetricPerAppLimit: 30,
 				RequestLimit:      10000,
 				Range:             365,
 			}
