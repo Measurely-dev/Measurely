@@ -48,7 +48,7 @@ export default function Password() {
   return (
     <WebContainer>
       <AuthNavbar href={`/register${back_query}`} button='Back' />
-      <ContentContainer>
+      <ContentContainer type='page'>
         <AuthForm
           title='Choose your password'
           providers={false}

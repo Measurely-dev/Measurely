@@ -86,7 +86,7 @@ export default function AuthForm(props: {
               return (
                 <div
                   key={provider.type}
-                  className='curso-pointer flex w-full cursor-pointer items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium transition-all hover:bg-background/75'
+                  className='flex w-full cursor-pointer items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium hover:opacity-70 active:scale-[0.98] active:opacity-60'
                   onClick={() => {
                     router.push(
                       `${process.env.NEXT_PUBLIC_API_URL}/oauth/${provider.name.toLowerCase()}?state=auth.`,
