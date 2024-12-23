@@ -65,13 +65,6 @@ export default function AvatarDropdown(props: { children: ReactNode }) {
         </div>
         {/* Separator */}
         <DropdownMenuSeparator />
-        {/* Menu item */}
-        <DropdownMenuItem className='rounded-xl p-2 px-3 text-sm font-normal'>
-          Discord
-          <DropdownMenuShortcut>
-            <ArrowUpRight className='h-3 w-3' />
-          </DropdownMenuShortcut>
-        </DropdownMenuItem>
         <Link href='/help'>
           <DropdownMenuItem className='rounded-xl p-2 px-3 text-sm font-normal'>
             Support
