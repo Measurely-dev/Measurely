@@ -60,7 +60,7 @@ func (s *Service) RateAllow(apikey string, maxRequest int) bool {
 	var rate RateLimit
 
 	if ok {
-		rate := value.(RateLimit)
+		rate = value.(RateLimit)
 		if time.Now().After(rate.expiry) {
 			expired = true
 		}
@@ -68,7 +68,7 @@ func (s *Service) RateAllow(apikey string, maxRequest int) bool {
 
 	if !ok || expired {
 		s.cache.ratelimits.Store(apikey, RateLimit{
-			current: 0,
+			current: 1,
 			max:     maxRequest,
 			expiry:  time.Now().Add(1 * time.Minute),
 		})
@@ -79,6 +79,12 @@ func (s *Service) RateAllow(apikey string, maxRequest int) bool {
 	if rate.current > rate.max {
 		return false
 	}
+
+	s.cache.ratelimits.Store(apikey, RateLimit{
+		current: rate.current + 1,
+		max:     rate.max,
+		expiry:  rate.expiry,
+	})
 
 	return true
 }
@@ -116,7 +122,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !s.RateAllow(apikey, plan.RequestLimit) {
-		http.Error(w, "You have exceeded the rate limit, 100 metric eventsper second", http.StatusServiceUnavailable)
+		http.Error(w, "You have exceeded the rate limit", http.StatusServiceUnavailable)
 		return
 	}
 
@@ -158,6 +164,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		key:         apikey,
 		metric_type: metricCache.metric_type,
 		total:       metricCache.total + request.Value,
+		user_id:     metricCache.user_id,
 		expiry:      time.Now().Add(15 * time.Minute),
 	})
 

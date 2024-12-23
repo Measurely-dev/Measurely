@@ -105,6 +105,7 @@ export default function DashboardContentLayout({
     const interval = setInterval(async () => {
       if (activeApp <= applications.length - 1) {
         const metrics = await loadMetrics(applications[activeApp].id);
+        console.log(metrics)
         setApplications(
           applications.map((app, i) =>
             i === activeApp
