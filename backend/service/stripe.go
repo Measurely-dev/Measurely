@@ -120,7 +120,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(GetOrigin() + "/subscribe/success"),
+		SuccessURL: stripe.String(GetOrigin() + "/dashboard"),
 		CancelURL:  stripe.String(GetOrigin() + "/dashboard"),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
