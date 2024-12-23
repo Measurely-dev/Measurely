@@ -67,7 +67,7 @@ export default function SettingAppsPage() {
                     <Avatar className='size-10 rounded-[12px] border bg-accent'>
                       <AvatarImage
                         src={
-                          app.image === ''
+                          app.image === '' || app.image === undefined
                             ? ''
                             : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`
                         }

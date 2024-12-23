@@ -32,7 +32,7 @@ export default function ApplicationsChip() {
       return;
     }
 
-    if (applications !== null && applications.length >= index + 1) {
+    if (index <= applications.length - 1) {
       if (applications[index].metrics === null) {
         const metrics = await loadMetrics(applications?.[index].id ?? '');
         setApplications(
@@ -62,7 +62,8 @@ export default function ApplicationsChip() {
           <Avatar className='size-6 border bg-accent'>
             <AvatarImage
               src={
-                applications[activeApp].image === ''
+                applications[activeApp].image === '' ||
+                applications[activeApp].image === undefined
                   ? ''
                   : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications[activeApp].image}`
               }
@@ -102,16 +103,17 @@ export default function ApplicationsChip() {
               <div className='flex flex-row items-center justify-center gap-2'>
                 <Avatar className='size-6 border bg-accent'>
                   <AvatarImage
-                    src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`}
+                    src={
+                      app.image === '' || app.image === undefined
+                        ? ''
+                        : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`
+                    }
                   />
                   <AvatarFallback>
                     {app.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className='text-[14px] font-medium'>
-                  {app.name.charAt(0).toUpperCase() +
-                    app.name.slice(1).toLowerCase()}
-                </div>
+                <div className='text-[14px] font-medium'>{app.name}</div>
               </div>
               <CheckIcon
                 className={`size-4 ${activeApp === i ? '' : 'hidden'}`}

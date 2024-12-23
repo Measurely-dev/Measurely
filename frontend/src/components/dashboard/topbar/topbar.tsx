@@ -62,7 +62,11 @@ export default function DashboardTopbar() {
           <AvatarDropdown>
             <Avatar className='size-[35px] cursor-pointer text-secondary hover:text-primary'>
               <AvatarImage
-                src={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`}
+                src={
+                  user.image === '' || user.image === undefined
+                    ? ''
+                    : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`
+                }
                 className='rounded-full'
               />
               <AvatarFallback>
@@ -73,7 +77,11 @@ export default function DashboardTopbar() {
         </div>
 
         <DrawerMenu
-          image={`${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`}
+          image={
+            user.image === '' || user.image === undefined
+              ? ''
+              : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${user?.image}`
+          }
         >
           <Menu className='size-5' />
         </DrawerMenu>
