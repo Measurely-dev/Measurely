@@ -50,7 +50,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
             router.refresh();
           } else {
             toast.success('Opening checkout session...');
-            setTimeout(() => router.push(data.url), 500);
+            setTimeout(() => window.location.replace(data.url), 500);
           }
         }
       });

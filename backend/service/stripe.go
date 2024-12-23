@@ -43,7 +43,9 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, jerr := json.Marshal(struct{ URL string }{
+	bytes, jerr := json.Marshal(struct {
+		URL string `json:"url"`
+	}{
 		URL: result.URL,
 	})
 	if jerr != nil {
@@ -167,7 +169,9 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		bytes, jerr := json.Marshal(struct{ URL string }{
+		bytes, jerr := json.Marshal(struct {
+			URL string `json:"url"`
+		}{
 			URL: new_session.URL,
 		})
 		if jerr != nil {
