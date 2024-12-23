@@ -5,7 +5,7 @@ import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
-import { loadMetrics } from '@/utils';
+import { INTERVAL, loadMetrics } from '@/utils';
 import { LoaderIcon } from 'lucide-react';
 
 export default function DashboardContentLayout({
@@ -19,6 +19,7 @@ export default function DashboardContentLayout({
     setActiveApp,
     appsLoading,
     setAppsLoading,
+    activeApp,
   } = useContext(AppsContext);
   const { setUser, userLoading, setUserLoading } = useContext(UserContext);
 
@@ -100,6 +101,23 @@ export default function DashboardContentLayout({
           setAppsLoading(false);
         });
     }
+
+    const interval = setInterval(async () => {
+      if (activeApp <= applications.length - 1) {
+        const metrics = await loadMetrics(applications[activeApp].id);
+        setApplications(
+          applications.map((app, i) =>
+            i === activeApp
+              ? Object.assign({}, app, { metrics: metrics ?? [] })
+              : app,
+          ),
+        );
+      }
+    }, INTERVAL);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (

@@ -82,6 +82,12 @@ export function ChartsCard() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData();
+    }, 3000);
+    return () => {
+      clearInterval(interval);
+    };
   }, [activeMetric]);
 
   useEffect(() => {

@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/tooltip';
 import { AppsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
-import { fetchDailySummary, loadChartData } from '@/utils';
+import { fetchDailySummary, INTERVAL, loadChartData } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
@@ -52,6 +52,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
+import internal from 'node:stream';
 import {
   Dispatch,
   ReactNode,
@@ -359,10 +360,6 @@ function OverviewChart(props: { metric: Metric }) {
   }, [chartData]);
 
   const loadChart = async (from: Date) => {
-    if (!loadingLeft && !loadingRight) {
-      setLoading(true);
-    }
-
     const data = await loadChartData(
       from,
       range === 0 ? 0 : range + 1,
@@ -376,10 +373,17 @@ function OverviewChart(props: { metric: Metric }) {
   };
 
   useEffect(() => {
+    let interval: any;
     if (range >= 365) {
       const start = new Date(year, 1, 0);
       start.setDate(1);
+      if (!loadingLeft && !loadingRight) {
+        setLoading(true);
+      }
       loadChart(start);
+      interval = setInterval(() => {
+        loadChart(start);
+      }, INTERVAL);
     } else {
       if (date !== undefined && date.from !== undefined) {
         setYear(date.from.getFullYear());
@@ -391,7 +395,13 @@ function OverviewChart(props: { metric: Metric }) {
             from: new Date(),
           });
         } else {
+          if (!loadingLeft && !loadingRight) {
+            setLoading(true);
+          }
           loadChart(to);
+          interval = setInterval(() => {
+            loadChart(to);
+          }, INTERVAL);
           setDate({
             from: date.from,
             to: to,
@@ -399,6 +409,10 @@ function OverviewChart(props: { metric: Metric }) {
         }
       }
     }
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [date?.from, range, year]);
 
   return (
@@ -650,9 +664,6 @@ function TrendChart(props: { metric: Metric }) {
   const [year, setYear] = useState(new Date().getFullYear());
 
   const loadChart = async (from: Date) => {
-    if (!loadingLeft && !loadingRight) {
-      setLoading(true);
-    }
     const data =
       (await loadChartData(
         from,
@@ -676,10 +687,17 @@ function TrendChart(props: { metric: Metric }) {
   };
 
   useEffect(() => {
+    let interval: any;
     if (range >= 365) {
       const start = new Date(year, 1, 0);
       start.setDate(1);
+      if (!loadingLeft && !loadingRight) {
+        setLoading(true);
+      }
       loadChart(start);
+      interval = setInterval(() => {
+        loadChart(start);
+      }, INTERVAL);
     } else {
       if (date !== undefined && date.from !== undefined) {
         setYear(date.from.getFullYear());
@@ -691,7 +709,13 @@ function TrendChart(props: { metric: Metric }) {
             from: new Date(),
           });
         } else {
+          if (!loadingLeft && !loadingRight) {
+            setLoading(true);
+          }
           loadChart(to);
+          interval = setInterval(() => {
+            loadChart(to);
+          }, INTERVAL);
           setDate({
             from: date.from,
             to: to,
@@ -699,6 +723,10 @@ function TrendChart(props: { metric: Metric }) {
         }
       }
     }
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [date?.from, range, year]);
 
   return (
