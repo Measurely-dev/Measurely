@@ -324,6 +324,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 
 			go SendMeasurelyMetricEvent("users", 1)
+			go SendMeasurelyMetricEvent("starter", 1)
 
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
@@ -520,6 +521,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	go SendMeasurelyMetricEvent("users", 1)
+	go SendMeasurelyMetricEvent("starter", 1)
 
 	// send email
 	go s.email.SendEmail(email.MailFields{
