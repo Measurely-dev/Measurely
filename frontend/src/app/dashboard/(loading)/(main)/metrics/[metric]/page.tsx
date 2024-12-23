@@ -386,8 +386,8 @@ function OverviewChart(props: { metric: Metric }) {
       start.setDate(1);
       loadChart(start);
     } else {
-      setYear(new Date().getFullYear());
       if (date !== undefined && date.from !== undefined) {
+        setYear(date.from.getFullYear());
         const to = new Date(date.from);
         to.setDate(date.from.getDate() - range);
         const now = new Date();
@@ -684,8 +684,8 @@ function TrendChart(props: { metric: Metric }) {
       start.setDate(1);
       loadChart(start);
     } else {
-      setYear(new Date().getFullYear());
       if (date !== undefined && date.from !== undefined) {
+        setYear(date.from.getFullYear());
         const to = new Date(date.from);
         to.setDate(date.from.getDate() - range);
         const now = new Date();

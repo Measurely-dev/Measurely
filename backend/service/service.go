@@ -1457,7 +1457,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	go SendMeasurelyMetricEvent("metrics-neg", 1)
+	go SendMeasurelyMetricEvent("metrics", 1)
 }
 
 func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
