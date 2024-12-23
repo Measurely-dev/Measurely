@@ -137,7 +137,6 @@ export const loadChartData = async (
             }
 
             if (matches) {
-              console.log(json[i]);
               let fieldName = null;
               let value = json[i].value;
               let relativetotal = json[i].relativetotal;
@@ -165,8 +164,6 @@ export const loadChartData = async (
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
-
-  console.log(tmpData);
 
   return tmpData;
 };

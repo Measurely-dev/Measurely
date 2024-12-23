@@ -386,6 +386,7 @@ function OverviewChart(props: { metric: Metric }) {
       start.setDate(1);
       loadChart(start);
     } else {
+      setYear(new Date().getFullYear());
       if (date !== undefined && date.from !== undefined) {
         const to = new Date(date.from);
         to.setDate(date.from.getDate() - range);
@@ -403,7 +404,7 @@ function OverviewChart(props: { metric: Metric }) {
         }
       }
     }
-  }, [date?.from, range]);
+  }, [date?.from, range, year]);
 
   return (
     <>
@@ -486,7 +487,7 @@ function OverviewChart(props: { metric: Metric }) {
           <OffsetBtns
             onLeft={() => {
               if (range >= 365) {
-                const new_year = new Date().getFullYear() - 1;
+                const new_year = new Date(year, 1, 0).getFullYear() - 1;
                 if (new_year < 1999) {
                   return;
                 }
@@ -517,7 +518,7 @@ function OverviewChart(props: { metric: Metric }) {
             }}
             onRight={() => {
               if (range >= 365) {
-                const new_year = new Date().getFullYear() + 1;
+                const new_year = new Date(year, 1, 0).getFullYear() + 1;
                 const current_year = new Date().getFullYear();
                 if (new_year > current_year) {
                   return;
@@ -553,7 +554,7 @@ function OverviewChart(props: { metric: Metric }) {
             isLoadingRight={loadingRight}
             isDisabledLeft={useMemo(() => {
               if (range >= 365) {
-                const new_year = new Date().getFullYear() - 1;
+                const new_year = new Date(year, 1, 0).getFullYear() - 1;
                 return new_year < 1999;
               } else {
                 if (date === undefined || date.to === undefined) {
@@ -565,11 +566,11 @@ function OverviewChart(props: { metric: Metric }) {
                 const result = to.getFullYear() < 1999;
                 return result;
               }
-            }, [date])}
+            }, [date, year])}
             isDisabledRight={useMemo(() => {
               if (range >= 365) {
+                const new_year = new Date(year, 1, 0).getFullYear() + 1;
                 const current_year = new Date().getFullYear();
-                const new_year = new Date().getFullYear() + 1;
 
                 return new_year > current_year;
               } else {
@@ -583,7 +584,7 @@ function OverviewChart(props: { metric: Metric }) {
                 const result = now < to;
                 return result;
               }
-            }, [date])}
+            }, [date, year])}
           />
           {loading ? (
             <div className='p-1'>
@@ -683,6 +684,7 @@ function TrendChart(props: { metric: Metric }) {
       start.setDate(1);
       loadChart(start);
     } else {
+      setYear(new Date().getFullYear());
       if (date !== undefined && date.from !== undefined) {
         const to = new Date(date.from);
         to.setDate(date.from.getDate() - range);
@@ -700,7 +702,7 @@ function TrendChart(props: { metric: Metric }) {
         }
       }
     }
-  }, [date?.from, range]);
+  }, [date?.from, range, year]);
 
   return (
     <>
@@ -777,7 +779,7 @@ function TrendChart(props: { metric: Metric }) {
           <OffsetBtns
             onLeft={() => {
               if (range >= 365) {
-                const new_year = new Date().getFullYear() - 1;
+                const new_year = new Date(year, 1, 0).getFullYear() - 1;
                 if (new_year < 1999) {
                   return;
                 }
@@ -808,7 +810,7 @@ function TrendChart(props: { metric: Metric }) {
             }}
             onRight={() => {
               if (range >= 365) {
-                const new_year = new Date().getFullYear() + 1;
+                const new_year = new Date(year, 1, 0).getFullYear() + 1;
                 const current_year = new Date().getFullYear();
                 if (new_year > current_year) {
                   return;
@@ -844,7 +846,7 @@ function TrendChart(props: { metric: Metric }) {
             isLoadingRight={loadingRight}
             isDisabledLeft={useMemo(() => {
               if (range >= 365) {
-                const new_year = new Date().getFullYear() - 1;
+                const new_year = new Date(year, 1, 0).getFullYear() - 1;
                 return new_year < 1999;
               } else {
                 if (date === undefined || date.to === undefined) {
@@ -856,11 +858,11 @@ function TrendChart(props: { metric: Metric }) {
                 const result = to.getFullYear() < 1999;
                 return result;
               }
-            }, [date])}
+            }, [date, year])}
             isDisabledRight={useMemo(() => {
               if (range >= 365) {
+                const new_year = new Date(year, 1, 0).getFullYear() + 1;
                 const current_year = new Date().getFullYear();
-                const new_year = new Date().getFullYear() + 1;
 
                 return new_year > current_year;
               } else {
@@ -874,7 +876,7 @@ function TrendChart(props: { metric: Metric }) {
                 const result = now < to;
                 return result;
               }
-            }, [date])}
+            }, [date, year])}
           />
           {loading ? (
             <div className='p-1'>
