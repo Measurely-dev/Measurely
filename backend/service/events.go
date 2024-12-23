@@ -183,7 +183,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	nbrDays := (float64(end.Sub(start).Abs()) / float64(24*time.Hour)) - 1
 
 	if nbrDays > float64(plan.Range) {
-		http.Error(w, "you have exceeded your plans limit, you can view a maximum of "+strconv.Itoa(plan.Range)+" days", http.StatusUnauthorized)
+		http.Error(w, "Your current plan allows viewing up to"+strconv.Itoa(plan.Range)+"days of data. Upgrade to unlock extended date ranges.", http.StatusUnauthorized)
 		return
 	}
 
