@@ -54,17 +54,41 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 	return relation.key == apikey
 }
 
+func (s *Service) RateAllow(apikey string, maxRequest int) bool {
+	value, ok := s.cache.ratelimits.Load(apikey)
+	expired := false
+	var rate RateLimit
+
+	if ok {
+		rate := value.(RateLimit)
+		if time.Now().After(rate.expiry) {
+			expired = true
+		}
+	}
+
+	if !ok || expired {
+		s.cache.ratelimits.Store(apikey, RateLimit{
+			current: 0,
+			max:     maxRequest,
+			expiry:  time.Now().Add(1 * time.Minute),
+		})
+
+		return true
+	}
+
+	if rate.current > rate.max {
+		return false
+	}
+
+	return true
+}
+
 func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	apikey := chi.URLParam(r, "apikey")
 	metricid, err := uuid.Parse(chi.URLParam(r, "metricid"))
 	if err != nil {
 		http.Error(w, "Invalid metric id", http.StatusBadRequest)
 	}
-	//
-	// if !s.RateAllow(apikey) {
-	// 	http.Error(w, "You have exceeded the rate limit, 100 metric eventsper second", http.StatusServiceUnavailable)
-	// 	return
-	// }
 
 	var request struct {
 		Value int64 `json:"value"`
@@ -84,6 +108,17 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 
 	value, _ := s.cache.metricIdToApiKeys.Load(metricid)
 	metricCache := value.(MetricToKeyCache)
+	plan, err := s.GetUserPlan(metricCache.user_id)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Plan not found", http.StatusNotFound)
+		return
+	}
+
+	if !s.RateAllow(apikey, plan.RequestLimit) {
+		http.Error(w, "You have exceeded the rate limit, 100 metric eventsper second", http.StatusServiceUnavailable)
+		return
+	}
 
 	if metricCache.metric_type == types.BASE_METRIC && request.Value < 0 {
 		http.Error(w, "A base metric cannot have a negative value", http.StatusBadRequest)
@@ -94,7 +129,6 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "A value cannot be null", http.StatusBadRequest)
 		return
 	}
-
 	if err := s.db.CreateMetricEvent(types.MetricEvent{
 		MetricId:      metricid,
 		Value:         request.Value,
