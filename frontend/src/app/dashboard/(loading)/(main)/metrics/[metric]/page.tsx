@@ -213,6 +213,13 @@ export default function DashboardMetricPage() {
 
   useEffect(() => {
     loadDailyValues(metric!);
+    const interval = setInterval(() => {
+      loadDailyValues(metric!);
+    }, INTERVAL);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {

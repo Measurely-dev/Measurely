@@ -8,7 +8,7 @@ import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import { Separator } from '@radix-ui/react-separator';
-import { fetchDailySummary } from '@/utils';
+import { fetchDailySummary, INTERVAL } from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpDown,
@@ -101,7 +101,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                user.plan.metric_per_app_limit - 1;
+                  user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={metric.id}
@@ -163,6 +163,13 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
 
   useEffect(() => {
     load();
+    const interval = setInterval(() => {
+      load();
+    }, INTERVAL);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
