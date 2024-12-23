@@ -27,7 +27,7 @@ export const ROUTES: EachRoute[] = [
     items: [
       { title: 'Basic metric', href: '/basic-metric' },
       { title: 'Dual metric', href: '/dual-metric' },
-      { title: 'Advanced Options', href: '/advanced-options' },
+      { title: 'Chart Options', href: '/chart-options' },
     ],
   },
   {
