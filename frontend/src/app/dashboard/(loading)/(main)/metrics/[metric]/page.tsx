@@ -240,12 +240,7 @@ export default function DashboardMetricPage() {
           </BreadcrumbLink>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>
-              {metric?.name
-                ? metric?.name.charAt(0).toUpperCase() +
-                  metric?.name.slice(1).toLowerCase()
-                : 'Undefined'}
-            </BreadcrumbPage>
+            <BreadcrumbPage>{metric?.name ?? 'Unknown'}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

@@ -101,7 +101,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                  user.plan.metric_per_app_limit - 1;
+                user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={metric.id}
@@ -195,8 +195,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
               <ArrowUpDown className='size-4 text-black' />
             )}
           </div>
-          {props.metric.name.charAt(0).toUpperCase() +
-            props.metric.name.slice(1).toLowerCase()}
+          {props.metric.name}
         </div>
 
         <div className='col-span-1 flex h-full w-full items-center justify-end lg:hidden'>
