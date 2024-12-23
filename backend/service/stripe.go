@@ -149,8 +149,8 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		s.db.UpdateUserPlan(token.Id, "starter")
 		s.cache.plans.Delete(token.Id)
 
-		go SendMeasurelyMetricEvent("starter-pos", 1)
-		go SendMeasurelyMetricEvent(user.CurrentPlan+"-neg", 1)
+		go SendMeasurelyMetricEvent("starter", 1)
+		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -238,12 +238,12 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 
 		switch planData.Identifier {
 		case "plus":
-			go SendMeasurelyMetricEvent("plus-pos", 1)
+			go SendMeasurelyMetricEvent("plus", 1)
 		case "pro":
-			go SendMeasurelyMetricEvent("pro-pos", 1)
+			go SendMeasurelyMetricEvent("pro", 1)
 		}
 
-		go SendMeasurelyMetricEvent(user.CurrentPlan+"-neg", 1)
+		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -327,8 +327,8 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 
 		s.db.UpdateUserPlan(user.Id, "starter")
 
-		go SendMeasurelyMetricEvent("starter-pos", 1)
-		go SendMeasurelyMetricEvent(user.CurrentPlan+"-neg", 1)
+		go SendMeasurelyMetricEvent("starter", 1)
+		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
 
 		// send email
 		go s.email.SendEmail(email.MailFields{

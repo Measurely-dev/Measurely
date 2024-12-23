@@ -323,7 +323,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			go SendMeasurelyMetricEvent("users-pos", 1)
+			go SendMeasurelyMetricEvent("users", 1)
 
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
@@ -519,7 +519,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go SendMeasurelyMetricEvent("users-pos", 1)
+	go SendMeasurelyMetricEvent("users", 1)
 
 	// send email
 	go s.email.SendEmail(email.MailFields{
@@ -863,7 +863,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 
-	go SendMeasurelyMetricEvent("users-neg", 1)
+	go SendMeasurelyMetricEvent("users", -1)
 }
 
 func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
@@ -1144,7 +1144,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 
-	go SendMeasurelyMetricEvent("apps-pos", 1)
+	go SendMeasurelyMetricEvent("apps", 1)
 }
 
 func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
@@ -1237,7 +1237,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	go SendMeasurelyMetricEvent("apps-neg", 1)
+	go SendMeasurelyMetricEvent("apps", -1)
 }
 
 func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) {
@@ -1416,7 +1416,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
 
-	go SendMeasurelyMetricEvent("metrics-pos", 1)
+	go SendMeasurelyMetricEvent("metrics", 1)
 }
 
 func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
@@ -1457,7 +1457,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	go SendMeasurelyMetricEvent("metrics", 1)
+	go SendMeasurelyMetricEvent("metrics", -1)
 }
 
 func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
