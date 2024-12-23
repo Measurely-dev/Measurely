@@ -162,19 +162,19 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				Price:             os.Getenv("PLUS_PRICE_ID"),
 				Identifier:        "plus",
 				Name:              "Plus",
-				AppLimit:          5,
-				MetricPerAppLimit: 5,
-				RequestLimit:      100,
-				Range:             100,
+				AppLimit:          3,
+				MetricPerAppLimit: 15,
+				RequestLimit:      1000,
+				Range:             365,
 			}
 		case "pro":
 			new_plan = &types.Plan{
 				Price:             os.Getenv("PRO_PRICE_ID"),
 				Identifier:        "pro",
 				Name:              "Pro",
-				AppLimit:          15,
-				MetricPerAppLimit: 15,
-				RequestLimit:      1000,
+				AppLimit:          10,
+				MetricPerAppLimit: 35,
+				RequestLimit:      10000,
 				Range:             365,
 			}
 		}
