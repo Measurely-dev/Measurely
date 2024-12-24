@@ -6,36 +6,40 @@ on:
       - main
   pull_request:
     branches:
-      - main 
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
 
-      - name: Install dependencies and build the app
-        run: |
-          cd frontend
-          pnpm install
-          pnpm build
+    - name: Install pnpm
+      run: |
+        npm install -g pnpm
 
-      - name: Install Railway CLI
-        run: |
-          curl -sSL https://railway.app/cli | bash
-          mv railway /usr/local/bin
+    - name: Install dependencies and build the app
+      run: |
+        cd frontend
+        pnpm install
+        pnpm build
 
-      - name: Authenticate with Railway CLI
-        run: |
-          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+    - name: Install Railway CLI
+      run: |
+        curl -sSL https://railway.app/cli | bash
+        mv railway /usr/local/bin
 
-      - name: Deploy to Railway
-        run: |
-          railway up
+    - name: Authenticate with Railway CLI
+      run: |
+        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+
+    - name: Deploy to Railway
+      run: |
+        railway up
