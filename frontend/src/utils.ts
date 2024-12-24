@@ -164,8 +164,31 @@ export const loadChartData = async (
       }
     });
 
-  let lastTotalPos = 0;
-  let lastTotalNeg = 0;
+  let lastTotalPos = null;
+  let lastTotalNeg = null;
+
+  for (let i = tmpData.length - 1; i > 0; i--) {
+    if (
+      tmpData[i]['Positive Trend'] !== null &&
+      tmpData[i]['Negative Trend'] !== null
+    ) {
+      lastTotalPos =
+        tmpData[i]['Positive Trend'] -
+        tmpData[i][
+        metric.type === MetricType.Base ? metric.name : metric.namepos
+        ];
+      lastTotalNeg =
+        tmpData[i]['Negative Trend'] - metric.type === MetricType.Dual
+          ? tmpData[i][metric.nameneg]
+          : 0;
+    }
+  }
+
+  if (lastTotalNeg === null && lastTotalPos === null) {
+    lastTotalPos = metric.totalpos;
+    lastTotalNeg = metric.totalneg;
+  }
+
   for (let i = 0; i < tmpData.length; i++) {
     if (
       tmpData[i]['Positive Trend'] === null &&
