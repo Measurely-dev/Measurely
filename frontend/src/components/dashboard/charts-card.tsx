@@ -7,9 +7,10 @@ import {
   Check,
   ChevronsUpDown,
   CircleOff,
-  CircleSlash,
   CurlyBraces,
+  Info,
   Link2Icon,
+  Shapes,
 } from 'lucide-react';
 import { AreaChart } from '@/components/ui/area-chart';
 
@@ -150,12 +151,7 @@ export function ChartsCard() {
                 className='py-14'
                 title='Nothing Here Yet. Check Back Soon!'
                 description='This chart is empty for now. Check back when new data is collected.'
-                icons={[CircleOff, CircleSlash]}
-                action={{
-                  label: 'Learn more',
-                  onClick: () =>
-                    router.push('/docs/getting-started/introduction'),
-                }}
+                icons={[Info, CircleOff, Shapes]}
               />
             ) : (
               <>

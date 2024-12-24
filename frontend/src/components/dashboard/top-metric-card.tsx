@@ -11,11 +11,9 @@ import { BarChart } from '../ui/bar-chart';
 import { AppsContext } from '@/dash-context';
 import { EmptyState } from '../ui/empty-state';
 import { ChartNetwork } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export const TopMetricCard = () => {
   const { applications, activeApp } = useContext(AppsContext);
-  const router = useRouter();
   const topMetricData = useMemo(() => {
     const data = [];
 
@@ -52,10 +50,6 @@ export const TopMetricCard = () => {
           title='No items to show at the moment.'
           description="No metrics to display yet. Data will populate as soon as it's available."
           icons={[ChartNetwork]}
-          action={{
-            label: 'Learn more',
-            onClick: () => router.push('/docs/getting-started/introduction'),
-          }}
         />
       ) : (
         <CardContent className='mt-5 rounded-[12px] bg-accent p-4'>
