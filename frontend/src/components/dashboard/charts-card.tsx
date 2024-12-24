@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/popover';
 import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dash-context';
-import { INTERVAL, loadChartData } from '@/utils';
+import { combineTrends, INTERVAL, loadChartData } from '@/utils';
 import { Metric, MetricType } from '@/types';
 import MetricStats from './metric-stats';
 import { Skeleton } from '../ui/skeleton';
@@ -59,7 +59,7 @@ export function ChartsCard() {
     if (applications[activeApp].metrics !== null) {
       const metric = applications[activeApp].metrics[activeMetric];
       if (metric != undefined) {
-        setTotal(metric.total);
+        setTotal(metric.totalpos - metric.totalneg);
         const from = new Date();
         from.setDate(0);
 
@@ -136,7 +136,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-      applications[activeApp].metrics?.length! > 0 ? (
+        applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -169,7 +169,7 @@ export function ChartsCard() {
                       <div className='w-full rounded-[12px] bg-accent p-5'>
                         <AreaChart
                           className='h-60 min-h-60 w-full'
-                          data={data}
+                          data={combineTrends(data)}
                           index='date'
                           color='blue'
                           categories={['total']}

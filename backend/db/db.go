@@ -56,7 +56,7 @@ func migrate(db *sqlx.DB) error {
 		}
 	}
 
-	sort.Strings(migrationFiles) 
+	sort.Strings(migrationFiles)
 	for _, migrationFile := range migrationFiles {
 		b, err := os.ReadFile(migrationFile)
 		if err != nil {
@@ -174,7 +174,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.Total, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
+	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
 	return new_metric, err
 }
 
@@ -189,12 +189,12 @@ func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
 }
 
 func (db *DB) CreateMetricEvent(event types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value, relativetotal) VALUES (:metricid, :value, :relativetotal)", event)
+  _, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)", event)
 	return err
 }
 
 func (db *DB) CreateDailyMetricSummary(summary types.DailyMetricSummary) error {
-	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (id, metricid, valuepos, valueneg, relativetotal) VALUES (:id, :metricid, :valuepos, :valueneg, :relativetotal) ON CONFLICT (id) DO UPDATE SET valuepos = metricdailysummary.valuepos + EXCLUDED.valuepos, valueneg = metricdailysummary.valueneg + EXCLUDED.valueneg, relativetotal = metricdailysummary.relativetotal + EXCLUDED.valuepos + EXCLUDED.valueneg`, summary)
+	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg) VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg) ON CONFLICT (date, metricid) DO UPDATE SET valuepos = metricdailysummary.valuepos + EXCLUDED.valuepos, valueneg = metricdailysummary.valueneg + EXCLUDED.valueneg, relativetotalpos = metricdailysummary.relativetotalpos + EXCLUDED.valuepos, relativetotalneg = metricdailysummary.relativetotalneg + EXCLUDED.valueneg`, summary)
 	return err
 }
 
@@ -218,7 +218,7 @@ func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 	var metrics []types.Metric
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.AppId, &metric.Name, &metric.Type, &metric.Total, &metric.NamePos, &metric.NameNeg, &metric.Created)
+		err := rows.Scan(&metric.Id, &metric.AppId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
 		if err != nil {
 			return []types.Metric{}, err
 		}
@@ -259,7 +259,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.Value, &event.RelativeTotal, &event.Date)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.Value, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
@@ -280,7 +280,7 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	var dailysummarymetrics []types.DailyMetricSummary
 	for rows.Next() {
 		var summary types.DailyMetricSummary
-		err := rows.Scan(&summary.Id, &summary.MetricId, &summary.ValuePos, &summary.ValueNeg, &summary.RelativeTotal, &summary.Date)
+		err := rows.Scan(&summary.Id, &summary.MetricId, &summary.ValuePos, &summary.ValueNeg, &summary.RelativeTotalPos, &summary.RelativeTotalNeg, &summary.Date)
 		if err != nil {
 			return []types.DailyMetricSummary{}, err
 		}
@@ -290,8 +290,8 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	return dailysummarymetrics, err
 }
 
-func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int64) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET total = total + $1 WHERE id = $2", toAdd, id)
+func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int64, toRemove int64) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3", toAdd, toRemove, id)
 	return err
 }
 

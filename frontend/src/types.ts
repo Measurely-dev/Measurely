@@ -11,7 +11,8 @@ export interface Metric {
   appid: string;
   name: string;
   type: MetricType;
-  total: number;
+  totalpos: number;
+  totalneg: number;
   namepos: string;
   nameneg: string;
   created: Date;
@@ -21,9 +22,10 @@ export interface MetricEvent {
   id: string;
   date: Date;
   value: number;
-  valuepos : number;
-  valueneg : number;
-  relativetotal: number;
+  valuepos: number;
+  valueneg: number;
+  relativetotalpos: number;
+  relativetotalneg: number;
 }
 
 export interface User {

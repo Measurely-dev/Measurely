@@ -42,9 +42,11 @@ const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
 function sortByTotal(a: Metric, b: Metric): number {
-  if (a.total < b.total) {
+  const aTotal = a.totalpos - a.totalneg;
+  const bTotal = b.totalpos - b.totalneg;
+  if (aTotal < bTotal) {
     return 1;
-  } else if (a.total > b.total) {
+  } else if (aTotal > bTotal) {
     return -1;
   } else {
     return 0;
@@ -101,7 +103,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                  user.plan.metric_per_app_limit - 1;
+                user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={metric.id}
@@ -224,7 +226,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
           <div className='font-sans font-semibold text-blue-500 lg:hidden'>
             Total value
           </div>
-          {valueFormatter(props.metric.total)}
+          {valueFormatter(props.metric.totalpos - props.metric.totalneg)}
         </div>
         <div className='flex items-center max-lg:flex-col max-lg:place-items-start max-lg:gap-2'>
           <div className='text-sm font-semibold text-primary lg:hidden'>

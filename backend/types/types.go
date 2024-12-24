@@ -52,22 +52,34 @@ type Application struct {
 }
 
 type Metric struct {
-	Id      uuid.UUID `json:"id"`
-	AppId   uuid.UUID `json:"appid"`
-	Name    string    `json:"name"`
-	Type    int       `json:"type"`
-	Total   int64     `json:"total"`
-	NamePos string    `json:"namepos"`
-	NameNeg string    `json:"nameneg"`
-	Created time.Time `json:"created"`
+	Id       uuid.UUID `json:"id"`
+	AppId    uuid.UUID `json:"appid"`
+	Name     string    `json:"name"`
+	Type     int       `json:"type"`
+	TotalPos int64     `json:"totalpos"`
+	TotalNeg int64     `json:"totalneg"`
+	NamePos  string    `json:"namepos"`
+	NameNeg  string    `json:"nameneg"`
+	Created  time.Time `json:"created"`
 }
 
 type MetricEvent struct {
-	Id            uuid.UUID `json:"id"`
-	MetricId      uuid.UUID `json:"metricid"`
-	Date          time.Time `json:"date"`
-	Value         int64     `json:"value"`
-	RelativeTotal int64     `json:"relativetotal"`
+	Id               uuid.UUID `json:"id"`
+	MetricId         uuid.UUID `json:"metricid"`
+	Date             time.Time `json:"date"`
+	Value            int       `json:"value"`
+	RelativeTotalPos int64     `json:"relativetotalpos"`
+	RelativeTotalNeg int64     `json:"relativetotalneg"`
+}
+
+type DailyMetricSummary struct {
+	Id               uuid.UUID `json:"id"`
+	MetricId         uuid.UUID `json:"metricid"`
+	ValuePos         int       `json:"valuepos"`
+	ValueNeg         int       `json:"valueneg"`
+	RelativeTotalPos int64     `json:"relativetotalpos"`
+	RelativeTotalNeg int64     `json:"relativetotalneg"`
+	Date             time.Time `json:"date"`
 }
 
 type AccountRecovery struct {
@@ -96,13 +108,4 @@ type Plan struct {
 	MetricPerAppLimit int    `json:"metric_per_app_limit"`
 	RequestLimit      int    `json:"requestlimit"`
 	Range             int    `json:"range"`
-}
-
-type DailyMetricSummary struct {
-	Id            string    `json:"id"`
-	MetricId      uuid.UUID `json:"metricid"`
-	ValuePos      int64     `json:"valuepos"`
-	ValueNeg      int64     `json:"valueneg"`
-	RelativeTotal int64     `json:"relativetotal"`
-	Date          time.Time `json:"date"`
 }

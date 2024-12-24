@@ -43,8 +43,9 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 		s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
 			key:         apikey,
 			metric_type: metric.Type,
-			total:       metric.Total,
 			user_id:     app.UserId,
+			totalpos:    metric.TotalPos,
+			totalneg:    metric.TotalNeg,
 			expiry:      time.Now().Add(15 * time.Minute),
 		})
 
@@ -97,7 +98,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Value int64 `json:"value"`
+		Value int `json:"value"`
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
@@ -135,37 +136,41 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "A value cannot be null", http.StatusBadRequest)
 		return
 	}
-	if err := s.db.CreateMetricEvent(types.MetricEvent{
-		MetricId:      metricid,
-		Value:         request.Value,
-		RelativeTotal: metricCache.total + request.Value,
-	}); err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
 
-	pos := int64(0)
-	neg := int64(0)
+	pos := 0
+	neg := 0
 
 	if request.Value > 0 {
 		pos = request.Value
 	} else {
-		neg = request.Value
+		neg = -request.Value
 	}
 
-	if err := s.db.CreateDailyMetricSummary(types.DailyMetricSummary{
-		Id:            metricid.String() + time.Now().UTC().Format("2006-01-02"),
-		MetricId:      metricid,
-		ValuePos:      pos,
-		ValueNeg:      neg,
-		RelativeTotal: metricCache.total + request.Value,
+	if err := s.db.CreateMetricEvent(types.MetricEvent{
+		MetricId:         metricid,
+		Value:            request.Value,
+		RelativeTotalPos: metricCache.totalpos + int64(pos),
+		RelativeTotalNeg: metricCache.totalneg + int64(neg),
 	}); err != nil {
     log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	if err := s.db.UpdateMetricTotal(metricid, request.Value); err != nil {
+	if err := s.db.CreateDailyMetricSummary(types.DailyMetricSummary{
+		MetricId:         metricid,
+		ValuePos:         pos,
+		ValueNeg:         neg,
+		RelativeTotalPos: metricCache.totalpos + int64(pos),
+		RelativeTotalNeg: metricCache.totalneg + int64(neg),
+	}); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := s.db.UpdateMetricTotal(metricid, int64(pos), int64(neg)); err != nil {
+    log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -174,8 +179,9 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
 		key:         apikey,
 		metric_type: metricCache.metric_type,
-		total:       metricCache.total + request.Value,
 		user_id:     metricCache.user_id,
+		totalpos:    metricCache.totalpos + int64(pos),
+		totalneg:    metricCache.totalneg + int64(neg),
 		expiry:      time.Now().Add(15 * time.Minute),
 	})
 

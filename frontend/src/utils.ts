@@ -89,7 +89,8 @@ export const loadChartData = async (
       if (metric.type === MetricType.Dual) {
         data[metric.nameneg] = 0;
       }
-      data['total'] = null;
+      data['Positive Trend'] = null;
+      data['Negative Trend'] = null;
     }
     tmpData.push(data);
     if (range === 0) {
@@ -155,19 +156,26 @@ export const loadChartData = async (
                 }
               }
 
-              tmpData[j]['total'] = json[i].relativetotal;
+              tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
+              tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
             }
           }
         }
       }
     });
 
-  let lastTotal = 0;
+  let lastTotalPos = 0;
+  let lastTotalNeg = 0;
   for (let i = 0; i < tmpData.length; i++) {
-    if (tmpData[i]['total'] === null) {
-      tmpData[i]['total'] = lastTotal;
+    if (
+      tmpData[i]['Positive Trend'] === null &&
+      tmpData[i]['Negative Trend'] === null
+    ) {
+      tmpData[i]['Positive Trend'] = lastTotalPos;
+      tmpData[i]['Negative Trend'] = lastTotalPos;
     } else {
-      lastTotal = tmpData[i]['total'];
+      lastTotalPos = tmpData[i]['Positive Trend'];
+      lastTotalNeg = tmpData[i]['Negative Trend'];
     }
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
@@ -204,13 +212,30 @@ export const fetchDailySummary = async (
         let neg = 0;
         for (let i = 0; i < json.length; i++) {
           pos += json[i].valuepos;
-          neg += -json[i].valueneg;
+          neg += json[i].valueneg;
         }
         return { pos, neg };
       }
     }
   }
   return { pos: 0, neg: 0 };
+};
+
+export const combineTrends = (data: any[]) => {
+  const trend = [];
+  for (let i = 0; i < data.length; i++) {
+    const value: any = {
+      date: data[i].date,
+    };
+    if (
+      data[i]['Positive Trend'] !== undefined &&
+      data[i]['Negative Trend'] !== undefined
+    ) {
+      value['total'] = data[i]['Positive Trend'] - data[i]['Negative Trend'];
+    }
+    trend.push(value);
+  }
+  return trend;
 };
 
 export const parseXAxis = (value: Date, range: number) => {

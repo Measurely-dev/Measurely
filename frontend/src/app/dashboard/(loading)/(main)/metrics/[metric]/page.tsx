@@ -41,7 +41,12 @@ import {
 } from '@/components/ui/tooltip';
 import { AppsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
-import { fetchDailySummary, INTERVAL, loadChartData } from '@/utils';
+import {
+  combineTrends,
+  fetchDailySummary,
+  INTERVAL,
+  loadChartData,
+} from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
@@ -260,7 +265,9 @@ export default function DashboardMetricPage() {
                 {metric?.name ?? 'Unknown'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
-                {valueFormatter(metric?.total ?? 0)}
+                {valueFormatter(
+                  (metric?.totalpos ?? 0) - (metric?.totalneg ?? 0),
+                )}
                 {metric?.type === MetricType.Dual ? (
                   <>
                     <div className='flex flex-col gap-1'>
@@ -654,6 +661,14 @@ function TrendChart(props: { metric: Metric }) {
   >('default');
   const [trendChartColor, setTrendChartColor] =
     useState<keyof ChartColors>('blue');
+  const [dualTrendChartColor, setDualTrendChartColor] =
+    useState<keyof DualMetricChartColors>('default');
+  const dualTrendChartConfig = {
+    colors: getDualMetricChartColors(
+      dualMetricChartColors,
+      dualTrendChartColor,
+    ),
+  };
 
   const [range, setRange] = useState<number>(0);
   const [date, setDate] = useState<DateRange | undefined>({
@@ -666,6 +681,7 @@ function TrendChart(props: { metric: Metric }) {
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
+  const [splitTrend, setSplitTrend] = useState(false);
 
   const loadChart = async (from: Date) => {
     const data =
@@ -675,11 +691,10 @@ function TrendChart(props: { metric: Metric }) {
         props.metric,
         props.metric.appid,
       )) ?? [];
-    console.log(data);
     let totalValue = null;
     for (let i = data.length - 1; i > 0; i--) {
-      if (data[i].total !== undefined) {
-        totalValue = data[i].total;
+      if (data[i]['Positive Trend'] !== undefined && data[i]['Negative Trend']) {
+        totalValue = data[i]['Positive Trend'] - data[i]['Negative Trend'];
         break;
       }
     }
@@ -689,7 +704,7 @@ function TrendChart(props: { metric: Metric }) {
     setLoadingLeft(false);
     setLoadingRight(false);
   };
-
+  console.log(chartData)
   useEffect(() => {
     let interval: any;
     if (range >= 365) {
@@ -792,8 +807,14 @@ function TrendChart(props: { metric: Metric }) {
             metricType={props.metric.type}
             chartType={trendChartType}
             chartColor={trendChartColor}
+            checked={splitTrend}
             setChartColor={setTrendChartColor}
             setChartType={setTrendChartType}
+            setChecked={setSplitTrend}
+            dualMetricChartColor={dualTrendChartColor}
+            setDualMetricChartColor={
+              splitTrend ? setDualTrendChartColor : undefined
+            }
           >
             <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
               <Sliders className='mr-2 size-4' />
@@ -927,16 +948,30 @@ function TrendChart(props: { metric: Metric }) {
           </div>
           <div className='text-xl font-medium'>{valueFormatter(total)}</div>
           <Separator className='my-4' />
-          <AreaChart
-            className='min-h-[40vh] w-full'
-            data={chartData}
-            index='date'
-            customTooltip={customTooltip}
-            colors={[trendChartColor]}
-            categories={['total']}
-            valueFormatter={(number: number) => valueFormatter(number)}
-            yAxisLabel='Total'
-          />
+
+          {splitTrend ? (
+            <AreaChart
+              className='min-h-[40vh] w-full'
+              data={chartData}
+              index='date'
+              customTooltip={customTooltip}
+              colors={dualTrendChartConfig.colors}
+              categories={['Positive Trend', 'Negative Trend']}
+              valueFormatter={(number: number) => valueFormatter(number)}
+              yAxisLabel='Total'
+            />
+          ) : (
+            <AreaChart
+              className='min-h-[40vh] w-full'
+              data={combineTrends(chartData)}
+              index='date'
+              customTooltip={customTooltip}
+              colors={[trendChartColor]}
+              categories={['total']}
+              valueFormatter={(number: number) => valueFormatter(number)}
+              yAxisLabel='Total'
+            />
+          )}
         </div>
       )}
     </>
@@ -951,16 +986,21 @@ function AdvancedOptions(props: {
   chartType: string;
   chartColor: string;
   dualMetricChartColor?: string;
+  checked?: boolean;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;
   setChartColor: Dispatch<SetStateAction<keyof ChartColors>>;
   setDualMetricChartColor?: Dispatch<
     SetStateAction<keyof DualMetricChartColors>
   >;
+  setChecked?: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
-    const name = props.metricId + props.chartName;
+    let name = props.metricId + props.chartName;
+    if (props.chartName === 'trend' && props.checked) {
+      name += 'dual';
+    }
     if (!settings[name]) return;
     if (settings[name].chartType) {
       props.setChartType(
@@ -977,11 +1017,14 @@ function AdvancedOptions(props: {
         props.setChartColor(settings[name].chartColor as keyof ChartColors);
       }
     }
-  }, []);
+  }, [props.checked]);
 
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
-    const name = props.metricId + props.chartName;
+    let name = props.metricId + props.chartName;
+    if (props.chartName === 'trend' && props.checked) {
+      name += 'dual';
+    }
     if (!settings[name])
       settings[name] = {
         chartType: undefined,
@@ -997,7 +1040,12 @@ function AdvancedOptions(props: {
     }
 
     localStorage.setItem('chartsettings', JSON.stringify(settings));
-  }, [props.chartType, props.chartColor, props.dualMetricChartColor]);
+  }, [
+    props.chartType,
+    props.chartColor,
+    props.dualMetricChartColor,
+    props.checked,
+  ]);
   return (
     <Popover open={isOpen} onOpenChange={(e) => setIsOpen(e)}>
       <PopoverTrigger asChild>{props.children}</PopoverTrigger>
@@ -1029,8 +1077,9 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          {(props.metricType === MetricType.Dual &&
+            props.chartName !== 'trend') ||
+            (props.chartName === 'trend' && props.checked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1198,7 +1247,14 @@ function AdvancedOptions(props: {
                   Divide trend into separate positive and negative values
                 </div>
               </div>
-              <Switch />
+              <Switch
+                checked={props.checked}
+                onCheckedChange={(e) => {
+                  if (props.setChecked) {
+                    props.setChecked(e);
+                  }
+                }}
+              />
             </Label>
           ) : (
             <></>

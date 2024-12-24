@@ -31,8 +31,9 @@ import (
 type MetricToKeyCache struct {
 	key         string
 	metric_type int
-	total       int64
 	user_id     uuid.UUID
+	totalpos    int64
+	totalneg    int64
 	expiry      time.Time
 }
 
@@ -1411,7 +1412,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 				if err == nil {
 					resp, err := http.DefaultClient.Do(req)
 					if err == nil && resp.StatusCode == 200 {
-						metric.Total = request.BaseValue
+						metric.TotalPos = request.BaseValue
 					}
 				}
 			}
