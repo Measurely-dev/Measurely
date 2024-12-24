@@ -16,13 +16,17 @@ jobs:
       - name: Check if backend directory has changed
         id: check_changes
         run: |
-          git diff --exit-code backend/ || echo "Changes detected in backend/ directory."
+          # Check if there are any changes in the 'backend/' directory
+          git diff --quiet HEAD~1..HEAD -- backend/
+
+          # If changes are detected, the exit code will be non-zero
           if [ $? -ne 0 ]; then
             echo "Changes detected in backend/ directory."
             echo "changes=true" >> $GITHUB_ENV
           else
             echo "No changes detected in backend/ directory, skipping deploy."
             echo "changes=false" >> $GITHUB_ENV
+            exit 0
           fi
 
       - name: Set up Go
