@@ -4,8 +4,8 @@ import ShowcaseLandingSection from '@/components/website/sections/showcase';
 import { headers } from 'next/headers';
 
 export default async function Home() {
-  const headersList = headers();
-  const is_authentificated = headersList.get('is-authentificated');
+  const headersList = await headers();
+  const is_authenticated = headersList.get('is-authentificated');
 
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
     fetch(
@@ -23,7 +23,7 @@ export default async function Home() {
   return (
     <WebContainer>
       <ShowcaseLandingSection />
-      <BentoUiSection isAuthentificated={is_authentificated} />
+      <BentoUiSection isAuthentificated={is_authenticated} />
     </WebContainer>
   );
 }
