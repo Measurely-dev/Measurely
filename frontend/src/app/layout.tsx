@@ -7,7 +7,7 @@ import Head from 'next/head';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Measurely - Track Your Metrics Effectively',
+    default: 'Measurely - Track your metrics effectively',
     template: '%s | Measurely',
   },
   description:
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://measurely.dev', // Replace with your app's URL
+    url: 'https://measurely.dev',
     siteName: 'Measurely',
-    title: 'Measurely - Track Your Metrics Effectively',
+    title: 'Measurely - Track your metrics effectively',
     description:
       'Track and analyze your metrics seamlessly with Measurely. Perfect for developers and data-driven teams.',
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     site: '@getmeasurely',
-    title: 'Measurely - Track Your Metrics Effectively',
+    title: 'Measurely - Track your metrics effectively',
     description:
       'Discover how Measurely helps developers track and analyze metrics seamlessly. Boost your data-driven decisions today!',
     images: ['https://i.ibb.co/zh0GwyQ/opengraph.png'],
