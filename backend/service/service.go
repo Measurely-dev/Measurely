@@ -26,6 +26,11 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type MetricToKeyCache struct {
@@ -58,6 +63,7 @@ type Cache struct {
 type Service struct {
 	db        *db.DB
 	email     *email.Email
+	s3Client  *s3.Client
 	providers map[string]Provider
 	cache     Cache
 }
@@ -99,10 +105,26 @@ func New() Service {
 		},
 	}
 
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithCredentialsProvider(aws.NewCredentialsCache(
+			credentials.NewStaticCredentialsProvider(os.Getenv("S3_ACCESS_KEY"), os.Getenv("S3_SECRET_KEY"), ""),
+		)),
+		config.WithRegion("auto"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
+	})
+
 	return Service{
 		db:        db,
 		email:     email,
 		providers: providers,
+		s3Client:  client,
 		cache: Cache{
 			plans:             sync.Map{},
 			usersPlan:         sync.Map{},

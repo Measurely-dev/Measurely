@@ -65,13 +65,7 @@ export default function SettingAppsPage() {
                 >
                   <div className='flex flex-row items-center gap-2'>
                     <Avatar className='size-10 rounded-[12px] border bg-accent'>
-                      <AvatarImage
-                        src={
-                          app.image === '' || app.image === undefined
-                            ? ''
-                            : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`
-                        }
-                      />
+                      <AvatarImage src={app.image} />
                       <AvatarFallback>
                         {app.name.charAt(0).toUpperCase()}
                       </AvatarFallback>

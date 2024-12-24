@@ -61,30 +61,35 @@ export default function EditAppDialogContent(props: {
       formData.append('file', file);
 
       await fetch(
-        process.env.NEXT_PUBLIC_FILE_URL + '/app-upload?appid=' + props.app?.id,
+        process.env.NEXT_PUBLIC_API_URL + '/app-image/' + props.app?.id,
         {
           method: 'POST',
           credentials: 'include',
           body: formData,
         },
-      ).then((res) => {
-        if (res.ok) {
-          toast.success('Successfully updated the application image');
+      )
+        .then((res) => {
+          if (res.ok) {
+            toast.success('Successfully updated the application image');
+            return res.json();
+          } else {
+            res.text().then((text) => {
+              toast.error(text);
+            });
+          }
+        })
+        .then((url) => {
+          if (url === undefined) return;
           setApplications(
             applications?.map((app) =>
               app.id === props.app?.id
                 ? Object.assign({}, app, {
-                    image: `app_${props.app?.id}?random=${Math.random()}`,
-                  })
+                  image: url,
+                })
                 : app,
             ) ?? [],
           );
-        } else {
-          res.text().then((text) => {
-            toast.error(text);
-          });
-        }
-      });
+        });
     }
   }
 
@@ -122,11 +127,7 @@ export default function EditAppDialogContent(props: {
             <Label className='relative h-full w-full cursor-pointer'>
               <AvatarImage
                 className='rounded-[16px]'
-                src={
-                  reader === null
-                    ? `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${props.app?.image}`
-                    : reader
-                }
+                src={reader === null ? props.app?.image : reader}
                 alt='Application image'
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>

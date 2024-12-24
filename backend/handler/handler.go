@@ -71,41 +71,34 @@ func (h *Handler) setup_api() {
 	authRouter.Post("/feedback", h.service.SendFeedback)
 
 	authRouter.Get("/is-connected", h.service.IsConnected)
-
 	authRouter.Delete("/account", h.service.DeleteAccount)
-
 	authRouter.Post("/disconnect/{provider}", h.service.DisconnectProvider)
-
 	authRouter.Get("/user", h.service.GetUser)
+
+	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
+	authRouter.Patch("/password", h.service.UpdatePassword)
+	authRouter.Post("/requestemailchange", h.service.RequestEmailChange)
 
 	authRouter.Get("/applications", h.service.GetApplications)
 	authRouter.Post("/application", h.service.CreateApplication)
 	authRouter.Delete("/application", h.service.DeleteApplication)
 	authRouter.Patch("/app-name", h.service.UpdateApplicationName)
-	authRouter.Get("/metrics", h.service.GetMetrics)
+	authRouter.Post("/app-image/{appid}", h.service.UploadApplicationImage)
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
-	authRouter.Get("/events", h.service.GetMetricEvents)
 
+	authRouter.Get("/metrics", h.service.GetMetrics)
+	authRouter.Get("/events", h.service.GetMetricEvents)
 	authRouter.Post("/metric", h.service.CreateMetric)
 	authRouter.Patch("/metric", h.service.UpdateMetric)
 	authRouter.Delete("/metric", h.service.DeleteMetric)
 
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)
-
-	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
-	authRouter.Patch("/password", h.service.UpdatePassword)
-
-	authRouter.Post("/requestemailchange", h.service.RequestEmailChange)
 	////
 
 	// PUBLIC API ENDPOINT
 	publicRouter.Use(publicCors)
 	publicRouter.Post("/{apikey}/{metricid}", h.service.CreateMetricEvent)
-	////
-
-	/// SETUP FILE SERVER
-	// file.SetupFileServer(privateRouter)
 	////
 
 	privateRouter.Mount("/", authRouter)

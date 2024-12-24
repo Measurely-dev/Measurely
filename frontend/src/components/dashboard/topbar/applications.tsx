@@ -55,29 +55,18 @@ export default function ApplicationsChip() {
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${
-            open ? 'bg-accent' : ''
-          }`}
+          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${open ? 'bg-accent' : ''
+            }`}
         >
           <Avatar className='size-6 border bg-accent'>
-            <AvatarImage
-              src={
-                applications[activeApp].image === '' ||
-                applications[activeApp].image === undefined
-                  ? ''
-                  : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${applications[activeApp].image}`
-              }
-            />
+            <AvatarImage src={applications[activeApp].image} />
             <AvatarFallback>
               {applications[activeApp]
                 ? applications[activeApp].name.charAt(0).toUpperCase()
                 : ''}
             </AvatarFallback>
           </Avatar>
-          {applications[activeApp]
-            ? applications[activeApp].name.charAt(0).toUpperCase() +
-              applications[activeApp].name.slice(1).toLowerCase()
-            : ''}
+          {applications[activeApp] ? applications[activeApp].name : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>
@@ -93,22 +82,15 @@ export default function ApplicationsChip() {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${
-                isBlocked ? 'cursor-not-allowed opacity-50' : ''
-              }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${isBlocked ? 'cursor-not-allowed opacity-50' : ''
+                }`}
               onClick={() => {
                 handleAppSelect(i);
               }}
             >
               <div className='flex flex-row items-center justify-center gap-2'>
                 <Avatar className='size-6 border bg-accent'>
-                  <AvatarImage
-                    src={
-                      app.image === '' || app.image === undefined
-                        ? ''
-                        : `${process.env.NEXT_PUBLIC_FILE_URL}/uploads/${app.image}`
-                    }
-                  />
+                  <AvatarImage src={app.image} />
                   <AvatarFallback>
                     {app.name.charAt(0).toUpperCase()}
                   </AvatarFallback>

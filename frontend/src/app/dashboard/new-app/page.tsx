@@ -57,18 +57,21 @@ export default function NewApp() {
           const formData = new FormData();
           formData.append('file', file);
 
-          fetch(
-            process.env.NEXT_PUBLIC_FILE_URL + '/app-upload?appid=' + json.id,
-            {
-              method: 'POST',
-              credentials: 'include',
-              body: formData,
-            },
-          ).then((res) => {
-            if (res.ok) {
-              json.image = 'app_' + json.id;
-            }
-          });
+          fetch(process.env.NEXT_PUBLIC_API_URL + '/app-image/' + json.id, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+          })
+            .then((res) => {
+              if (res.ok) {
+                return res.json();
+              }
+            })
+            .then((url) => {
+              if (url !== undefined) {
+                json.image = url;
+              }
+            });
         }
 
         json.metrics = await loadMetrics(json.id);
