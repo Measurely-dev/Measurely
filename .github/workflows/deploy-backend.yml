@@ -23,7 +23,6 @@ jobs:
           else
             echo "No changes detected in backend/ directory, skipping deploy."
             echo "changes=false" >> $GITHUB_ENV
-            exit 0
           fi
 
       - name: Set up Go

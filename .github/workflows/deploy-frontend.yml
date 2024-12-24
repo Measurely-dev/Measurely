@@ -13,19 +13,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set Commit Status (Skipped or Deployed)
+      - name: Check if frontend directory has changed
+        id: check_changes
         run: |
-          if [ "$changes" == "false" ]; then
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -d '{"state": "failure", "description": "Frontend deployment skipped", "context": "Frontend Deployment"}' \
-              "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}"
+          git diff --exit-code frontend/ || echo "Changes detected in frontend/ directory."
+          if [ $? -ne 0 ]; then
+            echo "Changes detected in frontend/ directory."
+            echo "changes=true" >> $GITHUB_ENV
           else
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -d '{"state": "success", "description": "Frontend deployed successfully", "context": "Frontend Deployment"}' \
-              "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}"
+            echo "No changes detected in frontend/ directory, skipping deploy."
+            echo "changes=false" >> $GITHUB_ENV
+            # Do not exit, just mark as false and continue
           fi
+
+      - name: Debug info - Check files changed
+        run: |
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
       - name: Set up Node.js
         if: env.changes == 'true'
