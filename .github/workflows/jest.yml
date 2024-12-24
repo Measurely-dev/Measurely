@@ -1,0 +1,40 @@
+name: Jest Testing (Frontend)
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+  pull_request:
+    branches:
+      - main
+      - 'feature/*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm
+
+      - name: Install Dependencies (Frontend)
+        run: |
+          cd frontend
+          pnpm install
+
+      - name: Run Jest Tests (Frontend)
+        run: |
+          cd frontend
+          pnpm test
+        env:
+          CI: true
