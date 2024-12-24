@@ -91,7 +91,7 @@ export default function SettingPaymentPage() {
             value: `${applications?.length}/${user?.plan.applimit}`,
           },
           {
-            title: 'Requests limit',
+            title: 'Update limit',
             description: 'On this plan',
             value: user?.plan.requestlimit + ' per minute',
           },

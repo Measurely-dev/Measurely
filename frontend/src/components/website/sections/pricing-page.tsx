@@ -94,19 +94,19 @@ export default function PricingCardsSection(props: {
         recurrence='month'
         name='Entreprise'
         className='mt-5'
-        description='Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees.'
-        price='custom'
+        description='Designed for businesses requiring custom solutions. Enjoy personalized limits, advanced features, and premium support to meet your unique needs. Reach out to our sales team to craft a plan tailored specifically for you.'
+        price='custom pricing'
         reccurence='forever'
         target='large organizations'
         list={[
           {
-            name: 'Unlimited reporting',
+            name: 'Up to 100 applications',
           },
           {
-            name: 'SAML and SSO',
+            name: 'Up to  an unlimited amount of metrics per application',
           },
           {
-            name: 'Custom billing',
+            name: 'Up to 1,000,000 updates per minute',
           },
         ]}
         button='Talk to sales'

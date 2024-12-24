@@ -1,14 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { CheckIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 
 interface WebPricingCardProps {
   className?: string;
   name: string;
   description: string;
-  price: number | 'custom';
+  price?: number | 'custom pricing';
   recurrence: string;
-  target: string;
-  list: Array<any>;
+  target?: string;
+  list?: Array<any>;
   button?: string;
   disabled?: boolean | false;
   [key: string]: any; // Accept any additional props
@@ -34,22 +35,27 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
       className={`flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className}`}
     >
       <div className='text-2xl font-medium'>{name}</div>
-      <div className='mb-auto text-xs font-normal'>{description}</div>
-      <div className='mt-5 flex flex-row items-end gap-[5px]'>
-        {price === 'custom' ? (
-          <div className='text-3xl font-semibold leading-none'>Custom</div>
-        ) : (
-          <>
-            <div className='text-3xl font-semibold leading-none'>${price}</div>
-            <div className='text-xs text-secondary'>
-              {recurrence === 'month' ? 'USD per month' : 'forever'}
-            </div>
-          </>
-        )}
+      <div className='mb-auto text-xs font-normal'>
+        {description}
+        <div className='mt-5 flex flex-row items-end gap-[5px]'>
+          {price === 'custom pricing' ? (
+            <div className='text-3xl font-semibold leading-none'>Custom pricing</div>
+          ) : (
+            <>
+              <div className='text-3xl font-semibold leading-none'>
+                ${price}
+              </div>
+              <div className='text-xs text-secondary'>
+                {recurrence === 'month' ? 'USD per month' : 'forever'}
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
       <div className='mt-5 flex flex-col gap-[10px]'>
         <div className='mb-[10px] text-sm font-semibold'>For {target}</div>
-        {list.map((listItem, i) => {
+        {list?.map((listItem, i) => {
           return (
             <div className='flex flex-row items-center gap-[10px]' key={i}>
               <div className='flex size-[25px] items-center justify-center rounded-[8px] bg-background'>
@@ -62,7 +68,16 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
           );
         })}
       </div>
-      {button ? (
+
+      {name === 'Entreprise' ? (
+        <>
+          <Link href='mailto:info@measurely.dev' className='w-fit'>
+            <Button className={`mt-[30px] w-fit rounded-[12px]`}>
+              {button}
+            </Button>
+          </Link>
+        </>
+      ) : button ? (
         <Button
           className={`mt-[30px] w-fit rounded-[12px]`}
           disabled={disabled}

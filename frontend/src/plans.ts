@@ -3,19 +3,19 @@ export const plans = [
     name: 'Starter',
     identifier: 'starter',
     description:
-      'Everything you need to get started with 10,500 free MAU. No setup fees, monthly fees, or hidden fees.',
+      'Free with 2 metrics, 1 app, and 100 RPM. No setup or hidden fees.',
     price: 0,
     reccurence: 'forever',
     target: 'very small teams',
     list: [
       {
-        name: 'Real-time contact syncing',
+        name: '1 applications',
       },
       {
-        name: 'Automatic data enrichment',
+        name: '2 metrics per application',
       },
       {
-        name: 'Up to 3 seats',
+        name: '100 updates per minute',
       },
     ],
     button: 'Get started now',
@@ -23,20 +23,19 @@ export const plans = [
   {
     name: 'Plus',
     identifier: 'plus',
-    description:
-      'Advanced features to help you scale any business without limits.',
-    price: 25,
+    description: 'More features and higher limits, all at a fair price.',
+    price: 9,
     reccurence: 'month',
     target: 'growing teams',
     list: [
       {
-        name: 'Private lists',
+        name: '3 applications',
       },
       {
-        name: 'Enhanced email sending',
+        name: '10 metrics per application',
       },
       {
-        name: 'No seat limits',
+        name: '1,000 updates per minute',
       },
     ],
     button: 'Continue with Plus',
@@ -44,20 +43,19 @@ export const plans = [
   {
     name: 'Pro',
     identifier: 'pro',
-    description:
-      'For teams with more complex needs requiring the highest levels of support.',
-    price: 59,
+    description: 'Top-tier tools and limits for advanced users, no surprises.',
+    price: 22,
     reccurence: 'month',
     target: 'scaling businesses',
     list: [
       {
-        name: 'Fully adjustable permissions',
+        name: '10 applications',
       },
       {
-        name: 'Advanced data enrichment',
+        name: '30 metrics per application',
       },
       {
-        name: 'Priority support',
+        name: '10,000 updates per minute',
       },
     ],
     button: 'Continue with Pro',
