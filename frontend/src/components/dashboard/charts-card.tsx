@@ -172,7 +172,7 @@ export function ChartsCard() {
                           data={combineTrends(data)}
                           index='date'
                           color='blue'
-                          categories={['total']}
+                          categories={['Total']}
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }

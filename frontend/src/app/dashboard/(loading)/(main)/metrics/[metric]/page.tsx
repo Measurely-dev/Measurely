@@ -648,6 +648,7 @@ function OverviewChart(props: { metric: Metric }) {
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
             yAxisLabel='Total'
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -961,6 +962,7 @@ function TrendChart(props: { metric: Metric }) {
               categories={['Positive Trend', 'Negative Trend']}
               valueFormatter={(number: number) => valueFormatter(number)}
               yAxisLabel='Total'
+              onValueChange={() => { }}
             />
           ) : (
             <AreaChart
@@ -969,9 +971,10 @@ function TrendChart(props: { metric: Metric }) {
               index='date'
               customTooltip={customTooltip}
               colors={[trendChartColor]}
-              categories={['total']}
+              categories={['Total']}
               valueFormatter={(number: number) => valueFormatter(number)}
               yAxisLabel='Total'
+              onValueChange={() => { }}
             />
           )}
         </div>

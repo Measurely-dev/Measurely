@@ -202,7 +202,6 @@ export const loadChartData = async (
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
 
-  console.log(tmpData);
   return tmpData;
 };
 
@@ -254,7 +253,7 @@ export const combineTrends = (data: any[]) => {
       data[i]['Positive Trend'] !== undefined &&
       data[i]['Negative Trend'] !== undefined
     ) {
-      value['total'] = data[i]['Positive Trend'] - data[i]['Negative Trend'];
+      value['Total'] = data[i]['Positive Trend'] - data[i]['Negative Trend'];
     }
     trend.push(value);
   }
