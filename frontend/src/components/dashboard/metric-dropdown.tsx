@@ -46,7 +46,7 @@ export default function MetricDropdown(props: {
                 <DropdownMenuItem
                   onClick={() => {
                     navigator.clipboard.writeText(props.metric.id);
-                    toast.success('Copied Metric ID');
+                    toast.success('Succefully copied metric ID');
                   }}
                 >
                   Copy ID
