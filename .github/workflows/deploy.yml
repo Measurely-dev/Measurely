@@ -3,45 +3,39 @@ name: Deploy Measurely SaaS to Railway
 on:
   push:
     branches:
-      - main  # Trigger deployment on push to the main branch
+      - main
   pull_request:
     branches:
-      - main  # Trigger deployment checks on PRs to main
+      - main 
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: 'Change dir'
-      run: |
-        cd frontend
-    
-    - name: Install dependencies
-      run: |
-        pnpm install
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-    - name: Build the app
-      run: |
-        pnpm build
+      - name: Install dependencies and build the app
+        run: |
+          cd frontend
+          pnpm install
+          pnpm build
 
-    - name: Install Railway CLI
-      run: |
-        curl -sSL https://railway.app/cli | bash
-        mv railway /usr/local/bin
+      - name: Install Railway CLI
+        run: |
+          curl -sSL https://railway.app/cli | bash
+          mv railway /usr/local/bin
 
-    - name: Authenticate with Railway CLI
-      run: |
-        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+      - name: Authenticate with Railway CLI
+        run: |
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
 
-    - name: Deploy to Railway
-      run: |
-        railway up
+      - name: Deploy to Railway
+        run: |
+          railway up
