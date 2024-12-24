@@ -409,11 +409,7 @@ const ChartLegend = (
       )}
     >
       <Legend
-        categories={filteredPayload.map(
-          (entry: any) =>
-            entry.value.charAt(0).toUpperCase() +
-            entry.value.slice(1).toLowerCase(),
-        )}
+        categories={filteredPayload.map((entry: any) => entry.value)}
         colors={filteredPayload.map((entry: any) =>
           categoryColors.get(entry.value),
         )}

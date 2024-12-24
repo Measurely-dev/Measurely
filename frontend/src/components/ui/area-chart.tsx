@@ -350,11 +350,7 @@ const ChartLegend = (
       )}
     >
       <Legend
-        categories={legendPayload.map(
-          (entry: any) =>
-            entry.value.charAt(0).toUpperCase() +
-            entry.value.slice(1).toLowerCase(),
-        )}
+        categories={legendPayload.map((entry: any) => entry.value)}
         colors={legendPayload.map((entry: any) =>
           categoryColors.get(entry.value),
         )}
@@ -648,9 +644,9 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
     const abbreviateNumber = (value: any) => {
       const isNegative = value < 0;
       const absoluteValue = Math.abs(value);
-    
+
       let formattedValue = '';
-    
+
       if (absoluteValue >= 1e9) {
         const formatted = (absoluteValue / 1e9).toFixed(1);
         formattedValue = formatted.endsWith('.0')
@@ -669,10 +665,10 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       } else {
         formattedValue = absoluteValue.toString();
       }
-    
+
       return isNegative ? `-${formattedValue}` : formattedValue;
     };
-    
+
     return (
       <div
         ref={ref}
