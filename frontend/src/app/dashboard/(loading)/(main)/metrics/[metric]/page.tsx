@@ -695,7 +695,7 @@ function TrendChart(props: { metric: Metric }) {
     for (let i = data.length - 1; i > 0; i--) {
       if (
         data[i]['Positive Trend'] !== undefined &&
-        data[i]['Negative Trend']
+        data[i]['Negative Trend'] !== undefined
       ) {
         totalValue = data[i]['Positive Trend'] - data[i]['Negative Trend'];
         break;
@@ -1054,7 +1054,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1081,7 +1081,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-          (props.chartName === 'trend' && props.checked) ? (
+            (props.chartName === 'trend' && props.checked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1241,7 +1241,8 @@ function AdvancedOptions(props: {
               </Select>
             </Label>
           )}
-          {props.chartName === 'trend' ? (
+          {props.chartName === 'trend' &&
+            props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines

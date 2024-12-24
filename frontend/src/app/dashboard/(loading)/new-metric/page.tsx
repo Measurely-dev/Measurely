@@ -111,11 +111,10 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
-        props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-      }`}
+        }`}
       onClick={() => {
         if (props.value === 2) {
           return;
@@ -156,6 +155,18 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               return;
             }
 
+            if (
+              name.toLowerCase() === 'total' ||
+              name.toLowerCase() === 'positive trend' ||
+              name.toLowerCase() === 'negative trend'
+            ) {
+              toast.error(
+                'The variable names you have chosen are used internally, please choose something else.',
+              );
+              setLoading(false);
+              return;
+            }
+
             fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'POST',
               headers: {
@@ -189,11 +200,11 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   applications.map((v, i) =>
                     i === activeApp
                       ? Object.assign({}, v, {
-                          metrics: [
-                            ...(applications[activeApp].metrics ?? []),
-                            json,
-                          ],
-                        })
+                        metrics: [
+                          ...(applications[activeApp].metrics ?? []),
+                          json,
+                        ],
+                      })
                       : v,
                   ),
                 );
@@ -301,9 +312,15 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
 
           if (
             namePos.toLowerCase() === 'total' ||
-            nameNeg.toLowerCase() === 'total'
+            nameNeg.toLowerCase() === 'total' ||
+            namePos.toLowerCase() === 'positive trend' ||
+            nameNeg.toLowerCase() === 'positive trend' ||
+            namePos.toLowerCase() === 'negative trend' ||
+            nameNeg.toLowerCase() === 'negative trend'
           ) {
-            toast.error("You cannot use the name 'total' for your variables");
+            toast.error(
+              'The variable names you have chosen are used internally, please choose something else.',
+            );
             setLoading(false);
             return;
           }
@@ -346,11 +363,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 applications.map((v, i) =>
                   i === activeApp
                     ? Object.assign({}, v, {
-                        metrics: [
-                          ...(applications[activeApp].metrics ?? []),
-                          json,
-                        ],
-                      })
+                      metrics: [
+                        ...(applications[activeApp].metrics ?? []),
+                        json,
+                      ],
+                    })
                     : v,
                 ),
               );
