@@ -17,7 +17,7 @@ jobs:
         id: check_changes
         run: |
           # Check if there are any changes in the 'backend/' directory
-          git diff --quiet HEAD~1..HEAD -- backend/
+          git diff --quiet HEAD -- backend/
 
           # If changes are detected, the exit code will be non-zero
           if [ $? -ne 0 ]; then
