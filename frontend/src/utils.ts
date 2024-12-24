@@ -172,7 +172,7 @@ export const loadChartData = async (
       tmpData[i]['Negative Trend'] === null
     ) {
       tmpData[i]['Positive Trend'] = lastTotalPos;
-      tmpData[i]['Negative Trend'] = lastTotalPos;
+      tmpData[i]['Negative Trend'] = lastTotalNeg;
     } else {
       lastTotalPos = tmpData[i]['Positive Trend'];
       lastTotalNeg = tmpData[i]['Negative Trend'];
