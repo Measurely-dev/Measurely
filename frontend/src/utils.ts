@@ -178,9 +178,8 @@ export const loadChartData = async (
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
       lastTotalNeg =
-        tmpData[i]['Negative Trend'] - metric.type === MetricType.Dual
-          ? tmpData[i][metric.nameneg]
-          : 0;
+        tmpData[i]['Negative Trend'] -
+        (metric.type === MetricType.Dual ? tmpData[i][metric.nameneg] : 0);
     }
   }
 
@@ -203,6 +202,7 @@ export const loadChartData = async (
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
 
+  console.log(tmpData);
   return tmpData;
 };
 
