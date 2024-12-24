@@ -208,7 +208,7 @@ export default function DashboardMetricPage() {
     } else {
       setMetric(metricData);
     }
-  }, [activeApp]);
+  }, [activeApp, applications]);
 
   useEffect(() => {
     loadDailyValues(metric!);
