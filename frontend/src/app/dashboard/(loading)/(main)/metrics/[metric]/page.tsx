@@ -257,7 +257,7 @@ export default function DashboardMetricPage() {
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
               <div className='text-lg font-normal capitalize text-muted-foreground'>
-                {metric?.name ?? "Unknown"}
+                {metric?.name ?? 'Unknown'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
                 {valueFormatter(metric?.total ?? 0)}
@@ -675,7 +675,7 @@ function TrendChart(props: { metric: Metric }) {
         props.metric,
         props.metric.appid,
       )) ?? [];
-
+    console.log(data);
     let totalValue = null;
     for (let i = data.length - 1; i > 0; i--) {
       if (data[i].total !== undefined) {
