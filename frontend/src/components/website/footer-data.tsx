@@ -8,7 +8,6 @@ export const footerData = [
     title: 'Quickstart',
     href: '/docs/setup/quickstart',
   },
-  { title: 'Terms', href: '/terms' },
-  { title: 'Privacy', href: '/privacy' },
+  { title: 'Legal', href: '/legal' },
   { title: 'Help', href: '/help' },
 ];
