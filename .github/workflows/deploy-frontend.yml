@@ -1,4 +1,4 @@
-name: Deploy frontend Railway
+name: Deploy Frontend Railway
 
 on:
   push:
