@@ -2,12 +2,12 @@ import Footer from '@/components/website/footer';
 import Navbar from '@/components/website/navbar';
 import { headers } from 'next/headers';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = headers();
+  const headersList = await headers();
   const is_authentificated = headersList.get('is-authentificated');
 
   return (
