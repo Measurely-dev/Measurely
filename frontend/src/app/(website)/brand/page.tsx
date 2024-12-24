@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { CardContent, Card } from '@/components/ui/card';
 import WebContainer from '@/components/website/container';
@@ -5,16 +7,20 @@ import ContentContainer from '@/components/website/content';
 import WebPageHeader from '@/components/website/page-header';
 import { Download } from 'lucide-react';
 import Image from 'next/image';
-import MeasurelyIcon from '../../../../public/measurely-icon-1200x1200.png';
-import MeasurelyLogo from '../../../../public/measurely-logo-816x306.png';
-import { Metadata } from 'next';
+import { useEffect } from 'react';
 
-export const metadata: Metadata = {
-  title: 'Brand',
-  description:
-    'Explore Measurely’s brand assets, including our logo, color palettes, and user guidelines. Whether you’re a partner, designer, or developer, find everything you need to represent Measurely consistently and professionally across your materials and projects.',
-};
 export default function BrandAssetsPage() {
+  useEffect(() => {
+    document.title = 'Brand | Measurely';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Explore Measurely’s brand assets, including our logo, color palettes, and user guidelines. Whether you’re a partner, designer, or developer, find everything you need to represent Measurely consistently and professionally across your materials and projects.',
+      );
+    }
+  }, []);
+
   return (
     <WebContainer>
       <ContentContainer type='page'>
@@ -29,13 +35,13 @@ export default function BrandAssetsPage() {
             {[
               {
                 name: 'measurely-logo.png',
-                src: MeasurelyLogo,
+                src: '/logos/measurely-logo.png',
                 width: 267,
                 height: 100,
               },
               {
                 name: 'measurely-icon.png',
-                src: MeasurelyIcon,
+                src: '/logos/measurely-icon.png',
                 width: 100,
                 height: 100,
               },
@@ -53,11 +59,7 @@ export default function BrandAssetsPage() {
                   </div>
                   <div className='flex items-center justify-between'>
                     <span className='text-sm font-medium'>{logo.name}</span>
-                    <a
-                      href={`/${logo.name}`}
-                      download={logo.name}
-                      className='no-underline'
-                    >
+                    <a href={logo.src} download={logo.name}>
                       <Button
                         variant='outline'
                         className='rounded-[12px]'
@@ -73,7 +75,6 @@ export default function BrandAssetsPage() {
             ))}
           </div>
         </div>
-
         {/* Color Palette Section */}
         <div className='mb-12'>
           <h2 className='mb-4 text-2xl font-medium'>Color Palette</h2>
@@ -95,8 +96,6 @@ export default function BrandAssetsPage() {
             ))}
           </div>
         </div>
-
-        {/* Typography Section */}
         <div>
           <div className='space-y-4'>
             <div>
