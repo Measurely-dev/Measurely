@@ -25,16 +25,19 @@ jobs:
           fi
 
       - name: Set up Go
+        if: steps.check_changes.outcome == 'success'
         uses: actions/setup-go@v3
         with:
           go-version: "1.23"
 
       - name: Test build
+        if: steps.check_changes.outcome == 'success'
         run: |
           cd backend
           go build cmd/main.go
 
       - name: Railway Deploy
+        if: steps.check_changes.outcome == 'success'
         uses: bervProject/railway-deploy@main
         with:
           railway_token: ${{ secrets.RAILWAY_TOKEN }}

@@ -25,25 +25,30 @@ jobs:
           fi
 
       - name: Set up Node.js
+        if: steps.check_changes.outcome == 'success'
         uses: actions/setup-node@v3
         with:
           node-version: "18"
 
       - name: Install pnpm
+        if: steps.check_changes.outcome == 'success'
         run: |
           npm install -g pnpm
 
       - name: Install dependencies
+        if: steps.check_changes.outcome == 'success'
         run: |
           cd frontend
           pnpm install
 
       - name: Build Next.js app
+        if: steps.check_changes.outcome == 'success'
         run: |
           cd frontend
           pnpm run build
 
       - name: Railway Deploy
+        if: steps.check_changes.outcome == 'success'
         uses: bervProject/railway-deploy@main
         with:
           railway_token: ${{ secrets.RAILWAY_TOKEN }}
