@@ -138,24 +138,24 @@ export const loadChartData = async (
             }
 
             if (matches) {
-              let fieldName = null;
-              let value = json[i].value;
-              const relativetotal = json[i].relativetotal;
-
-              if (value >= 0) {
-                fieldName =
-                  metric.type === MetricType.Base
-                    ? metric.name
-                    : metric.namepos;
-              } else if (value < 0) {
-                fieldName = metric.nameneg;
-                value = -value;
+              if (range > 0) {
+                tmpData[j][metric.namepos] += json[i].valuepos;
+                if (metric.type === MetricType.Dual) {
+                  tmpData[j][metric.nameneg] += -json[i].valueneg;
+                }
+              } else {
+                if (json[i].value >= 0) {
+                  tmpData[j][
+                    metric.type === MetricType.Base
+                      ? metric.name
+                      : metric.namepos
+                  ] += json[i].value;
+                } else {
+                  tmpData[j][metric.nameneg] += -json[i].value;
+                }
               }
 
-              if (fieldName !== null && value !== null) {
-                tmpData[j][fieldName] += value;
-                tmpData[j]['total'] = relativetotal;
-              }
+              tmpData[j]['total'] = json[i].relativetotal;
             }
           }
         }
@@ -172,6 +172,8 @@ export const loadChartData = async (
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
 
+  console.log(tmpData);
+
   return tmpData;
 };
 
@@ -186,8 +188,7 @@ export const fetchDailySummary = async (
   const to = new Date(from);
   to.setHours(from.getHours() + 24);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
-      appid
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
     }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
     {
       method: 'GET',
@@ -204,11 +205,8 @@ export const fetchDailySummary = async (
         let pos = 0;
         let neg = 0;
         for (let i = 0; i < json.length; i++) {
-          if (json[i].value >= 0) {
-            pos += json[i].value;
-          } else {
-            neg += -json[i].value;
-          }
+          pos += json[i].valuepos;
+          neg += -json[i].valueneg;
         }
         return { pos, neg };
       }

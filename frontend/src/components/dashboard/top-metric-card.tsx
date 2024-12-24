@@ -46,7 +46,7 @@ export const TopMetricCard = () => {
         <CardTitle>Top metric chart</CardTitle>
         <CardDescription>Top metric across this application.</CardDescription>
       </CardHeader>
-      {topMetricData.length === 0 ? (
+      {topMetricData.length < 2 ? (
         <EmptyState
           className='mt-5 py-14'
           title='No items to show at the moment.'

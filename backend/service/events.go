@@ -144,12 +144,23 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pos := int64(0)
+	neg := int64(0)
+
+	if request.Value > 0 {
+		pos = request.Value
+	} else {
+		neg = request.Value
+	}
+
 	if err := s.db.CreateDailyMetricSummary(types.DailyMetricSummary{
 		Id:            metricid.String() + time.Now().UTC().Format("2006-01-02"),
 		MetricId:      metricid,
-		Value:         request.Value,
+		ValuePos:      pos,
+		ValueNeg:      neg,
 		RelativeTotal: metricCache.total + request.Value,
 	}); err != nil {
+    log.Println(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}

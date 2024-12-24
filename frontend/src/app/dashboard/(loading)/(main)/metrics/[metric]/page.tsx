@@ -257,10 +257,7 @@ export default function DashboardMetricPage() {
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
               <div className='text-lg font-normal capitalize text-muted-foreground'>
-                {metric?.name
-                  ? metric?.name.charAt(0).toUpperCase() +
-                    metric?.name.slice(1).toLowerCase()
-                  : 'Undefined'}
+                {metric?.name ?? "Unknown"}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
                 {valueFormatter(metric?.total ?? 0)}
@@ -1007,7 +1004,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1033,7 +1030,7 @@ function AdvancedOptions(props: {
             <></>
           )}
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select

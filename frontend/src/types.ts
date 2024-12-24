@@ -21,6 +21,8 @@ export interface MetricEvent {
   id: string;
   date: Date;
   value: number;
+  valuepos : number;
+  valueneg : number;
   relativetotal: number;
 }
 

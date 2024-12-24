@@ -101,7 +101,8 @@ type Plan struct {
 type DailyMetricSummary struct {
 	Id            string    `json:"id"`
 	MetricId      uuid.UUID `json:"metricid"`
-	Value         int64     `json:"value"`
+	ValuePos      int64     `json:"valuepos"`
+	ValueNeg      int64     `json:"valueneg"`
 	RelativeTotal int64     `json:"relativetotal"`
 	Date          time.Time `json:"date"`
 }
