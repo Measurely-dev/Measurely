@@ -7,8 +7,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const is_authentificated = headersList.get('is-authentificated');
+  const is_authentificated = headers().get('is-authentificated');
 
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>

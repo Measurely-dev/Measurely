@@ -7,8 +7,7 @@ export default async function middleware(request: NextRequest) {
   if (url === '/') {
     return NextResponse.redirect(new URL('/home', request.url));
   }
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get('measurely-session');
+  const cookie = cookies().get('measurely-session');
   let logged = false;
   if (cookie !== undefined) {
     logged = true;
