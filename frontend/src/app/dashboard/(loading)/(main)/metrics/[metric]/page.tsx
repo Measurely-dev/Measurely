@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Tooltip,
@@ -1191,6 +1192,19 @@ function AdvancedOptions(props: {
                 </SelectContent>
               </Select>
             </Label>
+          )}
+          {props.chartName === 'trend' ? (
+            <Label className='flex flex-row items-center justify-between gap-4'>
+              <div className='flex flex-col gap-1'>
+                Split trend lines
+                <div className='text-xs font-normal text-secondary'>
+                  Divide trend into separate positive and negative values
+                </div>
+              </div>
+              <Switch />
+            </Label>
+          ) : (
+            <></>
           )}
         </div>
       </PopoverContent>
