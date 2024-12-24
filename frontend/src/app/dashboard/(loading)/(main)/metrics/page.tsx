@@ -15,8 +15,10 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
+  SelectLabel
 } from '@/components/ui/select';
 import { Plus, Search } from 'react-feather';
 import MetricTable from './metric-table';
@@ -36,7 +38,7 @@ import { useRouter } from 'next/navigation';
 export default function DashboardMetrics() {
   const { applications, activeApp } = useContext(AppsContext);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('new');
+  const [filter, setFilter] = useState('total');
   const router = useRouter();
   useEffect(() => {
     document.title = 'Metrics | Measurely';
@@ -115,9 +117,11 @@ function FiltersComponent(props: {
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
+          <SelectLabel>Sort by</SelectLabel>
+          <SelectSeparator />
+        <SelectItem value='total'>Total value</SelectItem>
           <SelectItem value='new'>Newest to oldest</SelectItem>
           <SelectItem value='old'>Oldest to newest</SelectItem>
-          <SelectItem value='total'>Total value</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>

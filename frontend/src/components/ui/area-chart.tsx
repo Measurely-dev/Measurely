@@ -646,24 +646,33 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
       setActiveDot(undefined);
     }
     const abbreviateNumber = (value: any) => {
-      if (value >= 1e9) {
-        const formatted = (value / 1e9).toFixed(1);
-        return formatted.endsWith('.0')
-          ? `${(value / 1e9).toFixed(0)}B`
+      const isNegative = value < 0;
+      const absoluteValue = Math.abs(value);
+    
+      let formattedValue = '';
+    
+      if (absoluteValue >= 1e9) {
+        const formatted = (absoluteValue / 1e9).toFixed(1);
+        formattedValue = formatted.endsWith('.0')
+          ? `${(absoluteValue / 1e9).toFixed(0)}B`
           : `${formatted}B`;
-      } else if (value >= 1e6) {
-        const formatted = (value / 1e6).toFixed(1);
-        return formatted.endsWith('.0')
-          ? `${(value / 1e6).toFixed(0)}M`
+      } else if (absoluteValue >= 1e6) {
+        const formatted = (absoluteValue / 1e6).toFixed(1);
+        formattedValue = formatted.endsWith('.0')
+          ? `${(absoluteValue / 1e6).toFixed(0)}M`
           : `${formatted}M`;
-      } else if (value >= 1e3) {
-        const formatted = (value / 1e3).toFixed(1);
-        return formatted.endsWith('.0')
-          ? `${(value / 1e3).toFixed(0)}K`
+      } else if (absoluteValue >= 1e3) {
+        const formatted = (absoluteValue / 1e3).toFixed(1);
+        formattedValue = formatted.endsWith('.0')
+          ? `${(absoluteValue / 1e3).toFixed(0)}K`
           : `${formatted}K`;
+      } else {
+        formattedValue = absoluteValue.toString();
       }
-      return value;
+    
+      return isNegative ? `-${formattedValue}` : formattedValue;
     };
+    
     return (
       <div
         ref={ref}

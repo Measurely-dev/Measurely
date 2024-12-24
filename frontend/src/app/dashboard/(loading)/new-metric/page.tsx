@@ -210,6 +210,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 <Input
                   placeholder='New users, Deleted projects, Suspended accounts'
                   type='text'
+                  maxLength={30}
                   className='h-11 rounded-[12px]'
                   value={name}
                   onChange={(e) => setName(e.target.value.trimStart())}
@@ -370,7 +371,8 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               <div className='flex w-full flex-col gap-3'>
                 <Label>Metric name</Label>
                 <Input
-                  placeholder='Accounts, Transfers'
+                  placeholder='Users, Transfers, Applications'
+                  maxLength={30}
                   type='text'
                   value={name}
                   onChange={(e) => setName(e.target.value.trimStart())}
