@@ -13,43 +13,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check if frontend directory has changed
-        id: check_changes
-        run: |
-          # Check for changes in the frontend directory
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^frontend/'; then
-            echo "Changes detected in the frontend directory"
-            echo "changes=true" >> $GITHUB_ENV
-          else
-            echo "No changes detected in the frontend directory"
-            echo "changes=false" >> $GITHUB_ENV
-          fi
-
       - name: Set up Node.js
-        if: env.changes == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: "18"
 
       - name: Install pnpm
-        if: env.changes == 'true'
         run: |
           npm install -g pnpm
 
       - name: Install dependencies
-        if: env.changes == 'true'
         run: |
           cd frontend
           pnpm install
 
       - name: Build Next.js app
-        if: env.changes == 'true'
         run: |
           cd frontend
           pnpm run build
 
       - name: Railway Deploy
-        if: env.changes == 'true'
         uses: bervProject/railway-deploy@main
         with:
           railway_token: ${{ secrets.RAILWAY_TOKEN }}
