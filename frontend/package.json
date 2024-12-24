@@ -13,7 +13,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
-    "format": "prettier --write .",
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
