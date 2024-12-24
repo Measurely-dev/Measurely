@@ -297,7 +297,7 @@ export default function DashboardMetricPage() {
                 className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
                 onClick={() => {
                   navigator.clipboard.writeText(metric ? metric.id : '');
-                  toast.success('Succefully copied Metric ID');
+                  toast.success('Succefully copied metric ID');
                 }}
               >
                 <Copy className='size-4' />
