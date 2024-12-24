@@ -1,10 +1,7 @@
-name: Deploy Measurely SaaS to Railway
+name: Deploy
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
@@ -15,6 +12,15 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Check for Railway Auto Deployment Flag
+      id: flag-check
+      run: |
+        if [[ -f "deploy-flag" ]]; then
+          echo "skip_deploy=true" >> $GITHUB_ENV
+        else
+          echo "skip_deploy=false" >> $GITHUB_ENV
+        fi
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -33,12 +39,13 @@ jobs:
 
     - name: Install Railway CLI
       run: |
-        curl -fsSL https://github.com/railwayapp/railway/releases/download/v1.7.0/railway-linux-x64.tar.gz | tar -xz -C /usr/local/bin
+        curl -sSL https://railway.app/cli | bash
 
     - name: Authenticate with Railway CLI
       run: |
         railway login --token ${{ secrets.RAILWAY_TOKEN }}
 
     - name: Deploy to Railway
+      if: env.skip_deploy == 'false'
       run: |
         railway up
