@@ -12,8 +12,8 @@ export default function DashboardContentLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <div suppressHydrationWarning>
       <DashboardContentClient>{children}</DashboardContentClient>
-    </>
+    </div>
   );
 }

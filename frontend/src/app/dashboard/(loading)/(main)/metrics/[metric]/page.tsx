@@ -704,7 +704,6 @@ function TrendChart(props: { metric: Metric }) {
     setLoadingLeft(false);
     setLoadingRight(false);
   };
-  console.log(chartData)
   useEffect(() => {
     let interval: any;
     if (range >= 365) {
