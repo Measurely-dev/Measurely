@@ -693,7 +693,10 @@ function TrendChart(props: { metric: Metric }) {
       )) ?? [];
     let totalValue = null;
     for (let i = data.length - 1; i > 0; i--) {
-      if (data[i]['Positive Trend'] !== undefined && data[i]['Negative Trend']) {
+      if (
+        data[i]['Positive Trend'] !== undefined &&
+        data[i]['Negative Trend']
+      ) {
         totalValue = data[i]['Positive Trend'] - data[i]['Negative Trend'];
         break;
       }
@@ -1051,7 +1054,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1078,7 +1081,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-            (props.chartName === 'trend' && props.checked) ? (
+          (props.chartName === 'trend' && props.checked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1370,7 +1373,9 @@ function RangeSelector(props: {
       <div
         onClick={() => {
           if (user?.plan.identifier === 'starter') {
-            toast.warning('Upgrade plan to access the year view');
+            toast.warning(
+              'Your current plan allows viewing up to 30 days of data. Upgrade to unlock extended date ranges.',
+            );
           }
         }}
       >
