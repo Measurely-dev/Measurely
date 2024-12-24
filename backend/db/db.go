@@ -2,7 +2,12 @@ package db
 
 import (
 	"Measurely/types"
+	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,24 +25,52 @@ func NewPostgres(url string) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// Set connection pooling parameters
 	db.SetMaxOpenConns(10)                  // Maximum number of open connections
 	db.SetMaxIdleConns(5)                   // Maximum number of idle connections
 	db.SetConnMaxLifetime(30 * time.Minute) // Maximum connection lifetime
 
-	// Run migration from a file
-	migrationFile := "migration.sql"
-	b, err := os.ReadFile(migrationFile)
+	err = migrate(db)
 	if err != nil {
-		return nil, err
-	}
-	_, err = db.Exec(string(b))
-	if err != nil {
-		return nil, err
+		log.Fatal("Migration failed. aborting")
 	}
 
 	return &DB{Conn: db}, nil
+}
+
+func migrate(db *sqlx.DB) error {
+	// Path to the migrations folder
+	migrationsDir := "migrations"
+
+	// Read the migration files from the migrations directory
+	files, err := os.ReadDir(migrationsDir)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	var migrationFiles []string
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".sql") {
+			migrationFiles = append(migrationFiles, filepath.Join(migrationsDir, file.Name()))
+		}
+	}
+
+	sort.Strings(migrationFiles) 
+	for _, migrationFile := range migrationFiles {
+		b, err := os.ReadFile(migrationFile)
+		if err != nil {
+			return err
+		}
+		_, err = db.Exec(string(b))
+		if err != nil {
+			log.Printf("Error running migration %s: %v\n", migrationFile, err)
+			return err
+		}
+		fmt.Printf("Successfully ran migration: %s\n", migrationFile)
+	}
+
+	return nil
 }
 
 func (d *DB) Close() error {

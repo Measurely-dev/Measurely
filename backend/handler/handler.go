@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"Measurely/file"
 	"Measurely/service"
 	"net/http"
 
@@ -106,7 +105,7 @@ func (h *Handler) setup_api() {
 	////
 
 	/// SETUP FILE SERVER
-	file.SetupFileServer(privateRouter)
+	// file.SetupFileServer(privateRouter)
 	////
 
 	privateRouter.Mount("/", authRouter)
