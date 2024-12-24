@@ -72,7 +72,7 @@ const LegendItem = ({
       <p
         className={cx(
           // base
-          'truncate whitespace-nowrap text-xs',
+          'truncate whitespace-nowrap text-xs capitalize',
           // text color
           'text-gray-700 dark:text-gray-300',
           hasOnValueChange &&
