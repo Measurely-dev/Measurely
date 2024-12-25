@@ -624,8 +624,9 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	plan, exists := s.GetPlan(user.CurrentPlan)
-	if !exists {
+	plan, err := s.GetUserPlan(user.Id)
+	if err != nil {
+		log.Println("Failed to retrieve user plan: ", err)
 		http.Error(w, "Plan not found. Please contact support.", http.StatusNotFound)
 		return
 	}
