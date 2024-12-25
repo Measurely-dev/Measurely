@@ -18,9 +18,8 @@ export default function Page() {
           updatedDate='September 24, 2021'
           terms={
             <>
-              <li>Be at least 13 years or older</li>
               <li>
-                Zway can communicate to other services on your behalf like
+                Measurely can communicate to other services on your behalf like
                 GitHub
               </li>
               <li>You agree to not host any illegal content</li>
