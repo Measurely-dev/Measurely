@@ -3,9 +3,8 @@ import BentoUiSection from '@/components/website/sections/bento';
 import ShowcaseLandingSection from '@/components/website/sections/showcase';
 import { headers } from 'next/headers';
 
-export default async function Home() {
-  const headersList = await headers();
-  const is_authenticated = headersList.get('is-authentificated');
+export default function Home() {
+  const is_authenticated = headers().get('is-authentificated');
 
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
     fetch(
