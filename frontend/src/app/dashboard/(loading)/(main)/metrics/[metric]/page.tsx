@@ -760,7 +760,7 @@ function TrendChart(props: { metric: Metric }) {
     return () => {
       clearInterval(interval);
     };
-  }, [date?.from, range, year]);
+  }, [date?.from, range, year, props.metric]);
 
   return (
     <>
