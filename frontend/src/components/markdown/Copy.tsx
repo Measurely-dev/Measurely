@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { CheckIcon, CopyIcon } from "lucide-react";
-import { Button } from "../ui/button";
-import { useState } from "react";
+import { CheckIcon, CopyIcon } from 'lucide-react';
+import { Button } from '../ui/button';
+import { useState } from 'react';
 
 export default function Copy({ content }: { content: string }) {
   const [isCopied, setIsCopied] = useState(false);
@@ -18,15 +18,15 @@ export default function Copy({ content }: { content: string }) {
 
   return (
     <Button
-      variant="secondary"
-      className="border"
+      variant='secondary'
+      className='border'
       size={'sm'}
       onClick={handleCopy}
     >
       {isCopied ? (
-        <CheckIcon className="w-3 h-3" />
+        <CheckIcon className='h-3 w-3' />
       ) : (
-        <CopyIcon className="w-3 h-3" />
+        <CopyIcon className='h-3 w-3' />
       )}
     </Button>
   );

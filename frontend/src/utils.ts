@@ -190,7 +190,8 @@ export const fetchDailySummary = async (
   const to = new Date(from);
   to.setHours(from.getHours() + 24);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
+      appid
     }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
     {
       method: 'GET',
@@ -236,7 +237,7 @@ export const calculateTrend = (
       totalpos =
         trend[i]['Positive Trend'] -
         trend[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
+          metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
       totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
       trend[i]['Total'] =
@@ -244,7 +245,7 @@ export const calculateTrend = (
     } else {
       if (
         trend[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
+          metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
         trend[i]['Positive Trend'] = totalpos;

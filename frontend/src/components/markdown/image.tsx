@@ -1,16 +1,16 @@
-import { ComponentProps } from "react";
-import NextImage from "next/image";
+import { ComponentProps } from 'react';
+import NextImage from 'next/image';
 
-type Height = ComponentProps<typeof NextImage>["height"];
-type Width = ComponentProps<typeof NextImage>["width"];
+type Height = ComponentProps<typeof NextImage>['height'];
+type Width = ComponentProps<typeof NextImage>['width'];
 
 export default function Image({
   src,
-  alt = "alt",
+  alt = 'alt',
   width = 800,
   height = 350,
   ...props
-}: ComponentProps<"img">) {
+}: ComponentProps<'img'>) {
   if (!src) return null;
   return (
     <NextImage
@@ -19,6 +19,7 @@ export default function Image({
       width={width as Width}
       height={height as Height}
       quality={40}
+      className='rounded-[12px] border'
       {...props}
     />
   );

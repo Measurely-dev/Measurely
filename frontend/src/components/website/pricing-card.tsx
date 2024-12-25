@@ -39,7 +39,9 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         {description}
         <div className='mt-5 flex flex-row items-end gap-[5px]'>
           {price === 'custom pricing' ? (
-            <div className='text-3xl font-semibold leading-none'>Custom pricing</div>
+            <div className='text-3xl font-semibold leading-none'>
+              Custom pricing
+            </div>
           ) : (
             <>
               <div className='text-3xl font-semibold leading-none'>

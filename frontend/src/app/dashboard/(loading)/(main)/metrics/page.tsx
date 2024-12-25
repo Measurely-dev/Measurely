@@ -18,7 +18,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-  SelectLabel
+  SelectLabel,
 } from '@/components/ui/select';
 import { Plus, Search } from 'react-feather';
 import MetricTable from './metric-table';
@@ -119,7 +119,7 @@ function FiltersComponent(props: {
         <SelectGroup>
           <SelectLabel>Sort by</SelectLabel>
           <SelectSeparator />
-        <SelectItem value='total'>Total value</SelectItem>
+          <SelectItem value='total'>Total value</SelectItem>
           <SelectItem value='new'>Newest to oldest</SelectItem>
           <SelectItem value='old'>Oldest to newest</SelectItem>
         </SelectGroup>

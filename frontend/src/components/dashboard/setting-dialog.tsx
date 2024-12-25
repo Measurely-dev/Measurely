@@ -44,10 +44,15 @@ export default function SettingDialog(props: { children: ReactNode }) {
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 !shadow-none ring-1 ring-input max-lg:min-w-[95%] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col lg:min-w-[900px] lg:max-w-[900px]'>
-        <DialogTitle className='absolute hidden -z-10'>Settings</DialogTitle>
-        <DialogDescription className='absolute hidden -z-10'>Settings dialog</DialogDescription>
+        <DialogTitle className='absolute -z-10 hidden'>Settings</DialogTitle>
+        <DialogDescription className='absolute -z-10 hidden'>
+          Settings dialog
+        </DialogDescription>
         <Navbar page={page} setPage={setPage} settings={settings} />
-        <DialogClose className='absolute right-8 top-11 max-md:right-4 max-md:top-4' asChild>
+        <DialogClose
+          className='absolute right-8 top-11 max-md:right-4 max-md:top-4'
+          asChild
+        >
           <Button
             type='button'
             size={'icon'}
@@ -70,9 +75,7 @@ function Navbar(props: {
 }) {
   return (
     <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
-      <div className='ml-4 text-xs font-medium text-secondary'>
-        Settings
-      </div>
+      <div className='ml-4 text-xs font-medium text-secondary'>Settings</div>
       <div className='mt-3 flex flex-col gap-2'>
         {props.settings.map((item, i) => {
           return (

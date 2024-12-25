@@ -31,7 +31,7 @@ export default function BentoUiSection(props: {
   const bentoBoxType = window_width > 768 ? 'horizontal-left' : 'vertical';
 
   return (
-    <div className='z-10 w-screen bg-secondaryColor border-t pb-[150px] pt-[150px]'>
+    <div className='z-10 w-screen border-t bg-secondaryColor pb-[150px] pt-[150px]'>
       <ContentContainer>
         <WebTitle
           subtitle='Discover Measurely'

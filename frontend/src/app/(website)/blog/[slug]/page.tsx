@@ -20,7 +20,7 @@ export async function generateMetadata(props: PageProps) {
   const { slug } = params;
 
   const res = await getBlogForSlug(slug);
-  if (!res) return {title : ""};
+  if (!res) return { title: '' };
   const { frontmatter } = res;
   return {
     title: frontmatter.title,
@@ -75,7 +75,7 @@ export default async function BlogPage(props: PageProps) {
             alt='cover'
             width={10000}
             height={10000}
-            className='mx-auto mb-4 h-fit w-[90%] rounded-[12px] border max-w-[1050px]'
+            className='mx-auto mb-4 h-fit w-[90%] max-w-[1050px] rounded-[12px] border'
           />
         </div>
         <div className='sm:[95%] md:[75%] mx-auto flex max-w-[700px] flex-col items-center lg:w-[60%]'>

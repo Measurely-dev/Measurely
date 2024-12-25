@@ -84,8 +84,8 @@ export default function EditAppDialogContent(props: {
             applications?.map((app) =>
               app.id === props.app?.id
                 ? Object.assign({}, app, {
-                  image: url,
-                })
+                    image: url,
+                  })
                 : app,
             ) ?? [],
           );

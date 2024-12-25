@@ -11,7 +11,8 @@ This guide will help you:
 2. Update the metric value using the API.
 
 ## Creating a Basic Metric
-## 
+
+<br />
 <Stepper>
   <StepperItem title='Step 1: Access the Metrics Page'>
     Navigate to the **Metrics** section in the Measurely dashboard.
@@ -45,7 +46,8 @@ To update a metric value:
      "value": 100
    }
    ```
-##
+
+   <br />
 
 ### Code Examples
 
@@ -58,13 +60,16 @@ To update a metric value:
 
 ```javascript
 export const updateMetric = async (API_KEY, METRIC_ID, value) => {
-  const response = await fetch(`https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    `https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ value: value }),
     },
-    body: JSON.stringify({ value: value }),
-  });
+  );
   return response.status;
 };
 ```
@@ -73,14 +78,21 @@ export const updateMetric = async (API_KEY, METRIC_ID, value) => {
   <TabsContent value="typescript">
 
 ```typescript
-export const updateMetric = async (API_KEY: string, METRIC_ID: string, value: number): Promise<number> => {
-  const response = await fetch(`https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+export const updateMetric = async (
+  API_KEY: string,
+  METRIC_ID: string,
+  value: number,
+): Promise<number> => {
+  const response = await fetch(
+    `https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ value: value }),
     },
-    body: JSON.stringify({ value: value }),
-  });
+  );
   return response.status;
 };
 ```

@@ -1,15 +1,15 @@
-import NextLink from "next/link";
-import { ComponentProps } from "react";
+import NextLink from 'next/link';
+import { ComponentProps } from 'react';
 
-export default function Link({ href, ...props }: ComponentProps<"a">) {
+export default function Link({ href, ...props }: ComponentProps<'a'>) {
   if (!href) return null;
   return (
     <NextLink
       href={href}
       {...props}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-purple-500"
+      target='_blank'
+      rel='noopener noreferrer'
+      className='text-purple-500'
     />
   );
 }

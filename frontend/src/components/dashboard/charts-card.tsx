@@ -163,7 +163,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-        applications[activeApp].metrics?.length! > 0 ? (
+      applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -203,7 +203,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => { }}
+                          onValueChange={() => {}}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
