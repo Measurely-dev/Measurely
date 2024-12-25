@@ -51,7 +51,7 @@ export const loadChartData = async (
   range: number,
   metric: Metric,
   appid: string,
-) : Promise<any[]> => {
+): Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
     return [];
@@ -227,6 +227,7 @@ export const calculateTrend = (
   totalneg: number,
 ): any[] => {
   const trend = [...data];
+  console.log([...data])
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
       trend[i]['Positive Trend'] !== undefined &&
@@ -247,15 +248,10 @@ export const calculateTrend = (
         ] !== undefined
       ) {
         trend[i]['Positive Trend'] = totalpos;
-        totalpos -=
-          trend[i][
-          metric.type === MetricType.Base ? metric.name : metric.namepos
-          ];
         trend[i]['Total'] = totalpos;
       }
       if (trend[i][metric.nameneg] !== undefined) {
         trend[i]['Negative Trend'] = totalneg;
-        totalneg -= trend[i][metric.nameneg];
         trend[i]['Total'] -= totalneg;
       }
     }

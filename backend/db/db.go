@@ -198,6 +198,7 @@ func (db *DB) UpdateMetricAndCreateEventSummary(
 		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg",
 		toAdd, toRemove, metricid,
 	).Scan(&totalPos, &totalNeg)
+	log.Println(totalPos, totalNeg)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err)
@@ -231,8 +232,8 @@ func (db *DB) UpdateMetricAndCreateEventSummary(
 		ON CONFLICT (date, metricid) DO UPDATE SET 
 			valuepos = metricdailysummary.valuepos + EXCLUDED.valuepos,
 			valueneg = metricdailysummary.valueneg + EXCLUDED.valueneg,
-			relativetotalpos = metricdailysummary.relativetotalpos,
-			relativetotalneg = metricdailysummary.relativetotalneg
+			relativetotalpos = EXCLUDED.relativetotalpos,
+			relativetotalneg = EXCLUDED.relativetotalneg
 	`, summary)
 	if err != nil {
 		tx.Rollback()
