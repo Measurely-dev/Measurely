@@ -38,7 +38,12 @@ import {
 } from '@/components/ui/popover';
 import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dash-context';
-import { combineTrends, INTERVAL, loadChartData } from '@/utils';
+import {
+  calculateTrend,
+  fetchDailySummary,
+  INTERVAL,
+  loadChartData,
+} from '@/utils';
 import { Metric, MetricType } from '@/types';
 import MetricStats from './metric-stats';
 import { Skeleton } from '../ui/skeleton';
@@ -54,27 +59,42 @@ export function ChartsCard() {
   const router = useRouter();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(0);
+  const [nextTotalPos, setNextTotalPos] = useState(0);
+  const [nextTotalNeg, setNextTotalNeg] = useState(0);
+  const [metric, setMetric] = useState<Metric | null>(null);
 
   const loadData = async () => {
     if (applications[activeApp].metrics !== null) {
-      const metric = applications[activeApp].metrics[activeMetric];
-      if (metric != undefined) {
-        setTotal(metric.totalpos - metric.totalneg);
+      const metricData = applications[activeApp].metrics[activeMetric];
+      setMetric(metricData);
+      if (metricData != undefined) {
         const from = new Date();
         from.setDate(0);
+        const now = new Date();
+        const to = new Date(from);
+        to.setDate(to.getDate() + 31);
+
+        if (
+          new Date(to.getFullYear(), to.getMonth(), to.getDate()) >
+          new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        ) {
+          setNextTotalPos(metricData.totalpos);
+          setNextTotalNeg(metricData.totalneg);
+        } else {
+          const { pos, neg, relativetotalpos, relativetotalneg } =
+            await fetchDailySummary(metricData.appid, metricData.id, to);
+
+          setNextTotalPos(relativetotalpos - pos);
+          setNextTotalNeg(relativetotalneg - neg);
+        }
 
         const data = await loadChartData(
           from,
           30,
-          metric,
+          metricData,
           applications[activeApp].id,
         );
-        if (!data) {
-          setData([]);
-        } else {
-          setData(data);
-        }
+        setData(data);
       }
     }
     setLoading(false);
@@ -137,16 +157,16 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-      applications[activeApp].metrics?.length! > 0 ? (
+        applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
             setActiveMetric={setActiveMetric}
             metrics={applications[activeApp].metrics ?? []}
-            total={total}
+            total={nextTotalPos - nextTotalNeg}
           />
           <CardContent className='flex flex-col'>
-            {total === 0 ? (
+            {nextTotalPos - nextTotalNeg === 0 ? (
               <EmptyState
                 className='py-14'
                 title='Nothing Here Yet. Check Back Soon!'
@@ -155,7 +175,7 @@ export function ChartsCard() {
               />
             ) : (
               <>
-                {loading ? (
+                {loading || metric === null ? (
                   <>
                     <Skeleton className='h-60 min-h-60 w-full rounded-[12px]' />
                   </>
@@ -165,14 +185,19 @@ export function ChartsCard() {
                       <div className='w-full rounded-[12px] bg-accent p-5'>
                         <AreaChart
                           className='h-60 min-h-60 w-full'
-                          data={combineTrends(data)}
+                          data={calculateTrend(
+                            data,
+                            metric,
+                            nextTotalPos,
+                            nextTotalNeg,
+                          )}
                           index='date'
                           color='blue'
                           categories={['Total']}
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => {}}
+                          onValueChange={() => { }}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />

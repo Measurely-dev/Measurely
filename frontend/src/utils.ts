@@ -51,10 +51,10 @@ export const loadChartData = async (
   range: number,
   metric: Metric,
   appid: string,
-) => {
+) : Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
-    return;
+    return [];
   }
 
   date.setHours(0);
@@ -89,8 +89,6 @@ export const loadChartData = async (
       if (metric.type === MetricType.Dual) {
         data[metric.nameneg] = 0;
       }
-      data['Positive Trend'] = null;
-      data['Negative Trend'] = null;
     }
     tmpData.push(data);
     if (range === 0) {
@@ -101,10 +99,6 @@ export const loadChartData = async (
       dateCounter.setDate(dateCounter.getDate() + 1);
     }
   }
-
-  let lastTotalPos = null;
-  let lastTotalNeg = null;
-
   await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
     { method: 'GET', credentials: 'include' },
@@ -168,56 +162,10 @@ export const loadChartData = async (
             }
           }
         }
-
-        if (matchCount === 0 && json.length > 0) {
-          if (range > 0) {
-            lastTotalPos = json[0].relativetotalpos - json[0].valuepos;
-            lastTotalNeg = json[0].relativetotalneg - json[0].valueneg;
-          } else {
-            if (json[0].value >= 0) {
-              lastTotalPos = json[0].relativetotalpos - json[0].value;
-            } else {
-              lastTotalNeg = json[0].relativetotalneg + json[0].value;
-            }
-          }
-        }
       }
     });
 
-  for (let i = tmpData.length - 1; i >= 0; i--) {
-    if (
-      tmpData[i]['Positive Trend'] !== undefined &&
-      tmpData[i]['Negative Trend'] !== undefined &&
-      tmpData[i]['Positive Trend'] !== null &&
-      tmpData[i]['Negative Trend'] !== null
-    ) {
-      lastTotalPos =
-        tmpData[i]['Positive Trend'] -
-        tmpData[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
-        ];
-      lastTotalNeg =
-        tmpData[i]['Negative Trend'] -
-        (metric.type === MetricType.Dual ? tmpData[i][metric.nameneg] : 0);
-    }
-  }
-
-  if (lastTotalNeg === null && lastTotalPos === null) {
-    lastTotalPos = metric.totalpos;
-    lastTotalNeg = metric.totalneg;
-  }
-
   for (let i = 0; i < tmpData.length; i++) {
-    if (
-      tmpData[i]['Positive Trend'] === null &&
-      tmpData[i]['Negative Trend'] === null
-    ) {
-      tmpData[i]['Positive Trend'] = lastTotalPos;
-      tmpData[i]['Negative Trend'] = lastTotalNeg;
-    } else {
-      lastTotalPos = tmpData[i]['Positive Trend'];
-      lastTotalNeg = tmpData[i]['Negative Trend'];
-    }
     tmpData[i].date = parseXAxis(tmpData[i].date, range);
   }
 
@@ -227,8 +175,14 @@ export const loadChartData = async (
 export const fetchDailySummary = async (
   appid: string,
   metricid: string,
-): Promise<{ pos: number; neg: number }> => {
-  const from = new Date();
+  start?: Date,
+): Promise<{
+  pos: number;
+  neg: number;
+  relativetotalpos: number;
+  relativetotalneg: number;
+}> => {
+  const from = start === undefined ? new Date() : new Date(start);
   from.setHours(0);
   from.setMinutes(0);
   from.setSeconds(0);
@@ -251,30 +205,60 @@ export const fetchDailySummary = async (
       if (json.length > 0) {
         let pos = 0;
         let neg = 0;
+        let relativetotalpos = 0;
+        let relativetotalneg = 0;
         for (let i = 0; i < json.length; i++) {
+          relativetotalpos = json[i].relativetotalpos;
+          relativetotalneg = json[i].relativetotalneg;
           pos += json[i].valuepos;
           neg += json[i].valueneg;
         }
-        return { pos, neg };
+        return { pos, neg, relativetotalpos, relativetotalneg };
       }
     }
   }
-  return { pos: 0, neg: 0 };
+  return { pos: 0, neg: 0, relativetotalpos: 0, relativetotalneg: 0 };
 };
 
-export const combineTrends = (data: any[]) => {
-  const trend = [];
-  for (let i = 0; i < data.length; i++) {
-    const value: any = {
-      date: data[i].date,
-    };
+export const calculateTrend = (
+  data: any[],
+  metric: Metric,
+  totalpos: number,
+  totalneg: number,
+): any[] => {
+  const trend = [...data];
+  for (let i = trend.length - 1; i >= 0; i--) {
     if (
-      data[i]['Positive Trend'] !== undefined &&
-      data[i]['Negative Trend'] !== undefined
+      trend[i]['Positive Trend'] !== undefined &&
+      trend[i]['Negative Trend'] !== undefined
     ) {
-      value['Total'] = data[i]['Positive Trend'] - data[i]['Negative Trend'];
+      totalpos =
+        trend[i]['Positive Trend'] -
+        trend[i][
+        metric.type === MetricType.Base ? metric.name : metric.namepos
+        ];
+      totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
+      trend[i]['Total'] =
+        trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
+    } else {
+      if (
+        trend[i][
+        metric.type === MetricType.Base ? metric.name : metric.namepos
+        ] !== undefined
+      ) {
+        trend[i]['Positive Trend'] = totalpos;
+        totalpos -=
+          trend[i][
+          metric.type === MetricType.Base ? metric.name : metric.namepos
+          ];
+        trend[i]['Total'] = totalpos;
+      }
+      if (trend[i][metric.nameneg] !== undefined) {
+        trend[i]['Negative Trend'] = totalneg;
+        totalneg -= trend[i][metric.nameneg];
+        trend[i]['Total'] -= totalneg;
+      }
     }
-    trend.push(value);
   }
   return trend;
 };

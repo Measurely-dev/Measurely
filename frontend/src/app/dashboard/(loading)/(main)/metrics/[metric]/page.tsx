@@ -42,7 +42,7 @@ import {
 import { AppsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
 import {
-  combineTrends,
+  calculateTrend,
   fetchDailySummary,
   INTERVAL,
   loadChartData,
@@ -377,7 +377,7 @@ function OverviewChart(props: { metric: Metric }) {
       props.metric,
       props.metric.appid,
     );
-    setChartData(data ?? []);
+    setChartData(data);
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
@@ -677,7 +677,8 @@ function TrendChart(props: { metric: Metric }) {
     to: new Date(),
   });
   const [chartData, setChartData] = useState<any[] | null>(null);
-  const [total, setTotal] = useState(0);
+  const [nextTotalPos, setNextTotalPos] = useState(0);
+  const [nextTotalNeg, setNextTotalNeg] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
@@ -685,25 +686,35 @@ function TrendChart(props: { metric: Metric }) {
   const [splitTrend, setSplitTrend] = useState(false);
 
   const loadChart = async (from: Date) => {
-    const data =
-      (await loadChartData(
-        from,
-        range === 0 ? 0 : range + 1,
-        props.metric,
-        props.metric.appid,
-      )) ?? [];
-    let totalValue = null;
-    for (let i = data.length - 1; i > 0; i--) {
-      if (
-        data[i]['Positive Trend'] !== undefined &&
-        data[i]['Negative Trend'] !== undefined
-      ) {
-        totalValue = data[i]['Positive Trend'] - data[i]['Negative Trend'];
-        break;
-      }
+    const now = new Date();
+    const to = new Date(from);
+    if (range > 0) {
+      to.setDate(to.getDate() + range);
     }
-    setTotal(totalValue ?? 0);
-    setChartData(data ?? []);
+    to.setDate(to.getDate() + 1);
+
+    if (
+      new Date(to.getFullYear(), to.getMonth(), to.getDate()) >
+      new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    ) {
+      setNextTotalPos(props.metric.totalpos);
+      setNextTotalNeg(props.metric.totalneg);
+    } else {
+      const { pos, neg, relativetotalpos, relativetotalneg } =
+        await fetchDailySummary(props.metric.appid, props.metric.id, to);
+
+      setNextTotalPos(relativetotalpos - pos);
+      setNextTotalNeg(relativetotalneg - neg);
+    }
+
+    const data = await loadChartData(
+      from,
+      range === 0 ? 0 : range + 1,
+      props.metric,
+      props.metric.appid,
+    );
+
+    setChartData(data);
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
@@ -949,34 +960,31 @@ function TrendChart(props: { metric: Metric }) {
             {' '}
             {range === 365 ? `Total of ${year}` : 'Total'}
           </div>
-          <div className='text-xl font-medium'>{valueFormatter(total)}</div>
+          <div className='text-xl font-medium'>
+            {valueFormatter(nextTotalPos - nextTotalNeg)}
+          </div>
           <Separator className='my-4' />
 
-          {splitTrend ? (
-            <AreaChart
-              className='min-h-[40vh] w-full'
-              data={chartData}
-              index='date'
-              customTooltip={customTooltip}
-              colors={dualTrendChartConfig.colors}
-              categories={['Positive Trend', 'Negative Trend']}
-              valueFormatter={(number: number) => valueFormatter(number)}
-              yAxisLabel='Total'
-              onValueChange={() => { }}
-            />
-          ) : (
-            <AreaChart
-              className='min-h-[40vh] w-full'
-              data={combineTrends(chartData)}
-              index='date'
-              customTooltip={customTooltip}
-              colors={[trendChartColor]}
-              categories={['Total']}
-              valueFormatter={(number: number) => valueFormatter(number)}
-              yAxisLabel='Total'
-              onValueChange={() => { }}
-            />
-          )}
+          <AreaChart
+            className='min-h-[40vh] w-full'
+            data={calculateTrend(
+              chartData,
+              props.metric,
+              nextTotalPos,
+              nextTotalNeg,
+            )}
+            index='date'
+            customTooltip={customTooltip}
+            colors={
+              splitTrend ? dualTrendChartConfig.colors : [trendChartColor]
+            }
+            categories={
+              splitTrend ? ['Positive Trend', 'Negative Trend'] : ['Total']
+            }
+            valueFormatter={(number: number) => valueFormatter(number)}
+            yAxisLabel='Total'
+            onValueChange={() => { }}
+          />
         </div>
       )}
     </>

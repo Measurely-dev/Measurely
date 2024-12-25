@@ -10,10 +10,10 @@ export default function ShowcaseLandingSection() {
     <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[22vh] max-lg:pt-[20vh] max-md:pt-[15vh]'>
       <WebChip color='default' href='/blog/1'>
         <span className='mr-1.5 font-medium'>Measurely</span>
-        <span className='mr-1.5 font-medium animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+        <span className='mr-1.5 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono font-medium text-transparent'>
           1.0
         </span>
-        as arrived
+        is here{' '}
       </WebChip>
       <h1 className='mt-5 w-[90%] text-center text-6xl font-semibold leading-[1.15] tracking-normal max-lg:px-0 max-lg:text-5xl max-md:text-5xl max-sm:text-4xl'>
         <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
