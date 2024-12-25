@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className='docs'>
+    <div className='markdown'>
       <Navbar />
       <div className='mx-auto h-auto w-[88vw] sm:container'>{children}</div>
     </div>

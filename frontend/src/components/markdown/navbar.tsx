@@ -6,12 +6,12 @@ import { Button } from '../ui/button';
 
 export const NAVLINKS = [
   {
-    title: 'Documentation',
+    title: 'Docs',
     href: `/docs${page_routes[0].href}`,
   },
   {
-    title: 'Community',
-    href: 'https://discord.com',
+    title: 'Blog',
+    href: '/blog',
   },
   {
     title: 'Support',

@@ -1,5 +1,4 @@
 @import url('./syntax.css');
-
 @tailwind base; /* Include Tailwind base styles */
 
 @layer base {
@@ -71,31 +70,31 @@
   margin: 0 !important;
 }
 
-.docs h1 {
+.markdown h1 {
   font-weight: 800;
   margin-bottom: 24px;
 }
 
-.docs h2 {
+.markdown h2 {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 10px;
   margin-top: 40px;
 }
 
-.docs h3 {
+.markdown h3 {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 10px;
   margin-top: 30px;
 }
 
-.docs p {
+.markdown p {
   line-height: 1.6;
   color: #3f3f46;
 }
 
-.docs pre {
+.markdown pre {
   padding: 0 !important;
   width: inherit !important;
   overflow-x: auto;
@@ -105,7 +104,7 @@
   margin-bottom: 15px;
 }
 
-.docs pre > code {
+.markdown pre > code {
   display: grid;
   max-width: inherit !important;
   padding: 14px 0 !important;

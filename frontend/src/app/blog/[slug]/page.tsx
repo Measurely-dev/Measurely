@@ -1,5 +1,5 @@
 import { Typography } from '@/components/markdown/typography';
-import { buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Author, getAllBlogStaticPaths, getBlogForSlug } from '@/lib/markdown';
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -41,20 +41,23 @@ export default async function BlogPage(props: PageProps) {
 
   const res = await getBlogForSlug(slug);
   if (!res) notFound();
+  console.log(<Typography>{res?.content}</Typography>)
   return (
     <WebContainer>
       <ContentContainer
         type='page'
         className='sm:[95%] md:[75%] mx-auto items-start lg:w-[60%]'
       >
-        <Link
-          className={buttonVariants({
-            variant: 'link',
-            className: '!mx-0 !-ml-1 mb-7 !px-0',
-          })}
-          href='/blog'
-        >
-          <ArrowLeftIcon className='mr-1.5 h-4 w-4' /> Back to blog
+        <Link href='/blog' className='mb-5'>
+          <Button
+            variant={'secondary'}
+            className='group relative overflow-hidden rounded-[12px] transition-all duration-200'
+          >
+            <ArrowLeftIcon className='absolute -left-5 size-4 transition-all duration-200 group-hover:left-3' />
+            <div className='transition-all duration-200 group-hover:ml-5'>
+              Back to blog
+            </div>
+          </Button>
         </Link>
         <div className='mb-2 flex w-full flex-col gap-3 pb-7'>
           <p className='text-sm text-muted-foreground'>

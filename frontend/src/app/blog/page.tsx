@@ -58,13 +58,13 @@ function BlogCard({
         />
       </div>
       <div className='px-3 pb-3'>
-        <div className='-mt-1 pr-7 text-xl font-semibold text-white'>
+        <div className='-mt-1 pr-7 text-xl font-semibold !text-white'>
           {title}
         </div>
 
-        <p className='text-sm text-white/70'>{description}</p>
+        <p className='text-sm !text-white/70'>{description}</p>
         <div className='mt-auto flex w-full items-center justify-between'>
-          <p className='text-[13px] text-white/70'>
+          <p className='text-[13px] !text-white/70'>
             Published on {formatDate2(date)}
           </p>
           <AvatarGroup users={authors} />

@@ -21,7 +21,7 @@ export default function ShowcaseLandingSection() {
       <Link href='/register'>
         <WebButton className='mt-8'>Get started</WebButton>
       </Link>
-      <div className='relative mx-2 mt-12 h-full w-fit max-w-[1100px] p-1 pb-0 max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
+      <div className='relative mx-2 mt-12 h-full w-fit max-w-[90%] p-1 pb-0 max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
         <Image
           src={Preview}
           alt='Preview image'

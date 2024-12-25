@@ -15,7 +15,7 @@ export default function Navbar(props: {
 }) {
   const links: any = [
     {
-      name: 'Documentation',
+      name: 'Docs',
       href: '/docs/getting-started/introduction',
     },
     {
