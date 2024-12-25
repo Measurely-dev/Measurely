@@ -173,7 +173,6 @@ export default function DashboardMetricPage() {
   const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
-  const [metric, setMetric] = useState(() => loadMetric());
 
   const loadMetric = () => {
     if (applications[activeApp]) {
@@ -197,6 +196,8 @@ export default function DashboardMetricPage() {
     router.push('/dashboard/metrics');
     return null;
   };
+
+  const [metric, setMetric] = useState(loadMetric());
 
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
