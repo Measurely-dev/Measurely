@@ -25,7 +25,16 @@ export default function BrandAssetsPage() {
     <WebContainer>
       <ContentContainer type='page'>
         <WebPageHeader
-          title='Brand'
+          title={
+            <span>
+              <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+                Brand
+              </span>
+              assets <br className='sm:hidden' />
+              available <br />
+              for your use
+            </span>
+          }
           description='Guidelines and assets for presenting the Measurely brand consistently.'
         />
         {/* Logos Section */}
