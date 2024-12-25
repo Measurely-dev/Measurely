@@ -57,7 +57,7 @@ export function ChartsCard() {
   const { applications, activeApp } = useContext(AppsContext);
   const [activeMetric, setActiveMetric] = useState(0);
   const router = useRouter();
-  const [data, setData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextTotalPos, setNextTotalPos] = useState(0);
   const [nextTotalNeg, setNextTotalNeg] = useState(0);
@@ -74,18 +74,21 @@ export function ChartsCard() {
         const to = new Date(from);
         to.setDate(to.getDate() + 31);
 
+        let totalPos = 0;
+        let totalNeg = 0;
+
         if (
           new Date(to.getFullYear(), to.getMonth(), to.getDate()) >
           new Date(now.getFullYear(), now.getMonth(), now.getDate())
         ) {
-          setNextTotalPos(metricData.totalpos);
-          setNextTotalNeg(metricData.totalneg);
+          totalPos = metricData.totalpos;
+          totalNeg = metricData.totalneg;
         } else {
           const { pos, neg, relativetotalpos, relativetotalneg } =
             await fetchDailySummary(metricData.appid, metricData.id, to);
 
-          setNextTotalPos(relativetotalpos - pos);
-          setNextTotalNeg(relativetotalneg - neg);
+          totalPos = relativetotalpos - pos;
+          totalNeg = relativetotalneg - neg;
         }
 
         const data = await loadChartData(
@@ -94,7 +97,10 @@ export function ChartsCard() {
           metricData,
           applications[activeApp].id,
         );
-        setData(data);
+
+        setNextTotalPos(totalPos);
+        setNextTotalNeg(totalNeg);
+        setChartData(data);
       }
     }
     setLoading(false);
@@ -109,7 +115,7 @@ export function ChartsCard() {
     return () => {
       clearInterval(interval);
     };
-  }, [activeMetric]);
+  }, [activeMetric, applications]);
 
   useEffect(() => {
     if (
@@ -186,7 +192,7 @@ export function ChartsCard() {
                         <AreaChart
                           className='h-60 min-h-60 w-full'
                           data={calculateTrend(
-                            data,
+                            chartData,
                             metric,
                             nextTotalPos,
                             nextTotalNeg,

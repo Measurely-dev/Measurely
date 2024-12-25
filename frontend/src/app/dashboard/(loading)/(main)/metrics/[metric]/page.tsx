@@ -206,18 +206,10 @@ export default function DashboardMetricPage() {
     const { pos, neg } = await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
-    loadMetric();
   };
 
   useEffect(() => {
-    const metricData = applications[activeApp].metrics?.filter(
-      (g) => g.name === metricName,
-    )[0];
-    if (metricData === null || metricData === undefined) {
-      router.push('/dashboard/metrics');
-    } else {
-      setMetric(metricData);
-    }
+    loadMetric();
   }, [activeApp, applications]);
 
   useEffect(() => {
@@ -697,18 +689,21 @@ function TrendChart(props: { metric: Metric }) {
     }
     to.setDate(to.getDate() + 1);
 
+    let totalPos = 0;
+    let totalNeg = 0;
+
     if (
       new Date(to.getFullYear(), to.getMonth(), to.getDate()) >
       new Date(now.getFullYear(), now.getMonth(), now.getDate())
     ) {
-      setNextTotalPos(props.metric.totalpos);
-      setNextTotalNeg(props.metric.totalneg);
+      totalPos = props.metric.totalpos;
+      totalNeg = props.metric.totalneg;
     } else {
       const { pos, neg, relativetotalpos, relativetotalneg } =
         await fetchDailySummary(props.metric.appid, props.metric.id, to);
 
-      setNextTotalPos(relativetotalpos - pos);
-      setNextTotalNeg(relativetotalneg - neg);
+      totalPos = relativetotalpos - pos;
+      totalNeg = relativetotalneg - neg;
     }
 
     const data = await loadChartData(
@@ -718,6 +713,8 @@ function TrendChart(props: { metric: Metric }) {
       props.metric.appid,
     );
 
+    setNextTotalPos(totalPos);
+    setNextTotalNeg(totalNeg);
     setChartData(data);
     setLoading(false);
     setLoadingLeft(false);
