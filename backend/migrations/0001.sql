@@ -1,11 +1,11 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 SET timezone = 'UTC';
 
--- Create Plans table first since it is referenced by Users
+-- Create Plans table
 CREATE TABLE IF NOT EXISTS Plans (
     Identifier TEXT NOT NULL UNIQUE,
     Name VARCHAR(50) NOT NULL,
-    Price TEXT NOT NULL,  -- Use DECIMAL for price to handle calculations
+    Price TEXT NOT NULL,  
     AppLimit INT NOT NULL,
     MetricPerAppLimit INT NOT NULL,
     RequestLimit INT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS Users (
     INDEX idx_users_email (Email)  -- Index for performance
 );
 
--- Create Providers table (added Provider column definition)
+-- Create Providers table 
 CREATE TABLE IF NOT EXISTS Providers (
   Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   UserId UUID NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS Providers (
   UNIQUE(Type, ProviderUserId),
   UNIQUE(Type, UserId),
   FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-  INDEX idx_providers_userid_type (UserId, Type)  -- Composite index
+  INDEX idx_providers_userid_type (UserId, Type)  
 );
 
 -- Create Applications table
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS Applications (
     Name VARCHAR(50) NOT NULL,
     Image TEXT NOT NULL DEFAULT '',
     FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-    INDEX idx_applications_userid (UserId)  -- Index for UserId
+    INDEX idx_applications_userid (UserId)  
 );
 
 -- Create Metrics table
