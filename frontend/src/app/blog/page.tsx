@@ -45,7 +45,7 @@ function BlogCard({
   return (
     <Link
       href={`/blog/${slug}`}
-      className='flex flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:bg-accent/60'
+      className='flex flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:shadow-lg hover:scale-[1.0025]'
     >
       <div className='w-full'>
         <Image
