@@ -11,13 +11,13 @@ export default function ShowcaseLandingSection() {
       <WebChip color='default' href='/docs/getting-started/introduction'>
         <span className='mr-1 font-medium'>Measurely</span> is the new way
       </WebChip>
-      <div className='mt-5 w-[90%] text-center text-6xl font-semibold leading-[1.15] tracking-normal max-lg:px-0 max-lg:text-5xl max-md:text-5xl max-sm:text-4xl'>
+      <h1 className='mt-5 w-[90%] text-center text-6xl font-semibold leading-[1.15] tracking-normal max-lg:px-0 max-lg:text-5xl max-md:text-5xl max-sm:text-4xl'>
         <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
           Measurely
         </span>{' '}
         tracks what matters,
         <br className='max-md:hidden' /> grow with confidence.
-      </div>
+      </h1>
       <Link href='/register'>
         <WebButton className='mt-8'>Get started</WebButton>
       </Link>
