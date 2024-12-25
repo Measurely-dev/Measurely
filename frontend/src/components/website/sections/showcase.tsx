@@ -27,7 +27,7 @@ export default function ShowcaseLandingSection() {
         <Image
           src={Preview}
           alt='Preview image'
-          className={`relative z-10 h-full w-fit rounded-xl rounded-b-none ring-4 ring-background/50 duration-1000`}
+          className={`relative z-10 p-2 px-1 pb-0 bg-background h-full w-fit rounded-xl rounded-b-none ring-4 ring-background/50 duration-1000`}
         />
       </div>
 
