@@ -1002,6 +1002,9 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetupCacheControl(w, 0)
+	cookie := DeleteCookie()
+	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 }
 

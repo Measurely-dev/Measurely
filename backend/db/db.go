@@ -464,7 +464,7 @@ func (db *DB) GetEmailChangeRequestByUserId(userid uuid.UUID, newemail string) (
 
 func (db *DB) CreateEmailChangeRequest(userid uuid.UUID, newemail string) (types.EmailChangeRequest, error) {
 	var emailchange types.EmailChangeRequest
-	err := db.Conn.QueryRow("INSERT INTO emailchange (userid, newemail) VALUES ($1, $3) RETURNING *", userid, newemail).Scan(&emailchange.Id, &emailchange.UserId, &emailchange.NewEmail)
+	err := db.Conn.QueryRow("INSERT INTO emailchange (userid, newemail) VALUES ($1, $2) RETURNING *", userid, newemail).Scan(&emailchange.Id, &emailchange.UserId, &emailchange.NewEmail)
 	return emailchange, err
 }
 
