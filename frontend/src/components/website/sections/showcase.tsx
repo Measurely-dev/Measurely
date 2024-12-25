@@ -27,7 +27,7 @@ export default function ShowcaseLandingSection() {
           alt='Preview image'
           className='relative z-10 h-full w-fit rounded-xl rounded-b-none border-[10px] border-background'
         />
-        <div className='absolute left-0 top-0 h-full w-full animate-gradient rounded-2xl rounded-b-none bg-gradient-to-r from-gray-400 via-gray-300 to-gray-200' />
+        <div className='absolute left-0 top-0 h-full w-full animate-gradient rounded-2xl rounded-b-none bg-gradient-to-r from-gray-300 via-gray-200 to-gray-100' />
       </div>
       <Card5 className='absolute -left-16 -top-8 rotate-[9deg] max-lg:hidden' />
       <Card1 className='absolute -right-16 -top-10 rotate-[-9deg] max-lg:hidden' />

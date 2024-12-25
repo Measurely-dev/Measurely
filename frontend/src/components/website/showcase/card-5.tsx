@@ -7,17 +7,10 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-import ShowcaseCursor from './cursor';
 import { Button } from '@/components/ui/button';
-
 export default function Card5(props: { className?: string }) {
   return (
     <Card className={`w-[320px] rounded-2xl p-5 shadow-sm ${props.className}`}>
-      <ShowcaseCursor
-        cursor={2}
-        className='!absolute bottom-[-0px] right-[-80px] !rotate-[-9deg]'
-      />
       <CardHeader className='p-0'>
         <CardTitle>New metric</CardTitle>
         <CardDescription className='text-xs'>
