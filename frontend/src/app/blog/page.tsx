@@ -72,7 +72,7 @@ function BlogCard({
         />
       </div>
       <div className='pt-none p-4'>
-        <div className='mb-3 flex flex-row items-center gap-3 text-xl font-semibold'>
+        <div className='mb-3 flex flex-row items-center max-md:flex-col-reverse max-md:items-start gap-3 text-xl font-semibold'>
           {title}
           {isNew && (
             <div className='h-fit w-fit animate-gradient rounded-[8px] bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 p-0.5 px-2 text-xs font-medium text-white'>
