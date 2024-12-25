@@ -264,8 +264,12 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Cache control header to optimize response delivery
-	SetupCacheControl(w, 5)
+	if end.Before(time.Now()) {
+		SetupCacheControl(w, 100000000)
+	} else {
+		SetupCacheControl(w, 5)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
 }

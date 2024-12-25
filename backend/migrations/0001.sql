@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS Users (
     LastName VARCHAR(50) NOT NULL,
     Password TEXT NOT NULL,
     stripeCustomerId TEXT NOT NULL UNIQUE,
-    CurrentPlan TEXT NULL,
+    CurrentPlan TEXT NOT NULL,
     Image TEXT NOT NULL DEFAULT '',
     FOREIGN KEY (CurrentPlan) REFERENCES Plans(Identifier)
 );
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS MetricDailySummary (
     ValueNeg INT NOT NULL,
     RelativeTotalPos BIGINT NOT NULL,
     RelativeTotalNeg BIGINT NOT NULL,
-    Date DATE NOT NULL DEFAULT CURRENT_DATE,
+    Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_DATE::TIMESTAMPTZ,
     UNIQUE(MetricId, Date),
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );

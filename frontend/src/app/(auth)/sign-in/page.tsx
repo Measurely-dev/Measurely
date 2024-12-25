@@ -92,6 +92,8 @@ export default function SignIn() {
                 });
                 setLoading(false);
               } else {
+                localStorage.clear();
+                sessionStorage.clear();
                 router.push('/dashboard');
               }
             });
