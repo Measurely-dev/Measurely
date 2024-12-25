@@ -21,14 +21,16 @@ export default function ShowcaseLandingSection() {
       <Link href='/register'>
         <WebButton className='mt-8'>Get started</WebButton>
       </Link>
-      <div className='relative mx-2 mt-12 max-lg:mt-10 h-full w-fit max-w-[1100px] p-1 pb-0 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
+      <div className='relative mx-2 mt-12 h-full w-fit max-w-[1100px] p-1 pb-0 max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
         <Image
           src={Preview}
           alt='Preview image'
-          className='relative z-10 h-full w-fit rounded-xl rounded-b-none border-[10px] border-background'
+          className={`relative z-10 h-full w-fit rounded-xl rounded-b-none border-[10px] border-background transition-[clip-path] duration-1000`}
+          style={{ clipPath: 'inset(0 0 0 0)' }} 
         />
         <div className='absolute left-0 top-0 h-full w-full animate-gradient rounded-2xl rounded-b-none bg-gradient-to-r from-gray-300 via-gray-200 to-gray-100' />
       </div>
+
       <Card5 className='absolute -left-16 -top-8 rotate-[9deg] max-lg:hidden' />
       <Card1 className='absolute -right-16 -top-10 rotate-[-9deg] max-lg:hidden' />
       {/* <div className='absolute bottom-0 flex h-10 w-full max-w-[1200px] items-center justify-center'>
