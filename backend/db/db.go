@@ -189,7 +189,7 @@ func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
 }
 
 func (db *DB) CreateMetricEvent(event types.MetricEvent) error {
-  _, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)", event)
+	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)", event)
 	return err
 }
 
@@ -266,6 +266,28 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 		events = append(events, event)
 	}
 
+	if len(events) == 0 {
+		rows, err = db.Conn.Query(`
+        SELECT * 
+        FROM metricevents 
+        WHERE metricid = $1 AND date::date > $2
+        ORDER BY date ASC 
+        LIMIT 1
+    `, metricid, formattedEnd)
+		if err != nil {
+			return []types.MetricEvent{}, err
+		}
+		for rows.Next() {
+			var event types.MetricEvent
+			err := rows.Scan(&event.Id, &event.MetricId, &event.Value, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date)
+			if err != nil {
+				return []types.MetricEvent{}, err
+			}
+			events = append(events, event)
+		}
+
+	}
+
 	return events, nil
 }
 
@@ -285,6 +307,27 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 			return []types.DailyMetricSummary{}, err
 		}
 		dailysummarymetrics = append(dailysummarymetrics, summary)
+	}
+
+	if len(dailysummarymetrics) == 0 {
+		rows, err = db.Conn.Query(`
+        SELECT * 
+        FROM metricdailysummary 
+        WHERE metricid = $1 AND date::date > $2
+        ORDER BY date ASC 
+        LIMIT 1
+    `, metricid, formattedEnd)
+		if err != nil {
+			return []types.DailyMetricSummary{}, err
+		}
+		for rows.Next() {
+			var summary types.DailyMetricSummary
+			err := rows.Scan(&summary.Id, &summary.MetricId, &summary.ValuePos, &summary.ValueNeg, &summary.RelativeTotalPos, &summary.RelativeTotalNeg, &summary.Date)
+			if err != nil {
+				return []types.DailyMetricSummary{}, err
+			}
+			dailysummarymetrics = append(dailysummarymetrics, summary)
+		}
 	}
 
 	return dailysummarymetrics, err

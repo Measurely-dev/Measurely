@@ -102,6 +102,9 @@ export const loadChartData = async (
     }
   }
 
+  let lastTotalPos = null;
+  let lastTotalNeg = null;
+
   await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
     { method: 'GET', credentials: 'include' },
@@ -117,6 +120,7 @@ export const loadChartData = async (
     })
     .then((json) => {
       if (json !== null && json !== undefined) {
+        let matchCount = 0;
         for (let i = 0; i < json.length; i++) {
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
@@ -139,10 +143,11 @@ export const loadChartData = async (
             }
 
             if (matches) {
+              matchCount += 1;
               if (range > 0) {
                 tmpData[j][metric.namepos] += json[i].valuepos;
                 if (metric.type === MetricType.Dual) {
-                  tmpData[j][metric.nameneg] += -json[i].valueneg;
+                  tmpData[j][metric.nameneg] += json[i].valueneg;
                 }
               } else {
                 if (json[i].value >= 0) {
@@ -161,17 +166,26 @@ export const loadChartData = async (
             }
           }
         }
+
+        if (matchCount === 0 && json.length > 0) {
+          console.log(json);
+
+          if (range > 0) {
+            lastTotalPos = json[0].relativetotalpos - json[0].valuepos;
+            lastTotalNeg = json[0].relativetotalneg - json[0].valueneg;
+          } else {
+            if (json[0].value >= 0) {
+              lastTotalPos = json[0].relativetotalpos - json[0].value;
+            } else {
+              lastTotalNeg = json[0].relativetotalneg + json[0].value;
+            }
+          }
+        }
       }
     });
 
-  let lastTotalPos = null;
-  let lastTotalNeg = null;
-
   for (let i = tmpData.length - 1; i > 0; i--) {
-    if (
-      tmpData[i]['Positive Trend'] !== null &&
-      tmpData[i]['Negative Trend'] !== null
-    ) {
+    if (tmpData[i]['Positive Trend'] && tmpData[i]['Negative Trend']) {
       lastTotalPos =
         tmpData[i]['Positive Trend'] -
         tmpData[i][
