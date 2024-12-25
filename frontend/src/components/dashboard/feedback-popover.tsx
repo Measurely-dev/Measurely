@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 export default function FeedbackPopover(props: { children: any }) {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
-
+  const [isOpen, setIsOpen] = useState(false);
   const handleFeedback = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -37,10 +37,17 @@ export default function FeedbackPopover(props: { children: any }) {
   };
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>{props.children}</PopoverTrigger>
       <PopoverContent className='mr-5 mt-1 w-[200px] rounded-[16px] p-2 shadow-sm'>
-        <form onSubmit={handleFeedback}>
+        <form
+          onSubmit={(e) => {
+            handleFeedback(e);
+            e.preventDefault();
+            setContent('');
+            setTimeout(() => setIsOpen(false), 400);
+          }}
+        >
           <Textarea
             placeholder='Tell us what you think...'
             className='h-20 resize-none'
@@ -48,7 +55,6 @@ export default function FeedbackPopover(props: { children: any }) {
             onChange={(e) => setContent(e.target.value)}
           />
           <div className='flex w-full items-end justify-end'>
-            {' '}
             <Button
               className='mt-2 w-full rounded-[12px]'
               variant={'default'}
