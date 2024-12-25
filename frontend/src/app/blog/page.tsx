@@ -20,7 +20,15 @@ export default async function BlogIndexPage() {
     <WebContainer>
       <ContentContainer type='page' className='max-w-[800px]'>
         <WebPageHeader
-          title='Our Blog'
+          title={
+            <span>
+              Explore our{' '}
+              <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+                blog
+              </span>
+              <br /> and updates
+            </span>
+          }
           description='Stay updated with the latest articles, tutorials, and insights from our team.'
           className='mb-[120px]'
         />
@@ -45,7 +53,7 @@ function BlogCard({
   return (
     <Link
       href={`/blog/${slug}`}
-      className='flex flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:shadow-lg hover:scale-[1.0025]'
+      className='flex flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:scale-[1.0025] hover:shadow-lg'
     >
       <div className='w-full'>
         <Image
