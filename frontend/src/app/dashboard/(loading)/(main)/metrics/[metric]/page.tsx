@@ -173,7 +173,9 @@ export default function DashboardMetricPage() {
   const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
-  const [metric, setMetric] = useState(() => {
+  const [metric, setMetric] = useState(() => loadMetric());
+
+  const loadMetric = () => {
     if (applications[activeApp]) {
       const index = applications[activeApp].metrics?.findIndex(
         (g) => g.name === metricName,
@@ -194,7 +196,7 @@ export default function DashboardMetricPage() {
     }
     router.push('/dashboard/metrics');
     return null;
-  });
+  };
 
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
@@ -203,6 +205,7 @@ export default function DashboardMetricPage() {
     const { pos, neg } = await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
+    loadMetric();
   };
 
   useEffect(() => {
@@ -368,7 +371,7 @@ function OverviewChart(props: { metric: Metric }) {
       }
     }
     return total;
-  }, [chartData]);
+  }, [chartData, props.metric]);
 
   const loadChart = async (from: Date) => {
     const data = await loadChartData(
