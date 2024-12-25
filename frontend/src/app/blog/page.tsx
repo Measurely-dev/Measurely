@@ -22,7 +22,8 @@ export default async function BlogIndexPage() {
         <WebPageHeader
           title={
             <span>
-              Explore our{' '}
+              Explore
+              <br className='sm:hidden' /> our{' '}
               <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
                 blog
               </span>
