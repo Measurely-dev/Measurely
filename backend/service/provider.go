@@ -57,38 +57,47 @@ func UnmarshalUserInfo(data []byte) (UserInfo, error) {
 }
 
 func GetProviderUserInformation(provider Provider, token string) (UserInfo, error) {
+	// Create a new HTTP request
 	req, err := http.NewRequest("GET", provider.UserURL, nil)
 	if err != nil {
-		log.Println(err)
-		return UserInfo{}, errors.New("internal error")
+		log.Println("Error creating HTTP request:", err)
+		return UserInfo{}, errors.New("failed to initialize the request to the provider")
 	}
 
+	// Set authorization header
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	// Send the HTTP request
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println(err)
-		return UserInfo{}, errors.New("internal error")
+		log.Println("Error sending HTTP request:", err)
+		return UserInfo{}, errors.New("unable to communicate with the provider")
 	}
 	defer resp.Body.Close()
 
+	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
-		return UserInfo{}, errors.New("internal error")
+		log.Println("Error reading response body:", err)
+		return UserInfo{}, errors.New("failed to process the provider's response")
 	}
 
+	// Unmarshal the response into a UserInfo struct
 	userInfo, err := UnmarshalUserInfo(body)
 	if err != nil {
-		log.Println(err)
-		return UserInfo{}, errors.New("internal error")
+		log.Println("Error unmarshaling user information:", err)
+		return UserInfo{}, errors.New("received invalid user information from the provider")
 	}
 
+	// Validate the user's email and name
 	if !isEmailValid(userInfo.Email) || userInfo.Name == "" {
-		return UserInfo{}, errors.New("invalid email and/or name")
+		log.Println("Invalid user information: email or name is missing/invalid")
+		return UserInfo{}, errors.New("the provider returned invalid email or name information")
 	}
 
 	return userInfo, nil
 }
+
 
 func BeginProviderAuth(provider Provider, state string) string {
 	url := provider.Config.AuthCodeURL(state)
@@ -96,16 +105,20 @@ func BeginProviderAuth(provider Provider, state string) string {
 }
 
 func CompleteProviderAuth(provider Provider, code string) (UserInfo, *oauth2.Token, error) {
+	// Exchange the authorization code for an access token
 	token, err := provider.Config.Exchange(context.Background(), code)
 	if err != nil {
-		log.Println(err)
-		return UserInfo{}, nil, errors.New("internal error")
+		log.Println("Error exchanging authorization code for token:", err)
+		return UserInfo{}, nil, errors.New("failed to exchange authorization code for token")
 	}
 
+	// Retrieve user information using the access token
 	user, err := GetProviderUserInformation(provider, token.AccessToken)
 	if err != nil {
+		log.Println("Error retrieving user information:", err)
 		return UserInfo{}, nil, err
 	}
 
 	return user, token, nil
 }
+

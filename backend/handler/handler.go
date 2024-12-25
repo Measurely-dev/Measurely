@@ -67,7 +67,7 @@ func (h *Handler) setup_api() {
 	////
 
 	// ROUTES THAT REQUIRE AUTHENTIFICATION
-	authRouter.Use(h.service.AuthentificatedMiddleware)
+	authRouter.Use(h.service.AuthenticatedMiddleware)
 	authRouter.Post("/feedback", h.service.SendFeedback)
 
 	authRouter.Get("/is-connected", h.service.IsConnected)

@@ -8,7 +8,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -37,8 +36,6 @@ type MetricToKeyCache struct {
 	key         string
 	metric_type int
 	user_id     uuid.UUID
-	totalpos    int64
-	totalneg    int64
 	expiry      time.Time
 }
 
@@ -69,19 +66,28 @@ type Service struct {
 }
 
 func New() Service {
+	// Initialize the database connection
 	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Error initializing database: %v", err)
 	}
 
+	// Initialize email service
 	email, err := email.NewEmail()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Error initializing email service: %v", err)
 	}
 
+	// Set Stripe API key
 	stripe.Key = os.Getenv("STRIPE_SK")
+	if stripe.Key == "" {
+		log.Fatal("Stripe API key is missing")
+	}
 
+	// Configure providers (GitHub and Google)
 	providers := make(map[string]Provider)
+
+	// GitHub provider setup
 	providers["github"] = Provider{
 		UserURL: os.Getenv("GITHUB_USER"),
 		Type:    types.GITHUB_PROVIDER,
@@ -93,6 +99,8 @@ func New() Service {
 			Scopes:       []string{"read:user"},
 		},
 	}
+
+	// Google provider setup
 	providers["google"] = Provider{
 		UserURL: os.Getenv("GOOGLE_USER"),
 		Type:    types.GOOGLE_PROVIDER,
@@ -105,6 +113,7 @@ func New() Service {
 		},
 	}
 
+	// Load AWS S3 configuration
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
 		config.WithCredentialsProvider(aws.NewCredentialsCache(
@@ -113,13 +122,15 @@ func New() Service {
 		config.WithRegion("auto"),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error loading CLOUDFLARE R2 S3 config: %v", err)
 	}
 
+	// Initialize S3 client with custom endpoint
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
 	})
 
+	// Return the new service with all components initialized
 	return Service{
 		db:        db,
 		email:     email,
@@ -151,9 +162,8 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -161,19 +171,19 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email is valid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email ", http.StatusBadRequest)
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
 	_, derr := s.db.GetUserByEmail(request.Email)
 	if request.Type == 0 {
 		if derr == sql.ErrNoRows {
-			http.Error(w, "No user account uses this email address", http.StatusNotFound)
+			http.Error(w, "No user account found with this email address", http.StatusNotFound)
 			return
 		}
 	} else if request.Type == 1 {
 		if derr != sql.ErrNoRows {
-			http.Error(w, "Email address already used", http.StatusNotFound)
+			http.Error(w, "Email address is already in use", http.StatusConflict)
 			return
 		}
 	}
@@ -192,82 +202,81 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
 
+	// Check for password validity
 	if strings.Contains(request.Password, " ") {
-		http.Error(w, "The password cannot contain spaces", http.StatusBadRequest)
+		http.Error(w, "Password cannot contain spaces", http.StatusBadRequest)
 		return
 	}
 
-	// Check if the email and password are valid
-	if !isEmailValid(strings.ToLower(request.Email)) {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+	// Validate email and password format
+	if !isEmailValid(request.Email) {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
 	if !isPasswordValid(request.Password) {
-		http.Error(w, "Your password must have at least 7 characters", http.StatusBadRequest)
+		http.Error(w, "Password must be at least 7 characters long", http.StatusBadRequest)
 		return
 	}
 
-	// Check if a user with the chosen email exists
-	user, err := s.db.GetUserByEmail(strings.ToLower(request.Email))
+	// Retrieve user by email
+	user, err := s.db.GetUserByEmail(request.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
-			log.Println(err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			log.Println("Error fetching user:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 		return
 	}
 
+	// Check if the user has linked providers
 	providers, err := s.db.GetProvidersByUserId(user.Id)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
+	if err != nil && err != sql.ErrNoRows {
+		log.Println("Error fetching providers:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	if len(providers) > 0 {
-		http.Error(w, "This account has been registered with a provider", http.StatusUnauthorized)
+		http.Error(w, "Account is registered with an external provider. Login via the provider.", http.StatusUnauthorized)
 		return
 	}
 
-	// Check if the password is correct
-	is_valid := CheckPasswordHash(request.Password, user.Password)
-	if !is_valid {
+	// Validate password hash
+	if !CheckPasswordHash(request.Password, user.Password) {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
 	}
 
-	// create auth cookie
+	// Create auth cookie
 	cookie, err := CreateCookie(&user, w)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error creating auth cookie:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	// Set cache control and set cookie
 	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 
-	// send email
+	// Send notification email about the new login
 	go s.email.SendEmail(email.MailFields{
 		To:          user.Email,
-		Subject:     "A new login has been detected",
-		Content:     "A new user has logged into your account. If you do not recall having logged into your Measurely dashboard, please update your password immediately.",
+		Subject:     "New login detected",
+		Content:     "A new login to your Measurely account was detected. If this wasn't you, please update your password immediately.",
 		Link:        GetOrigin() + "/dashboard",
-		ButtonTitle: "Update password",
+		ButtonTitle: "Update Password",
 	})
 }
 
@@ -277,7 +286,7 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 
 	provider, exists := s.providers[providerName]
 	if !exists {
-		fmt.Println("error")
+		log.Println("Invalid provider:", providerName)
 		http.Error(w, "Invalid provider", http.StatusBadRequest)
 		return
 	}
@@ -285,21 +294,19 @@ func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
 	url := BeginProviderAuth(provider, state)
 
 	SetupCacheControl(w, 10)
-	http.Redirect(w, r, url, http.StatusMovedPermanently)
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	code := r.URL.Query().Get("code")
-
 	state := r.URL.Query().Get("state")
 
-	var action string
-	var id string
+	var action, id string
 	splitted := strings.Split(state, ".")
 
 	if len(splitted) == 0 {
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error=missing parameters", http.StatusMovedPermanently)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=missing parameters", http.StatusFound)
 		return
 	}
 
@@ -312,14 +319,14 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=invalid provider", http.StatusFound)
 		return
 	}
 
 	providerUser, _, err := CompleteProviderAuth(chosenProvider, code)
 	if err != nil {
-		log.Print(err)
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error="+err.Error(), http.StatusMovedPermanently)
+		log.Println("OAuth error:", err)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error="+err.Error(), http.StatusFound)
 		return
 	}
 
@@ -327,14 +334,15 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	provider, gerr := s.db.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
 	if gerr == sql.ErrNoRows {
 		if action == "auth" {
-			stripe_params := &stripe.CustomerParams{
+			// Handle user creation logic
+			stripeParams := &stripe.CustomerParams{
 				Email: stripe.String(providerUser.Email),
 			}
 
-			c, err := customer.New(stripe_params)
+			c, err := customer.New(stripeParams)
 			if err != nil {
-				log.Println(err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
+				log.Println("Stripe error:", err)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 				return
 			}
 
@@ -348,9 +356,9 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			})
 			if err != nil {
 				if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-					http.Redirect(w, r, GetOrigin()+"/sign-in?error=An account with the same email already exists", http.StatusMovedPermanently)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
 				} else {
-					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 				}
 				return
 			}
@@ -361,25 +369,27 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Invalid user identifier", http.StatusMovedPermanently)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=invalid user identifier", http.StatusFound)
 				return
 			}
+
 			user, err = s.db.GetUserById(parsedId)
 			if err != nil {
-				log.Println(err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusMovedPermanently)
+				log.Println("Error fetching user:", err)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=user not found", http.StatusFound)
 				return
 			}
 		}
 
+		// Create provider link in DB
 		provider, err = s.db.CreateProvider(types.UserProvider{
 			UserId:         user.Id,
 			Type:           chosenProvider.Type,
 			ProviderUserId: providerUser.Id,
 		})
 		if err != nil {
-			log.Println(err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
+			log.Println("Error creating provider link:", err)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 			return
 		}
 	}
@@ -387,35 +397,35 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	if gerr == nil {
 		user, err = s.db.GetUserById(provider.UserId)
 		if err != nil {
-			log.Println(err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
+			log.Println("Error fetching user:", err)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 			return
 		}
 	}
 
 	cookie, err := CreateCookie(&user, w)
 	if err != nil {
-		log.Println("error:", err)
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusMovedPermanently)
+		log.Println("Error creating cookie:", err)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 		return
 	}
 
 	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, GetOrigin()+"/dashboard", http.StatusMovedPermanently)
+	http.Redirect(w, r, GetOrigin()+"/dashboard", http.StatusFound)
 }
 
 func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")
 	chosenProvider, exists := s.providers[providerName]
 	if !exists {
-		http.Error(w, "The provider does not exists", http.StatusNotFound)
+		http.Error(w, "Provider not found", http.StatusNotFound)
 		return
 	}
 
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -424,7 +434,7 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -433,29 +443,31 @@ func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			providers = []types.UserProvider{}
 		} else {
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 	}
 
+	// Handle password validation when there is only one provider linked
 	if len(providers) == 1 {
 		if !isPasswordValid(request.Password) {
-			http.Error(w, "Your password must have at least 7 characters", http.StatusBadRequest)
+			http.Error(w, "Password must have at least 7 characters", http.StatusBadRequest)
 			return
 		}
-		hashed_password, err := HashPassword(request.Password)
+
+		hashedPassword, err := HashPassword(request.Password)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 
-		if err := s.db.UpdateUserPassword(token.Id, hashed_password); err != nil {
+		if err := s.db.UpdateUserPassword(token.Id, hashedPassword); err != nil {
 			http.Error(w, "Failed to update password", http.StatusInternalServerError)
 			return
 		}
-
 	}
 
+	// Remove the provider from the user's linked accounts
 	for _, provider := range providers {
 		if provider.Type == chosenProvider.Type {
 			if err := s.db.DeleteUserProvider(provider.Id); err != nil {
@@ -478,14 +490,14 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if strings.Contains(request.Password, " ") {
-		http.Error(w, "The password cannot contain spaces", http.StatusBadRequest)
+		http.Error(w, "Password cannot contain spaces. Please ensure your password is valid.", http.StatusBadRequest)
 		return
 	}
 
@@ -495,11 +507,11 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email and password are valid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		http.Error(w, "Invalid email format. Please provide a valid email address.", http.StatusBadRequest)
 		return
 	}
 	if !isPasswordValid(request.Password) {
-		http.Error(w, "Your password must have at least 7 characters", http.StatusBadRequest)
+		http.Error(w, "Password is too short. Your password must be at least 7 characters long.", http.StatusBadRequest)
 		return
 	}
 
@@ -507,7 +519,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	hashed_password, herr := HashPassword(request.Password)
 	if herr != nil {
 		log.Println(herr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 	stripe_params := &stripe.CustomerParams{
@@ -517,7 +529,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	c, err := customer.New(stripe_params)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to create Stripe customer. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
@@ -531,10 +543,10 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			http.Error(w, "Email already exists", http.StatusBadRequest)
+			http.Error(w, "This email is already registered. Please try logging in instead.", http.StatusBadRequest)
 		} else {
 			log.Println(err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		}
 
 		return
@@ -544,7 +556,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	cookie, cerr := CreateCookie(&new_user, w)
 	if cerr != nil {
 		log.Println(cerr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
@@ -575,8 +587,7 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		log.Println("Failed to get user token")
-		http.Error(w, "Failed to retrieve user session", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -586,10 +597,10 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 			cookie := DeleteCookie()
 			SetupCacheControl(w, 0)
 			http.SetCookie(w, &cookie)
-			http.Error(w, "User not found", http.StatusNotFound)
+			http.Error(w, "User not found. Please log in again.", http.StatusNotFound)
 		} else {
 			log.Println("Failed to get user by id: ", err)
-			http.Error(w, "Failed to load the user data", http.StatusInternalServerError)
+			http.Error(w, "Failed to load your data. Please try again later.", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -600,7 +611,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 			providers = []types.UserProvider{}
 		} else {
 			log.Println("Failed to get user providers by user id :", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -615,7 +626,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	plan, exists := s.GetPlan(user.CurrentPlan)
 	if !exists {
-		http.Error(w, "Plan not found", http.StatusNotFound)
+		http.Error(w, "Plan not found. Please contact support.", http.StatusNotFound)
 		return
 	}
 
@@ -638,7 +649,7 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to retrieve user details. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
@@ -652,9 +663,9 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -662,14 +673,14 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the email is valid
 	if !isEmailValid(request.Email) {
-		http.Error(w, "Invalid email ", http.StatusBadRequest)
+		http.Error(w, "Invalid email address. Please ensure the email is in the correct format.", http.StatusBadRequest)
 		return
 	}
 
 	// Check if a user with the chosen email exists
 	user, derr := s.db.GetUserByEmail(request.Email)
 	if derr == sql.ErrNoRows {
-		http.Error(w, "User not found", http.StatusNotFound)
+		http.Error(w, "User not found. Please check your email address or create a new account.", http.StatusNotFound)
 		return
 	}
 
@@ -678,7 +689,7 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		account_recovery, err = s.db.CreateAccountRecovery(user.Id)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal error. Please try again later.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -702,22 +713,22 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// check if the new password is valid
 	if !isPasswordValid(request.NewPassword) {
-		http.Error(w, "Invalid password", http.StatusBadRequest)
+		http.Error(w, "Password is invalid. Please ensure your password is at least 7 characters long.", http.StatusBadRequest)
 		return
 	}
 
 	// fetch the account recovery
 	account_recovery, gerr := s.db.GetAccountRecovery(request.RequestId)
 	if gerr != nil {
-		http.Error(w, "Invalid account recovery link", http.StatusBadRequest)
+		http.Error(w, "Invalid account recovery link. Please check the link or request a new one.", http.StatusBadRequest)
 		return
 	}
 
@@ -725,23 +736,21 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	hashed_password, herr := HashPassword(request.NewPassword)
 	if herr != nil {
 		log.Println(herr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
 	// update the user password
-	err := s.db.UpdateUserPassword(account_recovery.UserId, hashed_password)
-	if err != nil {
+	if err := s.db.UpdateUserPassword(account_recovery.UserId, hashed_password); err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to update password. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
 	// delete the account recovery
-	derr := s.db.DeleteAccountRecovery(account_recovery.Id)
-	if derr != nil {
-		log.Println(derr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	if err := s.db.DeleteAccountRecovery(account_recovery.Id); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error while finalizing account recovery. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
@@ -751,7 +760,7 @@ func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -760,33 +769,33 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if len(request.Content) > 1000 {
-		http.Error(w, "Content too long", http.StatusBadRequest)
+		http.Error(w, "Feedback content is too long. Please limit your feedback to 1000 characters.", http.StatusBadRequest)
 		return
 	}
 
 	if len(request.Content) == 0 {
-		http.Error(w, "Please provide content", http.StatusBadRequest)
+		http.Error(w, "Please provide some content for your feedback.", http.StatusBadRequest)
 		return
 	}
 
 	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "user not found", http.StatusNotFound)
+			http.Error(w, "User not found. Please log in again.", http.StatusNotFound)
 		} else {
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal error. Please try again later.", http.StatusInternalServerError)
 		}
 		return
 	}
 
-	// send email
+	// Create feedback entry
 	cerr := s.db.CreateFeedback(types.Feedback{
 		Email:   user.Email,
 		Content: request.Content,
@@ -794,14 +803,16 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	})
 	if cerr != nil {
 		log.Println(cerr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error. Unable to process your feedback. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
+	// Log the feedback event
 	go SendMeasurelyMetricEvent("feedbacks", 1)
 
+	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
 		To:      user.Email,
 		Subject: "Feedback received",
@@ -817,7 +828,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -825,7 +836,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error while retrieving your account. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
@@ -836,20 +847,15 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 		subscriptions := result.SubscriptionList()
 
-		if subscriptions == nil {
-			http.Error(w, "no subscriptions found", http.StatusBadRequest)
-			return
-		}
-
-		if len(subscriptions.Data) == 0 {
-			http.Error(w, "no subscriptions found", http.StatusBadRequest)
+		if subscriptions == nil || len(subscriptions.Data) == 0 {
+			http.Error(w, "No active subscriptions found. Please ensure you have a valid subscription.", http.StatusBadRequest)
 			return
 		}
 
 		_, serr := subscription.Cancel(subscriptions.Data[0].ID, nil)
 		if serr != nil {
 			log.Println(serr)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal error while canceling your subscription. Please try again later.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -858,52 +864,52 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	_, cerr := customer.Del(user.StripeCustomerId, nil)
 	if cerr != nil {
 		log.Println(cerr)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error while deleting your Stripe account. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
+	// Delete linked providers
 	providers, err := s.db.GetProvidersByUserId(token.Id)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			http.Error(w, "internal error", http.StatusInternalServerError)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Internal error while disconnecting your providers. Please try again later.", http.StatusInternalServerError)
+		return
+	}
+	for _, provider := range providers {
+		if err := s.db.DeleteUserProvider(provider.Id); err != nil {
+			http.Error(w, "Failed to disconnect provider. Please try again later.", http.StatusInternalServerError)
 			return
-		}
-	} else {
-		for _, provider := range providers {
-			if err := s.db.DeleteUserProvider(provider.Id); err != nil {
-				http.Error(w, "Failed to disconnect provider", http.StatusInternalServerError)
-				return
-			}
 		}
 	}
 
-	// Delete the user
+	// Delete the user account
 	err = s.db.DeleteUser(user.Id)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error while deleting your account. Please try again later.", http.StatusInternalServerError)
 		return
 	}
 
+	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
 		To:      user.Email,
 		Subject: "We're sorry to see you go!",
 		Content: "Your account has been successfully deleted.",
 	})
 
-	// logout
+	// Log out the user
 	cookie := DeleteCookie()
 	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 
+	// Send a metric event for deleted users
 	go SendMeasurelyMetricEvent("users", -1)
 }
 
 func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -920,7 +926,7 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 
 	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
@@ -928,15 +934,15 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 	if err == sql.ErrNoRows {
 		emailchange, err = s.db.CreateEmailChangeRequest(token.Id, request.NewEmail)
 		if err != nil {
-			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			log.Println("Error creating email change request:", err)
+			http.Error(w, "Failed to process email change request", http.StatusInternalServerError)
 			return
 		}
 	}
 
 	w.WriteHeader(http.StatusOK)
 
-	// Send email
+	// Send email notification
 	go s.email.SendEmail(email.MailFields{
 		To:          user.Email,
 		Subject:     "Change your email",
@@ -951,17 +957,14 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 		RequestId uuid.UUID `json:"requestid"`
 	}
 
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// fetch the account recovery
-	emailchange, gerr := s.db.GetEmailChangeRequest(request.RequestId)
-	if gerr != nil {
-		http.Error(w, "Invalid email change link", http.StatusBadRequest)
+	emailchange, err := s.db.GetEmailChangeRequest(request.RequestId)
+	if err != nil {
+		http.Error(w, "Invalid email change link or expired", http.StatusBadRequest)
 		return
 	}
 
@@ -970,33 +973,31 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			http.Error(w, "Internal error: Failed to retrieve user data", http.StatusInternalServerError)
 		}
 		return
 	}
 
-	// update the user password
-	if err = s.db.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail); err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	if err := s.db.UpdateUserEmail(emailchange.UserId, emailchange.NewEmail); err != nil {
+		log.Println("Error updating user email:", err)
+		http.Error(w, "Failed to update user email", http.StatusInternalServerError)
 		return
 	}
 
+	// Update Stripe customer email
 	params := stripe.CustomerParams{
 		Email: stripe.String(emailchange.NewEmail),
 	}
-	_, err = customer.Update(user.StripeCustomerId, &params)
-	if err != nil {
-		log.Println("Failed to update stripe customer email")
-		s.db.UpdateUserEmail(user.Id, user.Email)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	if _, err := customer.Update(user.StripeCustomerId, &params); err != nil {
+		log.Println("Error updating Stripe customer email:", err)
+		s.db.UpdateUserEmail(user.Id, user.Email) // Rollback
+		http.Error(w, "Failed to update payment details", http.StatusInternalServerError)
 		return
 	}
 
-	// delete the account recovery
 	if err := s.db.DeleteEmailChangeRequest(emailchange.Id); err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error deleting email change request:", err)
+		http.Error(w, "Internal error: Failed to clean up email change request", http.StatusInternalServerError)
 		return
 	}
 
@@ -1006,7 +1007,7 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1024,6 +1025,7 @@ func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request)
 	request.LastName = strings.TrimSpace(request.LastName)
 
 	if err := s.db.UpdateUserFirstAndLastName(token.Id, request.FirstName, request.LastName); err != nil {
+		log.Println("Error updating user's name:", err)
 		http.Error(w, "Failed to update the user's first name and/or last name", http.StatusInternalServerError)
 		return
 	}
@@ -1034,7 +1036,7 @@ func (s *Service) UpdateFirstAndLastName(w http.ResponseWriter, r *http.Request)
 func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1049,29 +1051,30 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isPasswordValid(request.NewPassword) {
-		http.Error(w, "Your password must have at least 7 characters", http.StatusBadRequest)
+		http.Error(w, "Password must be at least 7 characters", http.StatusBadRequest)
 		return
 	}
 
 	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to retrieve user", http.StatusInternalServerError)
 		return
 	}
+
 	match := CheckPasswordHash(request.OldPassword, user.Password)
 	if !match {
-		http.Error(w, "The entered password is incorrect", http.StatusUnauthorized)
+		http.Error(w, "Incorrect old password", http.StatusUnauthorized)
 		return
 	}
 
 	hashed, err := HashPassword(request.NewPassword)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Error hashing new password", http.StatusInternalServerError)
 		return
 	}
 
 	if err := s.db.UpdateUserPassword(token.Id, hashed); err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to update password", http.StatusInternalServerError)
 		return
 	}
 
@@ -1081,7 +1084,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1089,10 +1092,8 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		Name string `json:"name"`
 	}
 
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -1100,15 +1101,14 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9_ ]+$`, request.Name)
 	if reerr != nil {
-		http.Error(w, reerr.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid application name format", http.StatusBadRequest)
 		return
 	}
 	if !match {
-		http.Error(w, "You can only use letters, numbers and underscores", http.StatusBadRequest)
+		http.Error(w, "Application name can only contain letters, numbers, and underscores", http.StatusBadRequest)
 		return
 	}
 
-	// Fetch application
 	_, err := s.db.GetApplicationByName(token.Id, request.Name)
 	if err == nil {
 		http.Error(w, "Application with this name already exists", http.StatusBadRequest)
@@ -1117,74 +1117,66 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 
 	plan, _ := s.GetUserPlan(token.Id)
 	if plan.AppLimit >= 0 {
-
-		// Get application count
 		count, cerr := s.db.GetApplicationCountByUser(token.Id)
 		if cerr != nil {
-			log.Println(cerr)
-			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+			log.Println("Error retrieving application count:", cerr)
+			http.Error(w, "Error checking application count, please try again later", http.StatusInternalServerError)
 			return
 		}
 
 		if count >= plan.AppLimit {
-			http.Error(w, "You have reached your application limit", http.StatusUnauthorized)
+			http.Error(w, "Application limit reached", http.StatusForbidden)
 			return
 		}
-
 	}
 
-	// Create the application
-	tries := 5
-	var api_key string = ""
+	var apiKey string
 	var aerr error
-	for {
-		if tries <= 0 {
-			break
-		}
-		tries -= 1
-		api_key, aerr = GenerateRandomKey()
+	for tries := 5; tries > 0; tries-- {
+		apiKey, aerr = GenerateRandomKey()
 		if aerr != nil {
 			continue
 		}
 
-		_, aerr = s.db.GetApplicationByApi(api_key)
+		_, aerr = s.db.GetApplicationByApi(apiKey)
 		if aerr != nil {
 			break
 		}
 	}
 
-	if api_key == "" {
-		http.Error(w, "Internal error, please try again later", http.StatusRequestTimeout)
+	if apiKey == "" {
+		http.Error(w, "Unable to generate API key, please try again later", http.StatusRequestTimeout)
 		return
 	}
 
-	new_app, err := s.db.CreateApplication(types.Application{
-		ApiKey: api_key,
+	newApp, err := s.db.CreateApplication(types.Application{
+		ApiKey: apiKey,
 		Name:   request.Name,
 		UserId: token.Id,
 	})
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		log.Println("Error creating application:", err)
+		http.Error(w, "Failed to create application", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, jerr := json.Marshal(new_app)
+	bytes, jerr := json.Marshal(newApp)
 	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to marshal application data", http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
 
 	go SendMeasurelyMetricEvent("apps", 1)
 }
 
 func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the token from the request context
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1192,61 +1184,64 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		AppId uuid.UUID `json:"appid"`
 	}
 
-	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	// Attempt to decode the request body into the `request` struct
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Get the application
-	_, gerr := s.db.GetApplication(request.AppId, token.Id)
-	if gerr != nil {
-		log.Println(gerr)
+	// Fetch the application from the database
+	_, err := s.db.GetApplication(request.AppId, token.Id)
+	if err != nil {
+		log.Println("Error fetching application:", err)
 		http.Error(w, "Application does not exist.", http.StatusNotFound)
 		return
 	}
 
-	tries := 5
-	var api_key string = ""
-	var aerr error
-	for {
-		if tries <= 0 {
-			break
-		}
-		tries -= 1
-		api_key, aerr = GenerateRandomKey()
-		if aerr != nil {
-			continue
+	// Attempt to generate a unique API key
+	const maxTries = 5
+	var apiKey string
+	var generationErr error
+
+	for i := 0; i < maxTries; i++ {
+		// Generate a random API key
+		apiKey, generationErr = GenerateRandomKey()
+		if generationErr != nil {
+			log.Println("Error generating API key:", generationErr)
+			continue // Retry if key generation fails
 		}
 
-		_, aerr = s.db.GetApplicationByApi(api_key)
-		if aerr != nil {
+		// Check if the API key already exists
+		_, err := s.db.GetApplicationByApi(apiKey)
+		if err != nil {
+			// If the API key is unique, break out of the loop
 			break
 		}
 	}
 
-	if api_key == "" {
+	// If a valid API key wasn't generated, return a timeout error
+	if apiKey == "" {
 		http.Error(w, "Internal error, please try again later", http.StatusRequestTimeout)
 		return
 	}
 
-	// Update the app's api key
-	err := s.db.UpdateApplicationApiKey(request.AppId, token.Id, api_key)
-	if err != nil {
-		log.Println(err)
+	// Update the application with the new API key
+	if err := s.db.UpdateApplicationApiKey(request.AppId, token.Id, apiKey); err != nil {
+		log.Println("Error updating application API key:", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Write([]byte(api_key))
+	// Respond with the new API key
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(apiKey))
 }
 
 func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1255,29 +1250,26 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Delete the application
-	err := s.db.DeleteApplication(request.AppId, token.Id)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	if err := s.db.DeleteApplication(request.AppId, token.Id); err != nil {
+		log.Println("Error deleting application:", err)
+		http.Error(w, "Failed to delete application", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-
 	go SendMeasurelyMetricEvent("apps", -1)
 }
 
 func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1295,13 +1287,12 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 
 	if err := s.db.UpdateApplicationName(request.AppId, token.Id, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "The application was not found", http.StatusBadRequest)
-			return
-
+			http.Error(w, "Application not found", http.StatusNotFound)
 		} else {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
+			log.Println("Error updating application name:", err)
+			http.Error(w, "Failed to update application name", http.StatusInternalServerError)
 		}
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -1310,7 +1301,7 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1319,25 +1310,25 @@ func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
 	if err == sql.ErrNoRows {
 		apps = []types.Application{}
 	} else if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error fetching applications:", err)
+		http.Error(w, "Failed to retrieve applications", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, jerr := json.Marshal(apps)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
+	bytes, err := json.Marshal(apps)
+	if err != nil {
+		http.Error(w, "Failed to marshal applications data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
 }
 
 func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1351,9 +1342,8 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -1363,11 +1353,11 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 ]+$`, request.Name)
 	if reerr != nil {
-		http.Error(w, reerr.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid name format: "+reerr.Error(), http.StatusBadRequest)
 		return
 	}
 	if !match {
-		http.Error(w, "You can only use letters, numbers and underscores", http.StatusBadRequest)
+		http.Error(w, "Metric name can only contain letters, numbers, and spaces", http.StatusBadRequest)
 		return
 	}
 
@@ -1377,30 +1367,30 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.BaseValue < 0 && request.Type == types.BASE_METRIC {
-		http.Error(w, "The base value cannot be negative", http.StatusBadRequest)
+		http.Error(w, "Base value cannot be negative for base metrics", http.StatusBadRequest)
 		return
 	}
 
 	// Get the application
 	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error fetching application:", err)
+		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
 		return
 	}
 
 	// Get Metric Count
 	count, err := s.db.GetMetricsCount(request.AppId)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error getting metrics count:", err)
+		http.Error(w, "Failed to retrieve metric count", http.StatusInternalServerError)
 		return
 	}
 
 	plan, _ := s.GetUserPlan(token.Id)
 
 	if count >= plan.MetricPerAppLimit {
-		http.Error(w, "You have reached the limit of metrics for this app", http.StatusUnauthorized)
+		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}
 
@@ -1414,10 +1404,10 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			http.Error(w, "A metric with the same name already exists", http.StatusBadRequest)
+			http.Error(w, "Metric with the same name already exists", http.StatusBadRequest)
 		} else {
-			log.Println(err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			log.Println("Error creating metric:", err)
+			http.Error(w, "Failed to create metric", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -1441,14 +1431,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	bytes, jerr := json.Marshal(metric)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
+	bytes, err := json.Marshal(metric)
+	if err != nil {
+		http.Error(w, "Failed to marshal metric data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
 
 	go SendMeasurelyMetricEvent("metrics", 1)
 }
@@ -1456,7 +1446,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1466,55 +1456,54 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Get the application
 	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error fetching application:", err)
+		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
 		return
 	}
 
 	// Delete the metric
-	err = s.db.DeleteMetric(request.MetricId, request.AppId)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	if err := s.db.DeleteMetric(request.MetricId, request.AppId); err != nil {
+		log.Println("Error deleting metric:", err)
+		http.Error(w, "Failed to delete metric", http.StatusInternalServerError)
 		return
 	}
+
+	// Remove the metric from the cache
 	s.cache.metricIdToApiKeys.Delete(request.MetricId)
 
 	w.WriteHeader(http.StatusOK)
-
 	go SendMeasurelyMetricEvent("metrics", -1)
 }
 
 func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
 	appid, perr := uuid.Parse(r.URL.Query().Get("appid"))
 	if perr != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "Invalid app ID format", http.StatusBadRequest)
 		return
 	}
 
 	// Get application
 	_, err := s.db.GetApplication(appid, token.Id)
 	if err == sql.ErrNoRows {
-		http.Error(w, "Not Found", http.StatusNotFound)
+		http.Error(w, "Application not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error fetching application:", err)
+		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
 		return
 	}
 
@@ -1523,25 +1512,25 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	if err == sql.ErrNoRows {
 		metrics = []types.Metric{}
 	} else if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error fetching metrics:", err)
+		http.Error(w, "Failed to retrieve metrics", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, jerr := json.Marshal(metrics)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusContinue)
+	bytes, err := json.Marshal(metrics)
+	if err != nil {
+		http.Error(w, "Failed to marshal metrics data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
 }
 
 func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -1554,9 +1543,8 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to unmarshal the request body
-	jerr := json.NewDecoder(r.Body).Decode(&request)
-	if jerr != nil {
-		http.Error(w, jerr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request format: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -1567,49 +1555,63 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	// Get the application
 	_, err := s.db.GetApplication(request.AppId, token.Id)
 	if err == sql.ErrNoRows {
-		http.Error(w, "Not Found", http.StatusNotFound)
+		http.Error(w, "Application not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Error fetching application:", err)
+		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
 		return
 	}
 
 	// Update the metric
-	err = s.db.UpdateMetric(request.MetricId, request.AppId, request.Name, request.NamePos, request.NameNeg)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+	if err := s.db.UpdateMetric(request.MetricId, request.AppId, request.Name, request.NamePos, request.NameNeg); err != nil {
+		log.Println("Error updating metric:", err)
+		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) AuthentificatedMiddleware(next http.Handler) http.Handler {
+func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the session cookie
 		cookie, err := r.Cookie("measurely-session")
 		if err == http.ErrNoCookie {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized: Missing session cookie", http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			http.Error(w, "Internal server error: Unable to read cookie", http.StatusInternalServerError)
 			return
 		}
 
+		// Verify the token in the cookie
 		token, err := VerifyToken(cookie.Value)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, "Unauthorized: Invalid token - "+err.Error(), http.StatusUnauthorized)
 			return
 		}
+
+		// Store token in the request context
 		ctx := context.WithValue(r.Context(), types.TOKEN, token)
 
+		// Check if the session cookie is about to expire
 		if cookie.Expires.Sub(time.Now().UTC()) <= 12*time.Hour {
-			new_cookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
-
-			if err == nil {
-				http.SetCookie(w, &new_cookie)
+			// If so, refresh the cookie
+			newCookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
+			if err != nil {
+				http.Error(w, "Internal error: Failed to create a new session cookie", http.StatusInternalServerError)
+				return
 			}
 
+			// Set the refreshed cookie
+			http.SetCookie(w, &newCookie)
+
+			// Disable cache for this response
 			SetupCacheControl(w, 0)
 		}
+
+		// Continue the request chain
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

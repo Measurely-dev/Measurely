@@ -183,19 +183,69 @@ func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
 	return err
 }
 
-func (db *DB) CreateMetricEvents(events []types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value) VALUES (:metricid, :value)", events)
-	return err
-}
+func (db *DB) UpdateMetricAndCreateEventSummary(
+	metricid uuid.UUID,
+	toAdd int64,
+	toRemove int64,
+) error {
+	tx, err := db.Conn.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %v", err)
+	}
 
-func (db *DB) CreateMetricEvent(event types.MetricEvent) error {
-	_, err := db.Conn.NamedExec("INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)", event)
-	return err
-}
+	var totalPos, totalNeg int64
+	err = tx.QueryRowx(
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg",
+		toAdd, toRemove, metricid,
+	).Scan(&totalPos, &totalNeg)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update metrics and fetch totals: %v", err)
+	}
 
-func (db *DB) CreateDailyMetricSummary(summary types.DailyMetricSummary) error {
-	_, err := db.Conn.NamedExec(`INSERT INTO metricdailysummary (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg) VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg) ON CONFLICT (date, metricid) DO UPDATE SET valuepos = metricdailysummary.valuepos + EXCLUDED.valuepos, valueneg = metricdailysummary.valueneg + EXCLUDED.valueneg, relativetotalpos = metricdailysummary.relativetotalpos + EXCLUDED.valuepos, relativetotalneg = metricdailysummary.relativetotalneg + EXCLUDED.valueneg`, summary)
-	return err
+	event := types.MetricEvent{
+		RelativeTotalPos: totalPos,
+		RelativeTotalNeg: totalNeg,
+		MetricId:         metricid,
+		Value:            int(toAdd) - int(toRemove),
+	}
+	_, err = tx.NamedExec(
+		"INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)",
+		event,
+	)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to insert metric event: %v", err)
+	}
+
+	summary := types.DailyMetricSummary{
+		RelativeTotalPos: totalPos,
+		RelativeTotalNeg: totalNeg,
+		MetricId:         metricid,
+		ValuePos:         int(toAdd),
+		ValueNeg:         int(toRemove),
+	}
+	_, err = tx.NamedExec(`
+		INSERT INTO metricdailysummary (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg) 
+		VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg)
+		ON CONFLICT (date, metricid) DO UPDATE SET 
+			valuepos = metricdailysummary.valuepos + EXCLUDED.valuepos,
+			valueneg = metricdailysummary.valueneg + EXCLUDED.valueneg,
+			relativetotalpos = metricdailysummary.relativetotalpos,
+			relativetotalneg = metricdailysummary.relativetotalneg
+	`, summary)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update daily metric summary: %v", err)
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	return nil
 }
 
 func (db *DB) GetMetricsCount(appid uuid.UUID) (int, error) {
@@ -331,11 +381,6 @@ func (db *DB) GetDailyMetricSummary(metricid uuid.UUID, start time.Time, end tim
 	}
 
 	return dailysummarymetrics, err
-}
-
-func (db *DB) UpdateMetricTotal(id uuid.UUID, toAdd int64, toRemove int64) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3", toAdd, toRemove, id)
-	return err
 }
 
 func (db *DB) GetApplication(id uuid.UUID, userid uuid.UUID) (types.Application, error) {

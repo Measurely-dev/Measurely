@@ -3,9 +3,9 @@ package service
 import (
 	"Measurely/types"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -44,8 +44,6 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
-			totalpos:    metric.TotalPos,
-			totalneg:    metric.TotalNeg,
 			expiry:      time.Now().Add(15 * time.Minute),
 		})
 
@@ -94,96 +92,77 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	apikey := chi.URLParam(r, "apikey")
 	metricid, err := uuid.Parse(chi.URLParam(r, "metricid"))
 	if err != nil {
-		http.Error(w, "Invalid metric id", http.StatusBadRequest)
+		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
+		return
 	}
 
 	var request struct {
 		Value int `json:"value"`
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Decode the request body
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	valid := s.VerifyKeyToMetric(metricid, apikey)
-	if !valid {
-		http.Error(w, "Invalid api key and/or metric id", http.StatusBadRequest)
+	// Verify the API key and metric ID
+	if !s.VerifyKeyToMetric(metricid, apikey) {
+		http.Error(w, "Invalid API key or metric ID", http.StatusUnauthorized)
 		return
 	}
 
+	// Retrieve the metric's cache entry
 	value, _ := s.cache.metricIdToApiKeys.Load(metricid)
 	metricCache := value.(MetricToKeyCache)
+
+	// Get the user's plan details
 	plan, err := s.GetUserPlan(metricCache.user_id)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error fetching plan:", err)
 		http.Error(w, "Plan not found", http.StatusNotFound)
 		return
 	}
 
+	// Check if the rate limit is exceeded
 	if !s.RateAllow(apikey, plan.RequestLimit) {
-		http.Error(w, "You have exceeded the rate limit", http.StatusServiceUnavailable)
+		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		return
 	}
 
+	// Validate the metric value for base metrics
 	if metricCache.metric_type == types.BASE_METRIC && request.Value < 0 {
-		http.Error(w, "A base metric cannot have a negative value", http.StatusBadRequest)
+		http.Error(w, "Base metric cannot have a negative value", http.StatusBadRequest)
 		return
 	}
 
+	// Reject zero values
 	if request.Value == 0 {
-		http.Error(w, "A value cannot be null", http.StatusBadRequest)
+		http.Error(w, "Metric value cannot be zero", http.StatusBadRequest)
 		return
 	}
 
-	pos := 0
-	neg := 0
-
+	// Determine positive and negative values for metrics
+	pos, neg := 0, 0
 	if request.Value > 0 {
 		pos = request.Value
 	} else {
 		neg = -request.Value
 	}
 
-	if err := s.db.CreateMetricEvent(types.MetricEvent{
-		MetricId:         metricid,
-		Value:            request.Value,
-		RelativeTotalPos: metricCache.totalpos + int64(pos),
-		RelativeTotalNeg: metricCache.totalneg + int64(neg),
-	}); err != nil {
-    log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	if err := s.db.CreateDailyMetricSummary(types.DailyMetricSummary{
-		MetricId:         metricid,
-		ValuePos:         pos,
-		ValueNeg:         neg,
-		RelativeTotalPos: metricCache.totalpos + int64(pos),
-		RelativeTotalNeg: metricCache.totalneg + int64(neg),
-	}); err != nil {
-		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	if err := s.db.UpdateMetricTotal(metricid, int64(pos), int64(neg)); err != nil {
-    log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
-
-	// Update the cache
+	// Update the metric cache
 	s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
 		key:         apikey,
 		metric_type: metricCache.metric_type,
 		user_id:     metricCache.user_id,
-		totalpos:    metricCache.totalpos + int64(pos),
-		totalneg:    metricCache.totalneg + int64(neg),
 		expiry:      time.Now().Add(15 * time.Minute),
 	})
+
+	// Update the metric and create the event summary in the database
+	if err := s.db.UpdateMetricAndCreateEventSummary(metricid, int64(pos), int64(neg)); err != nil {
+		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -197,90 +176,96 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 
 	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
 	}
+
 	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "Invalid application ID", http.StatusBadRequest)
 		return
 	}
 
 	start, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("start"))
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "Invalid start date format", http.StatusBadRequest)
 		return
 	}
 
 	end, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("end"))
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "Invalid end date format", http.StatusBadRequest)
 		return
 	}
 
 	daily := r.URL.Query().Get("daily")
 
-	// Get application
+	// Get the application
 	app, err := s.db.GetApplication(appid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	valid := s.VerifyKeyToMetric(metricid, app.ApiKey)
-	if !valid {
-		http.Error(w, "metric not found", http.StatusNotFound)
+	// Verify API key and metric association
+	if !s.VerifyKeyToMetric(metricid, app.ApiKey) {
+		http.Error(w, "Metric not found", http.StatusNotFound)
 		return
 	}
 
+	// Get the user's plan details
 	plan, err := s.GetUserPlan(token.Id)
 	if err != nil {
-		http.Error(w, "internal error", http.StatusNotFound)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	nbrDays := (float64(end.Sub(start).Abs()) / float64(24*time.Hour)) - 1
-
+	// Ensure the requested date range is within the user's plan limits
+	nbrDays := (float64(end.Sub(start).Abs()) / float64(24*time.Hour)) - 2
 	if nbrDays > float64(plan.Range) {
-		http.Error(w, "Your current plan allows viewing up to"+strconv.Itoa(plan.Range)+"days of data. Upgrade to unlock extended date ranges.", http.StatusUnauthorized)
+		http.Error(w, fmt.Sprintf("Your current plan allows viewing up to %d days of data. Upgrade to unlock extended date ranges.", plan.Range), http.StatusUnauthorized)
 		return
 	}
 
 	var bytes []byte
 	if daily != "1" {
+		// Ensure the range is within 24 hours for precise events
 		if end.Sub(start) > 24*time.Hour {
 			http.Error(w, "You cannot fetch more than 24 hours of precise events", http.StatusBadRequest)
 			return
 		}
-		// get the metric events
+
+		// Fetch the metric events
 		metrics, err := s.db.GetMetricEvents(metricid, start, end)
 		if err != nil {
-			log.Println(err)
+			log.Println("Error fetching metric events:", err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 
 		bytes, err = json.Marshal(metrics)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "Failed to process events", http.StatusBadRequest)
 			return
 		}
 	} else {
+		// Fetch daily metric summary
 		metricevents, err := s.db.GetDailyMetricSummary(metricid, start, end)
 		if err != nil {
-			log.Println(err)
+			log.Println("Error fetching daily metric summary:", err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 
 		bytes, err = json.Marshal(metricevents)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "Failed to process daily summary", http.StatusBadRequest)
 			return
 		}
 	}
 
+	// Cache control header to optimize response delivery
 	SetupCacheControl(w, 5)
-	w.Write(bytes)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
 }
