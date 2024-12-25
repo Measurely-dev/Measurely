@@ -174,7 +174,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
+	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg, created) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.Created).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
 	return new_metric, err
 }
 
@@ -204,14 +204,17 @@ func (db *DB) UpdateMetricAndCreateEventSummary(
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err)
 	}
 
+	now := time.Now().UTC()
+
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
 		MetricId:         metricid,
 		Value:            int(toAdd) - int(toRemove),
+		Date:             now,
 	}
 	_, err = tx.NamedExec(
-		"INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)",
+		"INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg, date) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg, :date)",
 		event,
 	)
 	if err != nil {
@@ -219,16 +222,20 @@ func (db *DB) UpdateMetricAndCreateEventSummary(
 		return fmt.Errorf("failed to insert metric event: %v", err)
 	}
 
+	// Create a time at midnight by resetting hour, minute, second, and nanosecond
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.UTC)
+
 	summary := types.DailyMetricSummary{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
 		MetricId:         metricid,
 		ValuePos:         int(toAdd),
 		ValueNeg:         int(toRemove),
+		Date:             midnight,
 	}
 	_, err = tx.NamedExec(`
-		INSERT INTO metricdailysummary (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg) 
-		VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg)
+		INSERT INTO metricdailysummary (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
+    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
 		ON CONFLICT (date, metricid) DO UPDATE SET 
 			valuepos = metricdailysummary.valuepos + EXCLUDED.valuepos,
 			valueneg = metricdailysummary.valueneg + EXCLUDED.valueneg,

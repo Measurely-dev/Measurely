@@ -1405,6 +1405,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		Type:    request.Type,
 		NamePos: request.NamePos,
 		NameNeg: request.NameNeg,
+    Created: time.Now().UTC(),
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
