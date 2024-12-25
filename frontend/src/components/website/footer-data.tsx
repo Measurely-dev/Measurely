@@ -3,11 +3,8 @@ export const footerData = [
   { title: 'Pricing', href: '/pricing' },
   { title: 'About us', href: '/about' },
   { title: 'Brand', href: '/brand' },
-  { title: 'Documentation', href: '/docs/getting-started/introduction' },
-  {
-    title: 'Quickstart',
-    href: '/docs/setup/quickstart',
-  },
+  { title: 'Docs', href: '/docs/getting-started/introduction' },
+  { title: 'Blog', href: '/blog' },
   { title: 'Legal', href: '/legal' },
   { title: 'Help', href: '/help' },
 ];

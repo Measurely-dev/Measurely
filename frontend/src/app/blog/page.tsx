@@ -18,13 +18,13 @@ export default async function BlogIndexPage() {
   );
   return (
     <WebContainer>
-      <ContentContainer type='page'>
+      <ContentContainer type='page' className='max-w-[800px]'>
         <WebPageHeader
           title='Our Blog'
           description='Stay updated with the latest articles, tutorials, and insights from our team.'
           className='mb-[120px]'
         />
-        <div className='mb-5 grid grid-cols-2 max-md:grid-cols-1 gap-4'>
+        <div className='mb-5 grid grid-cols-1 gap-4 max-md:grid-cols-1'>
           {blogs.map((blog) => (
             <BlogCard {...blog} slug={blog.slug} key={blog.slug} />
           ))}
@@ -45,28 +45,24 @@ function BlogCard({
   return (
     <Link
       href={`/blog/${slug}`}
-      className='flex min-h-[400px] flex-col items-start gap-2 rounded-2xl bg-black p-2 transition-all duration-200 hover:opacity-90'
+      className='flex flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:bg-accent/60'
     >
       <div className='w-full'>
         <Image
           src={cover}
           alt={title}
-          width={2000}
-          height={2000}
+          width={10000}
+          height={10000}
           quality={100}
-          className='mb-3 h-fit w-full rounded-xl border rounded-b-md object-cover'
+          className='mb-3 h-fit w-full rounded-xl rounded-b-md border object-cover'
         />
       </div>
-      <div className='px-3 pb-3'>
-        <div className='-mt-1 pr-7 text-xl font-semibold !text-white'>
-          {title}
-        </div>
+      <div className='pt-none p-4'>
+        <div className='-mt-1 pr-7 text-xl font-semibold'>{title}</div>
 
-        <p className='text-sm !text-white/70'>{description}</p>
+        <div className='text-sm'>{description}</div>
         <div className='mt-auto flex w-full items-center justify-between'>
-          <p className='text-[13px] !text-white/70'>
-            Published on {formatDate2(date)}
-          </p>
+          <div className='text-[13px]'>Published on {formatDate2(date)}</div>
           <AvatarGroup users={authors} />
         </div>
       </div>

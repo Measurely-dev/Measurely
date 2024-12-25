@@ -76,8 +76,8 @@ export default async function BlogPage(props: PageProps) {
             <Image
               src={res.frontmatter.cover}
               alt='cover'
-              width={700}
-              height={400}
+              width={10000}
+              height={10000}
               className='h-[400px] w-full rounded-2xl border object-cover'
             />
           </div>
