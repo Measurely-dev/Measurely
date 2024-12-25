@@ -7,6 +7,7 @@ import { formatDate2, stringToDate } from '@/lib/utils';
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { parseISO, differenceInDays } from 'date-fns';
 
 export const metadata: Metadata = {
   title: 'Blog',
@@ -51,10 +52,14 @@ function BlogCard({
   cover,
   authors,
 }: BlogMdxFrontmatter & { slug: string }) {
+  const formattedDate = date.split('-').reverse().join('-');
+  const newDate = parseISO(formattedDate);
+  const isValidDate = !isNaN(newDate.getTime());
+  const isNew = isValidDate && differenceInDays(new Date(), newDate) < 7;
   return (
     <Link
       href={`/blog/${slug}`}
-      className='flex flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:scale-[1.0025] hover:shadow-lg'
+      className='group relative flex select-none flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:scale-[1.0025] hover:shadow-lg'
     >
       <div className='w-full'>
         <Image
@@ -67,10 +72,19 @@ function BlogCard({
         />
       </div>
       <div className='pt-none p-4'>
-        <div className='mb-3 text-xl font-semibold'>{title}</div>
+        <div className='mb-3 flex flex-row items-center gap-3 text-xl font-semibold'>
+          {title}
+          {isNew && (
+            <div className='h-fit w-fit animate-gradient rounded-[8px] bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 p-0.5 px-2 text-xs font-medium text-white'>
+              New
+            </div>
+          )}
+        </div>
         <div className='text-sm'>{description}</div>
         <div className='mt-auto flex w-full items-center justify-between'>
-          <div className='text-[13px] text-muted-foreground'>Published on {formatDate2(date)}</div>
+          <div className='text-[13px] text-muted-foreground'>
+            Published on {formatDate2(date)}
+          </div>
           <AvatarGroup users={authors} />
         </div>
       </div>
@@ -83,7 +97,7 @@ function AvatarGroup({ users, max = 4 }: { users: Author[]; max?: number }) {
   const remainingUsers = Math.max(users.length - max, 0);
 
   return (
-    <div className='flex items-centert'>
+    <div className='items-centert flex'>
       {displayUsers.map((user, index) => (
         <Avatar
           key={user.username}
