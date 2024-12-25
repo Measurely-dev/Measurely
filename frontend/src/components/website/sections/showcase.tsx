@@ -21,14 +21,14 @@ export default function ShowcaseLandingSection() {
       <Link href='/register'>
         <WebButton className='mt-8'>Get started</WebButton>
       </Link>
-      <div className='relative mx-2 mt-12 h-full w-fit max-w-[90%] p-1 pb-0 max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
+      <div className='absolute left-[0] top-[0] z-[-10] h-screen w-screen bg-accent/40 backdrop-blur-2xl' />
+      <div className='relative mx-2 mt-12 flex h-full w-fit max-w-[90%] items-center justify-center max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
+        <div className='absolute top-2 z-[-11] h-[80%] w-[100%] animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400' />
         <Image
           src={Preview}
           alt='Preview image'
-          className={`relative z-10 h-full w-fit rounded-xl rounded-b-none border-[10px] border-background transition-[clip-path] duration-1000`}
-          style={{ clipPath: 'inset(0 0 0 0)' }} 
+          className={`relative z-10 h-full w-fit rounded-xl rounded-b-none ring-4 ring-background/50 duration-1000`}
         />
-        <div className='absolute left-0 top-0 h-full w-full animate-gradient rounded-2xl rounded-b-none bg-gradient-to-r from-gray-300 via-gray-200 to-gray-100' />
       </div>
 
       <Card5 className='absolute -left-16 -top-8 rotate-[9deg] max-lg:hidden' />
