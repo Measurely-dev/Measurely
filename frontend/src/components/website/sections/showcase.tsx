@@ -21,9 +21,9 @@ export default function ShowcaseLandingSection() {
       <Link href='/register'>
         <WebButton className='mt-8'>Get started</WebButton>
       </Link>
-      <div className='absolute left-[0] top-[0] z-[-10] h-screen w-screen bg-accent/40 backdrop-blur-2xl' />
+      <div className='absolute left-[0] top-[0] z-[-10] h-[100%] w-screen bg-accent/40 backdrop-blur-2xl' />
       <div className='relative mx-2 mt-12 flex h-full w-fit max-w-[90%] items-center justify-center max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
-        <div className='absolute top-2 z-[-11] h-[80%] w-[100%] animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400' />
+        <div className='absolute top-2 z-[-11] max-sm:h-[100%] h-[80%] w-[100%] animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400' />
         <Image
           src={Preview}
           alt='Preview image'
