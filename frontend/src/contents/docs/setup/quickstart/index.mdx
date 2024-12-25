@@ -23,8 +23,8 @@ This guide will help you:
   <StepperItem title='Step 3: Enter Metric Details'>
     Provide a name for your metric (e.g., "Sales Count").
   </StepperItem>
-  <StepperItem title='Step 4: API ID Integration'>
-    To send data to this metric, integrate your Measurely API ID into your
+  <StepperItem title='Step 4: API KEY Integration'>
+    To send data to this metric, integrate your Measurely API KEY into your
     application.
   </StepperItem>
 </Stepper>
@@ -38,7 +38,7 @@ To update a metric value:
    POST https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
    ```
 
-2. Include a JSON body with the value you want to add:
+2. Include a JSON body with the value you want to add or remove:
 
    ```json
    {

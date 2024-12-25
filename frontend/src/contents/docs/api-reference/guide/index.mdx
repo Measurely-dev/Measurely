@@ -24,20 +24,18 @@ Before you can start using the Measurely API, you will need the following:
 To update a metric's value, you need to make a POST request to the following endpoint:
 
 ```
-**POST** https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
+POST https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
 ```
 
 ### Request Body
 
-The request body should contain the value you wish to add to the metric. The body format should be JSON:
+The request body should contain the value you wish to add or remove. The body format should be JSON:
 
 ```json
 {
   "value": 100
 }
 ```
-
-**value**: The value to add to the metric.
 
 ### Code exemples
 
@@ -148,57 +146,22 @@ The request body should contain the value you wish to add to the metric. The bod
 
 The Measurely API responds with different status codes based on the outcome of your request. Here's what each response code means:
 
-### 201 - Created
+### 200 - Success
 
-The request was successful, and the metric's value has been updated.
-
-```json
-{
-  "status": "success",
-  "message": "Metric value updated successfully."
-}
-```
+The metric value has been successfully updated, and the event summary has been created in the database.
 
 ### 400 - Bad Request
 
-The request was invalid. This may happen if the request body is missing or incorrectly formatted. Check the request body and try again.
+The request is invalid. This may occur due to missing or improperly formatted request data, or an issue with the metric value (e.g., a negative value for a base metric or a value of zero).
 
-```json
-{
-  "status": "error",
-  "message": "Invalid request. Ensure the value is provided in the correct format."
-}
-```
+### 401 - Unauthorized
 
-### 404 - Not Found
+The provided API key or metric ID is invalid, or the request body failed to authenticate.
 
-The metric ID provided does not exist. Ensure that you are using a valid metric ID.
+### 429 - Too many requests 
 
-```json
-{
-  "status": "error",
-  "message": "Metric not found. Please check the metric ID."
-}
-```
+The rate limit has been exceeded. This typically occurs when the number of requests surpasses the allowed limit for the user's plan.
 
-### 500 - Internal Server Error
+### 500 - Internal server error
 
-An unexpected error occurred on the server while processing your request. This is usually a server-side issue, and you should try again later.
-
-```json
-{
-  "status": "error",
-  "message": "An unexpected error occurred. Please try again later."
-}
-```
-
-### 504 - Gateway Timeout
-
-The request timed out while waiting for a response from the server. This could be due to network issues or a slow server. Please try again.
-
-```json
-{
-  "status": "error",
-  "message": "Request timed out. Please try again."
-}
-```
+An error occurred while processing the request, such as a failure to update the metric. This should be very rare.
