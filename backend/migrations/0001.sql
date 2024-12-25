@@ -22,8 +22,7 @@ CREATE TABLE IF NOT EXISTS Users (
     stripeCustomerId TEXT NOT NULL UNIQUE,
     CurrentPlan TEXT NULL,
     Image TEXT NOT NULL DEFAULT '',
-    FOREIGN KEY (CurrentPlan) REFERENCES Plans(Identifier),
-    INDEX idx_users_email (Email)  -- Index for performance
+    FOREIGN KEY (CurrentPlan) REFERENCES Plans(Identifier)
 );
 
 -- Create Providers table 
@@ -34,8 +33,7 @@ CREATE TABLE IF NOT EXISTS Providers (
   ProviderUserId TEXT NOT NULL,
   UNIQUE(Type, ProviderUserId),
   UNIQUE(Type, UserId),
-  FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-  INDEX idx_providers_userid_type (UserId, Type)  
+  FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 -- Create Applications table
@@ -45,8 +43,7 @@ CREATE TABLE IF NOT EXISTS Applications (
     UserId UUID NOT NULL,
     Name VARCHAR(50) NOT NULL,
     Image TEXT NOT NULL DEFAULT '',
-    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-    INDEX idx_applications_userid (UserId)  
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 -- Create Metrics table
@@ -60,8 +57,7 @@ CREATE TABLE IF NOT EXISTS Metrics (
     NamePos VARCHAR(50) NOT NULL,
     NameNeg VARCHAR(50) NOT NULL,
     Created TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE,
-    INDEX idx_metrics_appid (AppId)  
+    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
 -- Create Metric events table
@@ -72,9 +68,7 @@ CREATE TABLE IF NOT EXISTS MetricEvents (
     RelativeTotalPos BIGINT NOT NULL,
     RelativeTotalNeg BIGINT NOT NULL,
     Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE,
-    INDEX idx_metriquevents_metricid (MetricId),  
-    INDEX idx_metriquevents_date (Date)
+    FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
 -- Create Metric daily summary table
@@ -87,16 +81,14 @@ CREATE TABLE IF NOT EXISTS MetricDailySummary (
     RelativeTotalNeg BIGINT NOT NULL,
     Date DATE NOT NULL DEFAULT CURRENT_DATE,
     UNIQUE(MetricId, Date),
-    FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE,
-    INDEX idx_metricdailysummary_metricid_date (MetricId, Date)
+    FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
 -- Create Account Recovery table
 CREATE TABLE IF NOT EXISTS AccountRecovery (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     UserId UUID NOT NULL,
-    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-    INDEX idx_accountrecovery_userid (UserId)  
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 -- Create Email Change table
@@ -104,8 +96,7 @@ CREATE TABLE IF NOT EXISTS EmailChange (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     UserId UUID NOT NULL,
     NewEmail VARCHAR(255) NOT NULL,  
-    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-    INDEX idx_emailchange_userid (UserId)  
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 -- Create Feedback table
@@ -115,3 +106,13 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
     Email VARCHAR(255) NOT NULL,
     Content TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON Users(Email);
+CREATE INDEX IF NOT EXISTS idx_emailchange_userid ON EmailChange(UserId);  
+CREATE INDEX IF NOT EXISTS idx_accountrecovery_userid ON AccountRecovery(UserId);  
+CREATE INDEX IF NOT EXISTS idx_metricdailysummary_metricid_date ON MetricDailySummary(MetricId, Date);
+CREATE INDEX IF NOT EXISTS idx_metriquevents_metricid ON MetricEvents(MetricId);
+CREATE INDEX IF NOT EXISTS idx_metriquevents_date ON MetricEvents(Date);
+CREATE INDEX IF NOT EXISTS idx_metrics_appid ON Metrics(AppId);
+CREATE INDEX IF NOT EXISTS idx_applications_userid ON Applications(UserId);
+CREATE INDEX IF NOT EXISTS idx_providers_userid_type ON Providers(UserId, Type); 
