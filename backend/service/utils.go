@@ -22,13 +22,13 @@ import (
 )
 
 var metricIds = map[string]string{
-  "metrics" : "1e040ddb-c3f2-4dad-846d-786fd481874a",
-  "pro": "42512871-6456-4d91-9972-2468beeff27b",
-  "plus" : "3b98a508-1fd0-457d-b446-ffbf9021bb6a",
-  "starter" : "f0b6c8e6-1640-41e6-b926-b1b2954c67c4",
-  "users" : "3845bb70-7c98-49de-9520-8bb9847ba710",
-  "apps" : "4c8033c8-b47e-46d9-b54b-f9d62c4cf633",
-  "feedbacks" : "397a1596-4de3-487f-8898-6d05c24c0349",
+	"metrics":   "67652cf3-d9ad-42a1-9e27-a2312cc22c1a",
+	"pro":       "8874fbb3-f3a3-44ce-bfc0-f384535b5ffc",
+	"plus":      "89544e46-e4e1-4088-a38f-fee3034d0841",
+	"starter":   "59c50c41-ea69-47a1-8978-cbd837b57f53",
+	"users":     "93c96934-73b2-4090-a7b3-91e7cc48e5d0",
+	"apps":      "518ce2ab-266a-4e36-98f8-bfd2de179dc0",
+	"feedbacks": "91956dc7-d2bb-4246-9001-3cb97cbd109f",
 }
 
 func isEmailValid(e string) bool {
