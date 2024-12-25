@@ -20,7 +20,7 @@ export async function generateMetadata(props: PageProps) {
   const { slug } = params;
 
   const res = await getBlogForSlug(slug);
-  if (!res) return null;
+  if (!res) return {title : ""};
   const { frontmatter } = res;
   return {
     title: frontmatter.title,
