@@ -87,7 +87,7 @@ function AvatarGroup({ users, max = 4 }: { users: Author[]; max?: number }) {
       {displayUsers.map((user, index) => (
         <Avatar
           key={user.username}
-          className={`inline-block h-9 w-9 border border-accent/50 ${
+          className={`inline-block h-9 w-9 border border-input ${
             index !== 0 ? '-ml-3' : ''
           } `}
         >
