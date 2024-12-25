@@ -19,6 +19,10 @@ export default function Navbar(props: {
       href: '/docs/getting-started/introduction',
     },
     {
+      name: 'Blog',
+      href: '/blog',
+    },
+    {
       name: 'Pricing',
       href: '/pricing',
     },

@@ -1,12 +1,12 @@
-import Toc from '@/components/docs/toc';
+import Toc from '@/components/markdown/toc';
 import { page_routes } from '@/lib/routes-config';
 import { getDocsForSlug } from '@/lib/markdown';
-import { Typography } from '@/components/docs/typography';
+import { Typography } from '@/components/markdown/typography';
 import { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import Pagination from '@/components/docs/pagination';
-import DocsBreadcrumb from '@/components/docs/breadcrumb';
+import Pagination from '@/components/markdown/pagination';
+import DocsBreadcrumb from '@/components/markdown/breadcrumb';
 
 type PageProps = {
   params: { slug: string[] };

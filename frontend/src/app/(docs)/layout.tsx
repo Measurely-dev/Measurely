@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { Navbar } from '@/components/docs/navbar';
-import './docs.css';
+import { Navbar } from '@/components/markdown/navbar';
+import '../../styles/markdown.css';
 
 export const metadata: Metadata = {
   title: 'Documentation',

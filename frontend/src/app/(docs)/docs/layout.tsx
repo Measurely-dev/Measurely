@@ -1,4 +1,4 @@
-import { Leftbar } from '@/components/docs/leftbar';
+import { Leftbar } from '@/components/markdown/leftbar';
 
 export default function DocsLayout({
   children,
