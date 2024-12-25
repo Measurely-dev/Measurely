@@ -65,6 +65,25 @@
     @apply bg-background text-foreground;
   }
 }
+.policy h1 {
+  font-weight: 800;
+  font-size: 36px;
+}
+
+.policy h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.policy h3 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.policy p {
+  line-height: 1.6;
+  color: #3f3f46;
+}
 
 .prose {
   margin: 0 !important;
