@@ -145,7 +145,9 @@ export const loadChartData = async (
             if (matches) {
               matchCount += 1;
               if (range > 0) {
-                tmpData[j][metric.namepos] += json[i].valuepos;
+                tmpData[j][
+                  metric.type === MetricType.Base ? metric.name : metric.namepos
+                ] += json[i].valuepos;
                 if (metric.type === MetricType.Dual) {
                   tmpData[j][metric.nameneg] += json[i].valueneg;
                 }
@@ -168,8 +170,6 @@ export const loadChartData = async (
         }
 
         if (matchCount === 0 && json.length > 0) {
-          console.log(json);
-
           if (range > 0) {
             lastTotalPos = json[0].relativetotalpos - json[0].valuepos;
             lastTotalNeg = json[0].relativetotalneg - json[0].valueneg;
@@ -184,8 +184,13 @@ export const loadChartData = async (
       }
     });
 
-  for (let i = tmpData.length - 1; i > 0; i--) {
-    if (tmpData[i]['Positive Trend'] && tmpData[i]['Negative Trend']) {
+  for (let i = tmpData.length - 1; i >= 0; i--) {
+    if (
+      tmpData[i]['Positive Trend'] !== undefined &&
+      tmpData[i]['Negative Trend'] !== undefined &&
+      tmpData[i]['Positive Trend'] !== null &&
+      tmpData[i]['Negative Trend'] !== null
+    ) {
       lastTotalPos =
         tmpData[i]['Positive Trend'] -
         tmpData[i][
