@@ -88,7 +88,83 @@
 .prose {
   margin: 0 !important;
 }
+.blog h1 {
+  display: block;
+  font-size: 2em;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
 
+.blog h2 {
+  display: block;
+  font-size: 1.5em;
+  margin-top: 2em;
+  margin-bottom: 0.83em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+.blog strong{
+  color: black;
+}
+.blog ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin: 1rem 0;
+}
+
+.blog li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.blog h3 {
+  display: block;
+  font-size: 1.17em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+.blog p {
+  display: block;
+  margin-top: 1.1em;
+  font-size: 1.08em;
+  margin-bottom: 1.1em;
+  margin-left: 0;
+  margin-right: 0;
+  color: rgb(70, 70, 70);
+}
+
+.blog pre {
+  padding: 0 !important;
+  width: inherit !important;
+  overflow-x: auto;
+  background-color: hsl(var(--accent));
+  border-radius: 12px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.markdown strong{
+  color: black;
+}
+.markdown ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin: 1rem 0;
+}
+
+.markdown li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  font-size: 1rem;
+}
 .markdown h1 {
   font-weight: 800;
   margin-bottom: 24px;

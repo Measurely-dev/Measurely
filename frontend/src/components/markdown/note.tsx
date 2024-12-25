@@ -29,7 +29,7 @@ export default function Note({
         noteClassNames,
       )}
     >
-      <p className='-mb-3 font-mono text-[1.05rem] font-medium'>{title}:</p>{' '}
+      <div className='-mb-3 font-mono text-[1.05rem] font-medium'>{title}:</div>{' '}
       {children}
     </div>
   );

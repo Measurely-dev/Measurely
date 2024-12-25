@@ -9,6 +9,7 @@ export default function Link({ href, ...props }: ComponentProps<"a">) {
       {...props}
       target="_blank"
       rel="noopener noreferrer"
+      className="text-purple-500"
     />
   );
 }

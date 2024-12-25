@@ -5,7 +5,7 @@ import '../../styles/markdown.css';
 
 export default function BlogLayout({ children }: PropsWithChildren) {
   return (
-    <div className='markdown flex flex-col items-center overflow-x-hidden'>
+    <div className='blog flex flex-col items-center overflow-x-hidden'>
       <Navbar type={'default'} />
       <div className='min-h-screen w-screen'>{children}</div>
       <Footer bg='secondary' border={false} />

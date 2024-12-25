@@ -67,11 +67,10 @@ function BlogCard({
         />
       </div>
       <div className='pt-none p-4'>
-        <div className='-mt-1 pr-7 text-xl font-semibold'>{title}</div>
-
+        <div className='mb-3 text-xl font-semibold'>{title}</div>
         <div className='text-sm'>{description}</div>
         <div className='mt-auto flex w-full items-center justify-between'>
-          <div className='text-[13px]'>Published on {formatDate2(date)}</div>
+          <div className='text-[13px] text-muted-foreground'>Published on {formatDate2(date)}</div>
           <AvatarGroup users={authors} />
         </div>
       </div>
@@ -84,7 +83,7 @@ function AvatarGroup({ users, max = 4 }: { users: Author[]; max?: number }) {
   const remainingUsers = Math.max(users.length - max, 0);
 
   return (
-    <div className='flex items-center'>
+    <div className='flex items-centert'>
       {displayUsers.map((user, index) => (
         <Avatar
           key={user.username}

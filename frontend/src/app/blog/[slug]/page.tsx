@@ -1,14 +1,14 @@
 import { Typography } from '@/components/markdown/typography';
-import { Button } from '@/components/ui/button';
 import { Author, getAllBlogStaticPaths, getBlogForSlug } from '@/lib/markdown';
-import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
+import { formatDate } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ArrowLeftIcon } from 'lucide-react';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -41,46 +41,44 @@ export default async function BlogPage(props: PageProps) {
 
   const res = await getBlogForSlug(slug);
   if (!res) notFound();
-  console.log(<Typography>{res?.content}</Typography>)
   return (
-    <WebContainer>
-      <ContentContainer
-        type='page'
-        className='sm:[95%] md:[75%] mx-auto items-start lg:w-[60%]'
-      >
-        <Link href='/blog' className='mb-5'>
-          <Button
-            variant={'secondary'}
-            className='group relative overflow-hidden rounded-[12px] transition-all duration-200'
-          >
-            <ArrowLeftIcon className='absolute -left-5 size-4 transition-all duration-200 group-hover:left-3' />
-            <div className='transition-all duration-200 group-hover:ml-5'>
-              Back to blog
+    <WebContainer className='!w-[100vw] !max-w-[100vw]'>
+      <ContentContainer type='page' className='!w-[100vw] !max-w-[100vw]'>
+        <div className='sm:[95%] md:[75%] mx-auto flex flex-col items-center lg:w-[60%]'>
+          <Link href='/blog' className='mb-5'>
+            <Button
+              variant={'secondary'}
+              className='group relative overflow-hidden rounded-[12px] transition-all duration-200'
+            >
+              <ArrowLeftIcon className='absolute -left-5 size-4 transition-all duration-200 group-hover:left-3' />
+              <div className='transition-all duration-200 group-hover:ml-5'>
+                Back to blog
+              </div>
+            </Button>
+          </Link>
+          <div className='flex w-full flex-col items-center justify-center gap-3 pb-14'>
+            <div className='text-md mb-3 !text-muted-foreground'>
+              {formatDate(res.frontmatter.date)}
             </div>
-          </Button>
-        </Link>
-        <div className='mb-2 flex w-full flex-col gap-3 pb-7'>
-          <p className='text-sm text-muted-foreground'>
-            {formatDate(res.frontmatter.date)}
-          </p>
-          <h1 className='font-mono text-3xl font-extrabold sm:text-4xl'>
-            {res.frontmatter.title}
-          </h1>
-          <div className='mt-6 flex flex-col gap-3'>
-            <p className='text-sm text-muted-foreground'>Posted by</p>
-            <Authors authors={res.frontmatter.authors} />
+            <div className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-5xl !font-medium text-transparent'>
+              {res.frontmatter.title}
+            </div>
+            <div className='mt-5 flex flex-col gap-3'>
+              <Authors authors={res.frontmatter.authors} />
+            </div>
           </div>
         </div>
-        <div className='!w-full'>
-          <div className='mb-7 w-full'>
-            <Image
-              src={res.frontmatter.cover}
-              alt='cover'
-              width={10000}
-              height={10000}
-              className='h-fit w-full rounded-2xl border'
-            />
-          </div>
+
+        <div className='w-full'>
+          <Image
+            src={res.frontmatter.cover}
+            alt='cover'
+            width={10000}
+            height={10000}
+            className='mx-auto mb-4 h-fit w-[90%] rounded-[12px] border'
+          />
+        </div>
+        <div className='sm:[95%] md:[75%] mx-auto flex max-w-[700px] flex-col items-center lg:w-[60%]'>
           <Typography>{res.content}</Typography>
         </div>
       </ContentContainer>
@@ -90,7 +88,7 @@ export default async function BlogPage(props: PageProps) {
 
 function Authors({ authors }: { authors: Author[] }) {
   return (
-    <div className='flex flex-wrap items-center gap-8'>
+    <div className='flex flex-wrap items-center gap-4'>
       {authors.map((author) => {
         return (
           <Link
@@ -98,15 +96,14 @@ function Authors({ authors }: { authors: Author[] }) {
             className='flex items-center gap-2'
             key={author.username}
           >
-            <Avatar className='h-10 w-10'>
+            <Avatar className='size-7'>
               <AvatarImage src={author.avatar} />
               <AvatarFallback>
                 {author.username.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className='text-sm font-medium'>{author.username}</p>
-              <p className='font-code text-[13px] text-muted-foreground'>
+              <p className='text-sm font-medium text-secondary'>
                 @{author.handle}
               </p>
             </div>
