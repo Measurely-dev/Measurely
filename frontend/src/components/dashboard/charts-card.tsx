@@ -69,10 +69,15 @@ export function ChartsCard() {
       setMetric(metricData);
       if (metricData != undefined) {
         const from = new Date();
-        from.setDate(0);
+        from.setDate(1);
+        const nbrDaysInMonth = new Date(
+          from.getFullYear(),
+          from.getMonth() + 1,
+          0,
+        ).getDate();
         const now = new Date();
         const to = new Date(from);
-        to.setDate(to.getDate() + 31);
+        to.setDate(to.getDate() + nbrDaysInMonth);
 
         let totalPos = 0;
         let totalNeg = 0;
@@ -84,18 +89,23 @@ export function ChartsCard() {
           totalPos = metricData.totalpos;
           totalNeg = metricData.totalneg;
         } else {
-          const { pos, neg, relativetotalpos, relativetotalneg } =
+          const { pos, neg, relativetotalpos, relativetotalneg, results } =
             await fetchDailySummary(metricData.appid, metricData.id, to);
 
-          totalPos = relativetotalpos - pos;
-          totalNeg = relativetotalneg - neg;
+          if (results === 0) {
+            totalPos = metricData.totalpos;
+            totalNeg = metricData.totalneg;
+          } else {
+            totalPos = relativetotalpos - pos;
+            totalNeg = relativetotalneg - neg;
+          }
         }
 
         const data = await loadChartData(
           from,
-          30,
+          nbrDaysInMonth,
           metricData,
-          applications[activeApp].id,
+          metricData.appid,
         );
 
         setNextTotalPos(totalPos);
@@ -163,7 +173,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-      applications[activeApp].metrics?.length! > 0 ? (
+        applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -203,7 +213,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => {}}
+                          onValueChange={() => { }}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />

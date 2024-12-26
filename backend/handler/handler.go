@@ -55,7 +55,6 @@ func (h *Handler) setup_api() {
 	privateRouter.Post("/logout", h.service.Logout)
 	privateRouter.Post("/forgot-password", h.service.ForgotPassword)
 	privateRouter.Post("/recover-account", h.service.RecoverAccount)
-
 	privateRouter.HandleFunc("/webhook", h.service.Webhook)
 
 	// privateRouter.Post("/update-rates", h.service.UpdateRates)

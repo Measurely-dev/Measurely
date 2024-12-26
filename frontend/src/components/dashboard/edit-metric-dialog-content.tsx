@@ -15,13 +15,13 @@ import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function EditMetricDialogContent(props: {
-  metric: Metric;
+  metric: Metric | null | undefined;
   setOpen: Dispatch<SetStateAction<boolean>>;
   onUpdate?: (new_name: string) => void;
 }) {
-  const [name, setName] = useState<string>(props.metric.name);
-  const [posName, setPosName] = useState<string>(props.metric.namepos);
-  const [negName, setNegName] = useState<string>(props.metric.nameneg);
+  const [name, setName] = useState<string>(props.metric?.name ?? '');
+  const [posName, setPosName] = useState<string>(props.metric?.namepos ?? '');
+  const [negName, setNegName] = useState<string>(props.metric?.nameneg ?? '');
   const [loading, setLoading] = useState<boolean>(false);
   const { applications, setApplications } = useContext(AppsContext);
 
@@ -44,7 +44,7 @@ export default function EditMetricDialogContent(props: {
             return;
           }
 
-          if (props.metric.type === MetricType.Dual) {
+          if (props.metric?.type === MetricType.Dual) {
             if (posName === '' || negName === '') {
               toast.error('A dual metric must have variable names');
               setLoading(false);
@@ -59,15 +59,15 @@ export default function EditMetricDialogContent(props: {
             }
           }
 
-          if (name !== props.metric.name) {
+          if (name !== props.metric?.name) {
             res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                appid: props.metric.appid,
-                metricid: props.metric.id,
+                appid: props.metric?.appid,
+                metricid: props.metric?.id,
                 name: name,
                 namepos: posName,
                 nameneg: negName,
@@ -87,14 +87,14 @@ export default function EditMetricDialogContent(props: {
           if (applications !== null) {
             setApplications(
               applications.map((v) =>
-                v.id === props.metric.appid
+                v.id === props.metric?.appid
                   ? Object.assign({}, v, {
-                      metrics: v.metrics?.map((m) =>
-                        m.id === props.metric.id
-                          ? Object.assign({}, m, metric)
-                          : m,
-                      ),
-                    })
+                    metrics: v.metrics?.map((m) =>
+                      m.id === props.metric?.id
+                        ? Object.assign({}, m, metric)
+                        : m,
+                    ),
+                  })
                   : v,
               ),
             );
@@ -120,7 +120,7 @@ export default function EditMetricDialogContent(props: {
                 onChange={(e) => setName(e.target.value.trim())}
               />
             </div>
-            {props.metric.type !== 0 ? (
+            {props.metric?.type === MetricType.Dual ? (
               <>
                 <div className='flex w-full flex-col gap-3'>
                   <Label>Positive name</Label>
@@ -155,9 +155,9 @@ export default function EditMetricDialogContent(props: {
               variant='secondary'
               className='w-full rounded-[12px]'
               onClick={() => {
-                setName(props.metric.name);
-                setPosName(props.metric.namepos);
-                setNegName(props.metric.nameneg);
+                setName(props.metric?.name ?? '');
+                setPosName(props.metric?.namepos ?? '');
+                setNegName(props.metric?.nameneg ?? '');
               }}
             >
               Cancel
@@ -169,9 +169,9 @@ export default function EditMetricDialogContent(props: {
             className='w-full rounded-[12px]'
             loading={loading}
             disabled={
-              (name === props.metric.name &&
-                props.metric.namepos === posName &&
-                props.metric.nameneg === negName) ||
+              (name === props.metric?.name &&
+                props.metric?.namepos === posName &&
+                props.metric?.nameneg === negName) ||
               loading
             }
           >

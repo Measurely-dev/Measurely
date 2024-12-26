@@ -105,13 +105,19 @@ export default function DashboardContentLayout({
     const interval = setInterval(async () => {
       if (activeApp <= applications.length - 1) {
         const metrics = await loadMetrics(applications[activeApp].id);
-        setApplications(
-          applications.map((app, i) =>
-            i === activeApp
-              ? Object.assign({}, app, { metrics: metrics ?? [] })
-              : app,
-          ),
-        );
+
+        if (
+          JSON.stringify(metrics) !==
+          JSON.stringify(applications[activeApp].metrics)
+        ) {
+          setApplications(
+            applications.map((app, i) =>
+              i === activeApp
+                ? Object.assign({}, app, { metrics: metrics ?? [] })
+                : app,
+            ),
+          );
+        }
       }
     }, INTERVAL);
 

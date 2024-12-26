@@ -63,13 +63,15 @@ export const loadChartData = async (
 
   const from = new Date(date);
   const to = new Date(date);
-  if (range === 0) to.setHours(to.getHours() + 24);
-  else to.setDate(to.getDate() + range);
+  to.setDate(to.getDate() + range - 1);
+  to.setHours(23);
+  to.setMinutes(59);
+  to.setSeconds(59);
 
   const dateCounter = new Date(from);
   let dataLength = 0;
 
-  if (range === 0) {
+  if (range === 1) {
     dataLength = 24;
   } else if (range >= 365) {
     dataLength = 12;
@@ -78,7 +80,6 @@ export const loadChartData = async (
   }
 
   const now = new Date();
-  const useDaily = range === 0 ? '' : '&daily=1';
   for (let i = 0; i < dataLength; i++) {
     const eventDate = new Date(dateCounter);
     const data: any = {
@@ -91,7 +92,7 @@ export const loadChartData = async (
       }
     }
     tmpData.push(data);
-    if (range === 0) {
+    if (range === 1) {
       dateCounter.setHours(dateCounter.getHours() + 1);
     } else if (range >= 365) {
       dateCounter.setMonth(dateCounter.getMonth() + 1);
@@ -100,7 +101,7 @@ export const loadChartData = async (
     }
   }
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}${useDaily}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -119,7 +120,7 @@ export const loadChartData = async (
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
             let matches = false;
-            if (range === 0) {
+            if (range === 1) {
               matches =
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
@@ -138,23 +139,13 @@ export const loadChartData = async (
 
             if (matches) {
               matchCount += 1;
-              if (range > 0) {
+
+              if (json[i].value >= 0) {
                 tmpData[j][
                   metric.type === MetricType.Base ? metric.name : metric.namepos
-                ] += json[i].valuepos;
-                if (metric.type === MetricType.Dual) {
-                  tmpData[j][metric.nameneg] += json[i].valueneg;
-                }
+                ] += json[i].value;
               } else {
-                if (json[i].value >= 0) {
-                  tmpData[j][
-                    metric.type === MetricType.Base
-                      ? metric.name
-                      : metric.namepos
-                  ] += json[i].value;
-                } else {
-                  tmpData[j][metric.nameneg] += -json[i].value;
-                }
+                tmpData[j][metric.nameneg] += -json[i].value;
               }
 
               tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
@@ -181,17 +172,19 @@ export const fetchDailySummary = async (
   neg: number;
   relativetotalpos: number;
   relativetotalneg: number;
+  results: number;
 }> => {
   const from = start === undefined ? new Date() : new Date(start);
   from.setHours(0);
   from.setMinutes(0);
   from.setSeconds(0);
   const to = new Date(from);
-  to.setHours(from.getHours() + 24);
+  to.setHours(23);
+  to.setMinutes(59);
+  to.setSeconds(59);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
-      appid
-    }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}&daily=1`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
+    }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
     {
       method: 'GET',
       credentials: 'include',
@@ -208,25 +201,39 @@ export const fetchDailySummary = async (
         let neg = 0;
         let relativetotalpos = 0;
         let relativetotalneg = 0;
+        let results = 0;
         for (let i = 0; i < json.length; i++) {
           relativetotalpos = json[i].relativetotalpos;
           relativetotalneg = json[i].relativetotalneg;
-          pos += json[i].valuepos;
-          neg += json[i].valueneg;
+
+          if (json[i].value >= 0) {
+            pos += json[i].value;
+          } else {
+            neg += -json[i].value;
+          }
+
+          results += 1;
         }
-        return { pos, neg, relativetotalpos, relativetotalneg };
+        return { pos, neg, relativetotalpos, relativetotalneg, results };
       }
     }
   }
-  return { pos: 0, neg: 0, relativetotalpos: 0, relativetotalneg: 0 };
+  return {
+    pos: 0,
+    neg: 0,
+    relativetotalpos: 0,
+    relativetotalneg: 0,
+    results: 0,
+  };
 };
 
 export const calculateTrend = (
   data: any[],
-  metric: Metric,
+  metric: Metric | null | undefined,
   totalpos: number,
   totalneg: number,
 ): any[] => {
+  if (!metric) return data;
   const trend = [...data];
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
@@ -236,7 +243,7 @@ export const calculateTrend = (
       totalpos =
         trend[i]['Positive Trend'] -
         trend[i][
-          metric.type === MetricType.Base ? metric.name : metric.namepos
+        metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
       totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
       trend[i]['Total'] =
@@ -244,7 +251,7 @@ export const calculateTrend = (
     } else {
       if (
         trend[i][
-          metric.type === MetricType.Base ? metric.name : metric.namepos
+        metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
         trend[i]['Positive Trend'] = totalpos;
@@ -260,7 +267,7 @@ export const calculateTrend = (
 };
 
 export const parseXAxis = (value: Date, range: number) => {
-  if (range === 0) {
+  if (range === 1) {
     return value.getHours().toString() + ' H';
   } else if (range >= 365) {
     return getMonthsFromDate(value);

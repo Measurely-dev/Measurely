@@ -71,19 +71,6 @@ CREATE TABLE IF NOT EXISTS MetricEvents (
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
--- Create Metric daily summary table
-CREATE TABLE IF NOT EXISTS MetricDailySummary (
-    Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    MetricId UUID NOT NULL,
-    ValuePos INT NOT NULL,
-    ValueNeg INT NOT NULL,
-    RelativeTotalPos BIGINT NOT NULL,
-    RelativeTotalNeg BIGINT NOT NULL,
-    Date TIMESTAMP NOT NULL,
-    UNIQUE(MetricId, Date),
-    FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
-);
-
 -- Create Account Recovery table
 CREATE TABLE IF NOT EXISTS AccountRecovery (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -110,7 +97,6 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
 CREATE INDEX IF NOT EXISTS idx_users_email ON Users(Email);
 CREATE INDEX IF NOT EXISTS idx_emailchange_userid ON EmailChange(UserId);  
 CREATE INDEX IF NOT EXISTS idx_accountrecovery_userid ON AccountRecovery(UserId);  
-CREATE INDEX IF NOT EXISTS idx_metricdailysummary_metricid_date ON MetricDailySummary(MetricId, Date);
 CREATE INDEX IF NOT EXISTS idx_metriquevents_metricid ON MetricEvents(MetricId);
 CREATE INDEX IF NOT EXISTS idx_metriquevents_date ON MetricEvents(Date);
 CREATE INDEX IF NOT EXISTS idx_metrics_appid ON Metrics(AppId);

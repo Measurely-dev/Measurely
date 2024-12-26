@@ -209,7 +209,8 @@ export default function DashboardMetricPage() {
   };
 
   useEffect(() => {
-    loadMetric();
+    const metricData = loadMetric();
+    setMetric(metricData);
   }, [activeApp, applications]);
 
   useEffect(() => {
@@ -306,7 +307,7 @@ export default function DashboardMetricPage() {
                   </Button>
                 </DialogTrigger>
                 <EditMetricDialogContent
-                  metric={metric!}
+                  metric={metric}
                   setOpen={setOpen}
                   onUpdate={(new_name: string) => {
                     setMetric(Object.assign({}, metric, { name: new_name }));
@@ -315,15 +316,15 @@ export default function DashboardMetricPage() {
               </Dialog>
             </div>
           </div>
-          <OverviewChart metric={metric!} />
-          <TrendChart metric={metric!} />
+          <OverviewChart metric={metric} />
+          <TrendChart metric={metric} />
         </div>
       </TooltipProvider>
     </DashboardContentContainer>
   );
 }
 
-function OverviewChart(props: { metric: Metric }) {
+function OverviewChart(props: { metric: Metric | null | undefined }) {
   const [overviewChartType, setOverviewChartType] = useState<
     'stacked' | 'percent' | 'default'
   >('default');
@@ -337,7 +338,7 @@ function OverviewChart(props: { metric: Metric }) {
       dualMetricOverviewChartColor,
     ),
   };
-  const [range, setRange] = useState<number>(0);
+  const [range, setRange] = useState<number>(1);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
@@ -354,22 +355,24 @@ function OverviewChart(props: { metric: Metric }) {
     let total = 0;
 
     for (let i = 0; i < chartData.length; i++) {
-      if (props.metric.type === MetricType.Base) {
-        total += chartData[i][props.metric.name] ?? 0;
+      if (props.metric?.type === MetricType.Base) {
+        total += chartData[i][props.metric?.name] ?? 0;
       } else {
         total =
           total +
-          ((chartData[i][props.metric.namepos] ?? 0) -
-            (chartData[i][props.metric.nameneg] ?? 0));
+          ((chartData[i][props.metric?.namepos ?? ''] ?? 0) -
+            (chartData[i][props.metric?.nameneg ?? ''] ?? 0));
       }
     }
     return total;
   }, [chartData, props.metric]);
 
   const loadChart = async (from: Date) => {
+    if (!props.metric) return;
+
     const data = await loadChartData(
       from,
-      range === 0 ? 0 : range + 1,
+      range,
       props.metric,
       props.metric.appid,
     );
@@ -477,15 +480,15 @@ function OverviewChart(props: { metric: Metric }) {
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
           <AdvancedOptions
             chartName='overview'
-            metricId={props.metric.id}
-            metricType={props.metric.type}
+            metricId={props.metric?.id ?? ''}
+            metricType={props.metric?.type ?? MetricType.Base}
             chartType={overviewChartType}
             chartColor={overviewChartColor}
             dualMetricChartColor={dualMetricOverviewChartColor}
             setChartColor={setOverviewChartColor}
             setChartType={setOverviewChartType}
             setDualMetricChartColor={
-              props.metric.type === MetricType.Base
+              props.metric?.type === MetricType.Base
                 ? undefined
                 : setDualMetricOverviewChartColor
             }
@@ -519,7 +522,7 @@ function OverviewChart(props: { metric: Metric }) {
                   return prev;
                 const from = new Date(prev.from);
                 const to = new Date(prev.to);
-                const toRemove = range === 0 ? 1 : range;
+                const toRemove = range;
                 from.setDate(from.getDate() - toRemove);
                 to.setDate(to.getDate() - toRemove);
                 if (to.getFullYear() < 1999) {
@@ -552,7 +555,7 @@ function OverviewChart(props: { metric: Metric }) {
                   return prev;
                 const from = new Date(prev.from);
                 const to = new Date(prev.to);
-                const toAdd = range === 0 ? 1 : range;
+                const toAdd = range;
                 from.setDate(from.getDate() + toAdd);
                 to.setDate(to.getDate() + toAdd);
                 const now = new Date();
@@ -577,7 +580,7 @@ function OverviewChart(props: { metric: Metric }) {
                   return false;
                 }
                 const to = new Date(date.to);
-                const toAdd = range === 0 ? 1 : range;
+                const toAdd = range;
                 to.setDate(to.getDate() - toAdd);
                 const result = to.getFullYear() < 1999;
                 return result;
@@ -595,7 +598,7 @@ function OverviewChart(props: { metric: Metric }) {
                 }
                 const now = new Date();
                 const to = new Date(date.to);
-                const toAdd = range === 0 ? 1 : range;
+                const toAdd = range;
                 to.setDate(to.getDate() + toAdd);
                 const result = now < to;
                 return result;
@@ -631,20 +634,20 @@ function OverviewChart(props: { metric: Metric }) {
             index='date'
             type={overviewChartType}
             colors={
-              props.metric.type === MetricType.Dual
+              props.metric?.type === MetricType.Dual
                 ? dualMetricChartConfig.colors
                 : [overviewChartColor]
             }
             categories={
-              props.metric.type === MetricType.Base
-                ? [props.metric.name]
-                : [props.metric.namepos, props.metric.nameneg]
+              props.metric?.type === MetricType.Base
+                ? [props.metric?.name ?? '']
+                : [props.metric?.namepos ?? '', props.metric?.nameneg ?? '']
             }
             valueFormatter={(number: number) =>
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
             yAxisLabel='Total'
-            onValueChange={() => {}}
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -652,7 +655,7 @@ function OverviewChart(props: { metric: Metric }) {
   );
 }
 
-function TrendChart(props: { metric: Metric }) {
+function TrendChart(props: { metric: Metric | null | undefined }) {
   const [trendChartType, setTrendChartType] = useState<
     'default' | 'percent' | 'stacked'
   >('default');
@@ -667,7 +670,7 @@ function TrendChart(props: { metric: Metric }) {
     ),
   };
 
-  const [range, setRange] = useState<number>(0);
+  const [range, setRange] = useState<number>(1);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
@@ -682,12 +685,13 @@ function TrendChart(props: { metric: Metric }) {
   const [splitTrend, setSplitTrend] = useState(false);
 
   const loadChart = async (from: Date) => {
+    if (!props.metric) return;
     const now = new Date();
+    from.setHours(0);
+    from.setMinutes(0);
+    from.setSeconds(0);
     const to = new Date(from);
-    if (range > 0) {
-      to.setDate(to.getDate() + range);
-    }
-    to.setDate(to.getDate() + 1);
+    to.setDate(to.getDate() + range);
 
     let totalPos = 0;
     let totalNeg = 0;
@@ -699,16 +703,21 @@ function TrendChart(props: { metric: Metric }) {
       totalPos = props.metric.totalpos;
       totalNeg = props.metric.totalneg;
     } else {
-      const { pos, neg, relativetotalpos, relativetotalneg } =
+      const { pos, neg, relativetotalpos, relativetotalneg, results } =
         await fetchDailySummary(props.metric.appid, props.metric.id, to);
 
-      totalPos = relativetotalpos - pos;
-      totalNeg = relativetotalneg - neg;
+      if (results === 0) {
+        totalPos = props.metric.totalpos;
+        totalNeg = props.metric.totalneg;
+      } else {
+        totalPos = relativetotalpos - pos;
+        totalNeg = relativetotalneg - neg;
+      }
     }
 
     const data = await loadChartData(
       from,
-      range === 0 ? 0 : range + 1,
+      range,
       props.metric,
       props.metric.appid,
     );
@@ -720,6 +729,7 @@ function TrendChart(props: { metric: Metric }) {
     setLoadingLeft(false);
     setLoadingRight(false);
   };
+
   useEffect(() => {
     let interval: any;
     if (range >= 365) {
@@ -818,8 +828,8 @@ function TrendChart(props: { metric: Metric }) {
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
           <AdvancedOptions
             chartName='trend'
-            metricId={props.metric.id}
-            metricType={props.metric.type}
+            metricId={props.metric?.id ?? ''}
+            metricType={props.metric?.type ?? MetricType.Base}
             chartType={trendChartType}
             chartColor={trendChartColor}
             checked={splitTrend}
@@ -860,7 +870,7 @@ function TrendChart(props: { metric: Metric }) {
                   return prev;
                 const from = new Date(prev.from);
                 const to = new Date(prev.to);
-                const toRemove = range === 0 ? 1 : range;
+                const toRemove = range;
                 from.setDate(from.getDate() - toRemove);
                 to.setDate(to.getDate() - toRemove);
                 if (to.getFullYear() < 1999) {
@@ -893,7 +903,7 @@ function TrendChart(props: { metric: Metric }) {
                   return prev;
                 const from = new Date(prev.from);
                 const to = new Date(prev.to);
-                const toAdd = range === 0 ? 1 : range;
+                const toAdd = range;
                 from.setDate(from.getDate() + toAdd);
                 to.setDate(to.getDate() + toAdd);
                 const now = new Date();
@@ -936,7 +946,7 @@ function TrendChart(props: { metric: Metric }) {
                 }
                 const now = new Date();
                 const to = new Date(date.to);
-                const toAdd = range === 0 ? 1 : range;
+                const toAdd = range;
                 to.setDate(to.getDate() + toAdd);
                 const result = now < to;
                 return result;
@@ -984,7 +994,7 @@ function TrendChart(props: { metric: Metric }) {
             }
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
-            onValueChange={() => {}}
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -1066,7 +1076,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1093,7 +1103,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-          (props.chartName === 'trend' && props.checked) ? (
+            (props.chartName === 'trend' && props.checked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1254,7 +1264,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-          props.metricType === MetricType.Dual ? (
+            props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
@@ -1360,13 +1370,13 @@ function RangeSelector(props: {
       value={props.range.toString()}
     >
       <ToggleGroupItem
-        value={'0'}
+        value={'1'}
         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
       >
         D
       </ToggleGroupItem>
       <ToggleGroupItem
-        value='6'
+        value='7'
         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
       >
         7D

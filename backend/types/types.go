@@ -72,16 +72,6 @@ type MetricEvent struct {
 	RelativeTotalNeg int64     `json:"relativetotalneg"`
 }
 
-type DailyMetricSummary struct {
-	Id               uuid.UUID `json:"id"`
-	MetricId         uuid.UUID `json:"metricid"`
-	ValuePos         int       `json:"valuepos"`
-	ValueNeg         int       `json:"valueneg"`
-	RelativeTotalPos int64     `json:"relativetotalpos"`
-	RelativeTotalNeg int64     `json:"relativetotalneg"`
-	Date             time.Time `json:"date"`
-}
-
 type AccountRecovery struct {
 	Id     uuid.UUID
 	UserId uuid.UUID

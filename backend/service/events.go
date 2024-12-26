@@ -198,8 +198,6 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	daily := r.URL.Query().Get("daily")
-
 	// Get the application
 	app, err := s.db.GetApplication(appid, token.Id)
 	if err != nil {
@@ -228,40 +226,18 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var bytes []byte
-	if daily != "1" {
-		// Ensure the range is within 24 hours for precise events
-		if end.Sub(start) > 24*time.Hour {
-			http.Error(w, "You cannot fetch more than 24 hours of precise events", http.StatusBadRequest)
-			return
-		}
+	// Fetch the metric events
+	metrics, err := s.db.GetMetricEvents(metricid, start, end)
+	if err != nil {
+		log.Println("Error fetching metric events:", err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
 
-		// Fetch the metric events
-		metrics, err := s.db.GetMetricEvents(metricid, start, end)
-		if err != nil {
-			log.Println("Error fetching metric events:", err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-
-		bytes, err = json.Marshal(metrics)
-		if err != nil {
-			http.Error(w, "Failed to process events", http.StatusBadRequest)
-			return
-		}
-	} else {
-		// Fetch daily metric summary
-		metricevents, err := s.db.GetDailyMetricSummary(metricid, start, end)
-		if err != nil {
-			log.Println("Error fetching daily metric summary:", err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-
-		bytes, err = json.Marshal(metricevents)
-		if err != nil {
-			http.Error(w, "Failed to process daily summary", http.StatusBadRequest)
-			return
-		}
+	bytes, err = json.Marshal(metrics)
+	if err != nil {
+		http.Error(w, "Failed to process events", http.StatusBadRequest)
+		return
 	}
 
 	if end.Before(time.Now()) {
