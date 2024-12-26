@@ -398,7 +398,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
       if (date !== undefined && date.from !== undefined) {
         setYear(date.from.getFullYear());
         const to = new Date(date.from);
-        to.setDate(date.from.getDate() - range);
+        to.setDate(date.from.getDate() - (range - 1));
         const now = new Date();
         if (now < to) {
           setDate({
@@ -746,7 +746,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
       if (date !== undefined && date.from !== undefined) {
         setYear(date.from.getFullYear());
         const to = new Date(date.from);
-        to.setDate(date.from.getDate() - range);
+        to.setDate(date.from.getDate() - (range - 1));
         const now = new Date();
         if (now < to) {
           setDate({
