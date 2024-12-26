@@ -8,8 +8,10 @@ export default function TermsContent() {
       <br />
       <p>
         If you have any questions about our terms of service, please feel free
-        to contact us by email at
-        <a href='mailto:info@measurely.dev'>info@measurely.dev</a>.
+        to contact us by email at{' '}
+        <span style={{ color: 'blue' }}>
+          <a href='mailto:info@measurely.dev'>info@measurely.dev</a>
+        </span>
       </p>
       <br />
       <p>
@@ -135,8 +137,10 @@ export default function TermsContent() {
       <br />
       <p>
         If you have any questions or concerns about these Terms of Service,
-        please contact us at
-        <a href='mailto:info@measurely.dev'>info@measurely.dev</a>.
+        please contact us at{' '}
+        <span style={{ color: 'blue' }}>
+          <a href='mailto:info@measurely.dev'>info@measurely.dev</a>
+        </span>
       </p>
       <br />
       <p>These Terms of Service were last updated on: December 25th, 2024.</p>

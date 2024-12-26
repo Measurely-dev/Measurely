@@ -3,6 +3,9 @@ import ContentContainer from '@/components/website/content';
 import PolicyWrapper from '@/components/website/policy';
 import PrivacyContent from './privacy';
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeftIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Measurely',
@@ -13,6 +16,17 @@ export default function Page() {
   return (
     <WebContainer>
       <ContentContainer type='page'>
+        <Link href='/legal' className='mb-5'>
+          <Button
+            variant={'secondary'}
+            className='group relative overflow-hidden rounded-[12px] transition-all duration-200'
+          >
+            <ArrowLeftIcon className='absolute -left-5 size-4 transition-all duration-200 group-hover:left-3' />
+            <div className='transition-all duration-200 group-hover:ml-5'>
+              Back to legal
+            </div>
+          </Button>
+        </Link>
         <PolicyWrapper
           title='Privacy Policy'
           updatedDate='December 25, 2024'

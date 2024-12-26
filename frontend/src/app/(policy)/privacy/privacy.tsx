@@ -8,8 +8,10 @@ export default function PrivacyContent() {
       <br />
       <p>
         If you have any questions about our privacy policy, please feel free to
-        contact us by email at
-        <a href='mailto:info@measurely.dev'>info@measurely.dev</a>.
+        contact us by email at{' '}
+        <span style={{ color: 'blue' }}>
+          <a href='mailto:info@measurely.dev'>info@measurely.dev</a>
+        </span>
       </p>
       <br />
       <p>
@@ -69,14 +71,15 @@ export default function PrivacyContent() {
         other security measures to protect your payment information.
         <br />
         For more details, please refer to Stripe's privacy policy here:{' '}
-        <a
-          href='https://stripe.com/privacy'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          Stripe Privacy Policy
-        </a>
-        .
+        <span style={{ color: 'blue' }}>
+          <a
+            href='https://stripe.com/privacy'
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            Stripe Privacy Policy
+          </a>
+        </span>
       </p>
       <br />
       <h3>Data Usage</h3>
@@ -138,11 +141,21 @@ export default function PrivacyContent() {
       <h3>Policy Updates</h3>
       <br />
       <p>
-        This Privacy Policy was last updated on: December 25th, 2024. Should we
-        update, amend, or make any changes to this policy, those changes will be
-        posted here, and the "last updated" date will be revised accordingly. It
-        is your responsibility to review this policy regularly for any changes.
+        Should we update, amend, or make any changes to this policy, those
+        changes will be posted here, and the "last updated" date will be revised
+        accordingly. It is your responsibility to review this policy regularly
+        for any changes.
       </p>
+      <br />
+      <p>
+        If you have any questions or concerns about these Terms of Service,
+        please contact us at{' '}
+        <span style={{ color: 'blue' }}>
+          <a href='mailto:info@measurely.dev'>info@measurely.dev</a>
+        </span>
+      </p>
+      <br />
+      <p>These Terms of Service were last updated on: December 25th, 2024.</p>
     </>
   );
 }

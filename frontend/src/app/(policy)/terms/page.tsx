@@ -3,16 +3,30 @@ import ContentContainer from '@/components/website/content';
 import PolicyWrapper from '@/components/website/policy';
 import TermsContent from './terms';
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeftIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Terms of service | Measurely',
   description:
-    'Read Measurely’s Privacy Policy to understand how we collect, use, and protect your data. We are committed to ensuring the privacy and security of your information while providing you with the best experience using our platform.',
+    'Read Measurely’s Terms of Service to understand the rules, responsibilities, and guidelines for using our platform. We are dedicated to providing a secure and reliable service while ensuring a seamless experience for our users.',
 };
 export default function Page() {
   return (
     <WebContainer>
       <ContentContainer type='page'>
+        <Link href='/legal' className='mb-5'>
+          <Button
+            variant={'secondary'}
+            className='group relative overflow-hidden rounded-[12px] transition-all duration-200'
+          >
+            <ArrowLeftIcon className='absolute -left-5 size-4 transition-all duration-200 group-hover:left-3' />
+            <div className='transition-all duration-200 group-hover:ml-5'>
+              Back to legal
+            </div>
+          </Button>
+        </Link>
         <PolicyWrapper
           title='Terms of Service'
           updatedDate='December 25, 2024'
