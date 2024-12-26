@@ -62,12 +62,21 @@ export default function PrivacyContent() {
       <h3>Payment Information</h3>
       <br />
       <p>
-        Payment for Measurely subscriptions is processed on a monthly basis. We
-        use third-party payment processors to handle your payment information,
-        such as credit card details or other payment methods. Measurely does not
-        store or process your payment details directly. These third-party
-        providers use encryption and other security measures to protect your
-        payment information.
+        Payment for Measurely subscriptions is processed on a monthly basis
+        through Stripe. All payment information, including billing details and
+        payment methods, is handled by Stripe, and Measurely does not store or
+        process your payment information directly. Stripe uses encryption and
+        other security measures to protect your payment information.
+        <br />
+        For more details, please refer to Stripe's privacy policy here:{' '}
+        <a
+          href='https://stripe.com/privacy'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Stripe Privacy Policy
+        </a>
+        .
       </p>
       <br />
       <h3>Data Usage</h3>
