@@ -1,16 +1,19 @@
+'use client';
 import Link from 'next/link';
 import WebButton from './button';
 import { footerData } from './footer-data';
 import FooterLink from './footer-link';
 import LogoSvg from '@/components/global/logo-svg';
+import { usePathname } from 'next/navigation';
 
 export default function Footer(props: {
   border: boolean;
-  bg: 'default' | 'secondary';
+  bg?: 'default' | 'secondary';
 }) {
+  const pathname = usePathname();
   return (
     <footer
-      className={`relative z-10 flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-10 ${props.bg === 'default' ? 'bg-background' : 'bg-secondaryColor'} ${props.border === true ? 'border-t' : ''} `}
+      className={`relative z-10 flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-10 ${props.bg ? (props.bg === 'default' ? 'bg-background' : 'bg-secondaryColor') : pathname === '/home/' ? 'bg-background' : 'bg-secondaryColor'} ${props.border === true ? 'border-t' : ''} `}
     >
       <div className='z-10 flex w-full max-w-[1100px] flex-col gap-8'>
         <div className='flex w-full items-center justify-between'>

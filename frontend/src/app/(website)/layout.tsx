@@ -8,12 +8,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const is_authentificated = headers().get('is-authentificated');
-
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
       <Navbar type={is_authentificated === 'true' ? 'logged' : 'default'} />
       <div className='min-h-screen w-screen'>{children}</div>
-      <Footer bg='default' border={false} />
+      <Footer border={false} />
     </div>
   );
 }
