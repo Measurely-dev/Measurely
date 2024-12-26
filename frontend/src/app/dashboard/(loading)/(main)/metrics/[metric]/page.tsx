@@ -511,6 +511,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
+                setLoadingLeft(true)
                 return;
               }
               setDate((prev) => {
@@ -543,6 +544,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
+                setLoadingRight(true);
                 return;
               }
 
@@ -859,6 +861,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
+                setLoadingLeft(true)
                 return;
               }
               setDate((prev) => {
@@ -891,6 +894,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
+                setLoadingRight(true)
                 return;
               }
 
