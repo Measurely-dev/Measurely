@@ -69,7 +69,7 @@ export const Content: React.FC<{ children: React.ReactNode; className?: string }
     <motion.dd
       layout
       aria-hidden={isOpen}
-      className={cn('overflow-hidden text-secondary', className)}
+      className={cn('overflow-hidden !text-muted-foreground', className)}
       initial={{ height: 0, pointerEvents: 'none' }}
       animate={
         isOpen
