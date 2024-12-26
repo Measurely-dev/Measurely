@@ -16,6 +16,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.ibb.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.measurely.dev',
+      },
     ],
   },
   trailingSlash: true,
