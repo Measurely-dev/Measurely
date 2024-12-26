@@ -15,7 +15,7 @@ export default function Page() {
       <ContentContainer type='page'>
         <PolicyWrapper
           title='Privacy Policy'
-          updatedDate='September 24, 2021'
+          updatedDate='December 25, 2024'
           terms={
             <>
               <li>
