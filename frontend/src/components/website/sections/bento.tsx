@@ -11,6 +11,8 @@ import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
 import Image5 from '../../../../public/measurely-image5.png';
+import { Accordion, Content, Tab, Trigger } from '@/components/ui/accordion';
+import { FAQQuestions } from '@/components/global/faq-questions';
 export default function BentoUiSection(props: {
   isAuthentificated: string | null;
 }) {
@@ -93,6 +95,26 @@ export default function BentoUiSection(props: {
             title='Effortless Integration'
             description='Seamlessly connect with your existing tools and workflows.'
           />
+        </div>
+        <div className='mt-[145px] rounded-3xl bg-background p-5 py-7 pt-12'>
+          <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />
+          <div className='mt-[70px] flex w-full items-start justify-center'>
+            <div className='w-full'>
+              <Accordion>
+                {FAQQuestions.map((e, i) => {
+                  return (
+                    <Tab
+                      key={i}
+                      className='mb-3 rounded-[12px] bg-accent p-2 px-4'
+                    >
+                      <Trigger className='text-md'>{e.question}</Trigger>
+                      <Content>{e.answer}</Content>
+                    </Tab>
+                  );
+                })}
+              </Accordion>
+            </div>
+          </div>
         </div>
         <WebFooterHeader className='mt-[170px]' />
       </ContentContainer>

@@ -3,6 +3,10 @@ import ContentContainer from '@/components/website/content';
 import PricingCardsSection from '@/components/website/sections/pricing-page';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
+import WebFooterHeader from '@/components/website/footer-header';
+import WebTitle from '@/components/website/title';
+import { Accordion, Content, Tab, Trigger } from '@/components/ui/accordion';
+import { FAQQuestions } from '@/components/global/faq-questions';
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -17,6 +21,27 @@ export default function Pricing() {
     <WebContainer>
       <ContentContainer type='page'>
         <PricingCardsSection isAuthentificated={is_authentificated} />
+        <div className='mt-[145px] rounded-3xl bg-accent p-5 py-7 pt-12'>
+          <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />
+          <div className='mt-[70px] flex w-full items-start justify-center'>
+            <div className='w-full'>
+              <Accordion>
+                {FAQQuestions.map((e, i) => {
+                  return (
+                    <Tab
+                      key={i}
+                      className='mb-3 rounded-[12px] bg-background p-2 px-4'
+                    >
+                      <Trigger className='text-md'>{e.question}</Trigger>
+                      <Content>{e.answer}</Content>
+                    </Tab>
+                  );
+                })}
+              </Accordion>
+            </div>
+          </div>
+        </div>
+        <WebFooterHeader className='mt-[170px]' />
       </ContentContainer>
     </WebContainer>
   );
