@@ -117,7 +117,6 @@ export const loadChartData = async (
         let matchCount = 0;
         for (let i = 0; i < json.length; i++) {
           const eventDate = new Date(json[i].date);
-          console.log(eventDate);
           for (let j = 0; j < tmpData.length; j++) {
             let matches = false;
             if (range === 0) {
