@@ -6,7 +6,7 @@ import { headers } from 'next/headers';
 import WebFooterHeader from '@/components/website/footer-header';
 import WebTitle from '@/components/website/title';
 import { Accordion, Content, Tab, Trigger } from '@/components/ui/accordion';
-import { FAQQuestions } from '@/components/global/faq-questions';
+import { FAQQuestionPricing } from '@/components/global/faq-questions-pricing';
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -26,7 +26,7 @@ export default function Pricing() {
           <div className='mt-[70px] flex w-full items-start justify-center'>
             <div className='w-full'>
               <Accordion>
-                {FAQQuestions.map((e, i) => {
+                {FAQQuestionPricing.map((e, i) => {
                   return (
                     <Tab
                       key={i}
