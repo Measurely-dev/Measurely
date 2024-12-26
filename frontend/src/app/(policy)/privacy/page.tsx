@@ -19,18 +19,37 @@ export default function Page() {
           terms={
             <>
               <li>
-                Measurely can communicate to other services on your behalf like
-                GitHub
+                Measurely uses external services like Google and GitHub for
+                authentication purposes
               </li>
-              <li>You agree to not host any illegal content</li>
               <li>
-                We are granted a license to use any contributions on our public
-                repos
+                Cookies are only used for managing your login sessions and not
+                for tracking or advertising
               </li>
-              <li>You are responsible for what you host on Railway</li>
-              <li>Railway is provided to you &quot;as-is&quot;</li>
-              <li>We comply with copyright takedown requests</li>
-              <li>We will try to notify you when these terms change</li>
+              <li>
+                We process monthly payments through third-party providers, and
+                we do not store payment information
+              </li>
+              <li>
+                Measurely uses your data exclusively within the platform to
+                manage accounts, subscriptions, and provide services
+              </li>
+              <li>
+                Subscription plans may evolve over time, including changes in
+                features, pricing, or new plans
+              </li>
+              <li>
+                We use industry-standard security measures to protect your
+                personal data, but absolute security cannot be guaranteed
+              </li>
+              <li>
+                This privacy policy applies only to Measurely’s online
+                activities
+              </li>
+              <li>
+                You consent to this policy by using Measurely, and we will
+                notify you if it changes
+              </li>
             </>
           }
         >

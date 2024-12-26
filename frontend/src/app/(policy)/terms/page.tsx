@@ -18,16 +18,30 @@ export default function Page() {
           updatedDate='December 07, 2024'
           terms={
             <>
-              <li>Be at least 13 years or older</li>
-              <li>You agree to not host any illegal content</li>
               <li>
-                We are granted a license to use any contributions on our public
-                repos
+                Measurely provides an API that allows users to programmatically
+                update their metrics
               </li>
-              <li>You are responsible for what you track on Measurely</li>
-              <li>Measurely is provided to you &quot;as-is&quot;</li>
-              <li>We comply with copyright takedown requests</li>
-              <li>We will try to notify you when these terms change</li>
+              <li>
+                Users are responsible for the content they track, and must
+                ensure it complies with applicable laws
+              </li>
+              <li>
+                Accounts will be terminated if users track illegal activities,
+                such as monitoring the performance of illegal markets
+              </li>
+              <li>
+                Measurely is not responsible for data loss, service
+                interruptions, or any disruptions to the service
+              </li>
+              <li>
+                Measurely reserves the right to shut down the service at any
+                time without liability
+              </li>
+              <li>
+                By using the platform, you agree to these terms and acknowledge
+                that they may be updated or amended periodically
+              </li>
             </>
           }
         >

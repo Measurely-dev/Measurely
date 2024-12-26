@@ -13,8 +13,8 @@ export default function PolicyWrapper(props: {
         </div>
         <h2 className='mb-2'>Summary</h2>
         <p>
-          Hey! We did our best to summarize the {props.title} of our platform to
-          be easily understood.
+          We've prepared a summary of key points regarding the {props.title} of
+          our platform to ensure clarity and transparency.{' '}
         </p>
         <ol className='text-md flex w-full list-disc flex-col gap-4 rounded-xl border border-blue-500/50 bg-blue-500/10 p-6 px-10 text-blue-500'>
           {props.terms}

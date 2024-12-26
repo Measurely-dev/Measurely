@@ -3,193 +3,136 @@ import { Separator } from '@/components/ui/separator';
 export default function PrivacyContent() {
   return (
     <>
-      <h2> Privacy Policy for Zway</h2>
+      <h2>Privacy Policy for Measurely</h2>
       <Separator className='my-5' />
       <br />
       <p>
-        {' '}
-        If you require any more information or have any questions about our
-        privacy policy, please feel free to contact us by email at
-        help@zway.com.
+        If you have any questions about our privacy policy, please feel free to
+        contact us by email at
+        <a href='mailto:info@measurely.dev'>info@measurely.dev</a>.
       </p>
       <br />
       <p>
-        At [YOUR SITE URL] we consider the privacy of our visitors to be
-        extremely important. This privacy policy document describes in detail
-        the types of personal information is collected and recorded by [YOUR
-        SITE URL] and how we use it.{' '}
+        At Measurely, we are committed to protecting your privacy. This privacy
+        policy outlines how we collect, use, and protect your information when
+        you use our platform.
       </p>
       <br />
       <br />
-      <h3>Log Files</h3>
+      <h3>Information We Collect</h3>
       <br />
       <p>
-        {' '}
-        Like many other Web sites, Zway.com makes use of log files. These files
-        merely logs visitors to the site – usually a standard procedure for
-        hosting companies and a part of hosting services&apos;s analytics. The
-        information inside the log files includes internet protocol (IP)
-        addresses, browser type, Internet Service Provider (ISP), date/time
-        stamp, referring/exit pages, and possibly the number of clicks. This
-        information is used to analyze trends, administer the site, track
-        user&apos;s movement around the site, and gather demographic
-        information. IP addresses, and other such information are not linked to
-        any information that is personally identifiable.{' '}
+        Measurely collects information provided directly by you when you sign up
+        for an account, use the platform, or interact with our support team. The
+        types of information we collect include:
       </p>
-      <br />
-      <br />
-      <h3>Cookies and Web Beacons</h3>
-      <br />
-      <p>
-        {' '}
-        Zway.com uses cookies to store information about visitors preferences,
-        to record user-specific information on which pages the site visitor
-        accesses or visits, and to personalize or customize our web page content
-        based upon visitors browser type or other information that the visitor
-        sends via their browser.{' '}
-      </p>
-      <br />
-      <br />
-      <h3>DoubleClick DART Cookie</h3>
-      <br />{' '}
-      <p>
-        → Google, as a third party vendor, uses cookies to serve ads on [YOUR
-        SITE URL].
-        <br />
-        <br />
-        → Google&apos;s use of the DART cookie enables it to serve ads to our
-        site&apos;s visitors based upon their visit to zway.com and other sites
-        on the Internet. <br />
-        <br />→ Users may opt out of the use of the DART cookie by visiting the
-        Google ad and content network privacy policy at the following URL –{' '}
-        <a href='http://www.google.com/privacy_ads.html'>
-          http://www.google.com/privacy_ads.html
-        </a>{' '}
-      </p>
-      <br />
-      <br />
-      <h3>Our Advertising Partners</h3>
-      <br />{' '}
-      <p>
-        {' '}
-        Some of our advertising partners may use cookies and web beacons on our
-        site. Our advertising partners include :<br />
-      </p>
-      <br />
-      <ul className='list-inside list-disc font-semibold'>
-        <li>Google</li>
-        <li>Commission Junction</li>
-        <li>Amazon</li>
-        <li>Adbrite</li>
-        <li>Clickbank</li>
-        <li>Yahoo! Publisher Network</li>
-        <li>Chitika</li>
-        <li>Kontera</li>
+      <ul className='list-inside list-disc'>
+        <li>Personal identification information (name, email address, etc.)</li>
+        <li>
+          Authentication data through external providers (such as Google and
+          GitHub) for login purposes
+        </li>
+        <li>
+          Subscription and payment details (such as billing address and payment
+          method, which are processed by third-party payment providers)
+        </li>
       </ul>
       <br />
-      <p>
-        <em>
-          While each of these advertising partners has their own Privacy Policy
-          for their site, an updated and hyperlinked resource is maintained
-          here:{' '}
-          <a href='https://www.privacypolicyonline.com/privacy-policy-links/'>
-            Privacy Policy Links
-          </a>
-          .<br /> <br />
-          You may consult this listing to find the privacy policy for each of
-          the advertising partners of [YOUR SITE URL].
-        </em>
-      </p>
-      <p>
-        {' '}
-        These third-party ad servers or ad networks use technology in their
-        respective advertisements and links that appear on [YOUR SITE URL] and
-        which are sent directly to your browser. They automatically receive your
-        IP address when this occurs. Other technologies (such as cookies,
-        JavaScript, or Web Beacons) may also be used by our site&apos;s
-        third-party ad networks to measure the effectiveness of their
-        advertising campaigns and/or to personalize the advertising content that
-        you see on the site.{' '}
-      </p>
-      <p>
-        {' '}
-        [YOUR SITE URL] has no access to or control over these cookies that are
-        used by third-party advertisers.{' '}
-      </p>
-      <br />
-      <br />
-      <h3>Third Party Privacy Policies</h3>
+      <h3>Cookies for Authentication</h3>
       <br />
       <p>
-        You should consult the respective privacy policies of these third-party
-        ad servers for more detailed information on their practices as well as
-        for instructions about how to opt-out of certain practices. [YOUR SITE
-        URL]&apos;s privacy policy does not apply to, and we cannot control the
-        activities of, such other advertisers or web sites. You may find a
-        comprehensive listing of these privacy policies and their links here:{' '}
-        <a
-          href='https://www.privacypolicyonline.com/privacy-policy-links/'
-          title='Privacy Policy Links'
-        >
-          Privacy Policy Links
-        </a>
-        .
-      </p>
-      <p>
-        {' '}
-        If you wish to disable cookies, you may do so through your individual
-        browser options. More detailed information about cookie management with
-        specific web browsers can be found at the browsers respective websites.{' '}
-        <a href='https://www.privacypolicyonline.com/what-are-cookies/'>
-          What Are Cookies?
-        </a>
+        Measurely uses cookies strictly for authentication purposes. When you
+        log in using external providers such as Google or GitHub, we use cookies
+        to maintain your session and ensure secure access to the platform. These
+        cookies are necessary for the functioning of the platform and are not
+        used for tracking or advertising purposes.
       </p>
       <br />
-      <br />
-      <h3>Children&apos;s Information</h3>
+      <h3>External Authentication Providers</h3>
       <br />
       <p>
-        We believe it is important to provide added protection for children
-        online. We encourage parents and guardians to spend time online with
-        their children to observe, participate in and/or monitor and guide their
-        online activity.
-        <br />
-        [YOUR SITE URL] does not knowingly collect any personally identifiable
-        information from children under the age of 13. If a parent or guardian
-        believes that [YOUR SITE URL] has in its database the
-        personally-identifiable information of a child under the age of 13,
-        please contact us immediately (using the contact in the first paragraph)
-        and we will use our best efforts to promptly remove such information
-        from our records.
+        We use external providers, such as Google and GitHub, for user
+        authentication. When you sign up or log in to Measurely using one of
+        these services, the provider will share certain personal information
+        (such as your name and email address) with us to verify your identity
+        and create your user account. This information is stored securely and
+        used only for authentication and account management purposes.
       </p>
       <br />
+      <h3>Payment Information</h3>
+      <br />
+      <p>
+        Payment for Measurely subscriptions is processed on a monthly basis. We
+        use third-party payment processors to handle your payment information,
+        such as credit card details or other payment methods. Measurely does not
+        store or process your payment details directly. These third-party
+        providers use encryption and other security measures to protect your
+        payment information.
+      </p>
+      <br />
+      <h3>Data Usage</h3>
+      <br />
+      <p>
+        All data collected within Measurely is used exclusively within the
+        platform to provide the core functionality of the service, including but
+        not limited to:
+      </p>
+      <ul className='list-inside list-disc'>
+        <li>Managing user accounts and subscriptions</li>
+        <li>Providing custom metrics and related services</li>
+        <li>Delivering customer support</li>
+      </ul>
+      <p>
+        Measurely does not share, sell, or rent your personal information to
+        third parties for marketing purposes. We will never share your data
+        outside of the platform unless required by law or for essential services
+        like payment processing, where third-party providers are involved in the
+        transaction.
+      </p>
+      <br />
+      <h3>Changes to Subscriptions</h3>
+      <br />
+      <p>
+        As Measurely evolves, subscription plans may change. This could include
+        updates to feature limits, pricing adjustments, or the introduction of
+        new subscription types. Any changes to the subscription plans will be
+        communicated to users in advance, and you will have the option to adjust
+        your plan accordingly.
+      </p>
+      <br />
+      <h3>Data Security</h3>
+      <br />
+      <p>
+        We take data security seriously and use industry-standard encryption and
+        security practices to protect your information. However, no method of
+        transmission over the Internet or electronic storage is 100% secure, and
+        we cannot guarantee absolute security. We encourage users to take their
+        own precautions to protect their personal data.
+      </p>
       <br />
       <h3>Online Privacy Policy Only</h3>
       <br />
       <p>
-        This privacy policy applies only to our online activities and is valid
-        for visitors to our website and regarding information shared and/or
-        collected there.
-        <br />
-        This policy does not apply to any information collected offline or via
-        channels other than this website.
+        This privacy policy applies solely to activities on our website and
+        within the Measurely platform. It does not cover information collected
+        offline or through other channels.
       </p>
-      <br />
       <br />
       <h3>Consent</h3>
       <br />
       <p>
-        By using our website, you hereby consent to our privacy policy and agree
-        to its terms.
+        By using Measurely, you consent to the terms outlined in this privacy
+        policy. If you do not agree with any part of this policy, please refrain
+        from using our platform.
       </p>
       <br />
-      <br />
-      <h3>Update</h3>
+      <h3>Policy Updates</h3>
       <br />
       <p>
-        This Privacy Policy was last updated on: Nov 1st, 2019. Should we
-        update, amend or make any changes to our privacy policy, those changes
-        will be posted here.
+        This Privacy Policy was last updated on: December 25th, 2024. Should we
+        update, amend, or make any changes to this policy, those changes will be
+        posted here, and the "last updated" date will be revised accordingly. It
+        is your responsibility to review this policy regularly for any changes.
       </p>
     </>
   );
