@@ -42,6 +42,7 @@ import {
   calculateTrend,
   fetchDailySummary,
   INTERVAL,
+  INTERVAL_LONG,
   loadChartData,
 } from '@/utils';
 import { Metric, MetricType } from '@/types';
@@ -59,61 +60,52 @@ export function ChartsCard() {
   const router = useRouter();
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [nextTotalPos, setNextTotalPos] = useState(0);
-  const [nextTotalNeg, setNextTotalNeg] = useState(0);
-  const [metric, setMetric] = useState<Metric | null>(null);
+  const [metric, setMetric] = useState<Metric | null>(
+    applications[activeApp].metrics?.[activeMetric] ?? null,
+  );
 
   const loadData = async () => {
-    if (applications[activeApp].metrics !== null) {
-      const metricData = applications[activeApp].metrics[activeMetric];
-      setMetric(metricData);
-      if (metricData != undefined) {
-        const from = new Date();
-        from.setDate(1);
-        const nbrDaysInMonth = new Date(
-          from.getFullYear(),
-          from.getMonth() + 1,
-          0,
-        ).getDate();
-        const now = new Date();
-        const to = new Date(from);
-        to.setDate(to.getDate() + nbrDaysInMonth);
+    if (!metric) return;
+    const from = new Date();
+    from.setDate(1);
+    const nbrDaysInMonth = new Date(
+      from.getFullYear(),
+      from.getMonth() + 1,
+      0,
+    ).getDate();
+    const to = new Date(from);
+    to.setDate(to.getDate() + nbrDaysInMonth);
 
-        let totalPos = 0;
-        let totalNeg = 0;
+    const data = await loadChartData(
+      from,
+      nbrDaysInMonth,
+      metric,
+      metric.appid,
+    );
 
-        if (
-          new Date(to.getFullYear(), to.getMonth(), to.getDate()) >
-          new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        ) {
-          totalPos = metricData.totalpos;
-          totalNeg = metricData.totalneg;
-        } else {
-          const { pos, neg, relativetotalpos, relativetotalneg, results } =
-            await fetchDailySummary(metricData.appid, metricData.id, to);
-
-          if (results === 0) {
-            totalPos = metricData.totalpos;
-            totalNeg = metricData.totalneg;
-          } else {
-            totalPos = relativetotalpos - pos;
-            totalNeg = relativetotalneg - neg;
-          }
-        }
-
-        const data = await loadChartData(
-          from,
-          nbrDaysInMonth,
-          metricData,
-          metricData.appid,
-        );
-
-        setNextTotalPos(totalPos);
-        setNextTotalNeg(totalNeg);
-        setChartData(data);
-      }
-    }
+    setChartData(data);
     setLoading(false);
+  };
+
+  const loadDailyUpdate = async () => {
+    if (!metric) return;
+
+    const { relativetotalpos, relativetotalneg } = await fetchDailySummary(
+      metric.appid ?? '',
+      metric.id ?? '',
+    );
+
+    if (
+      metric.totalpos !== relativetotalpos ||
+      metric.totalneg !== relativetotalneg
+    ) {
+      setMetric(
+        Object.assign({}, metric, {
+          totalpos: relativetotalpos,
+          totalneg: relativetotalneg,
+        }),
+      );
+    }
   };
 
   useEffect(() => {
@@ -121,11 +113,12 @@ export function ChartsCard() {
     loadData();
     const interval = setInterval(() => {
       loadData();
-    }, INTERVAL);
+      loadDailyUpdate();
+    }, INTERVAL_LONG);
     return () => {
       clearInterval(interval);
     };
-  }, [activeMetric, applications]);
+  }, [activeMetric]);
 
   useEffect(() => {
     if (
@@ -179,10 +172,10 @@ export function ChartsCard() {
             activeMetric={activeMetric}
             setActiveMetric={setActiveMetric}
             metrics={applications[activeApp].metrics ?? []}
-            total={nextTotalPos - nextTotalNeg}
+            total={(metric?.totalpos ?? 0) - (metric?.totalneg ?? 0)}
           />
           <CardContent className='flex flex-col'>
-            {nextTotalPos - nextTotalNeg === 0 ? (
+            {(metric?.totalpos ?? 0) - (metric?.totalneg ?? 0) === 0 ? (
               <EmptyState
                 className='py-14'
                 title='Nothing Here Yet. Check Back Soon!'
@@ -204,8 +197,8 @@ export function ChartsCard() {
                           data={calculateTrend(
                             chartData,
                             metric,
-                            nextTotalPos,
-                            nextTotalNeg,
+                            metric.totalpos,
+                            metric.totalneg,
                           )}
                           index='date'
                           color='blue'

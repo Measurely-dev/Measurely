@@ -169,12 +169,11 @@ const valueFormatter = (number: number) => {
 
 export default function DashboardMetricPage() {
   const router = useRouter();
-  const { applications, activeApp } = useContext(AppsContext);
+  const { applications, activeApp, setApplications } = useContext(AppsContext);
   const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
-
-  const loadMetric = () => {
+  const [metric, setMetric] = useState(() => {
     if (applications[activeApp]) {
       const index = applications[activeApp].metrics?.findIndex(
         (g) => g.name === metricName,
@@ -195,23 +194,39 @@ export default function DashboardMetricPage() {
     }
     router.push('/dashboard/metrics');
     return null;
-  };
-
-  const [metric, setMetric] = useState(loadMetric());
+  });
 
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const { pos, neg } = await fetchDailySummary(metric.appid, metric.id);
+    const { pos, neg, relativetotalpos, relativetotalneg } =
+      await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
-  };
 
-  useEffect(() => {
-    const metricData = loadMetric();
-    setMetric(metricData);
-  }, [activeApp, applications]);
+    if (metric.totalpos !== relativetotalpos || metric.totalneg !== relativetotalneg) {
+      setApplications(
+        applications.map((v) =>
+          v.id === metric.appid
+            ? Object.assign({}, v, {
+              metrics: v.metrics?.map((m) =>
+                m.id === metric.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
+            : v,
+        ),
+      );
+      setMetric(Object.assign({}, metric, { totalpos: relativetotalpos, relativetotalneg }))
+    }
+
+
+  };
 
   useEffect(() => {
     loadDailyValues(metric!);
@@ -511,7 +526,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
-                setLoadingLeft(true)
+                setLoadingLeft(true);
                 return;
               }
               setDate((prev) => {
@@ -861,7 +876,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
-                setLoadingLeft(true)
+                setLoadingLeft(true);
                 return;
               }
               setDate((prev) => {
@@ -894,7 +909,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
                   return;
                 }
                 setYear(new_year);
-                setLoadingRight(true)
+                setLoadingRight(true);
                 return;
               }
 

@@ -103,7 +103,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                  user.plan.metric_per_app_limit - 1;
+                user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={metric.id}
@@ -133,6 +133,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { applications, setApplications } = useContext(AppsContext);
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
       return '';
@@ -156,11 +157,31 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   };
 
   const load = async () => {
-    const { pos, neg } = await fetchDailySummary(
-      props.metric.appid,
-      props.metric.id,
-    );
+    const { pos, neg, relativetotalpos, relativetotalneg } =
+      await fetchDailySummary(props.metric.appid, props.metric.id);
     setDailyUpdate(pos - neg);
+
+    if (
+      props.metric.totalpos !== relativetotalpos ||
+      props.metric.totalneg !== relativetotalneg
+    ) {
+      setApplications(
+        applications.map((v) =>
+          v.id === props.metric?.appid
+            ? Object.assign({}, v, {
+              metrics: v.metrics?.map((m) =>
+                m.id === props.metric?.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
+            : v,
+        ),
+      );
+    }
   };
 
   useEffect(() => {
