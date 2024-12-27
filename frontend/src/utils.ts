@@ -116,7 +116,6 @@ export const loadChartData = async (
     })
     .then((json) => {
       if (json !== null && json !== undefined) {
-        let matchCount = 0;
         for (let i = 0; i < json.length; i++) {
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
@@ -139,8 +138,6 @@ export const loadChartData = async (
             }
 
             if (matches) {
-              matchCount += 1;
-
               if (json[i].value >= 0) {
                 tmpData[j][
                   metric.type === MetricType.Base ? metric.name : metric.namepos

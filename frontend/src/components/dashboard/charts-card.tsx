@@ -41,7 +41,6 @@ import { AppsContext } from '@/dash-context';
 import {
   calculateTrend,
   fetchDailySummary,
-  INTERVAL,
   INTERVAL_LONG,
   loadChartData,
 } from '@/utils';
