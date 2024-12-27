@@ -8,6 +8,11 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { AppsContext, UserContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
+
+const valueFormatter = (number: number) => {
+  return Intl.NumberFormat('us').format(number).toString();
+};
+
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
@@ -81,8 +86,8 @@ export default function SettingPaymentPage() {
         className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
         stats={[
           {
-            title: `Metrics limit for ${applications?.[activeApp].name.charAt(0).toUpperCase() + applications?.[activeApp].name.slice(1).toLowerCase()}`,
-            description: 'On this plan',
+            title: `Metrics limit`,
+            description: `For the ${applications?.[activeApp].name.charAt(0).toUpperCase() + applications?.[activeApp].name.slice(1).toLowerCase()} application`,
             value: `${applications?.[activeApp].metrics === null ? 0 : applications?.[activeApp].metrics.length}/${user?.plan.metric_per_app_limit}`,
           },
           {
@@ -92,8 +97,17 @@ export default function SettingPaymentPage() {
           },
           {
             title: 'Update limit',
-            description: 'On this plan',
+            description: 'Per API key',
             value: user?.plan.requestlimit + ' per minute',
+          },
+          {
+            title: 'Event limit',
+            description: 'On this plan',
+            value:
+              valueFormatter(user.eventcount) +
+              '/' +
+              valueFormatter(user?.plan.monthlyeventlimit) +
+              ' per month',
           },
         ]}
       />

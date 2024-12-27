@@ -148,7 +148,8 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				Name:              "Starter",
 				AppLimit:          1,
 				MetricPerAppLimit: 2,
-				RequestLimit:      100,
+				RequestLimit:      10,
+				MonthlyEventLimit: 10000,
 				Range:             30,
 			}
 		case "plus":
@@ -159,6 +160,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				AppLimit:          3,
 				MetricPerAppLimit: 15,
 				RequestLimit:      1000,
+				MonthlyEventLimit: 1000000,
 				Range:             365,
 			}
 		case "pro":
@@ -169,6 +171,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				AppLimit:          10,
 				MetricPerAppLimit: 30,
 				RequestLimit:      10000,
+				MonthlyEventLimit: 1000000000,
 				Range:             365,
 			}
 		}
@@ -188,13 +191,14 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 }
 
 func (s *Service) GetUserPlan(userid uuid.UUID) (types.Plan, error) {
-	value, ok := s.cache.usersPlan.Load(userid)
-	var planCache UserPlanCache
+	value, ok := s.cache.users.Load(userid)
+	var userCache UserCache
 	expired := false
 
 	if ok {
-		planCache = value.(UserPlanCache)
-		if time.Now().After(planCache.expiry) {
+		now := time.Now()
+		userCache = value.(UserCache)
+		if now.Month() > userCache.startDate.Month() {
 			expired = true
 		}
 	}
@@ -211,15 +215,22 @@ func (s *Service) GetUserPlan(userid uuid.UUID) (types.Plan, error) {
 			return types.Plan{}, errors.New("plan does not exist")
 		}
 
-		s.cache.usersPlan.Store(userid, UserPlanCache{
-			plan:   plan,
-			expiry: time.Now().Add(30 * time.Minute),
+		s.cache.users.Store(userid, UserCache{
+			plan_identifier: plan.Identifier,
+			metric_count:    0,
+			startDate:       time.Now(),
 		})
 
 		return plan, nil
 	}
 
-	return planCache.plan, nil
+	value, ok = s.GetPlan(userCache.plan_identifier)
+	if !ok {
+		return types.Plan{}, nil
+	}
+
+	plan := value.(types.Plan)
+	return plan, nil
 }
 
 func SetupCors() *cors.Cors {

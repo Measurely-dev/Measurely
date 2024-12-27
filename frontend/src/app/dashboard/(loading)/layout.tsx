@@ -43,7 +43,7 @@ export default function DashboardContentLayout({
           } else {
             res.text().then((text) => {
               toast.error(text);
-              router.push('sign-in');
+              router.push('/sign-in');
             });
           }
         })

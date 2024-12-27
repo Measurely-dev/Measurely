@@ -36,6 +36,7 @@ export interface User {
   email: string;
   plan: Plan;
   providers: UserProvider[];
+  eventcount: number;
 }
 
 export interface UserProvider {
@@ -49,6 +50,7 @@ export interface Plan {
   applimit: number;
   metric_per_app_limit: number;
   requestlimit: number;
+  monthlyeventlimit: number;
 }
 
 export enum MetricType {

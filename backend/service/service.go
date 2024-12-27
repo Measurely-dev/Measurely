@@ -32,7 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type MetricToKeyCache struct {
+type MetricCache struct {
 	key         string
 	metric_type int
 	user_id     uuid.UUID
@@ -45,16 +45,17 @@ type RateLimit struct {
 	expiry  time.Time
 }
 
-type UserPlanCache struct {
-	plan   types.Plan
-	expiry time.Time
+type UserCache struct {
+	plan_identifier string
+	metric_count    int64
+	startDate       time.Time
 }
 
 type Cache struct {
-	plans             sync.Map
-	usersPlan         sync.Map
-	metricIdToApiKeys sync.Map
-	ratelimits        sync.Map
+	plans      sync.Map
+	users      sync.Map
+	metrics    sync.Map
+	ratelimits sync.Map
 }
 
 type Service struct {
@@ -137,10 +138,10 @@ func New() Service {
 		providers: providers,
 		s3Client:  client,
 		cache: Cache{
-			plans:             sync.Map{},
-			usersPlan:         sync.Map{},
-			metricIdToApiKeys: sync.Map{},
-			ratelimits:        sync.Map{},
+			plans:      sync.Map{},
+			users:      sync.Map{},
+			metrics:    sync.Map{},
+			ratelimits: sync.Map{},
 		},
 	}
 }
@@ -633,19 +634,21 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	plan.Price = ""
 	response := struct {
-		Id        uuid.UUID            `json:"id"`
-		Email     string               `json:"email"`
-		FirstName string               `json:"firstname"`
-		LastName  string               `json:"lastname"`
-		Plan      types.Plan           `json:"plan"`
-		Providers []types.UserProvider `json:"providers"`
+		Id         uuid.UUID            `json:"id"`
+		Email      string               `json:"email"`
+		FirstName  string               `json:"firstname"`
+		LastName   string               `json:"lastname"`
+		EventCount int64                `json:"eventcount"`
+		Plan       types.Plan           `json:"plan"`
+		Providers  []types.UserProvider `json:"providers"`
 	}{
-		Id:        user.Id,
-		Email:     user.Email,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Plan:      plan,
-		Providers: finalProviders,
+		Id:         user.Id,
+		Email:      user.Email,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		EventCount: user.MonthlyEventCount,
+		Plan:       plan,
+		Providers:  finalProviders,
 	}
 
 	bytes, jerr := json.Marshal(response)
@@ -1405,7 +1408,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		Type:    request.Type,
 		NamePos: request.NamePos,
 		NameNeg: request.NameNeg,
-    Created: time.Now().UTC(),
+		Created: time.Now().UTC(),
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1482,7 +1485,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Remove the metric from the cache
-	s.cache.metricIdToApiKeys.Delete(request.MetricId)
+	s.cache.metrics.Delete(request.MetricId)
 
 	w.WriteHeader(http.StatusOK)
 	go SendMeasurelyMetricEvent("metrics", -1)

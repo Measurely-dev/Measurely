@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -13,12 +14,12 @@ import (
 )
 
 func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
-	value, ok := s.cache.metricIdToApiKeys.Load(metricid)
-	var relation MetricToKeyCache
+	value, ok := s.cache.metrics.Load(metricid)
+	var relation MetricCache
 	expired := false
 
 	if ok {
-		relation = value.(MetricToKeyCache)
+		relation = value.(MetricCache)
 		if time.Now().After(relation.expiry) {
 			expired = true
 		}
@@ -40,7 +41,7 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 			return false
 		}
 
-		s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
+		s.cache.metrics.Store(metricid, MetricCache{
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
@@ -112,9 +113,12 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Retrieve the metric's cache entry
-	value, _ := s.cache.metricIdToApiKeys.Load(metricid)
-	metricCache := value.(MetricToKeyCache)
+	// Retrieve the metric's and user's cache entry
+	value, _ := s.cache.metrics.Load(metricid)
+	metricCache := value.(MetricCache)
+
+	value, _ = s.cache.users.Load(metricCache.user_id)
+	userCache := value.(UserCache)
 
 	// Get the user's plan details
 	plan, err := s.GetUserPlan(metricCache.user_id)
@@ -126,7 +130,13 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the rate limit is exceeded
 	if !s.RateAllow(apikey, plan.RequestLimit) {
-		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+		http.Error(w, "You have exceeded your plan's rate limit: "+strconv.Itoa(plan.RequestLimit)+" requests per minute", http.StatusTooManyRequests)
+		return
+	}
+
+	// Check if the monthly limit is exceeded
+	if userCache.metric_count >= plan.MonthlyEventLimit {
+		http.Error(w, "You have exceeded your monthly event limit: "+strconv.FormatInt(plan.MonthlyEventLimit, 10)+" events per month", http.StatusTooManyRequests)
 		return
 	}
 
@@ -150,18 +160,24 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		neg = -request.Value
 	}
 
-	// Update the metric cache
-	s.cache.metricIdToApiKeys.Store(metricid, MetricToKeyCache{
-		key:         apikey,
-		metric_type: metricCache.metric_type,
-		user_id:     metricCache.user_id,
-		expiry:      time.Now().Add(15 * time.Minute),
-	})
-
 	// Update the metric and create the event summary in the database
-	if err := s.db.UpdateMetricAndCreateEventSummary(metricid, int64(pos), int64(neg)); err != nil {
+	if err, count, date := s.db.UpdateMetricAndCreateEvent(metricid, metricCache.user_id, int64(pos), int64(neg)); err != nil {
+    log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
+	} else {
+		if date.Month() != userCache.startDate.Month() {
+			s.db.ResetUserCount(metricCache.user_id)
+			count = 0
+			date = time.Now().UTC()
+		}
+
+		s.cache.users.Store(metricCache.user_id, UserCache{
+			plan_identifier: userCache.plan_identifier,
+			metric_count:    count,
+			startDate:       date,
+		})
+
 	}
 
 	w.WriteHeader(http.StatusOK)

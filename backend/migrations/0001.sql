@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS Plans (
     AppLimit INT NOT NULL,
     MetricPerAppLimit INT NOT NULL,
     RequestLimit INT NOT NULL,
-    RANGE INT NOT NULL
+    MonthlyEventLimit BIGINT NOT NULL,
+    Range INT NOT NULL
 );
 
 -- Create Users table
@@ -22,6 +23,8 @@ CREATE TABLE IF NOT EXISTS Users (
     stripeCustomerId TEXT NOT NULL UNIQUE,
     CurrentPlan TEXT NOT NULL,
     Image TEXT NOT NULL DEFAULT '',
+    MonthlyEventCount BIGINT NOT NULL DEFAULT 0,
+    StartCountDate TIMESTAMP NOT NULL DEFAULT timezone('UTC', CURRENT_TIMESTAMP),
     FOREIGN KEY (CurrentPlan) REFERENCES Plans(Identifier)
 );
 
@@ -56,7 +59,7 @@ CREATE TABLE IF NOT EXISTS Metrics (
     TotalNeg BIGINT NOT NULL DEFAULT 0,
     NamePos VARCHAR(50) NOT NULL,
     NameNeg VARCHAR(50) NOT NULL,
-    Created TIMESTAMP NOT NULL,
+    Created TIMESTAMP NOT NULL DEFAULT timezone('UTC', CURRENT_TIMESTAMP),
     FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
@@ -67,7 +70,7 @@ CREATE TABLE IF NOT EXISTS MetricEvents (
     Value INT NOT NULL,
     RelativeTotalPos BIGINT NOT NULL,
     RelativeTotalNeg BIGINT NOT NULL,
-    Date TIMESTAMP NOT NULL,
+    Date TIMESTAMP NOT NULL DEFAULT timezone('UTC', CURRENT_TIMESTAMP),
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 

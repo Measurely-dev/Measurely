@@ -26,14 +26,16 @@ type Token struct {
 	Email string    `json:"email"`
 }
 type User struct {
-	Id               uuid.UUID
-	Email            string
-	FirstName        string
-	LastName         string
-	Password         string
-	StripeCustomerId string
-	CurrentPlan      string
-	Image            string
+	Id                uuid.UUID
+	Email             string
+	FirstName         string
+	LastName          string
+	Password          string
+	StripeCustomerId  string
+	CurrentPlan       string
+	Image             string
+	MonthlyEventCount int64
+	StartCountDate    time.Time
 }
 
 type UserProvider struct {
@@ -97,5 +99,6 @@ type Plan struct {
 	AppLimit          int    `json:"applimit"`
 	MetricPerAppLimit int    `json:"metric_per_app_limit"`
 	RequestLimit      int    `json:"requestlimit"`
+	MonthlyEventLimit int64  `json:"monthlyeventlimit"`
 	Range             int    `json:"range"`
 }

@@ -147,7 +147,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		s.db.UpdateUserPlan(token.Id, "starter")
-		s.cache.usersPlan.Delete(token.Id)
+		s.cache.users.Delete(token.Id)
 
 		go SendMeasurelyMetricEvent("starter", 1)
 		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
@@ -235,7 +235,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		}
 
 		s.db.UpdateUserPlan(user.Id, planData.Identifier)
-		s.cache.usersPlan.Delete(user.Id)
+		s.cache.users.Delete(user.Id)
 
 		switch planData.Identifier {
 		case "plus":

@@ -3,7 +3,7 @@ export const plans = [
     name: 'Starter',
     identifier: 'starter',
     description:
-      'Free with 2 metrics, 1 app, and 100 RPM. No setup or hidden fees.',
+      'Free with 2 metrics, 1 app. No setup or hidden fees.',
     price: 0,
     reccurence: 'forever',
     target: 'very small teams',
@@ -15,7 +15,10 @@ export const plans = [
         name: '2 metrics per application',
       },
       {
-        name: '100 updates per minute',
+        name: '10 updates per minute',
+      },
+      {
+        name: '10,000 updates per month',
       },
     ],
     button: 'Get started now',
@@ -37,6 +40,9 @@ export const plans = [
       {
         name: '1,000 updates per minute',
       },
+      {
+        name: '1,000,000 updates per month',
+      },
     ],
     button: 'Continue with Plus',
   },
@@ -56,6 +62,9 @@ export const plans = [
       },
       {
         name: '10,000 updates per minute',
+      },
+      {
+        name: '1,000,000,000 updates per month',
       },
     ],
     button: 'Continue with Pro',

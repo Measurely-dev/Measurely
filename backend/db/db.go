@@ -79,7 +79,7 @@ func (d *DB) Close() error {
 
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
-	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, stripecustomerid, currentplan) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.StripeCustomerId, user.CurrentPlan).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image)
+	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, stripecustomerid, currentplan, startcountdate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.StripeCustomerId, user.CurrentPlan, time.Now().UTC()).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image, &new_user.MonthlyEventCount, &new_user.StartCountDate)
 	return new_user, err
 }
 
@@ -98,6 +98,11 @@ func (db *DB) GetUserById(id uuid.UUID) (types.User, error) {
 	var user types.User
 	err := db.Conn.Get(&user, "SELECT * FROM users WHERE id = $1", id)
 	return user, err
+}
+
+func (db *DB) ResetUserCount(id uuid.UUID) error {
+	_, err := db.Conn.Exec("UPDATE users SET monthlyeventcount = 0 , startcountdate = $1 WHERE id = $2 ", time.Now().UTC(), id)
+	return err
 }
 
 func (db *DB) GetUserByCustomerId(cusId string) (types.User, error) {
@@ -174,7 +179,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg, created) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.Created).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
+	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
 	return new_metric, err
 }
 
@@ -183,14 +188,15 @@ func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
 	return err
 }
 
-func (db *DB) UpdateMetricAndCreateEventSummary(
+func (db *DB) UpdateMetricAndCreateEvent(
 	metricid uuid.UUID,
+	userid uuid.UUID,
 	toAdd int64,
 	toRemove int64,
-) error {
+) (error, int64, time.Time) {
 	tx, err := db.Conn.Beginx()
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %v", err)
+		return fmt.Errorf("failed to begin transaction: %v", err), 0, time.Now()
 	}
 
 	var totalPos, totalNeg int64
@@ -198,37 +204,37 @@ func (db *DB) UpdateMetricAndCreateEventSummary(
 		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg",
 		toAdd, toRemove, metricid,
 	).Scan(&totalPos, &totalNeg)
-	log.Println(totalPos, totalNeg)
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to update metrics and fetch totals: %v", err)
+		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0, time.Now()
 	}
 
-	now := time.Now().UTC()
+	var monthlyCount int64
+	var startDate time.Time
+	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount, startcountdate", userid).Scan(&monthlyCount, &startDate)
 
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
 		MetricId:         metricid,
 		Value:            int(toAdd) - int(toRemove),
-		Date:             now,
 	}
 	_, err = tx.NamedExec(
-		"INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg, date) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg, :date)",
+		"INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)",
 		event,
 	)
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to insert metric event: %v", err)
+		return fmt.Errorf("failed to insert metric event: %v", err), 0, time.Now()
 	}
 
 	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %v", err)
+		return fmt.Errorf("failed to commit transaction: %v", err), 0, time.Now()
 	}
 
-	return nil
+	return nil, monthlyCount, startDate
 }
 
 func (db *DB) GetMetricsCount(appid uuid.UUID) (int, error) {
@@ -451,7 +457,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 	var plans []types.Plan
 	for rows.Next() {
 		var plan types.Plan
-		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &plan.Range)
+		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &plan.MonthlyEventLimit, &plan.Range)
 		if err != nil {
 			return []types.Plan{}, err
 		}
@@ -462,7 +468,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 }
 
 func (db *DB) CreatePlan(plan types.Plan) error {
-	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, plan.RequestLimit, plan.Range)
+	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, monthlyeventlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, plan.RequestLimit, plan.MonthlyEventLimit, plan.Range)
 	return err
 }
 
