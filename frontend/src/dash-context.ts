@@ -1,7 +1,7 @@
 import React, { createContext, Dispatch } from 'react';
 import { Application, User } from './types';
 
-export const defaultUser = {
+export const defaultUser : User = {
   firstname: '',
   lastname: '',
   email: '',
@@ -13,7 +13,9 @@ export const defaultUser = {
     applimit: 0,
     metric_per_app_limit: 0,
     identifier: '',
+    monthlyeventlimit : 0
   },
+  eventcount: 0,
   providers: [],
 };
 
@@ -35,15 +37,15 @@ export interface AppsContextType {
 
 export const UserContext = createContext<UserContextType>({
   user: defaultUser,
-  setUser: () => {},
+  setUser: () => { },
   userLoading: true,
-  setUserLoading: () => {},
+  setUserLoading: () => { },
 });
 export const AppsContext = createContext<AppsContextType>({
   applications: [],
-  setApplications: () => {},
+  setApplications: () => { },
   activeApp: -1,
-  setActiveApp: () => {},
+  setActiveApp: () => { },
   appsLoading: true,
-  setAppsLoading: () => {},
+  setAppsLoading: () => { },
 });
