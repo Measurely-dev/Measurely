@@ -237,13 +237,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		s.db.UpdateUserPlan(user.Id, planData.Identifier)
 		s.cache.users.Delete(user.Id)
 
-		switch planData.Identifier {
-		case "plus":
-			go SendMeasurelyMetricEvent("plus", 1)
-		case "pro":
-			go SendMeasurelyMetricEvent("pro", 1)
-		}
-
+		go SendMeasurelyMetricEvent(planData.Identifier, 1)
 		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
 
 		// send email

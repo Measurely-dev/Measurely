@@ -364,8 +364,8 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			go SendMeasurelyMetricEvent("users", 1)
 			go SendMeasurelyMetricEvent("starter", 1)
+			go SendMeasurelyMetricEvent("signups", 1)
 
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
@@ -565,8 +565,8 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go SendMeasurelyMetricEvent("users", 1)
 	go SendMeasurelyMetricEvent("starter", 1)
+	go SendMeasurelyMetricEvent("signups", 1)
 
 	// send email
 	go s.email.SendEmail(email.MailFields{
@@ -858,17 +858,17 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 		subscriptions := result.SubscriptionList()
 
-		if subscriptions == nil || len(subscriptions.Data) == 0 {
-			http.Error(w, "No active subscriptions found. Please ensure you have a valid subscription.", http.StatusBadRequest)
-			return
+		if subscriptions != nil {
+			if len(subscriptions.Data) != 0 {
+				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+				if err != nil {
+					log.Println("Failed to cancel subscriptions: ", err)
+					http.Error(w, "Internal error", http.StatusInternalServerError)
+					return
+				}
+			}
 		}
 
-		_, serr := subscription.Cancel(subscriptions.Data[0].ID, nil)
-		if serr != nil {
-			log.Println(serr)
-			http.Error(w, "Internal error while canceling your subscription. Please try again later.", http.StatusInternalServerError)
-			return
-		}
 	}
 
 	// Delete stripe customer
@@ -900,6 +900,8 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
+
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
 		To:      user.Email,
@@ -912,9 +914,6 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
-
-	// Send a metric event for deleted users
-	go SendMeasurelyMetricEvent("users", -1)
 }
 
 func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {

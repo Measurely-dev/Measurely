@@ -24,6 +24,19 @@ export default function Register() {
         'Create a Measurely account to start tracking your metrics and gain insights for your projects and teams.',
       );
     }
+
+    if (process.env.NEXT_PUBLIC_ENV === 'production') {
+      fetch(
+        `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/76b2caf6-0dbb-4df0-a0ba-fc563c7430e5`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: 1 }),
+        },
+      );
+    }
   }, []);
   return (
     <WebContainer>
