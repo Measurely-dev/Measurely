@@ -23,7 +23,11 @@ export default function SubscriptionUiSection(props: {
       })
         .then((resp) => {
           if (resp.status === 200) {
-            return resp.json();
+            if (plan === ' starter') {
+              toast.success('Successfully downgraded to the starter plan');
+            } else {
+              return resp.json();
+            }
           } else if (resp.status === 304) {
             toast.warning('You are already on this plan');
             setLoading(false);
@@ -36,12 +40,8 @@ export default function SubscriptionUiSection(props: {
         })
         .then((data) => {
           if (data !== null && data !== undefined) {
-            if (plan === 'starter') {
-              toast.success('Successfully downgraded to the starter plan');
-            } else {
-              toast.success('Opening checkout session...');
-              setTimeout(() => router.push(data.url), 500);
-            }
+            toast.success('Opening checkout session...');
+            setTimeout(() => router.push(data.url), 500);
           }
         });
     } else {
