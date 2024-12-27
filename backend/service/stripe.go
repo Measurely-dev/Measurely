@@ -3,6 +3,7 @@ package service
 import (
 	"Measurely/email"
 	"Measurely/types"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,14 +21,18 @@ import (
 func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
 	user, err := s.db.GetUserById(token.Id)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -39,7 +44,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 	result, err := bilsession.New(params)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Internal error. Failed to create billing portal session", http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +66,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
@@ -101,21 +106,15 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 		subscriptions := result.SubscriptionList()
 
-		if subscriptions == nil {
-			http.Error(w, "no subscriptions found", http.StatusBadRequest)
-			return
-		}
-
-		if len(subscriptions.Data) == 0 {
-			http.Error(w, "no subscriptions found", http.StatusBadRequest)
-			return
-		}
-
-		_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
+		if subscriptions != nil {
+			if len(subscriptions.Data) != 0 {
+				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+				if err != nil {
+					log.Println("Failed to cancel subscriptions: ", err)
+					http.Error(w, "Internal error", http.StatusInternalServerError)
+					return
+				}
+			}
 		}
 
 	}
