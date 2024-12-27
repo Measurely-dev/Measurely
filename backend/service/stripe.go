@@ -282,7 +282,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		go s.email.SendEmail(email.MailFields{
 			To:      user.Email,
 			Subject: "Invoice Paid",
-			Content: "Your invoice has been successfully paid." + "Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
+			Content: "Your invoice has been successfully paid. Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
 
 			Link:        GetOrigin() + "/dashboard",
 			ButtonTitle: "View Dashboard",
@@ -335,7 +335,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		go s.email.SendEmail(email.MailFields{
 			To:      user.Email,
 			Subject: "Invoice Failed",
-			Content: "Your invoice payment has failed." + "Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
+			Content: "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
 
 			Link:        GetOrigin() + "/dashboard",
 			ButtonTitle: "View Dashboard",
