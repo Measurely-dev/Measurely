@@ -116,15 +116,17 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the metric's and user's cache entry
 	value, _ := s.cache.metrics.Load(metricid)
 	metricCache := value.(MetricCache)
-
-	value, _ = s.cache.users.Load(metricCache.user_id)
-	userCache := value.(UserCache)
-
-	// Get the user's plan details
-	plan, err := s.GetUserPlan(metricCache.user_id)
+	userCache, err := s.GetUserCache(metricCache.user_id)
 	if err != nil {
-		log.Println("Error fetching plan:", err)
-		http.Error(w, "Plan not found", http.StatusNotFound)
+		log.Println("Failed to retrieve user from cache:", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
+		return
+	}
+
+	plan, exists := s.GetPlan(userCache.plan_identifier)
+	if !exists {
+		log.Println("Failed to retrieve user from cache:", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
 		return
 	}
 
@@ -161,21 +163,15 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count, date := s.db.UpdateMetricAndCreateEvent(metricid, metricCache.user_id, int64(pos), int64(neg)); err != nil {
-    log.Print("Failed to update metric and create event: ", err)
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricid, metricCache.user_id, int64(pos), int64(neg)); err != nil {
+		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
 	} else {
-		if date.Month() != userCache.startDate.Month() {
-			s.db.ResetUserCount(metricCache.user_id)
-			count = 0
-			date = time.Now().UTC()
-		}
-
 		s.cache.users.Store(metricCache.user_id, UserCache{
 			plan_identifier: userCache.plan_identifier,
 			metric_count:    count,
-			startDate:       date,
+			startDate:       userCache.startDate,
 		})
 
 	}
@@ -227,10 +223,17 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the user's plan details
-	plan, err := s.GetUserPlan(token.Id)
+	userCache, err := s.GetUserCache(token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println("Failed to retrieve user from cache:", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
+		return
+	}
+
+	plan, exists := s.GetPlan(userCache.plan_identifier)
+	if !exists {
+		log.Println("Failed to retrieve user from cache:", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
 		return
 	}
 

@@ -625,10 +625,17 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	plan, err := s.GetUserPlan(user.Id)
+	userCache, err := s.GetUserCache(user.Id)
 	if err != nil {
-		log.Println("Failed to retrieve user plan: ", err)
-		http.Error(w, "Plan not found. Please contact support.", http.StatusNotFound)
+		log.Println("Failed to retrieve user from cache: ", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
+		return
+	}
+
+	plan, exists := s.GetPlan(userCache.plan_identifier)
+	if !exists {
+		log.Println("Failed to retrieve user plan from cache: ", err)
+		http.Error(w, "Plan not found.", http.StatusNotFound)
 		return
 	}
 
@@ -1122,7 +1129,19 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plan, _ := s.GetUserPlan(token.Id)
+	userCache, err := s.GetUserCache(token.Id)
+	if err != nil {
+		log.Println("Failed to retrieve user from cache: ", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
+		return
+	}
+
+	plan, exists := s.GetPlan(userCache.plan_identifier)
+	if !exists {
+		log.Println("Failed to retrieve user plan from cache: ", err)
+		http.Error(w, "Plan not found.", http.StatusNotFound)
+		return
+	}
 	if plan.AppLimit >= 0 {
 		count, cerr := s.db.GetApplicationCountByUser(token.Id)
 		if cerr != nil {
@@ -1394,7 +1413,19 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plan, _ := s.GetUserPlan(token.Id)
+	userCache, err := s.GetUserCache(token.Id)
+	if err != nil {
+		log.Println("Failed to retrieve user from cache:", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
+		return
+	}
+
+	plan, exists := s.GetPlan(userCache.plan_identifier)
+	if !exists {
+		log.Println("Failed to retrieve user from cache:", err)
+		http.Error(w, "User not found.", http.StatusNotFound)
+		return
+	}
 
 	if count >= plan.MetricPerAppLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)

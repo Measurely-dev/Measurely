@@ -193,10 +193,10 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	userid uuid.UUID,
 	toAdd int64,
 	toRemove int64,
-) (error, int64, time.Time) {
+) (error, int64) {
 	tx, err := db.Conn.Beginx()
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %v", err), 0, time.Now()
+		return fmt.Errorf("failed to begin transaction: %v", err), 0
 	}
 
 	var totalPos, totalNeg int64
@@ -206,12 +206,11 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	).Scan(&totalPos, &totalNeg)
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0, time.Now()
+		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
 	}
 
 	var monthlyCount int64
-	var startDate time.Time
-	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount, startcountdate", userid).Scan(&monthlyCount, &startDate)
+	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount", userid).Scan(&monthlyCount)
 
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
@@ -225,16 +224,16 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	)
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to insert metric event: %v", err), 0, time.Now()
+		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
 	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %v", err), 0, time.Now()
+		return fmt.Errorf("failed to commit transaction: %v", err), 0
 	}
 
-	return nil, monthlyCount, startDate
+	return nil, monthlyCount
 }
 
 func (db *DB) GetMetricsCount(appid uuid.UUID) (int, error) {

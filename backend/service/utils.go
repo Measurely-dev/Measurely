@@ -190,47 +190,50 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 	return plan, ok
 }
 
-func (s *Service) GetUserPlan(userid uuid.UUID) (types.Plan, error) {
+func (s *Service) GetUserCache(userid uuid.UUID) (UserCache, error) {
 	value, ok := s.cache.users.Load(userid)
 	var userCache UserCache
 	expired := false
 
 	if ok {
-		now := time.Now()
 		userCache = value.(UserCache)
-		if now.Month() > userCache.startDate.Month() {
+		if userCache.startDate.Month() != time.Now().UTC().Month() {
 			expired = true
 		}
 	}
 
 	if !ok || expired {
-
 		user, err := s.db.GetUserById(userid)
 		if err != nil {
-			return types.Plan{}, nil
+			return UserCache{}, nil
 		}
 
 		plan, exists := s.GetPlan(user.CurrentPlan)
 		if !exists {
-			return types.Plan{}, errors.New("plan does not exist")
+			return UserCache{}, errors.New("user does not exist")
 		}
 
-		s.cache.users.Store(userid, UserCache{
+		date := user.StartCountDate
+		count := user.MonthlyEventCount
+		if user.StartCountDate.Month() != time.Now().UTC().Month() {
+			s.db.ResetUserCount(user.Id)
+			date = time.Now().UTC()
+			count = 0
+		}
+
+		cache := UserCache{
 			plan_identifier: plan.Identifier,
-			metric_count:    0,
-			startDate:       time.Now(),
-		})
+			metric_count:    count,
+			startDate:       date,
+		}
 
-		return plan, nil
+		s.cache.users.Store(userid, cache)
+
+		return cache, nil
 	}
 
-	value, ok = s.GetPlan(userCache.plan_identifier)
-	if !ok {
-		return types.Plan{}, nil
-	}
-
-	plan := value.(types.Plan)
-	return plan, nil
+	userCache = value.(UserCache)
+	return userCache, nil
 }
 
 func SetupCors() *cors.Cors {
