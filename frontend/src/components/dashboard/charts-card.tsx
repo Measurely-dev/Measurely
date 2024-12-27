@@ -165,7 +165,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-        applications[activeApp].metrics?.length! > 0 ? (
+      applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -205,7 +205,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => { }}
+                          onValueChange={() => {}}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -256,7 +256,7 @@ function Header(props: {
             variant='outline'
             role='combobox'
             aria-expanded={open}
-            className='w-[200px] justify-between rounded-[12px]'
+            className='min-w-[200px] w-fit justify-between rounded-[12px]'
           >
             {props.metrics.length > 0
               ? props.metrics.find((_, i) => i === props.activeMetric)?.name
@@ -264,7 +264,7 @@ function Header(props: {
             <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-[200px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+        <PopoverContent className='w-[240px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
           <Command>
             <CommandInput placeholder='Search metric...' />
             <CommandList>
@@ -273,7 +273,7 @@ function Header(props: {
                 {props.metrics.map((metric, i) => (
                   <CommandItem
                     key={metric.id}
-                    className='rounded-[10px]'
+                    className='truncate rounded-[10px]'
                     onSelect={() => {
                       props.setActiveMetric(i);
                       setOpen(false);
@@ -286,8 +286,7 @@ function Header(props: {
                     ) : (
                       <ArrowUpFromDot className={cn('mr-2 size-4')} />
                     )}
-
-                    {metric.name}
+                    <div className='w-full truncate'>{metric.name}</div>
                   </CommandItem>
                 ))}
               </CommandGroup>
