@@ -16,10 +16,6 @@ export const FAQQuestions = [
     answer: `Measurely offers multiple subscription plans to suit your needs, including a free Starter plan and paid plans with additional features and higher usage limits.`,
   },
   {
-    question: 'What happens if my payment fails?',
-    answer: `If your payment fails, we will notify you and you will be temporarly downgraded to the starter plan`,
-  },
-  {
     question: 'How is my data used on Measurely?',
     answer: `Your data is only used within the platform to provide you with analytics and insights. We do not share or sell your data to third parties.`,
   }
