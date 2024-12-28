@@ -239,7 +239,6 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
-    console.log(json)
     if (json != null) {
       let pos = 0;
       let neg = 0;
@@ -247,8 +246,12 @@ export const fetchDailySummary = async (
       let relativetotalneg = 0;
 
       if (json.length > 1) {
-        pos = json[1].relativetotalpos - json[0].relativetotalpos;
-        neg = json[1].relativetotalneg - json[0].relativetotalneg;
+        pos =
+          json[1].relativetotalpos -
+          (json[0].relativetotalpos - json[0].valuepos);
+        neg =
+          json[1].relativetotalneg -
+          (json[0].relativetotalneg - json[0].valueneg);
         relativetotalpos = json[1].relativetotalpos;
         relativetotalneg = json[1].relativetotalneg;
       } else if (json.length > 0) {

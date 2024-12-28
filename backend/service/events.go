@@ -305,7 +305,7 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start := time.Now().UTC().Truncate(time.Hour)
+	start := time.Now().UTC().Truncate(24 * time.Hour)
 	end := time.Date(start.Year(), start.Month(), start.Day(), 23, 0, 0, 0, time.UTC)
 	events, err := s.db.GetVariationEvents(metricid, start, end)
 	if err != nil {
