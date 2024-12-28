@@ -213,14 +213,22 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	var monthlyCount int64
 	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount", userid).Scan(&monthlyCount)
 
+	now := time.Now().UTC().Truncate(time.Hour)
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
 		MetricId:         metricid,
 		Value:            int(toAdd) - int(toRemove),
+		Date:             now,
 	}
 	_, err = tx.NamedExec(
-		"INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg) VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg)",
+		`INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg, date) 
+    VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg, :date)
+    ON CONFLICT (metricid, date)
+    DO UPDATE SET 
+    value = metricevents.value + EXCLUDED.value,
+    relativetotalpos = EXCLUDED.relativetotalpos,
+    relativetotalneg = EXCLUDED.relativetotalneg`,
 		event,
 	)
 	if err != nil {
