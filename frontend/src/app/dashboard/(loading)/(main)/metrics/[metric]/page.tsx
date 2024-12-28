@@ -205,7 +205,10 @@ export default function DashboardMetricPage() {
     setPosDaily(pos);
     setNegDaily(neg);
 
-    if (metric.totalpos !== relativetotalpos || metric.totalneg !== relativetotalneg) {
+    if (
+      metric.totalpos !== relativetotalpos ||
+      metric.totalneg !== relativetotalneg
+    ) {
       setApplications(
         applications.map((v) =>
           v.id === metric.appid
@@ -222,10 +225,13 @@ export default function DashboardMetricPage() {
             : v,
         ),
       );
-      setMetric(Object.assign({}, metric, { totalpos: relativetotalpos, relativetotalneg }))
+      setMetric(
+        Object.assign({}, metric, {
+          totalpos: relativetotalpos,
+          relativetotalneg,
+        }),
+      );
     }
-
-
   };
 
   useEffect(() => {
