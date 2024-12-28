@@ -831,7 +831,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	})
 	go s.email.SendEmail(email.MailFields{
 		To:      "info@measurely.dev",
-		Subject: "Feedback Received from " + user.Email,
+		Subject: "Feedback Received from " + user.Email + " (" + user.CurrentPlan + ")",
 		Content: request.Content,
 	})
 }
