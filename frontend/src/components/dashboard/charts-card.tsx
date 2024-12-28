@@ -120,17 +120,16 @@ export function ChartsCard() {
   }, [activeMetric]);
 
   useEffect(() => {
-    if (
-      activeMetric >
-      (applications[activeApp].metrics === null
+    console.log(activeMetric);
+    const new_index =
+      applications[activeApp].metrics === null
         ? 0
-        : applications[activeApp].metrics.length - 1)
-    ) {
-      setActiveMetric(
-        applications[activeApp].metrics === null
+        : applications[activeApp].metrics.length === 0
           ? 0
-          : applications[activeApp].metrics.length - 1,
-      );
+          : applications[activeApp].metrics.length - 1;
+
+    if (activeMetric > new_index) {
+      setActiveMetric(new_index);
     }
   }, [activeApp]);
 
@@ -165,7 +164,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-      applications[activeApp].metrics?.length! > 0 ? (
+        applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -205,7 +204,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => {}}
+                          onValueChange={() => { }}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -256,7 +255,7 @@ function Header(props: {
             variant='outline'
             role='combobox'
             aria-expanded={open}
-            className='min-w-[200px] w-fit justify-between rounded-[12px]'
+            className='w-fit min-w-[200px] justify-between rounded-[12px]'
           >
             {props.metrics.length > 0
               ? props.metrics.find((_, i) => i === props.activeMetric)?.name
