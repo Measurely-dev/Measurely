@@ -5,7 +5,7 @@ export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 10000;
 export const INTERVAL_LONG = 20000;
 
-export async function loadMetrics(appid: string) {
+export async function loadMetrics(appid: string): Promise<Metric[]> {
   const res = await fetch(
     process.env.NEXT_PUBLIC_API_URL + '/metrics?appid=' + appid,
     {
@@ -18,6 +18,7 @@ export async function loadMetrics(appid: string) {
   );
   if (res.ok) {
     const json = await res.json();
+    if (json === null) return [];
     return json;
   }
 
