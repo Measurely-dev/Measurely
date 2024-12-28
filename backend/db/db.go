@@ -2,6 +2,7 @@ package db
 
 import (
 	"Measurely/types"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -286,30 +287,29 @@ func (db *DB) GetMetricCount(groupid uuid.UUID) (int, error) {
 	return count, err
 }
 
-func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time) ([]types.MetricEvent, error) {
-	formattedStart := start.Format("2006-01-02")
-	formattedEnd := end.Format("2006-01-02")
-	query := `
-        WITH main_query AS (
+func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time, usenext bool) ([]types.MetricEvent, error) {
+	var query string
+	var rows *sql.Rows
+	var err error
+	if usenext {
+		query = `
             SELECT * 
             FROM metricevents
-            WHERE metricid = $1 AND date::date BETWEEN $2 AND $3 
-            ORDER BY date ASC
-        ),
-        fallback_query AS (
-            SELECT * 
-            FROM metricevents
-            WHERE metricid = $1 AND date::date > $3 
+            WHERE metricid = $1 AND date > $2
             ORDER BY date ASC 
             LIMIT 1
-        )
-        SELECT * FROM main_query
-        UNION ALL
-        SELECT * FROM fallback_query
-        WHERE NOT EXISTS (SELECT 1 FROM main_query)
     `
+		rows, err = db.Conn.Query(query, metricid, end)
+	} else {
+		query = `
+            SELECT * 
+            FROM metricevents
+            WHERE metricid = $1 AND date BETWEEN $2 AND $3 
+            ORDER BY date ASC
+            `
+		rows, err = db.Conn.Query(query, metricid, start, end)
+	}
 
-	rows, err := db.Conn.Query(query, metricid, formattedStart, formattedEnd)
 	if err != nil {
 		return []types.MetricEvent{}, err
 	}
