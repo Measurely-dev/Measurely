@@ -239,7 +239,6 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
-    console.log(json)
     if (json != null) {
       let pos = 0;
       let neg = 0;
