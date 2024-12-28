@@ -54,8 +54,8 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 	return relation.key == apikey
 }
 
-func (s *Service) RateAllow(apikey string, maxRequest int) bool {
-	value, ok := s.cache.ratelimits.Load(apikey)
+func (s *Service) RateAllow(user_id uuid.UUID, maxRequest int) bool {
+	value, ok := s.cache.ratelimits.Load(user_id)
 	expired := false
 	var rate RateLimit
 
@@ -67,7 +67,7 @@ func (s *Service) RateAllow(apikey string, maxRequest int) bool {
 	}
 
 	if !ok || expired {
-		s.cache.ratelimits.Store(apikey, RateLimit{
+		s.cache.ratelimits.Store(user_id, RateLimit{
 			current: 1,
 			max:     maxRequest,
 			expiry:  time.Now().Add(1 * time.Minute),
@@ -80,7 +80,7 @@ func (s *Service) RateAllow(apikey string, maxRequest int) bool {
 		return false
 	}
 
-	s.cache.ratelimits.Store(apikey, RateLimit{
+	s.cache.ratelimits.Store(user_id, RateLimit{
 		current: rate.current + 1,
 		max:     rate.max,
 		expiry:  rate.expiry,
@@ -131,7 +131,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the rate limit is exceeded
-	if !s.RateAllow(apikey, plan.RequestLimit) {
+	if !s.RateAllow(metricCache.user_id, plan.RequestLimit) {
 		http.Error(w, "You have exceeded your plan's rate limit: "+strconv.Itoa(plan.RequestLimit)+" requests per minute", http.StatusTooManyRequests)
 		return
 	}
@@ -173,7 +173,6 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 			metric_count:    count,
 			startDate:       userCache.startDate,
 		})
-
 	}
 
 	w.WriteHeader(http.StatusOK)
