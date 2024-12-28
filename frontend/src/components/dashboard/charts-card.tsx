@@ -40,6 +40,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { AppsContext } from '@/dash-context';
 import {
   calculateTrend,
+  fetchDailySummary,
   fetchNextEvent,
   INTERVAL_LONG,
   loadChartData,
@@ -88,7 +89,7 @@ export function ChartsCard() {
     const metricData = applications[activeApp].metrics?.[activeMetric] ?? null;
     if (!metricData) return;
 
-    const { relativetotalpos, relativetotalneg } = await fetchNextEvent(
+    const { relativetotalpos, relativetotalneg } = await fetchDailySummary(
       metricData.appid ?? '',
       metricData.id ?? '',
     );
