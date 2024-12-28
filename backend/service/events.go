@@ -197,16 +197,21 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("start"))
+	start, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("start"))
 	if err != nil {
 		http.Error(w, "Invalid start date format", http.StatusBadRequest)
 		return
 	}
 
-	end, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", r.URL.Query().Get("end"))
+	end, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("end"))
 	if err != nil {
 		http.Error(w, "Invalid end date format", http.StatusBadRequest)
 		return
+	}
+
+	usenext := false
+	if r.URL.Query().Get("usenext") == "1" {
+		usenext = true
 	}
 
 	// Get the application
@@ -245,7 +250,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 
 	var bytes []byte
 	// Fetch the metric events
-	metrics, err := s.db.GetMetricEvents(metricid, start, end)
+	metrics, err := s.db.GetMetricEvents(metricid, start, end, usenext)
 	if err != nil {
 		log.Println("Error fetching metric events:", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)

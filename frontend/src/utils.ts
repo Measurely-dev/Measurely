@@ -103,7 +103,7 @@ export const loadChartData = async (
     }
   }
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toISOString()}&end=${to.toISOString()}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -165,6 +165,7 @@ export const loadChartData = async (
 export const fetchDailySummary = async (
   appid: string,
   metricid: string,
+  usenext?: boolean,
   start?: Date,
 ): Promise<{
   pos: number;
@@ -178,12 +179,15 @@ export const fetchDailySummary = async (
   from.setMinutes(0);
   from.setSeconds(0);
   const to = new Date(from);
-  to.setHours(23);
-  to.setMinutes(59);
-  to.setSeconds(59);
+  if (!usenext) {
+    to.setHours(23);
+    to.setMinutes(59);
+    to.setSeconds(59);
+  }
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
-    }&metricid=${metricid}&start=${from.toUTCString()}&end=${to.toUTCString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
+      appid
+    }&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=${usenext === true ? '1' : '0'}`,
     {
       method: 'GET',
       credentials: 'include',
@@ -242,7 +246,7 @@ export const calculateTrend = (
       totalpos =
         trend[i]['Positive Trend'] -
         trend[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
+          metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
       totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
       trend[i]['Total'] =
@@ -250,7 +254,7 @@ export const calculateTrend = (
     } else {
       if (
         trend[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
+          metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
         trend[i]['Positive Trend'] = totalpos;
