@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { CheckIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { ReactNode } from 'react';
 
 interface WebPricingCardProps {
   className?: string;
@@ -9,7 +10,7 @@ interface WebPricingCardProps {
   price?: number | 'custom pricing';
   recurrence: string;
   target?: string;
-  list?: Array<any>;
+  list?: Array<ReactNode>;
   button?: string;
   disabled?: boolean | false;
   [key: string]: any; // Accept any additional props
@@ -55,16 +56,16 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         </div>
       </div>
 
-      <div className='mt-5 flex flex-col gap-[10px]'>
+      <div className='mt-5 flex flex-col gap-4'>
         <div className='mb-[10px] text-sm font-semibold'>For {target}</div>
         {list?.map((listItem, i) => {
           return (
             <div className='flex flex-row items-center gap-[10px]' key={i}>
-              <div className='flex size-[25px] items-center justify-center rounded-[8px] bg-background'>
-                <CheckIcon className='size-[16px] text-secondary' />
+              <div className='flex size-[20px] min-w-[20px] min-h-[20px] items-center justify-center rounded-[6px] bg-background'>
+                <CheckIcon className='size-[14px] text-secondary' />
               </div>
-              <div className='text-sm font-semibold text-secondary'>
-                {listItem.name}
+              <div className='text-sm font-medium text-secondary'>
+                {listItem}
               </div>
             </div>
           );

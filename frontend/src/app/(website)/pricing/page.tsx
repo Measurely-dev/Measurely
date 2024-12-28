@@ -18,8 +18,8 @@ export default function Pricing() {
   const headersList = headers();
   const is_authentificated = headersList.get('is-authentificated');
   return (
-    <WebContainer>
-      <ContentContainer type='page'>
+    <WebContainer className='w-full max-w-full'>
+      <ContentContainer type='page' className='w-[90%] max-w-[90%]'>
         <PricingCardsSection isAuthentificated={is_authentificated} />
         <div className='mt-[145px] rounded-3xl bg-accent p-5 py-7 pt-12'>
           <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />

@@ -13,6 +13,26 @@ export default function PricingCardsSection(props: {
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
 
+  const enterpriseList = [
+    <div key='1'>
+      <strong className='text-black'>100</strong> applications
+    </div>,
+    <div key='2'>
+      Up to an <strong className='text-black'>unlimited</strong> amount of
+      metrics per application
+    </div>,
+    <div key='3'>
+      <strong className='text-black'>10,000</strong> updates per minute
+    </div>,
+    <div key='4'>
+      Up to an <strong className='text-black'>unlimited</strong> amount of
+      updates per month
+    </div>,
+    <div key='5'>
+      Support <strong className='text-black'>SLAs</strong> available
+    </div>,
+  ];
+
   const subscribe = (plan: string) => {
     if (props.isAuthentificated === 'true') {
       setSelectedPlan(plan);
@@ -65,7 +85,7 @@ export default function PricingCardsSection(props: {
         }
         description="No hidden fees, just the plan that's right for you"
       />
-      <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
+      <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-lg:grid-cols-1'>
         {plans.map((plan, i) => {
           return (
             <WebPricingCard
@@ -98,23 +118,7 @@ export default function PricingCardsSection(props: {
         price='custom pricing'
         reccurence='forever'
         target='large organizations'
-        list={[
-          {
-            name: 'Up to 100 applications',
-          },
-          {
-            name: 'Up to  an unlimited amount of metrics per application',
-          },
-          {
-            name: 'Up to 10,000 updates per minute',
-          },
-          {
-            name: 'Up to an unlimited amount of updates per month',
-          },
-          {
-            name: 'Support SLAs available',
-          },
-        ]}
+        list={enterpriseList}
         button='Talk to sales'
       />
     </>
