@@ -148,7 +148,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				Name:              "Starter",
 				AppLimit:          1,
 				MetricPerAppLimit: 2,
-				RequestLimit:      10,
+				RequestLimit:      25,
 				MonthlyEventLimit: 10000,
 				Range:             30,
 			}
@@ -160,7 +160,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				AppLimit:          3,
 				MetricPerAppLimit: 15,
 				RequestLimit:      1000,
-				MonthlyEventLimit: 1000000,
+				MonthlyEventLimit: 750000,
 				Range:             365,
 			}
 		case "pro":
@@ -171,7 +171,7 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 				AppLimit:          10,
 				MetricPerAppLimit: 30,
 				RequestLimit:      10000,
-				MonthlyEventLimit: 1000000000,
+				MonthlyEventLimit: 10000000,
 				Range:             365,
 			}
 		}
