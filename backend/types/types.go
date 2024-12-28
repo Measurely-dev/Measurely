@@ -69,7 +69,8 @@ type MetricEvent struct {
 	Id               uuid.UUID `json:"id"`
 	MetricId         uuid.UUID `json:"metricid"`
 	Date             time.Time `json:"date"`
-	Value            int       `json:"value"`
+	ValuePos         int       `json:"valuepos"`
+	ValueNeg         int       `json:"valueneg"`
 	RelativeTotalPos int64     `json:"relativetotalpos"`
 	RelativeTotalNeg int64     `json:"relativetotalneg"`
 }

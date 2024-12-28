@@ -43,7 +43,7 @@ import { AppsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
 import {
   calculateTrend,
-  fetchDailySummary,
+  fetchNextEvent,
   INTERVAL,
   loadChartData,
 } from '@/utils';
@@ -201,7 +201,7 @@ export default function DashboardMetricPage() {
 
   const loadDailyValues = async (metric: Metric) => {
     const { pos, neg, relativetotalpos, relativetotalneg } =
-      await fetchDailySummary(metric.appid, metric.id);
+      await fetchNextEvent(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
@@ -213,15 +213,15 @@ export default function DashboardMetricPage() {
         applications.map((v) =>
           v.id === metric.appid
             ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === metric.id
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
+              metrics: v.metrics?.map((m) =>
+                m.id === metric.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
             : v,
         ),
       );
@@ -670,7 +670,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
             yAxisLabel='Total'
-            onValueChange={() => {}}
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -727,8 +727,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
       totalNeg = props.metric.totalneg;
     } else {
       const { pos, neg, relativetotalpos, relativetotalneg, results } =
-        await fetchDailySummary(props.metric.appid, props.metric.id, true, to);
-      console.log(pos, neg, relativetotalpos, relativetotalneg, results)
+        await fetchNextEvent(props.metric.appid, props.metric.id, to);
 
       if (results === 0) {
         totalPos = props.metric.totalpos;
@@ -1020,7 +1019,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
             }
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
-            onValueChange={() => {}}
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -1102,7 +1101,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1129,7 +1128,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-          (props.chartName === 'trend' && props.checked) ? (
+            (props.chartName === 'trend' && props.checked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1290,7 +1289,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-          props.metricType === MetricType.Dual ? (
+            props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines

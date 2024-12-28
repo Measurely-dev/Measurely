@@ -192,8 +192,8 @@ func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
 func (db *DB) UpdateMetricAndCreateEvent(
 	metricid uuid.UUID,
 	userid uuid.UUID,
-	toAdd int64,
-	toRemove int64,
+	toAdd int,
+	toRemove int,
 ) (error, int64) {
 	tx, err := db.Conn.Beginx()
 	if err != nil {
@@ -218,15 +218,17 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
 		MetricId:         metricid,
-		Value:            int(toAdd) - int(toRemove),
+		ValuePos:         toAdd,
+		ValueNeg:         toRemove,
 		Date:             now,
 	}
 	_, err = tx.NamedExec(
-		`INSERT INTO metricevents (metricid, value, relativetotalpos, relativetotalneg, date) 
-    VALUES (:metricid, :value, :relativetotalpos, :relativetotalneg, :date)
+		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
+    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
     ON CONFLICT (metricid, date)
     DO UPDATE SET 
-    value = metricevents.value + EXCLUDED.value,
+    valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+    valueneg = metricevents.valueneg + EXCLUDED.valueneg,
     relativetotalpos = EXCLUDED.relativetotalpos,
     relativetotalneg = EXCLUDED.relativetotalneg`,
 		event,
@@ -325,11 +327,41 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.Value, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
 		events = append(events, event)
+	}
+
+	return events, nil
+}
+
+func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.Time) ([]types.MetricEvent, error) {
+	var events []types.MetricEvent
+
+	// Single query to get both the closest event after the start and before the end
+	query := `
+		(
+			SELECT * 
+			FROM metricevents
+			WHERE metricid = $1 AND date >= $2
+			ORDER BY date ASC
+			LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT * 
+			FROM metricevents
+			WHERE metricid = $1 AND date <= $3
+			ORDER BY date DESC
+			LIMIT 1
+		)
+	`
+
+	err := db.Conn.Select(&events, query, metricid, start, end)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch variation events: %v", err)
 	}
 
 	return events, nil
