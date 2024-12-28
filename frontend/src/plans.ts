@@ -20,6 +20,9 @@ export const plans = [
       {
         name: '10,000 updates per month',
       },
+      {
+        name: 'Measurely basic support (2-3 business days)',
+      },
     ],
     button: 'Get started now',
   },
@@ -43,6 +46,9 @@ export const plans = [
       {
         name: '1,000,000 updates per month',
       },
+      {
+        name: 'Measurely express support (1-2 business days)',
+      },
     ],
     button: 'Continue with Plus',
   },
@@ -65,6 +71,9 @@ export const plans = [
       },
       {
         name: '1,000,000,000 updates per month',
+      },
+      {
+        name: 'Measurely express support (1 business days)',
       },
     ],
     button: 'Continue with Pro',

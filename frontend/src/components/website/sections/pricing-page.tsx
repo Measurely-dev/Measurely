@@ -63,7 +63,7 @@ export default function PricingCardsSection(props: {
             <br /> your needs
           </span>
         }
-        description='Find the plan the best suited for you'
+        description="No hidden fees, just the plan that's right for you"
       />
       <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
         {plans.map((plan, i) => {
@@ -106,7 +106,13 @@ export default function PricingCardsSection(props: {
             name: 'Up to  an unlimited amount of metrics per application',
           },
           {
-            name: 'Up to 1,000,000 updates per minute',
+            name: 'Up to 10,000 updates per minute',
+          },
+          {
+            name: 'Up to an unlimited amount of updates per month',
+          },
+          {
+            name: 'Support SLAs available',
           },
         ]}
         button='Talk to sales'

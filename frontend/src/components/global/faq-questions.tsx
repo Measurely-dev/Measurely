@@ -1,9 +1,5 @@
 export const FAQQuestions = [
   {
-    question: 'What is Measurely?',
-    answer: `Measurely is a platform that allows you to create and track custom metrics tailored to your business needs. It provides insights to help you make data-driven decisions.`,
-  },
-  {
     question: 'What is a metric?',
     answer: `A metric in Measurely is a data point used to track and analyze the performance of your application or feature. Metrics can be either basic (a single value) or dual (positive and negative values, like gains and losses).`,
   },
@@ -26,13 +22,5 @@ export const FAQQuestions = [
   {
     question: 'How is my data used on Measurely?',
     answer: `Your data is only used within the platform to provide you with analytics and insights. We do not share or sell your data to third parties.`,
-  },
-  {
-    question: 'Can I log in with GitHub or Google?',
-    answer: `Yes, Measurely supports authentication through GitHub and Google for a seamless login experience.`,
-  },
-  {
-    question: 'What should I do if I encounter an issue with Measurely?',
-    answer: `If you encounter an issue, please contact our support team at support@measurely.dev or send us a feedback from the dashboard, and we'll assist you promptly.`,
-  },
+  }
 ];
