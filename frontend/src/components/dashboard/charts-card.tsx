@@ -36,7 +36,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { AppsContext } from '@/dash-context';
 import {
   calculateTrend,
@@ -54,17 +54,15 @@ const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
 export function ChartsCard() {
-  const { applications, activeApp } = useContext(AppsContext);
+  const { applications, activeApp, setApplications } = useContext(AppsContext);
   const [activeMetric, setActiveMetric] = useState(0);
   const router = useRouter();
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [metric, setMetric] = useState<Metric | null>(
-    applications[activeApp].metrics?.[activeMetric] ?? null,
-  );
 
   const loadData = async () => {
-    if (!metric) return;
+    const metricData = applications[activeApp].metrics?.[activeMetric] ?? null;
+    if (!metricData) return;
     const from = new Date();
     from.setDate(1);
     const nbrDaysInMonth = new Date(
@@ -78,8 +76,8 @@ export function ChartsCard() {
     const data = await loadChartData(
       from,
       nbrDaysInMonth,
-      metric,
-      metric.appid,
+      metricData,
+      metricData.appid,
     );
 
     setChartData(data);
@@ -87,22 +85,33 @@ export function ChartsCard() {
   };
 
   const loadDailyUpdate = async () => {
-    if (!metric) return;
+    const metricData = applications[activeApp].metrics?.[activeMetric] ?? null;
+    if (!metricData) return;
 
     const { relativetotalpos, relativetotalneg } = await fetchDailySummary(
-      metric.appid ?? '',
-      metric.id ?? '',
+      metricData.appid ?? '',
+      metricData.id ?? '',
     );
 
     if (
-      metric.totalpos !== relativetotalpos ||
-      metric.totalneg !== relativetotalneg
+      metricData.totalpos !== relativetotalpos ||
+      metricData.totalneg !== relativetotalneg
     ) {
-      setMetric(
-        Object.assign({}, metric, {
-          totalpos: relativetotalpos,
-          totalneg: relativetotalneg,
-        }),
+      setApplications(
+        applications.map((app, i) =>
+          i === activeApp
+            ? Object.assign({}, app, {
+                metrics: app.metrics?.map((m, j) =>
+                  j === activeMetric
+                    ? Object.assign({}, m, {
+                        totalpos: relativetotalpos,
+                        totalneg: relativetotalneg,
+                      })
+                    : m,
+                ),
+              })
+            : app,
+        ),
       );
     }
   };
@@ -119,8 +128,11 @@ export function ChartsCard() {
     };
   }, [activeMetric]);
 
+  const metric = useMemo(() => {
+    return applications[activeApp].metrics?.[activeMetric] ?? null;
+  }, [activeMetric, applications]);
+
   useEffect(() => {
-    console.log(activeMetric);
     const new_index =
       applications[activeApp].metrics === null
         ? 0
@@ -164,13 +176,12 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-        applications[activeApp].metrics?.length! > 0 ? (
+      applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
             setActiveMetric={setActiveMetric}
             metrics={applications[activeApp].metrics ?? []}
-            total={(metric?.totalpos ?? 0) - (metric?.totalneg ?? 0)}
           />
           <CardContent className='flex flex-col'>
             {(metric?.totalpos ?? 0) - (metric?.totalneg ?? 0) === 0 ? (
@@ -195,8 +206,8 @@ export function ChartsCard() {
                           data={calculateTrend(
                             chartData,
                             metric,
-                            metric.totalpos,
-                            metric.totalneg,
+                            metric?.totalpos ?? 0,
+                            metric?.totalneg ?? 0,
                           )}
                           index='date'
                           color='blue'
@@ -204,7 +215,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => { }}
+                          onValueChange={() => {}}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -237,14 +248,16 @@ function Header(props: {
   activeMetric: number;
   setActiveMetric: React.Dispatch<React.SetStateAction<number>>;
   metrics: Metric[];
-  total: number;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <CardHeader className='flex flex-row justify-between max-sm:flex-col max-sm:gap-3'>
       <div className='flex flex-col gap-1'>
         <CardTitle>
-          {valueFormatter(props.total)}{' '}
+          {valueFormatter(
+            props.metrics[props.activeMetric].totalpos -
+              props.metrics[props.activeMetric].totalneg,
+          )}{' '}
           {props.metrics[props.activeMetric]?.name}
         </CardTitle>
         <CardDescription>Trend of the last month</CardDescription>
