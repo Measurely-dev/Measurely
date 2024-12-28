@@ -223,6 +223,8 @@ export const fetchDailySummary = async (
 ): Promise<{
   pos: number;
   neg: number;
+  relativetotalpos: number;
+  relativetotalneg: number;
 }> => {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
@@ -237,24 +239,33 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
+    console.log(json)
     if (json != null) {
       let pos = 0;
       let neg = 0;
+      let relativetotalpos = 0;
+      let relativetotalneg = 0;
 
       if (json.length > 1) {
         pos = json[1].relativetotalpos - json[0].relativetotalpos;
         neg = json[1].relativetotalneg - json[0].relativetotalneg;
-      } else if (json > 0) {
+        relativetotalpos = json[1].relativetotalpos;
+        relativetotalneg = json[1].relativetotalneg;
+      } else if (json.length > 0) {
         pos = json[0].valuepos;
         neg = json[0].valueneg;
+        relativetotalpos = json[0].relativetotalpos;
+        relativetotalneg = json[0].relativetotalneg;
       }
 
-      return { pos, neg };
+      return { pos, neg, relativetotalpos, relativetotalneg };
     }
   }
   return {
     pos: 0,
     neg: 0,
+    relativetotalpos: 0,
+    relativetotalneg: 0,
   };
 };
 

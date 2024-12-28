@@ -43,6 +43,7 @@ import { AppsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
 import {
   calculateTrend,
+  fetchDailySummary,
   fetchNextEvent,
   INTERVAL,
   loadChartData,
@@ -200,8 +201,7 @@ export default function DashboardMetricPage() {
   const [negDaily, setNegDaily] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const { pos, neg, relativetotalpos, relativetotalneg } =
-      await fetchNextEvent(metric.appid, metric.id);
+    const { pos, neg, relativetotalpos, relativetotalneg } = await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
