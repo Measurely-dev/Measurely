@@ -87,6 +87,7 @@ func (h *Handler) setup_api() {
 
 	authRouter.Get("/metrics", h.service.GetMetrics)
 	authRouter.Get("/events", h.service.GetMetricEvents)
+	authRouter.Get("/daily-variation", h.service.GetDailyVariation)
 	authRouter.Post("/metric", h.service.CreateMetric)
 	authRouter.Patch("/metric", h.service.UpdateMetric)
 	authRouter.Delete("/metric", h.service.DeleteMetric)

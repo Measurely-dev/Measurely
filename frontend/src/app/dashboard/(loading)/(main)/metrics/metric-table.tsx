@@ -8,7 +8,7 @@ import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import { Separator } from '@radix-ui/react-separator';
-import { fetchDailySummary, INTERVAL } from '@/utils';
+import { fetchNextEvent, INTERVAL } from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpDown,
@@ -158,7 +158,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
 
   const load = async () => {
     const { pos, neg, relativetotalpos, relativetotalneg } =
-      await fetchDailySummary(props.metric.appid, props.metric.id);
+      await fetchNextEvent(props.metric.appid, props.metric.id);
     setDailyUpdate(pos - neg);
 
     if (

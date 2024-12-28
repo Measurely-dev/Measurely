@@ -163,7 +163,7 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricid, metricCache.user_id, int64(pos), int64(neg)); err != nil {
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricid, metricCache.user_id, pos, neg); err != nil {
 		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
@@ -271,4 +271,56 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
+}
+
+func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
+	if err != nil {
+		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
+		return
+	}
+
+	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
+	if err != nil {
+		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get the application
+	app, err := s.db.GetApplication(appid, token.Id)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Verify API key and metric association
+	if !s.VerifyKeyToMetric(metricid, app.ApiKey) {
+		http.Error(w, "Metric not found", http.StatusNotFound)
+		return
+	}
+
+	start := time.Now().UTC().Truncate(time.Hour)
+	end := time.Date(start.Year(), start.Month(), start.Day(), 23, 0, 0, 0, time.UTC)
+	events, err := s.db.GetVariationEvents(metricid, start, end)
+	if err != nil {
+		http.Error(w, "Internal error, failed to retrieve daily variation", http.StatusInternalServerError)
+		return
+	}
+
+	if len(events) > 1 {
+		if events[0].Id == events[1].Id {
+			events = events[:1]
+		}
+	}
+
+	body, err := json.Marshal(events)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }

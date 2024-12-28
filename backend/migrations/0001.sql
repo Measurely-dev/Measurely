@@ -67,10 +67,12 @@ CREATE TABLE IF NOT EXISTS Metrics (
 CREATE TABLE IF NOT EXISTS MetricEvents (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     MetricId UUID NOT NULL,
-    Value INT NOT NULL,
+    ValuePos INT NOT NULL,
+    ValueNeg INT NOT NULL,
     RelativeTotalPos BIGINT NOT NULL,
     RelativeTotalNeg BIGINT NOT NULL,
-    Date TIMESTAMP NOT NULL DEFAULT timezone('UTC', CURRENT_TIMESTAMP),
+    Date TIMESTAMP NOT NULL,
+    UNIQUE (MetricId, Date),
     FOREIGN KEY (MetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
