@@ -8,7 +8,7 @@ import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
 import { Separator } from '@radix-ui/react-separator';
-import { fetchDailySummary, fetchNextEvent, INTERVAL } from '@/utils';
+import { fetchDailySummary, INTERVAL } from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpDown,

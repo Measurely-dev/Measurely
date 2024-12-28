@@ -1,0 +1,511 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.4 (Debian 16.4-1.pgdg120+2)
+-- Dumped by pg_dump version 16.3
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: accountrecovery; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.accountrecovery (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    userid uuid NOT NULL
+);
+
+
+ALTER TABLE public.accountrecovery OWNER TO postgres;
+
+--
+-- Name: applications; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.applications (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    apikey text NOT NULL,
+    userid uuid NOT NULL,
+    name character varying(50) NOT NULL,
+    image text DEFAULT ''::text NOT NULL
+);
+
+
+ALTER TABLE public.applications OWNER TO postgres;
+
+--
+-- Name: emailchange; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.emailchange (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    userid uuid NOT NULL,
+    newemail character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.emailchange OWNER TO postgres;
+
+--
+-- Name: feedbacks; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.feedbacks (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    date timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    email character varying(255) NOT NULL,
+    content text NOT NULL
+);
+
+
+ALTER TABLE public.feedbacks OWNER TO postgres;
+
+--
+-- Name: metricevents; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.metricevents (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    metricid uuid NOT NULL,
+    valuepos integer NOT NULL,
+    valueneg integer NOT NULL,
+    relativetotalpos bigint NOT NULL,
+    relativetotalneg bigint NOT NULL,
+    date timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.metricevents OWNER TO postgres;
+
+--
+-- Name: metrics; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.metrics (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    appid uuid NOT NULL,
+    name character varying(50) NOT NULL,
+    type smallint NOT NULL,
+    totalpos bigint DEFAULT 0 NOT NULL,
+    totalneg bigint DEFAULT 0 NOT NULL,
+    namepos character varying(50) NOT NULL,
+    nameneg character varying(50) NOT NULL,
+    created timestamp without time zone DEFAULT timezone('UTC'::text, CURRENT_TIMESTAMP) NOT NULL
+);
+
+
+ALTER TABLE public.metrics OWNER TO postgres;
+
+--
+-- Name: plans; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.plans (
+    identifier text NOT NULL,
+    name character varying(50) NOT NULL,
+    price text NOT NULL,
+    applimit integer NOT NULL,
+    metricperapplimit integer NOT NULL,
+    requestlimit integer NOT NULL,
+    monthlyeventlimit bigint NOT NULL,
+    range integer NOT NULL
+);
+
+
+ALTER TABLE public.plans OWNER TO postgres;
+
+--
+-- Name: providers; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.providers (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    userid uuid NOT NULL,
+    type smallint NOT NULL,
+    provideruserid text NOT NULL
+);
+
+
+ALTER TABLE public.providers OWNER TO postgres;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    email character varying(255) NOT NULL,
+    firstname character varying(50) NOT NULL,
+    lastname character varying(50) NOT NULL,
+    password text NOT NULL,
+    stripecustomerid text NOT NULL,
+    currentplan text NOT NULL,
+    image text DEFAULT ''::text NOT NULL,
+    monthlyeventcount bigint DEFAULT 0 NOT NULL,
+    startcountdate timestamp without time zone DEFAULT timezone('UTC'::text, CURRENT_TIMESTAMP) NOT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Data for Name: accountrecovery; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.accountrecovery (id, userid) FROM stdin;
+\.
+
+
+--
+-- Data for Name: applications; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.applications (id, apikey, userid, name, image) FROM stdin;
+bbbe74ba-3136-41fa-99d2-7de000267b67	34a02c4aa2a7642332c2b01c73de5ee6	c80688b3-99ed-48a5-b4e2-afd4aae48c9b	Measurely	
+d15b2cc9-f462-4a3e-9304-fa374515e6c4	7b452b939fb3c08164239fdd825cc1c8	4d3d8650-9eef-4df7-8f1d-0991af1444cd	Test	https://media.measurely.dev/d15b2cc9-f462-4a3e-9304-fa374515e6c4avatar-(ProfilePictureMaker.com).png
+\.
+
+
+--
+-- Data for Name: emailchange; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.emailchange (id, userid, newemail) FROM stdin;
+\.
+
+
+--
+-- Data for Name: feedbacks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.feedbacks (id, date, email, content) FROM stdin;
+\.
+
+
+--
+-- Data for Name: metricevents; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.metricevents (id, metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) FROM stdin;
+81d84597-3212-432b-84d8-0a009a88e033	beff3986-f11f-4e19-93e0-7654604f1d3b	11	0	11	0	2024-12-28 19:00:00
+a1c67dde-246c-4c5c-b301-72f4bd2f17ce	2efb5cb3-9ed6-40f3-bbb3-2df19faf8ba7	1	0	1	0	2024-12-28 19:00:00
+5dc50497-e95e-4f84-855f-34f2b0ebeef1	729fb8b3-3e87-4279-9bd4-17a21f7530d5	1	0	1	0	2024-12-28 19:00:00
+b810d9f0-2388-4147-b5d0-fb46bfc6a06c	eb585285-4397-4007-a877-07e54aff06c7	1	0	1	0	2024-12-28 19:00:00
+36952199-4790-421c-bf7e-3e8bdf4a4bc6	b3c58d0d-f1af-4c34-84ed-0450cd93e844	1	0	1	0	2024-12-28 19:00:00
+11fb942e-02cc-4fec-a817-a1559db4f3e5	beff3986-f11f-4e19-93e0-7654604f1d3b	3	0	14	0	2024-12-28 20:00:00
+\.
+
+
+--
+-- Data for Name: metrics; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.metrics (id, appid, name, type, totalpos, totalneg, namepos, nameneg, created) FROM stdin;
+fc7306fd-0d8c-4e3d-a3f0-e0ce8d961a2d	bbbe74ba-3136-41fa-99d2-7de000267b67	Feedbacks	0	0	0			2024-12-28 19:37:34.832599
+275b1ffa-e304-4476-8e88-312b3d0a0dc6	bbbe74ba-3136-41fa-99d2-7de000267b67	Team Requests Count	0	0	0			2024-12-28 19:37:44.988068
+4a58fb8b-ef70-483c-9f83-8cb67aa79315	bbbe74ba-3136-41fa-99d2-7de000267b67	Plus Users	1	0	0	added	removed	2024-12-28 19:37:59.994049
+696afc2e-3c8c-4752-9588-493602c6a7ad	bbbe74ba-3136-41fa-99d2-7de000267b67	Pro Users	1	0	0	added	removed	2024-12-28 19:38:04.246787
+f0411319-7560-4c64-b09d-a2cd9137b053	bbbe74ba-3136-41fa-99d2-7de000267b67	Metrics	1	0	0	added	removed	2024-12-28 19:38:13.602231
+2efb5cb3-9ed6-40f3-bbb3-2df19faf8ba7	bbbe74ba-3136-41fa-99d2-7de000267b67	Signups	0	1	0			2024-12-28 19:37:30.013052
+729fb8b3-3e87-4279-9bd4-17a21f7530d5	bbbe74ba-3136-41fa-99d2-7de000267b67	Starter Users	1	1	0	added	removed	2024-12-28 19:37:52.48557
+eb585285-4397-4007-a877-07e54aff06c7	bbbe74ba-3136-41fa-99d2-7de000267b67	Applications	1	1	0	added	removed	2024-12-28 19:38:09.111622
+b3c58d0d-f1af-4c34-84ed-0450cd93e844	bbbe74ba-3136-41fa-99d2-7de000267b67	Signup Sessions	0	1	0			2024-12-28 19:37:13.623399
+beff3986-f11f-4e19-93e0-7654604f1d3b	bbbe74ba-3136-41fa-99d2-7de000267b67	Page Views	0	14	0			2024-12-28 19:37:05.600789
+\.
+
+
+--
+-- Data for Name: plans; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.plans (identifier, name, price, applimit, metricperapplimit, requestlimit, monthlyeventlimit, range) FROM stdin;
+starter	Starter		1	2	25	10000	30
+plus	Plus	price_1QZGv5KSu0h3NTsFhbcZ2t4k	3	15	1000	1000000	365
+pro	Pro	price_1QZGvGKSu0h3NTsFOR0ZxCPc	10	30	10000	10000000	365
+\.
+
+
+--
+-- Data for Name: providers; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.providers (id, userid, type, provideruserid) FROM stdin;
+fb25b4d8-6171-404d-83be-e33a59eab375	c80688b3-99ed-48a5-b4e2-afd4aae48c9b	1	114780142989566219312
+adc6d93a-34fc-4151-823d-dc00b39d8962	4d3d8650-9eef-4df7-8f1d-0991af1444cd	1	118288985789181458411
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, email, firstname, lastname, password, stripecustomerid, currentplan, image, monthlyeventcount, startcountdate) FROM stdin;
+4d3d8650-9eef-4df7-8f1d-0991af1444cd	zakaryfofana@gmail.com	Zakary Fofana			cus_RU4CmZWDRGWGXB	starter		0	2024-12-28 19:52:41.932748
+c80688b3-99ed-48a5-b4e2-afd4aae48c9b	info@measurely.dev	Info Measurely			cus_RU3vMKGr9ZV1nX	pro		18	2024-12-28 19:36:03.206978
+\.
+
+
+--
+-- Name: accountrecovery accountrecovery_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.accountrecovery
+    ADD CONSTRAINT accountrecovery_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: applications applications_apikey_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.applications
+    ADD CONSTRAINT applications_apikey_key UNIQUE (apikey);
+
+
+--
+-- Name: applications applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.applications
+    ADD CONSTRAINT applications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: emailchange emailchange_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.emailchange
+    ADD CONSTRAINT emailchange_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: feedbacks feedbacks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.feedbacks
+    ADD CONSTRAINT feedbacks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: metricevents metricevents_metricid_date_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.metricevents
+    ADD CONSTRAINT metricevents_metricid_date_key UNIQUE (metricid, date);
+
+
+--
+-- Name: metricevents metricevents_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.metricevents
+    ADD CONSTRAINT metricevents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: metrics metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.metrics
+    ADD CONSTRAINT metrics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: plans plans_identifier_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.plans
+    ADD CONSTRAINT plans_identifier_key UNIQUE (identifier);
+
+
+--
+-- Name: providers providers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.providers
+    ADD CONSTRAINT providers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: providers providers_type_provideruserid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.providers
+    ADD CONSTRAINT providers_type_provideruserid_key UNIQUE (type, provideruserid);
+
+
+--
+-- Name: providers providers_type_userid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.providers
+    ADD CONSTRAINT providers_type_userid_key UNIQUE (type, userid);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_stripecustomerid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_stripecustomerid_key UNIQUE (stripecustomerid);
+
+
+--
+-- Name: idx_accountrecovery_userid; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_accountrecovery_userid ON public.accountrecovery USING btree (userid);
+
+
+--
+-- Name: idx_applications_userid; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_applications_userid ON public.applications USING btree (userid);
+
+
+--
+-- Name: idx_emailchange_userid; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_emailchange_userid ON public.emailchange USING btree (userid);
+
+
+--
+-- Name: idx_metrics_appid; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_metrics_appid ON public.metrics USING btree (appid);
+
+
+--
+-- Name: idx_metriquevents_date; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_metriquevents_date ON public.metricevents USING btree (date);
+
+
+--
+-- Name: idx_metriquevents_metricid; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_metriquevents_metricid ON public.metricevents USING btree (metricid);
+
+
+--
+-- Name: idx_providers_userid_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_providers_userid_type ON public.providers USING btree (userid, type);
+
+
+--
+-- Name: idx_users_email; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_users_email ON public.users USING btree (email);
+
+
+--
+-- Name: accountrecovery accountrecovery_userid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.accountrecovery
+    ADD CONSTRAINT accountrecovery_userid_fkey FOREIGN KEY (userid) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: applications applications_userid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.applications
+    ADD CONSTRAINT applications_userid_fkey FOREIGN KEY (userid) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: emailchange emailchange_userid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.emailchange
+    ADD CONSTRAINT emailchange_userid_fkey FOREIGN KEY (userid) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: metricevents metricevents_metricid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.metricevents
+    ADD CONSTRAINT metricevents_metricid_fkey FOREIGN KEY (metricid) REFERENCES public.metrics(id) ON DELETE CASCADE;
+
+
+--
+-- Name: metrics metrics_appid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.metrics
+    ADD CONSTRAINT metrics_appid_fkey FOREIGN KEY (appid) REFERENCES public.applications(id) ON DELETE CASCADE;
+
+
+--
+-- Name: providers providers_userid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.providers
+    ADD CONSTRAINT providers_userid_fkey FOREIGN KEY (userid) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: users users_currentplan_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_currentplan_fkey FOREIGN KEY (currentplan) REFERENCES public.plans(identifier);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
