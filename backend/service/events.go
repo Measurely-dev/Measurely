@@ -89,8 +89,14 @@ func (s *Service) RateAllow(user_id uuid.UUID, maxRequest int) bool {
 	return true
 }
 
-func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
-	apikey := chi.URLParam(r, "apikey")
+func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" || len(authHeader) < 8 || authHeader[:7] != "Bearer " {
+		http.Error(w, "Invalid or missing Authorization header", http.StatusUnauthorized)
+		return
+	}
+	apikey := authHeader[7:]
+
 	metricid, err := uuid.Parse(chi.URLParam(r, "metricid"))
 	if err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
@@ -101,13 +107,11 @@ func (s *Service) CreateMetricEvent(w http.ResponseWriter, r *http.Request) {
 		Value int `json:"value"`
 	}
 
-	// Decode the request body
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	// Verify the API key and metric ID
 	if !s.VerifyKeyToMetric(metricid, apikey) {
 		http.Error(w, "Invalid API key or metric ID", http.StatusUnauthorized)
 		return

@@ -288,7 +288,7 @@ func SendMeasurelyMetricEvent(name string, value int) {
 	if os.Getenv("ENV") != "production" {
 		return
 	}
-	url := fmt.Sprintf("https://api.measurely.dev/event/%s/%s", os.Getenv("MEASURELY_API_KEY"), id)
+	url := fmt.Sprintf("https://api.measurely.dev/event/v1/%s", id)
 	jsonData := map[string]interface{}{
 		"value": value,
 	}
@@ -299,6 +299,7 @@ func SendMeasurelyMetricEvent(name string, value int) {
 		return
 	}
 
+	req.Header.Set("Autorization", fmt.Sprintf("Bearer %s", os.Getenv("MEASURELY_API_KEY")))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
