@@ -89,8 +89,14 @@ export default function PricingCardsSection(props: {
         {plans.map((plan, i) => {
           return (
             <WebPricingCard
+              className={
+                plan.name === 'Plus'
+                  ? 'border-4 border-blue-300 ring-4 ring-purple-200'
+                  : 'lg:scale-95'
+              }
               key={i}
               name={plan.name}
+              popular={plan.name === 'Plus' ? true : false}
               description={plan.description}
               price={plan.price}
               recurrence={plan.reccurence}
