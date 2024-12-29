@@ -201,14 +201,15 @@ export default function DashboardMetricPage() {
   const [negDaily, setNegDaily] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const { pos, neg, relativetotalpos, relativetotalneg } =
+    const { pos, neg, relativetotalpos, relativetotalneg, results } =
       await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
     if (
-      metric.totalpos !== relativetotalpos ||
-      metric.totalneg !== relativetotalneg
+      (metric.totalpos !== relativetotalpos ||
+        metric.totalneg !== relativetotalneg) &&
+      results !== 0
     ) {
       setApplications(
         applications.map((v) =>

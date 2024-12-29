@@ -157,13 +157,14 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   };
 
   const load = async () => {
-    const { pos, neg, relativetotalpos, relativetotalneg } =
+    const { pos, neg, relativetotalpos, relativetotalneg, results } =
       await fetchDailySummary(props.metric.appid, props.metric.id);
     setDailyUpdate(pos - neg);
 
     if (
-      props.metric.totalpos !== relativetotalpos ||
-      props.metric.totalneg !== relativetotalneg
+      (props.metric.totalpos !== relativetotalpos ||
+        props.metric.totalneg !== relativetotalneg) &&
+      results !== 0
     ) {
       setApplications(
         applications.map((v) =>

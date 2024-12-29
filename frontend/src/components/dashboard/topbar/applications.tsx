@@ -32,7 +32,6 @@ export default function ApplicationsChip() {
       return;
     }
 
-    console.log(index)
     if (index <= applications.length - 1) {
       if (applications[index].metrics === null) {
         const metrics = await loadMetrics(applications?.[index].id ?? '');
