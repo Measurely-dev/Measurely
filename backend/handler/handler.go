@@ -98,7 +98,7 @@ func (h *Handler) setup_api() {
 
 	// PUBLIC API ENDPOINT
 	publicRouter.Use(publicCors)
-	publicRouter.Post("/v1/{metricid}", h.service.CreateMetricEventV1)
+	publicRouter.Post("/v1/{metricidentifier}", h.service.CreateMetricEventV1)
 	////
 
 	privateRouter.Mount("/", authRouter)
