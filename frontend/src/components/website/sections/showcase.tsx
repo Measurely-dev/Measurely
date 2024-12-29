@@ -84,13 +84,13 @@ export default function ShowcaseLandingSection() {
       </motion.div>
 
       <motion.div
-        className='absolute -right-16 -top-10 max-lg:hidden'
+        className='absolute -right-16 -top-7 max-lg:hidden'
         initial={{ opacity: 0, x: 50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.3, duration: 0.8, ease: 'easeOut' }}
       >
-        <Card1 className='rotate-[-9deg]' />
+        <Card1/>
       </motion.div>
     </div>
   );
