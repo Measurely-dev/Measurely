@@ -27,10 +27,11 @@ export default function Register() {
 
     if (process.env.NEXT_PUBLIC_ENV === 'production') {
       fetch(
-        `https://api.measurely.dev/event/${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}/b3c58d0d-f1af-4c34-84ed-0450cd93e844`,
+        `https://api.measurely.dev/event/v1/b3c58d0d-f1af-4c34-84ed-0450cd93e844`,
         {
           method: 'POST',
           headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ value: 1 }),

@@ -34,7 +34,7 @@ export const ROUTES: EachRoute[] = [
     title: 'API reference',
     href: '/api-reference',
     noLink: true,
-    items: [{ title: 'Guide', href: '/guide' }],
+    items: [{ title: 'Version 1', href: '/v1' }],
   },
 ];
 
