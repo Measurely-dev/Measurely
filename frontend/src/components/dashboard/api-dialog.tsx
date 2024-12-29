@@ -15,8 +15,9 @@ import { EyeClosedIcon } from '@radix-ui/react-icons';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Eye } from 'react-feather';
 import { AppsContext } from '@/dash-context';
-import { Loader, X } from 'lucide-react';
-import RandomizeAlert from './randomize-alert';
+import { Loader, Shuffle, X } from 'lucide-react';
+import { useConfirm } from '@omit/react-confirm-dialog';
+import { toast } from 'sonner';
 
 export default function ApiDialog(props: {
   children: ReactNode;
@@ -26,7 +27,72 @@ export default function ApiDialog(props: {
   const [view, setView] = useState(false);
   const [copied, setCopied] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const { applications, activeApp } = useContext(AppsContext);
+  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  const confirm = useConfirm();
+  const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (applications !== null) {
+      setApiIndex(applications.findIndex((app) => app.id === props.appId));
+    }
+  }, []);
+  const RandomizeAPI = async () => {
+    const isConfirmed = await confirm({
+      title: 'Randomize API Key',
+      icon: <Shuffle className='size-6 text-destructive' />,
+      description:
+        'Are you sure you want to randomize your API key? This will invalidate the current key, and all requests using it will stop working.',
+      confirmText: 'Yes, Randomize',
+      cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+        className: 'rounded-[12px]',
+      },
+      confirmButton: {
+        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-2',
+      },
+      alertDialogContent: {
+        className: '!rounded-[12px]',
+      },
+    });
+    if (isConfirmed) {
+      fetch(process.env.NEXT_PUBLIC_API_URL + '/rand-apikey', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appid: apiIndex !== undefined ? applications?.[apiIndex].id : '',
+        }),
+        credentials: 'include',
+      })
+        .then((res) => {
+          if (res.ok === true) {
+            return res.text();
+          } else {
+            toast.error('Failed to generate a new API KEY. Try again later.');
+          }
+        })
+        .then((data) => {
+          if (data !== null && data !== undefined && applications !== null) {
+            toast.success('API key succesfully randomized');
+            setApplications(
+              applications?.map((v, i) =>
+                i === apiIndex
+                  ? Object.assign({}, v, {
+                      apikey: data,
+                    })
+                  : v,
+              ),
+            );
+          }
+        });
+    }
+  };
 
   useEffect(() => {
     if (applications !== null && applications.length > 0) {
@@ -104,11 +170,13 @@ export default function ApiDialog(props: {
           </Button>
         </div>
         {props.randomize ? (
-          <RandomizeAlert appId={props.appId || ('' as string)}>
-            <Button className='rounded-[12px]' variant={'destructiveOutline'}>
-              Randomize key
-            </Button>
-          </RandomizeAlert>
+          <Button
+            onClick={RandomizeAPI}
+            className='rounded-[12px]'
+            variant={'destructiveOutline'}
+          >
+            Randomize key
+          </Button>
         ) : undefined}
       </DialogContent>
     </Dialog>

@@ -3,6 +3,7 @@
 import { AppsContext, defaultUser, UserContext } from '@/dash-context';
 import { useState } from 'react';
 import { Application, User } from '@/types';
+import { ConfirmDialogProvider } from '@omit/react-confirm-dialog';
 
 export default function DashboardContentClient({
   children,
@@ -16,21 +17,23 @@ export default function DashboardContentClient({
   const [appsLoading, setAppsLoading] = useState(true);
 
   return (
-    <UserContext.Provider
-      value={{ user, setUser, userLoading, setUserLoading }}
-    >
-      <AppsContext.Provider
-        value={{
-          applications,
-          setApplications,
-          activeApp,
-          setActiveApp,
-          appsLoading,
-          setAppsLoading,
-        }}
+    <ConfirmDialogProvider>
+      <UserContext.Provider
+        value={{ user, setUser, userLoading, setUserLoading }}
       >
-        {children}
-      </AppsContext.Provider>
-    </UserContext.Provider>
+        <AppsContext.Provider
+          value={{
+            applications,
+            setApplications,
+            activeApp,
+            setActiveApp,
+            appsLoading,
+            setAppsLoading,
+          }}
+        >
+          {children}
+        </AppsContext.Provider>
+      </UserContext.Provider>
+    </ConfirmDialogProvider>
   );
 }
