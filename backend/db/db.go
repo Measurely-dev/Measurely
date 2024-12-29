@@ -356,7 +356,7 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 		(
 			SELECT * 
 			FROM metricevents
-			WHERE metricid = $1 AND date >= $2
+			WHERE metricid = $1 AND date >= $2 AND date <= $3
 			ORDER BY date ASC
 			LIMIT 1
 		)
@@ -364,7 +364,7 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 		(
 			SELECT * 
 			FROM metricevents
-			WHERE metricid = $1 AND date <= $3
+			WHERE metricid = $1 AND date <= $3 AND date >= $2
 			ORDER BY date DESC
 			LIMIT 1
 		)

@@ -175,8 +175,6 @@ export const loadChartData = async (
     }
   }
 
-  console.log(tmpData);
-
   return tmpData;
 };
 
@@ -248,6 +246,7 @@ export const fetchDailySummary = async (
   neg: number;
   relativetotalpos: number;
   relativetotalneg: number;
+  results: number;
 }> => {
   const start = new Date();
   start.setHours(0);
@@ -295,7 +294,13 @@ export const fetchDailySummary = async (
         relativetotalneg = json[0].relativetotalneg;
       }
 
-      return { pos, neg, relativetotalpos, relativetotalneg };
+      return {
+        pos,
+        neg,
+        relativetotalpos,
+        relativetotalneg,
+        results: json.length,
+      };
     }
   }
   return {
@@ -303,6 +308,7 @@ export const fetchDailySummary = async (
     neg: 0,
     relativetotalpos: 0,
     relativetotalneg: 0,
+    results: 0,
   };
 };
 

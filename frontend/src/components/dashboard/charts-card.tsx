@@ -88,14 +88,13 @@ export function ChartsCard() {
     const metricData = applications[activeApp].metrics?.[activeMetric] ?? null;
     if (!metricData) return;
 
-    const { relativetotalpos, relativetotalneg } = await fetchDailySummary(
-      metricData.appid ?? '',
-      metricData.id ?? '',
-    );
+    const { relativetotalpos, relativetotalneg, results } =
+      await fetchDailySummary(metricData.appid ?? '', metricData.id ?? '');
 
     if (
-      metricData.totalpos !== relativetotalpos ||
-      metricData.totalneg !== relativetotalneg
+      (metricData.totalpos !== relativetotalpos ||
+        metricData.totalneg !== relativetotalneg) &&
+      results !== 0
     ) {
       setApplications(
         applications.map((app, i) =>
