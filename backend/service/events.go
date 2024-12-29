@@ -46,6 +46,7 @@ func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
+			metric_id:   metric.Id,
 			expiry:      time.Now().Add(15 * time.Minute),
 		})
 
@@ -84,10 +85,11 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 			return false
 		}
 
-		s.cache.metrics[0].Store(apikey+metricname, MetricCache{
+		s.cache.metrics[1].Store(apikey+metricname, MetricCache{
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
+			metric_id:   metric.Id,
 			expiry:      time.Now().Add(15 * time.Minute),
 		})
 
@@ -140,9 +142,8 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 	apikey := authHeader[7:]
 
-	metricid, err := uuid.Parse(chi.URLParam(r, "metricid"))
-	metricname := chi.URLParam(r, "metricname")
-
+	metricid, err := uuid.Parse(chi.URLParam(r, "metricidentifier"))
+	metricname := chi.URLParam(r, "metricidentifier")
 	useName := false
 
 	if metricname == "" && err != nil {
@@ -163,7 +164,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var value interface{}
+	var value any
 	if useName {
 		if !s.VerifyKeyToMetricName(metricname, apikey) {
 			http.Error(w, "Invalid API key or metric name", http.StatusUnauthorized)
@@ -228,7 +229,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricid, metricCache.user_id, pos, neg); err != nil {
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg); err != nil {
 		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
