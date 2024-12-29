@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     { name: 'yasthegoat', url: 'https://github.com/yasthegoat' },
   ],
   keywords:
-    'metrics, dashboard, analytics, Measurely, API tracking, developer tools',
+    'metrics, dashboard, analytics, Measurely, api tracking, developer tools, customizable dashboard, analytics SaaS, intuitive api',
   robots: 'index, follow',
 };
 
@@ -76,10 +76,10 @@ export default function RootLayout({
         {/* Performance Optimization */}
         <link rel='preconnect' href='https://fonts.gstatic.com' />
       </Head>
-        <body className={GeistSans.className + ' ' + GeistMono.variable}>
-          {children}
-          <Toaster richColors theme='light' closeButton />
-        </body>
+      <body className={GeistSans.className + ' ' + GeistMono.variable}>
+        {children}
+        <Toaster richColors theme='light' closeButton />
+      </body>
     </html>
   );
 }
