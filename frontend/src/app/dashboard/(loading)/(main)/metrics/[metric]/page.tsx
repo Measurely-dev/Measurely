@@ -1449,7 +1449,7 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
         <p className='flex w-full items-center justify-between gap-10'>
           <span className='text-gray-50 dark:text-gray-50'> Date </span>
           <span className='font-medium text-gray-50 dark:text-gray-50'>
-            {label}
+            {payload.length > 0 ? payload[0].payload.tooltiplabel : label}
           </span>
         </p>
       </div>
@@ -1462,6 +1462,7 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
                   className='size-1.5 rounded-full'
                   style={{ backgroundColor: item.color }}
                 />
+
                 {item.category.charAt(0).toUpperCase() +
                   item.category.slice(1).toLowerCase()}
               </span>

@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import { Metric, MetricType } from './types';
+import { parse } from 'path';
 
 export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 10000;
@@ -156,9 +157,26 @@ export const loadChartData = async (
       }
     });
 
-  for (let i = 0; i < tmpData.length; i++) {
-    tmpData[i].date = parseXAxis(tmpData[i].date, range);
+  let jump = 1;
+  let next = 0;
+
+  if (range === 1) {
+    jump = 3;
+  } else if (range === 7 || range === 15) {
+    jump = 24;
   }
+
+  for (let i = 0; i < tmpData.length; i++) {
+    tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+    if (i === next) {
+      tmpData[i].date = tmpData[i].tooltiplabel;
+      next += jump;
+    } else {
+      tmpData[i].date = '';
+    }
+  }
+
+  console.log(tmpData);
 
   return tmpData;
 };
