@@ -1,6 +1,5 @@
 import { toast } from 'sonner';
 import { Metric, MetricType } from './types';
-import { parse } from 'path';
 
 export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 10000;
