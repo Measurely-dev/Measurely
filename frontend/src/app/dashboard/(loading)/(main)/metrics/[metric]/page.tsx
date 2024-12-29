@@ -201,7 +201,8 @@ export default function DashboardMetricPage() {
   const [negDaily, setNegDaily] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const { pos, neg, relativetotalpos, relativetotalneg } = await fetchDailySummary(metric.appid, metric.id);
+    const { pos, neg, relativetotalpos, relativetotalneg } =
+      await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
@@ -655,6 +656,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
             data={chartData}
             customTooltip={customTooltip}
             index='date'
+            tabIndex={0}
             type={overviewChartType}
             colors={
               props.metric?.type === MetricType.Dual
@@ -1447,7 +1449,7 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
         <p className='flex w-full items-center justify-between gap-10'>
           <span className='text-gray-50 dark:text-gray-50'> Date </span>
           <span className='font-medium text-gray-50 dark:text-gray-50'>
-            {label}
+            {payload.length > 0 ? payload[0].payload.tooltiplabel : label}
           </span>
         </p>
       </div>
@@ -1460,6 +1462,7 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
                   className='size-1.5 rounded-full'
                   style={{ backgroundColor: item.color }}
                 />
+
                 {item.category.charAt(0).toUpperCase() +
                   item.category.slice(1).toLowerCase()}
               </span>

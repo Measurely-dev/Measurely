@@ -62,6 +62,7 @@ export const loadChartData = async (
   date.setHours(0);
   date.setMinutes(0);
   date.setSeconds(0);
+  date.setMilliseconds(0);
 
   const from = new Date(date);
   const to = new Date(date);
@@ -74,9 +75,9 @@ export const loadChartData = async (
   let dataLength = 0;
 
   if (range === 1) {
-    dataLength = 24;
-  } else if (range >= 365) {
-    dataLength = 12;
+    dataLength = 24 * 3;
+  } else if (range === 7 || range === 15) {
+    dataLength = 24 * range;
   } else {
     dataLength = range;
   }
@@ -95,9 +96,9 @@ export const loadChartData = async (
     }
     tmpData.push(data);
     if (range === 1) {
+      dateCounter.setMinutes(dateCounter.getMinutes() + 20);
+    } else if (range === 7 || range === 15) {
       dateCounter.setHours(dateCounter.getHours() + 1);
-    } else if (range >= 365) {
-      dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
       dateCounter.setDate(dateCounter.getDate() + 1);
     }
@@ -126,11 +127,14 @@ export const loadChartData = async (
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                eventDate.getHours() === tmpData[j].date.getHours();
-            } else if (range >= 365) {
+                eventDate.getHours() === tmpData[j].date.getHours() &&
+                eventDate.getMinutes() === tmpData[j].date.getMinutes();
+            } else if (range === 7 || range === 15) {
               matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear();
+                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                eventDate.getHours() === tmpData[j].date.getHours();
             } else {
               matches =
                 eventDate.getDate() === tmpData[j].date.getDate() &&
@@ -152,9 +156,26 @@ export const loadChartData = async (
       }
     });
 
-  for (let i = 0; i < tmpData.length; i++) {
-    tmpData[i].date = parseXAxis(tmpData[i].date, range);
+  let jump = 1;
+  let next = 0;
+
+  if (range === 1) {
+    jump = 3;
+  } else if (range === 7 || range === 15) {
+    jump = 24;
   }
+
+  for (let i = 0; i < tmpData.length; i++) {
+    tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+    if (i === next) {
+      tmpData[i].date = tmpData[i].tooltiplabel;
+      next += jump;
+    } else {
+      tmpData[i].date = '';
+    }
+  }
+
+  console.log(tmpData);
 
   return tmpData;
 };
@@ -174,6 +195,8 @@ export const fetchNextEvent = async (
   from.setHours(0);
   from.setMinutes(0);
   from.setSeconds(0);
+  from.setMilliseconds(0);
+
   const to = new Date(from);
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
@@ -226,16 +249,16 @@ export const fetchDailySummary = async (
   relativetotalpos: number;
   relativetotalneg: number;
 }> => {
-
   const start = new Date();
-  start.setHours(0)
-  start.setMinutes(0)
-  start.setSeconds(0)
+  start.setHours(0);
+  start.setMinutes(0);
+  start.setSeconds(0);
+  start.setMilliseconds(0);
 
-  const end = new Date(start)
-  end.setHours(23)
-  end.setMinutes(59)
-  end.setSeconds(59)
+  const end = new Date(start);
+  end.setHours(23);
+  end.setMinutes(59);
+  end.setSeconds(59);
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
@@ -250,7 +273,6 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
-    console.log(json)
     if (json != null) {
       let pos = 0;
       let neg = 0;
@@ -326,8 +348,6 @@ export const calculateTrend = (
 export const parseXAxis = (value: Date, range: number) => {
   if (range === 1) {
     return value.getHours().toString() + ' H';
-  } else if (range >= 365) {
-    return getMonthsFromDate(value);
   } else {
     return getMonthsFromDate(value) + ' ' + value.getDate().toString();
   }

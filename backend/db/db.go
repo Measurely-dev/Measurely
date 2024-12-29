@@ -213,14 +213,27 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	var monthlyCount int64
 	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount", userid).Scan(&monthlyCount)
 
-	now := time.Now().UTC().Truncate(time.Hour)
+	now := time.Now().UTC().Truncate(time.Second)
+	minute := now.Minute()
+	var roundedMinute int
+
+	// Determine the rounded time
+	if minute < 20 {
+		roundedMinute = 0
+	} else if minute < 40 {
+		roundedMinute = 20
+	} else {
+		roundedMinute = 40
+	}
+
+	date := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), roundedMinute, 0, 0, time.UTC)
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
 		MetricId:         metricid,
 		ValuePos:         toAdd,
 		ValueNeg:         toRemove,
-		Date:             now,
+		Date:             date,
 	}
 	_, err = tx.NamedExec(
 		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
