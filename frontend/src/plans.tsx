@@ -2,7 +2,7 @@ export const plans = [
   {
     name: 'Starter',
     identifier: 'starter',
-    description: 'Free with 2 metrics, 1 app. No setup or hidden fees.',
+    description: 'Free with 5 metrics, 1 app. No setup or hidden fees.',
     price: 0,
     reccurence: 'forever',
     target: 'very small teams',
