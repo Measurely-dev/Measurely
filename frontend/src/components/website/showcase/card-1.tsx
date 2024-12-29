@@ -1,6 +1,6 @@
 import { AreaChart } from '@/components/ui/area-chart';
 
-export default function Card1(props: { className?: string }) {
+export default function Card1() {
   const metricsData = [
     { date: '2024-12-01', createdAccounts: 120, deletedAccounts: 10 },
     { date: '2024-12-02', createdAccounts: 98, deletedAccounts: 15 },
@@ -39,7 +39,7 @@ export default function Card1(props: { className?: string }) {
   };
   return (
     <AreaChart
-      className='h-52 w-[320px] bg-background p-3 rounded-2xl shadow-sm rotate-[-9deg]'
+      className='h-52 w-[320px] rotate-[-9deg] rounded-2xl bg-background p-3 shadow-sm'
       data={metricsData}
       index='date'
       colors={['red', 'blue']}

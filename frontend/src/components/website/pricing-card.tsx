@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { CheckIcon } from '@radix-ui/react-icons';
+import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
@@ -13,6 +14,7 @@ interface WebPricingCardProps {
   list?: Array<ReactNode>;
   button?: string;
   disabled?: boolean | false;
+  popular?: boolean | false;
   [key: string]: any; // Accept any additional props
 }
 
@@ -28,13 +30,24 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
   disabled,
   loading,
   onSelect,
+  popular,
   ...additionalProps
 }) => {
   return (
     <div
       {...additionalProps}
-      className={`flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className}`}
+      className={`relative flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className} ${popular ? 'rounded-tl-2xl' : ''}`}
     >
+      {popular ? (
+        <div className='absolute -left-[8px] -top-[8px] flex items-center gap-2 rounded-2xl rounded-bl-none rounded-tr-none border border-purple-200 bg-purple-50 px-2 py-1'>
+          <Sparkles className='size-4 text-purple-500' />
+          <div className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono font-bold text-transparent'>
+            Popular
+          </div>
+        </div>
+      ) : (
+        ''
+      )}
       <div className='text-2xl font-medium'>{name}</div>
       <div className='mb-auto text-xs font-normal'>
         {description}
@@ -61,7 +74,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         {list?.map((listItem, i) => {
           return (
             <div className='flex flex-row items-center gap-[10px]' key={i}>
-              <div className='flex size-[20px] min-w-[20px] min-h-[20px] items-center justify-center rounded-[6px] bg-background'>
+              <div className='flex size-[20px] min-h-[20px] min-w-[20px] items-center justify-center rounded-[6px] bg-background'>
                 <CheckIcon className='size-[14px] text-secondary' />
               </div>
               <div className='text-sm font-medium text-secondary'>
