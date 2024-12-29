@@ -30,7 +30,7 @@ export default function Navbar(props: {
   return (
     <div className='fixed top-5 z-50 flex items-center gap-6 rounded-[20px] border border-background bg-accent/75 px-3 py-2 pl-4 backdrop-blur-xl max-md:w-[40%] max-md:justify-between max-sm:w-[60%]'>
       {/* Logo */}
-      <Link href='/home'>
+      <Link href='/'>
         <div className='size-8'>
           <LogoSvg />
         </div>
@@ -51,7 +51,7 @@ export default function Navbar(props: {
           <div className='h-8 w-full' />
           <DrawerClose asChild>
             <Link
-              href={'/home'}
+              href={'/'}
               className='cursor-pointer rounded-[12px] bg-accent p-2 px-4 text-sm transition-all duration-300 hover:pl-6 hover:opacity-80'
             >
               Home

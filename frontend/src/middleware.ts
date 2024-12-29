@@ -4,9 +4,6 @@ import { cookies } from 'next/headers';
 
 export default async function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
-  if (url === '/') {
-    return NextResponse.redirect(new URL('/home', request.url));
-  }
   const cookie = cookies().get('measurely-session');
   let logged = false;
   if (cookie !== undefined) {
@@ -41,7 +38,6 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/home',
     '/pricing',
     '/sign-in',
     '/register',

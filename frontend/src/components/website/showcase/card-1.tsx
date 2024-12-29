@@ -1,38 +1,51 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { CheckIcon } from 'lucide-react';
+import { AreaChart } from '@/components/ui/area-chart';
 
 export default function Card1(props: { className?: string }) {
+  const metricsData = [
+    { date: '2024-12-01', createdAccounts: 120, deletedAccounts: 10 },
+    { date: '2024-12-02', createdAccounts: 98, deletedAccounts: 15 },
+    { date: '2024-12-03', createdAccounts: 130, deletedAccounts: 8 },
+    { date: '2024-12-04', createdAccounts: 110, deletedAccounts: 12 },
+    { date: '2024-12-05', createdAccounts: 125, deletedAccounts: 9 },
+    { date: '2024-12-06', createdAccounts: 140, deletedAccounts: 14 },
+    { date: '2024-12-07', createdAccounts: 150, deletedAccounts: 7 },
+    { date: '2024-12-08', createdAccounts: 135, deletedAccounts: 10 },
+    { date: '2024-12-09', createdAccounts: 128, deletedAccounts: 11 },
+    { date: '2024-12-10', createdAccounts: 115, deletedAccounts: 6 },
+    { date: '2024-12-11', createdAccounts: 105, deletedAccounts: 13 },
+    { date: '2024-12-12', createdAccounts: 100, deletedAccounts: 12 },
+    { date: '2024-12-13', createdAccounts: 130, deletedAccounts: 15 },
+    { date: '2024-12-14', createdAccounts: 145, deletedAccounts: 8 },
+    { date: '2024-12-15', createdAccounts: 138, deletedAccounts: 9 },
+    { date: '2024-12-16', createdAccounts: 120, deletedAccounts: 10 },
+    { date: '2024-12-17', createdAccounts: 125, deletedAccounts: 14 },
+    { date: '2024-12-18', createdAccounts: 115, deletedAccounts: 7 },
+    { date: '2024-12-19', createdAccounts: 140, deletedAccounts: 10 },
+    { date: '2024-12-20', createdAccounts: 130, deletedAccounts: 6 },
+    { date: '2024-12-21', createdAccounts: 135, deletedAccounts: 11 },
+    { date: '2024-12-22', createdAccounts: 120, deletedAccounts: 9 },
+    { date: '2024-12-23', createdAccounts: 100, deletedAccounts: 8 },
+    { date: '2024-12-24', createdAccounts: 110, deletedAccounts: 12 },
+    { date: '2024-12-25', createdAccounts: 130, deletedAccounts: 5 },
+    { date: '2024-12-26', createdAccounts: 145, deletedAccounts: 13 },
+    { date: '2024-12-27', createdAccounts: 138, deletedAccounts: 9 },
+    { date: '2024-12-28', createdAccounts: 125, deletedAccounts: 7 },
+    { date: '2024-12-29', createdAccounts: 115, deletedAccounts: 11 },
+    { date: '2024-12-30', createdAccounts: 105, deletedAccounts: 14 },
+    { date: '2024-12-31', createdAccounts: 120, deletedAccounts: 10 },
+  ];
+  const valueFormatter = (number: number) => {
+    return Intl.NumberFormat('us').format(number).toString();
+  };
   return (
-    <Card className={`w-[320px] rounded-2xl p-0 shadow-sm ${props.className}`}>
-      <div className='absolute bottom-[-10px] left-[-10px] z-10 flex size-8 items-center justify-center rounded-[10px] border bg-zinc-300/30 font-mono text-sm text-blue-400 backdrop-blur-md'>
-        +1
-      </div>
-      <div className='absolute flex h-full w-full flex-col items-center justify-center gap-3 rounded-2xl bg-zinc-300/15 text-sm text-blue-400 backdrop-blur-md'>
-        <div className='flex aspect-square h-[60px] items-center justify-center rounded-full border border-blue-400 bg-blue-400/10 text-blue-400'>
-          <CheckIcon className='size-8 !stroke-[1]' />
-        </div>
-        Metric created
-      </div>
-      <CardHeader className='flex flex-row items-center p-5'>
-        <div className='flex w-full flex-col gap-1'>
-          <span className='text-xs text-secondary'>
-            • Created March 30, 2024
-          </span>
-          <span className='text-xl font-semibold'>New users</span>
-        </div>
-        <div className='flex aspect-square h-[40px] items-center justify-center rounded-full border border-green-400 bg-green-400/10 text-green-400'>
-          <CheckIcon className='size-6' />
-        </div>
-      </CardHeader>
-      <Separator className='w-full' />
-      <CardContent className='flex flex-col p-5'>
-        <span className='text-sm'>Metric description</span>
-        <span className='mt-1 text-xs text-secondary'>
-          Introducing our cutting-edge Client Portal Software, a revolutionary
-          SaaS application designed specifically for modern Design and Creative
-        </span>
-      </CardContent>
-    </Card>
+    <AreaChart
+      className='h-52 w-[320px] bg-background p-3 rounded-2xl shadow-sm rotate-[-9deg]'
+      data={metricsData}
+      index='date'
+      colors={['red', 'blue']}
+      categories={['createdAccounts', 'deletedAccounts']}
+      valueFormatter={(number: number) => valueFormatter(number)}
+      yAxisLabel='Total'
+    />
   );
 }

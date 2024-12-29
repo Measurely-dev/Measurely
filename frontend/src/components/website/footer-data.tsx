@@ -1,5 +1,5 @@
 export const footerData = [
-  { title: 'Home', href: '/home' },
+  { title: 'Home', href: '/' },
   { title: 'Pricing', href: '/pricing' },
   { title: 'About us', href: '/about' },
   { title: 'Brand', href: '/brand' },

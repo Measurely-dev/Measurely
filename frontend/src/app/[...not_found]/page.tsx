@@ -11,7 +11,7 @@ export default function NotFound() {
       <WebContainer>
         <ContentContainer className='min-h-screen'>
           <div className='mx-auto my-auto flex flex-col gap-5'>
-            <Link href='/home'>
+            <Link href='/'>
               <div className='relative flex cursor-pointer items-center justify-center gap-2 font-mono text-5xl font-bold transition-all duration-200 hover:gap-5 hover:opacity-65 max-md:text-3xl max-sm:text-2xl'>
                 404 Page Not Found <ArrowRight className='size-12' />
                 <ShowcaseCursor
