@@ -11,13 +11,13 @@ export const plans = [
         <strong className='text-black'>1</strong> application
       </div>,
       <div key='2'>
-        <strong className='text-black'>2</strong> metrics per application
+        <strong className='text-black'>5</strong> metrics per application
       </div>,
       <div key='3'>
         <strong className='text-black'>25</strong> updates per minute
       </div>,
       <div key='4'>
-        <strong className='text-black'>10K</strong> updates per month
+        <strong className='text-black'>5k</strong> updates per month
       </div>,
       <div key='5'>
         Support (<strong className='text-black'>2-3</strong> business days)
@@ -63,7 +63,7 @@ export const plans = [
         <strong className='text-black'>10</strong> applications
       </div>,
       <div key='2'>
-        <strong className='text-black'>30</strong> metrics per application
+        <strong className='text-black'>35</strong> metrics per application
       </div>,
       <div key='3'>
         <strong className='text-black'>10K</strong> updates per minute
