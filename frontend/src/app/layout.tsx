@@ -76,10 +76,10 @@ export default function RootLayout({
         {/* Performance Optimization */}
         <link rel='preconnect' href='https://fonts.gstatic.com' />
       </Head>
-      <body className={GeistSans.className + ' ' + GeistMono.variable}>
-        {children}
-        <Toaster richColors theme='light' closeButton />
-      </body>
+        <body className={GeistSans.className + ' ' + GeistMono.variable}>
+          {children}
+          <Toaster richColors theme='light' closeButton />
+        </body>
     </html>
   );
 }

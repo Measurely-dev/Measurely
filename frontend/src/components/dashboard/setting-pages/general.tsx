@@ -6,28 +6,25 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dash-context';
-import DeleteAccountAlert from '../delete-account-dialog';
 import DisconnectProviderDialog from '../disconnect-provider-dialog';
-import { Info } from 'lucide-react';
+import { Info, UserRoundX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { providers } from '@/providers';
+import { useConfirm } from '@omit/react-confirm-dialog';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
-
   const [firstName, setFirstName] = useState(user?.firstname);
   const [lastName, setLastName] = useState(user?.lastname);
-
   const [email, setEmail] = useState(user?.email);
-
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
-
   const router = useRouter();
+  const confirm = useConfirm();
 
   const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -123,6 +120,49 @@ export default function SettingGeneralPage() {
       .finally(() => {
         setLoadingPassword(false);
       });
+  };
+  const DeleteAccount = async () => {
+    const isConfirmed = await confirm({
+      title: 'Delete my account',
+      icon: <UserRoundX className='size-6 text-destructive' />,
+      description:
+        'Are you sure you want to delete this account? You will loose all the data linked to this account forever.',
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+        className: 'rounded-[12px]',
+      },
+      confirmButton: {
+        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-2',
+      },
+      alertDialogContent: {
+        className: '!rounded-[12px]',
+      },
+    });
+
+    if (isConfirmed) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/account`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }).then((resp) => {
+        if (resp.status === 200) {
+          toast.success(
+            'Successfully deleted your account. You will now be logged out.',
+          );
+
+          router.push('/sign-in');
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+      });
+    }
   };
 
   return (
@@ -335,15 +375,14 @@ export default function SettingGeneralPage() {
         description='This action will delete this account and all the data in it forever.'
         content={
           <div className='flex flex-col gap-4'>
-            <DeleteAccountAlert>
-              <Button
-                variant={'destructiveOutline'}
-                size={'sm'}
-                className='rounded-[12px]'
-              >
-                Delete account
-              </Button>
-            </DeleteAccountAlert>
+            <Button
+              variant={'destructiveOutline'}
+              size={'sm'}
+              className='rounded-[12px]'
+              onClick={DeleteAccount}
+            >
+              Delete account
+            </Button>
           </div>
         }
       />

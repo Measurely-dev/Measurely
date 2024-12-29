@@ -1,3 +1,4 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,8 +10,9 @@ import {
 import WebPricingCard from '@/components/website/pricing-card';
 import { UserContext } from '@/dash-context';
 import { plans } from '@/plans';
+import { useConfirm } from '@omit/react-confirm-dialog';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { ArrowBigDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';
@@ -20,40 +22,70 @@ export default function PlansDialog(props: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
+  const confirm = useConfirm();
 
-  const subscribe = (plan: string) => {
+  const subscribe = async (plan: string) => {
     setSelectedPlan(plan);
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: plan }),
-    })
-      .then((resp) => {
-        if (resp.status === 200) {
-          if (plan === 'starter') {
-            toast.success('Successfully downgraded to the starter plan');
-            window.location.reload();
-          } else {
-            return resp.json();
-          }
-        } else if (resp.status === 304) {
-          toast.warning('You are already on this plan');
-          setLoading(false);
-        } else {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-          setLoading(false);
-        }
-      })
-      .then((data) => {
-        if (data !== null && data !== undefined) {
-          toast.success('Opening checkout session...');
-          setTimeout(() => router.push(data.url), 500);
-        }
+
+    let isConfirmed = true;
+
+    if (plan === 'starter') {
+      isConfirmed = await confirm({
+        title: 'Downgrade Plan',
+        icon: (
+          <ArrowBigDown className='size-6 fill-destructive text-destructive' />
+        ),
+        description: 'Are you sure you want to downgrade to the starter plan?',
+        confirmText: 'Yes, Downgrade',
+        cancelText: 'Cancel',
+        cancelButton: {
+          size: 'default',
+          variant: 'outline',
+        },
+        confirmButton: {
+          className: 'bg-red-500 hover:bg-red-600 text-white',
+        },
+        alertDialogTitle: {
+          className: 'flex items-center gap-1',
+        },
       });
+    }
+
+    if (isConfirmed) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: plan }),
+      })
+        .then((resp) => {
+          if (resp.status === 200) {
+            if (plan === 'starter') {
+              toast.success('Successfully downgraded to the starter plan');
+              window.location.reload();
+            } else {
+              return resp.json();
+            }
+          } else if (resp.status === 304) {
+            toast.warning('You are already on this plan');
+            setLoading(false);
+          } else {
+            resp.text().then((text) => {
+              toast.error(text);
+            });
+            setLoading(false);
+          }
+        })
+        .then((data) => {
+          if (data !== null && data !== undefined) {
+            toast.success('Opening checkout session...');
+            setTimeout(() => router.push(data.url), 500);
+          }
+        });
+    } else {
+      setLoading(false);
+    }
   };
 
   return (

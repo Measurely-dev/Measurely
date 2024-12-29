@@ -125,7 +125,7 @@ function Header() {
       <div>metric</div>
       <div>total value</div>
       <div>daily update</div>
-      <div className='text-end'>Created</div>
+      <div className='text-end'>created</div>
     </div>
   );
 }
