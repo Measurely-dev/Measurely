@@ -73,10 +73,8 @@ export const loadChartData = async (
   const dateCounter = new Date(from);
   let dataLength = 0;
 
-  if (range === 1) {
-    dataLength = 24;
-  } else if (range >= 365) {
-    dataLength = 12;
+  if (range === 1 || range === 7) {
+    dataLength = 24 * range;
   } else {
     dataLength = range;
   }
@@ -94,10 +92,8 @@ export const loadChartData = async (
       }
     }
     tmpData.push(data);
-    if (range === 1) {
+    if (range === 1 || range === 7) {
       dateCounter.setHours(dateCounter.getHours() + 1);
-    } else if (range >= 365) {
-      dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
       dateCounter.setDate(dateCounter.getDate() + 1);
     }
@@ -121,16 +117,12 @@ export const loadChartData = async (
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
             let matches = false;
-            if (range === 1) {
+            if (range === 1 || range === 7) {
               matches =
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
                 eventDate.getHours() === tmpData[j].date.getHours();
-            } else if (range >= 365) {
-              matches =
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear();
             } else {
               matches =
                 eventDate.getDate() === tmpData[j].date.getDate() &&
@@ -226,16 +218,15 @@ export const fetchDailySummary = async (
   relativetotalpos: number;
   relativetotalneg: number;
 }> => {
-
   const start = new Date();
-  start.setHours(0)
-  start.setMinutes(0)
-  start.setSeconds(0)
+  start.setHours(0);
+  start.setMinutes(0);
+  start.setSeconds(0);
 
-  const end = new Date(start)
-  end.setHours(23)
-  end.setMinutes(59)
-  end.setSeconds(59)
+  const end = new Date(start);
+  end.setHours(23);
+  end.setMinutes(59);
+  end.setSeconds(59);
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
@@ -250,7 +241,7 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
-    console.log(json)
+    console.log(json);
     if (json != null) {
       let pos = 0;
       let neg = 0;
@@ -326,8 +317,6 @@ export const calculateTrend = (
 export const parseXAxis = (value: Date, range: number) => {
   if (range === 1) {
     return value.getHours().toString() + ' H';
-  } else if (range >= 365) {
-    return getMonthsFromDate(value);
   } else {
     return getMonthsFromDate(value) + ' ' + value.getDate().toString();
   }

@@ -887,7 +887,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 type='linear'
                 dataKey={category}
                 stackId={stacked ? 'stack' : undefined}
-                isAnimationActive={false}
+                isAnimationActive={true}
                 fill=''
                 shape={(props: any) =>
                   renderShape(props, activeBar, activeLegend, layout)

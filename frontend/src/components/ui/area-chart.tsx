@@ -732,7 +732,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                   offset={-20}
                   className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
                 >
-                  {xAxisLabel}
+                  {xAxisLabel}hey
                 </Label>
               )}
             </XAxis>
@@ -968,13 +968,14 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                     }}
                     key={category}
                     name={category}
-                    type='linear'
+                    type='monotone'
                     dataKey={category}
                     stroke=''
                     strokeWidth={2}
                     strokeLinejoin='round'
                     strokeLinecap='round'
-                    isAnimationActive={false}
+                    isAnimationActive={true}
+                    animationDuration={500}
                     connectNulls={connectNulls}
                     stackId={stacked ? 'stack' : undefined}
                     fill={`url(#${categoryId})`}

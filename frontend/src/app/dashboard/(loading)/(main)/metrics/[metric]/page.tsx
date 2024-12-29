@@ -201,7 +201,8 @@ export default function DashboardMetricPage() {
   const [negDaily, setNegDaily] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const { pos, neg, relativetotalpos, relativetotalneg } = await fetchDailySummary(metric.appid, metric.id);
+    const { pos, neg, relativetotalpos, relativetotalneg } =
+      await fetchDailySummary(metric.appid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
@@ -655,6 +656,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
             data={chartData}
             customTooltip={customTooltip}
             index='date'
+            tabIndex={0}
             type={overviewChartType}
             colors={
               props.metric?.type === MetricType.Dual
