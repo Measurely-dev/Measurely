@@ -277,10 +277,9 @@ func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 	return metrics, nil
 }
 
-// Gets the metric by id and group id
-func (db *DB) GetMetric(id uuid.UUID, appid uuid.UUID) (types.Metric, error) {
+func (db *DB) GetMetricByName(name string, appid uuid.UUID) (types.Metric, error) {
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1 AND groupid = $2", id, appid)
+	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE appid = $1 AND name = $2", appid, name)
 	return metric, err
 }
 

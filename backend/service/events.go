@@ -2,6 +2,7 @@ package service
 
 import (
 	"Measurely/types"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,8 +14,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
-	value, ok := s.cache.metrics.Load(metricid)
+func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
+	value, ok := s.cache.metrics[0].Load(metricid)
 	var relation MetricCache
 	expired := false
 
@@ -41,7 +42,49 @@ func (s *Service) VerifyKeyToMetric(metricid uuid.UUID, apikey string) bool {
 			return false
 		}
 
-		s.cache.metrics.Store(metricid, MetricCache{
+		s.cache.metrics[0].Store(metricid, MetricCache{
+			key:         apikey,
+			metric_type: metric.Type,
+			user_id:     app.UserId,
+			expiry:      time.Now().Add(15 * time.Minute),
+		})
+
+		return true
+	}
+
+	return relation.key == apikey
+}
+
+func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
+	value, ok := s.cache.metrics[1].Load(apikey + metricname)
+	var relation MetricCache
+	expired := false
+
+	if ok {
+		relation = value.(MetricCache)
+		if time.Now().After(relation.expiry) {
+			expired = true
+		}
+	}
+
+	if !ok || expired {
+		app, err := s.db.GetApplicationByApi(apikey)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+
+		metric, err := s.db.GetMetricByName(metricname, app.Id)
+		if err != nil && err != sql.ErrNoRows {
+			log.Println(err)
+			return false
+		}
+
+		if app.Id != metric.AppId {
+			return false
+		}
+
+		s.cache.metrics[0].Store(apikey+metricname, MetricCache{
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
@@ -98,9 +141,17 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	apikey := authHeader[7:]
 
 	metricid, err := uuid.Parse(chi.URLParam(r, "metricid"))
-	if err != nil {
+	metricname := chi.URLParam(r, "metricname")
+
+	useName := false
+
+	if metricname == "" && err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
+	}
+
+	if metricname != "" && err != nil {
+		useName = true
 	}
 
 	var request struct {
@@ -112,13 +163,23 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !s.VerifyKeyToMetric(metricid, apikey) {
-		http.Error(w, "Invalid API key or metric ID", http.StatusUnauthorized)
-		return
+	var value interface{}
+	if useName {
+		if !s.VerifyKeyToMetricName(metricname, apikey) {
+			http.Error(w, "Invalid API key or metric name", http.StatusUnauthorized)
+			return
+		}
+
+		value, _ = s.cache.metrics[1].Load(apikey + metricname)
+	} else {
+		if !s.VerifyKeyToMetricId(metricid, apikey) {
+			http.Error(w, "Invalid API key or metric ID", http.StatusUnauthorized)
+			return
+		}
+		value, _ = s.cache.metrics[0].Load(metricid)
 	}
 
 	// Retrieve the metric's and user's cache entry
-	value, _ := s.cache.metrics.Load(metricid)
 	metricCache := value.(MetricCache)
 	userCache, err := s.GetUserCache(metricCache.user_id)
 	if err != nil {
@@ -226,7 +287,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify API key and metric association
-	if !s.VerifyKeyToMetric(metricid, app.ApiKey) {
+	if !s.VerifyKeyToMetricId(metricid, app.ApiKey) {
 		http.Error(w, "Metric not found", http.StatusNotFound)
 		return
 	}
@@ -316,7 +377,7 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify API key and metric association
-	if !s.VerifyKeyToMetric(metricid, app.ApiKey) {
+	if !s.VerifyKeyToMetricId(metricid, app.ApiKey) {
 		http.Error(w, "Metric not found", http.StatusNotFound)
 		return
 	}

@@ -54,7 +54,7 @@ type UserCache struct {
 type Cache struct {
 	plans      sync.Map
 	users      sync.Map
-	metrics    sync.Map
+	metrics    []sync.Map
 	ratelimits sync.Map
 }
 
@@ -140,7 +140,7 @@ func New() Service {
 		cache: Cache{
 			plans:      sync.Map{},
 			users:      sync.Map{},
-			metrics:    sync.Map{},
+			metrics:    []sync.Map{{}, {}},
 			ratelimits: sync.Map{},
 		},
 	}
@@ -1500,10 +1500,16 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	_, err := s.db.GetApplication(request.AppId, token.Id)
+	app, err := s.db.GetApplication(request.AppId, token.Id)
 	if err != nil {
 		log.Println("Error fetching application:", err)
 		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		return
+	}
+
+	metric, err := s.db.GetMetricById(request.MetricId)
+	if err != nil {
+		http.Error(w, "Metric not found", http.StatusNotFound)
 		return
 	}
 
@@ -1515,7 +1521,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Remove the metric from the cache
-	s.cache.metrics.Delete(request.MetricId)
+	s.cache.metrics[0].Delete(request.MetricId)
+	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
 	go SendMeasurelyMetricEvent("metrics", -1)
