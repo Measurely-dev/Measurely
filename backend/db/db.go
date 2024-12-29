@@ -340,7 +340,6 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.Time) ([]types.MetricEvent, error) {
 	var events []types.MetricEvent
 
-	// Single query to get both the closest event after the start and before the end
 	query := `
 		(
 			SELECT * 

@@ -226,9 +226,20 @@ export const fetchDailySummary = async (
   relativetotalpos: number;
   relativetotalneg: number;
 }> => {
+
+  const start = new Date();
+  start.setHours(0)
+  start.setMinutes(0)
+  start.setSeconds(0)
+
+  const end = new Date(start)
+  end.setHours(23)
+  end.setMinutes(59)
+  end.setSeconds(59)
+
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
-    }&metricid=${metricid}`,
+    }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',
       credentials: 'include',
@@ -239,6 +250,7 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
+    console.log(json)
     if (json != null) {
       let pos = 0;
       let neg = 0;

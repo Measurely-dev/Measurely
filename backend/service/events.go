@@ -296,6 +296,18 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	start, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("start"))
+	if err != nil {
+		http.Error(w, "Invalid start date format", http.StatusBadRequest)
+		return
+	}
+
+	end, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("end"))
+	if err != nil {
+		http.Error(w, "Invalid end date format", http.StatusBadRequest)
+		return
+	}
+
 	// Get the application
 	app, err := s.db.GetApplication(appid, token.Id)
 	if err != nil {
@@ -309,8 +321,6 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start := time.Now().UTC().Truncate(24 * time.Hour)
-	end := time.Date(start.Year(), start.Month(), start.Day(), 23, 0, 0, 0, time.UTC)
 	events, err := s.db.GetVariationEvents(metricid, start, end)
 	if err != nil {
 		http.Error(w, "Internal error, failed to retrieve daily variation", http.StatusInternalServerError)
