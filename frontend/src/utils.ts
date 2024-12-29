@@ -62,6 +62,7 @@ export const loadChartData = async (
   date.setHours(0);
   date.setMinutes(0);
   date.setSeconds(0);
+  date.setMilliseconds(0);
 
   const from = new Date(date);
   const to = new Date(date);
@@ -73,7 +74,9 @@ export const loadChartData = async (
   const dateCounter = new Date(from);
   let dataLength = 0;
 
-  if (range === 1 || range === 7) {
+  if (range === 1) {
+    dataLength = 24 * 3;
+  } else if (range === 7 || range === 15) {
     dataLength = 24 * range;
   } else {
     dataLength = range;
@@ -92,7 +95,9 @@ export const loadChartData = async (
       }
     }
     tmpData.push(data);
-    if (range === 1 || range === 7) {
+    if (range === 1) {
+      dateCounter.setMinutes(dateCounter.getMinutes() + 20);
+    } else if (range === 7 || range === 15) {
       dateCounter.setHours(dateCounter.getHours() + 1);
     } else {
       dateCounter.setDate(dateCounter.getDate() + 1);
@@ -117,7 +122,14 @@ export const loadChartData = async (
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
             let matches = false;
-            if (range === 1 || range === 7) {
+            if (range === 1) {
+              matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                eventDate.getHours() === tmpData[j].date.getHours() &&
+                eventDate.getMinutes() === tmpData[j].date.getMinutes();
+            } else if (range === 7 || range === 15) {
               matches =
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
@@ -166,6 +178,8 @@ export const fetchNextEvent = async (
   from.setHours(0);
   from.setMinutes(0);
   from.setSeconds(0);
+  from.setMilliseconds(0);
+
   const to = new Date(from);
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
@@ -222,6 +236,7 @@ export const fetchDailySummary = async (
   start.setHours(0);
   start.setMinutes(0);
   start.setSeconds(0);
+  start.setMilliseconds(0);
 
   const end = new Date(start);
   end.setHours(23);
@@ -241,7 +256,6 @@ export const fetchDailySummary = async (
   );
   if (res.ok) {
     const json = await res.json();
-    console.log(json);
     if (json != null) {
       let pos = 0;
       let neg = 0;

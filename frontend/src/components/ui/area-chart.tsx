@@ -732,7 +732,7 @@ const AreaChart = React.forwardRef<HTMLDivElement, AreaChartProps>(
                   offset={-20}
                   className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
                 >
-                  {xAxisLabel}hey
+                  {xAxisLabel}
                 </Label>
               )}
             </XAxis>
