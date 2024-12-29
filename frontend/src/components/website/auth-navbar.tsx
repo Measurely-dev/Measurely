@@ -9,7 +9,7 @@ export default function AuthNavbar(props: {
 }) {
   return (
     <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
-      <Link href='/home'>
+      <Link href='/'>
         <div className='flex cursor-pointer items-center gap-[10px]'>
           <LogoSvg className='size-8' />
           <div className='text-sm font-semibold max-md:hidden'>Measurely</div>

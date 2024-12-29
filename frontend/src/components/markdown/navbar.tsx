@@ -25,7 +25,7 @@ export function Navbar() {
       <div className='flex h-full items-center justify-between sm:container max-sm:px-3'>
         <div className='flex items-center gap-9'>
           <Link
-            href='/home'
+            href='/'
             className='flex flex-row items-center gap-2 font-semibold'
           >
             <svg
