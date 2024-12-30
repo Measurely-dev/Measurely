@@ -14,6 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
+	github.com/measurely-dev/measurely-go v0.1.1
 	github.com/stripe/stripe-go/v79 v79.8.0
 	golang.org/x/crypto v0.26.0
 	golang.org/x/oauth2 v0.24.0
@@ -36,7 +37,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.3 // indirect
 	github.com/aws/smithy-go v1.22.1 // indirect
-	github.com/measurely-dev/measurely-go v0.1.1 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )

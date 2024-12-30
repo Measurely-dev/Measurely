@@ -36,6 +36,15 @@ export const ROUTES: EachRoute[] = [
     noLink: true,
     items: [{ title: 'Version 1', href: '/v1' }],
   },
+  {
+    title: 'Code integrations',
+    href: '/code-integrations',
+    noLink: true,
+    items: [
+      { title: 'JS/TS', href: '/javascript-typescript' },
+      { title: 'Golang', href: '/golang' },
+    ],
+  },
 ];
 
 type Page = { title: string; href: string };
