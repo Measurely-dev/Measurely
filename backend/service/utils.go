@@ -2,13 +2,10 @@ package service
 
 import (
 	"Measurely/types"
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -277,35 +274,4 @@ func SetupCacheControl(w http.ResponseWriter, maxAge int) {
 		maxAgeStr := strconv.Itoa(maxAge)
 		w.Header().Set("Cache-Control", "max-age="+maxAgeStr+", public")
 	}
-}
-
-func SendMeasurelyMetricEvent(name string, value int) {
-	id, exists := metricIds[name]
-	if !exists {
-		log.Println("Metric with name " + name + " does not exist")
-		return
-	}
-	if os.Getenv("ENV") != "production" {
-		return
-	}
-	url := fmt.Sprintf("https://api.measurely.dev/event/v1/%s", id)
-	jsonData := map[string]interface{}{
-		"value": value,
-	}
-	jsonValue, _ := json.Marshal(jsonData)
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Autorization", fmt.Sprintf("Bearer %s", os.Getenv("MEASURELY_API_KEY")))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
 }

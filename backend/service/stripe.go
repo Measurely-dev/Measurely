@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/measurely-dev/measurely-go"
 	"github.com/stripe/stripe-go/v79"
 	bilsession "github.com/stripe/stripe-go/v79/billingportal/session"
 	"github.com/stripe/stripe-go/v79/checkout/session"
@@ -149,8 +150,8 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		s.db.UpdateUserPlan(token.Id, "starter")
 		s.cache.users.Delete(token.Id)
 
-		go SendMeasurelyMetricEvent("starter", 1)
-		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
+		go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
+		go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -261,8 +262,8 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		s.db.UpdateUserPlan(user.Id, planData.Identifier)
 		s.cache.users.Delete(user.Id)
 
-		go SendMeasurelyMetricEvent(planData.Identifier, 1)
-		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
+		go measurely.Capture(metricIds[planData.Identifier], measurely.CapturePayload{Value: 1})
+		go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -346,8 +347,8 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 
 		s.db.UpdateUserPlan(user.Id, "starter")
 
-		go SendMeasurelyMetricEvent("starter", 1)
-		go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
+		go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
+		go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{

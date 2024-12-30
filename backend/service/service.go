@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/measurely-dev/measurely-go"
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/customer"
 	"github.com/stripe/stripe-go/v79/subscription"
@@ -365,8 +366,8 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			go SendMeasurelyMetricEvent("starter", 1)
-			go SendMeasurelyMetricEvent("signups", 1)
+			go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
+			go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
@@ -566,8 +567,8 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go SendMeasurelyMetricEvent("starter", 1)
-	go SendMeasurelyMetricEvent("signups", 1)
+	go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
+	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
 	go s.email.SendEmail(email.MailFields{
@@ -822,7 +823,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-	go SendMeasurelyMetricEvent("feedbacks", 1)
+	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -901,7 +902,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go SendMeasurelyMetricEvent(user.CurrentPlan, -1)
+	go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
@@ -1195,7 +1196,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
 
-	go SendMeasurelyMetricEvent("apps", 1)
+	go measurely.Capture(metricIds["apps"], measurely.CapturePayload{Value: 1})
 }
 
 func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
@@ -1289,7 +1290,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	go SendMeasurelyMetricEvent("apps", -1)
+	go measurely.Capture(metricIds["apps"], measurely.CapturePayload{Value: -1})
 }
 
 func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) {
@@ -1479,7 +1480,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
 
-	go SendMeasurelyMetricEvent("metrics", 1)
+	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: 1})
 }
 
 func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
@@ -1526,7 +1527,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
-	go SendMeasurelyMetricEvent("metrics", -1)
+	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: -1})
 }
 
 func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
