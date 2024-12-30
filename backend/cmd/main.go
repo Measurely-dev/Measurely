@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/measurely-dev/measurely-go"
 )
 
 func main() {
@@ -16,6 +17,10 @@ func main() {
 			log.Println(env_err)
 			log.Fatal("Error loading .env file")
 		}
+	}
+
+	if os.Getenv("ENV") == "production" {
+		measurely.Init(os.Getenv("MEASURELY_API_KEY"))
 	}
 
 	service := service.New()

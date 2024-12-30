@@ -1,6 +1,6 @@
 module Measurely
 
-go 1.22.5
+go 1.23.3
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.32.7
@@ -36,6 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.3 // indirect
 	github.com/aws/smithy-go v1.22.1 // indirect
+	github.com/measurely-dev/measurely-go v0.1.1 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
