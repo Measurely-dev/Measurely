@@ -99,26 +99,6 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.CurrentPlan != "starter" {
-		result := subscription.List(&stripe.SubscriptionListParams{
-			Customer: stripe.String(user.StripeCustomerId),
-		})
-
-		subscriptions := result.SubscriptionList()
-
-		if subscriptions != nil {
-			if len(subscriptions.Data) != 0 {
-				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
-				if err != nil {
-					log.Println("Failed to cancel subscriptions: ", err)
-					http.Error(w, "Internal error", http.StatusInternalServerError)
-					return
-				}
-			}
-		}
-
-	}
-
 	params := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(GetOrigin() + "/dashboard"),
 		CancelURL:  stripe.String(GetOrigin() + "/dashboard"),
@@ -145,6 +125,26 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	if request.Plan == "starter" {
 		w.WriteHeader(http.StatusOK)
+
+		if user.CurrentPlan != "starter" {
+			result := subscription.List(&stripe.SubscriptionListParams{
+				Customer: stripe.String(user.StripeCustomerId),
+			})
+
+			subscriptions := result.SubscriptionList()
+
+			if subscriptions != nil {
+				if len(subscriptions.Data) != 0 {
+					_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+					if err != nil {
+						log.Println("Failed to cancel subscriptions: ", err)
+						http.Error(w, "Internal error", http.StatusInternalServerError)
+						return
+					}
+				}
+			}
+
+		}
 
 		s.db.UpdateUserPlan(token.Id, "starter")
 		s.cache.users.Delete(token.Id)
@@ -232,6 +232,30 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			log.Println(err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
+		}
+
+		if user.CurrentPlan != "starter" {
+			result := subscription.List(&stripe.SubscriptionListParams{
+				Customer: stripe.String(user.StripeCustomerId),
+			})
+
+			subscriptions := result.SubscriptionList()
+
+			if subscriptions != nil {
+				if len(subscriptions.Data) != 0 {
+					for _, sub := range subscriptions.Data {
+						if sub.Items.Data[0].Price.ID != planData.Price {
+							_, err := subscription.Cancel(sub.ID, nil)
+							if err != nil {
+								log.Println("Failed to cancel subscriptions: ", err)
+								http.Error(w, "Internal error", http.StatusInternalServerError)
+								return
+							}
+						}
+					}
+				}
+			}
+
 		}
 
 		s.db.UpdateUserPlan(user.Id, planData.Identifier)
