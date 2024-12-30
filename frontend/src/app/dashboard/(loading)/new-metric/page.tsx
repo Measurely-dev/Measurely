@@ -39,10 +39,10 @@ export default function NewMetric() {
         'This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.',
     },
     {
-      name: 'Multi-metric (Coming soon)',
+      name: 'Average metric (Coming soon)',
       value: 2,
       description:
-        'Combines multiple variables to give a complete overview, ideal for tracking complex interactions like user engagement across various activities.',
+        'An average metric tracks the average value of data over time, like session durations, revealing trends and typical performance.',
     },
   ];
 
