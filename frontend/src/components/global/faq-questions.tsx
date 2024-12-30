@@ -18,5 +18,5 @@ export const FAQQuestions = [
   {
     question: 'How is my data used on Measurely?',
     answer: `Your data is only used within the platform to provide you with analytics and insights. We do not share or sell your data to third parties.`,
-  }
+  },
 ];

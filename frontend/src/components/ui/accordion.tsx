@@ -1,42 +1,52 @@
-'use client'
+'use client';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
-import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react'
-import { motion } from 'framer-motion'
-import { IconChevronDown } from '@tabler/icons-react'
-import { twMerge } from 'tailwind-merge'
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useState,
+} from 'react';
+import { motion } from 'framer-motion';
+import { IconChevronDown } from '@tabler/icons-react';
+import { twMerge } from 'tailwind-merge';
 
-export const Accordion: React.FC<{ children: React.ReactNode; className?: string }> = ({
-  children,
-  className
-}) => {
-  return <dl className={cn('flex flex-col items-start justify-start', className)}>{children}</dl>
-}
+export const Accordion: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className }) => {
+  return (
+    <dl className={cn('flex flex-col items-start justify-start', className)}>
+      {children}
+    </dl>
+  );
+};
 
 const TabContext = createContext<{
-  isOpen: boolean
-  setOpenState: Dispatch<SetStateAction<boolean>>
-} | null>(null)
+  isOpen: boolean;
+  setOpenState: Dispatch<SetStateAction<boolean>>;
+} | null>(null);
 
-export const Tab: React.FC<{ children: React.ReactNode; className?: string }> = ({
-  children,
-  className
-}) => {
-  const [isOpen, setOpenState] = useState(false)
+export const Tab: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className }) => {
+  const [isOpen, setOpenState] = useState(false);
 
   return (
     <TabContext.Provider value={{ isOpen, setOpenState }}>
       <div className={cn('bg-bg w-full', className)}>{children}</div>
     </TabContext.Provider>
-  )
-}
+  );
+};
 
-export const Trigger: React.FC<{ children: React.ReactNode; className?: string }> = ({
-  children,
-  className
-}) => {
-  const { setOpenState, isOpen } = useContext(TabContext)!
+export const Trigger: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className }) => {
+  const { setOpenState, isOpen } = useContext(TabContext)!;
 
   return (
     <dt>
@@ -45,26 +55,27 @@ export const Trigger: React.FC<{ children: React.ReactNode; className?: string }
         onClick={() => setOpenState((e) => !e)}
         className={cn(
           'flex w-full items-center justify-between gap-2 text-start text-xl font-normal',
-          className
-        )}>
+          className,
+        )}
+      >
         <span>{children}</span>
         <IconChevronDown
           size={'20'}
           className={twMerge(
             isOpen ? 'rotate-180' : 'rotate-0',
-            'min-w-[20px] transition-all duration-300'
+            'min-w-[20px] transition-all duration-300',
           )}
         />
       </button>
     </dt>
-  )
-}
+  );
+};
 
-export const Content: React.FC<{ children: React.ReactNode; className?: string }> = ({
-  children,
-  className
-}) => {
-  const { isOpen } = useContext(TabContext)!
+export const Content: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className }) => {
+  const { isOpen } = useContext(TabContext)!;
   return (
     <motion.dd
       layout
@@ -76,8 +87,9 @@ export const Content: React.FC<{ children: React.ReactNode; className?: string }
           ? { height: 'fit-content', pointerEvents: 'auto', marginTop: '1rem' }
           : { height: 0, pointerEvents: 'none' }
       }
-      transition={{ duration: 0.2 }}>
+      transition={{ duration: 0.2 }}
+    >
       {children}
     </motion.dd>
-  )
-}
+  );
+};

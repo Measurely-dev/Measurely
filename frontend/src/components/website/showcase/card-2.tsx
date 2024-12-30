@@ -10,7 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 export default function Card2(props: { className?: string }) {
   return (
-    <Card className={`w-[320px] rounded-2xl bg-background p-5 shadow-sm ${props.className}`}>
+    <Card
+      className={`w-[320px] rounded-2xl bg-background p-5 shadow-sm ${props.className}`}
+    >
       <CardHeader className='p-0'>
         <CardTitle>New metric</CardTitle>
         <CardDescription className='text-xs'>

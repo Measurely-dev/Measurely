@@ -90,7 +90,7 @@ export default function ShowcaseLandingSection() {
         viewport={{ once: true }}
         transition={{ delay: 0.3, duration: 0.8, ease: 'easeOut' }}
       >
-        <Card1/>
+        <Card1 />
       </motion.div>
     </div>
   );
