@@ -155,7 +155,9 @@ export default function PasswordReset() {
           <div className='flex w-fit flex-col gap-[10px]'>
             {view === 1 ? (
               <>
-                <div className='text-base font-semibold mt-20'>Check your email</div>
+                <div className='mt-20 text-base font-semibold'>
+                  Check your email
+                </div>
                 <div className='mt-[10px] text-sm'>
                   We emailed a magic link to{' '}
                   <span className='font-semibold'>

@@ -89,12 +89,12 @@ export default function EditMetricDialogContent(props: {
               applications.map((v) =>
                 v.id === props.metric?.appid
                   ? Object.assign({}, v, {
-                    metrics: v.metrics?.map((m) =>
-                      m.id === props.metric?.id
-                        ? Object.assign({}, m, metric)
-                        : m,
-                    ),
-                  })
+                      metrics: v.metrics?.map((m) =>
+                        m.id === props.metric?.id
+                          ? Object.assign({}, m, metric)
+                          : m,
+                      ),
+                    })
                   : v,
               ),
             );
