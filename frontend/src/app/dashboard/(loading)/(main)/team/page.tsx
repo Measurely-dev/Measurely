@@ -13,6 +13,8 @@ import WebChip from '@/components/website/chip';
 import { Users } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import Measurely from 'measurely-js';
+
 export default function TeamPage() {
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -69,17 +71,10 @@ export default function TeamPage() {
               }
 
               setLoading(true);
-              fetch(
-                `https://api.measurely.dev/event/v1/275b1ffa-e304-4476-8e88-312b3d0a0dc6`,
-                {
-                  method: 'POST',
-                  headers: {
-                    Authorization: `Bearer ${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}`,
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ value: 1 }),
-                },
-              ).finally(() => {
+              Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
+              Measurely.capture('275b1ffa-e304-4476-8e88-312b3d0a0dc6', {
+                value: 1,
+              }).finally(() => {
                 setLoading(false);
                 window.localStorage.setItem('request-team-feature', 'true');
                 toast.success('Thank you for your feedback');
