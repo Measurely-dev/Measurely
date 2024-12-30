@@ -1,0 +1,111 @@
+---
+title: Measurely-js  
+description: How to interact with the Measurely API using the npm package.  
+---
+
+#
+Measurely-js is a lightweight JavaScript library for interacting with the Measurely API, enabling developers to manage and track custom metrics programmatically using JavaScript.
+
+## Installation
+
+To use the Measurely package in your JavaScript/Node.js project, you can install it via npm:
+
+```bash
+npm install measurely-js
+```
+
+## Usage
+
+### 1. Initialize the Measurely package
+
+Before you can send any metrics to Measurely, you need to initialize the package with your API key. The `init` function accepts your API key as a string and sets it for use in subsequent API calls.
+
+```javascript
+const measurely = require('measurely-js');
+
+// Initialize the Measurely package with your API key
+measurely.init("YOUR_API_KEY");
+```
+
+### 2. Send a Metric (Capture)
+
+The `capture` function is used to send metric data to Measurely. You need to pass the metric identifier (which is a unique name or ID for the metric) and the metric value you want to track.
+
+#### Example of sending a metric
+
+```javascript
+const measurely = require('measurely-js');
+
+// Initialize the Measurely package with your API key
+measurely.init("YOUR_API_KEY");
+
+// Create a metric payload
+const payload = {
+  value: 42
+};
+
+// Capture the metric and get the result
+measurely.capture("example_metric", payload)
+  .then(result => {
+    if (result.success) {
+      console.log("Metric captured successfully!");
+    } else {
+      console.log("Error capturing metric:", result.message);
+    }
+  })
+  .catch(error => {
+    console.error("Error:", error);
+  });
+```
+
+### 3. Error Handling
+
+The `capture` function returns a promise that resolves to a `CaptureResult` object containing two fields:
+
+- `success` (boolean): Indicates if the API call was successful.
+- `message` (string): Contains the response message from the server, which could either be a success message or an error message.
+
+## API Reference
+
+#### `init(API_KEY : string) : void `
+
+- **Description**: Initializes the Measurely package with your API key.
+- **Parameters**:
+  - `API_KEY`: The API key provided by Measurely.
+- **Returns**: None.
+
+#### `capture(metric_identifier : string, payload : CapturePayload) : Promise<CapturePayload>`
+
+- **Description**: Sends a metric value to Measurely for tracking.
+- **Parameters**:
+  - `metric_identifier`: The unique identifier for the metric you are capturing.
+  - `payload`: An object containing the metric value to be recorded.
+- **Returns**: A promise that resolves to a `CaptureResult` object.
+
+### Types
+
+#### `CaptureResult`
+
+```javascript
+{
+  success: boolean,  // Indicates if the API call was successful
+  message: string    // Contains the server's response or an error message
+}
+```
+
+- **Description**: This object represents the result of the API call to capture a metric.
+- **Fields**:
+  - `success` (boolean): Indicates if the metric capture was successful.
+  - `message` (string): Contains the server's response or an error message.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request to improve the library.
+
+## License
+
+This library is licensed under the MIT License.
+
+---
+
+This structure should align with your existing Golang documentation while being tailored to the npm package. Let me know if you need further adjustments or additions!
