@@ -7,6 +7,7 @@ import AuthNavbar from '@/components/website/auth-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import Measurely from 'measurely-js';
 
 export default function Register() {
   const searchParams = useSearchParams();
@@ -24,19 +25,11 @@ export default function Register() {
         'Create a Measurely account to start tracking your metrics and gain insights for your projects and teams.',
       );
     }
-
     if (process.env.NEXT_PUBLIC_ENV === 'production') {
-      fetch(
-        `https://api.measurely.dev/event/v1/b3c58d0d-f1af-4c34-84ed-0450cd93e844`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_MEASURELY_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: 1 }),
-        },
-      );
+      Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
+      Measurely.capture('b3c58d0d-f1af-4c34-84ed-0450cd93e844', {
+        value: 1,
+      });
     }
   }, []);
   return (
