@@ -154,8 +154,7 @@ export const loadChartData = async (
               matches =
                 matches &&
                 eventDate.getHours() >= tmpData[j].date.getHours() &&
-                eventDate.getHours() <=
-                tmpData[j].date.getHours() + (chartType === 'trend' ? 8 : 12);
+                eventDate.getHours() < tmpData[j].date.getHours() + 8;
             } else if (range >= 365) {
               matches =
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
