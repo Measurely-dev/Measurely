@@ -78,6 +78,7 @@ export function ChartsCard() {
       nbrDaysInMonth,
       metricData,
       metricData.appid,
+      "trend"
     );
 
     setChartData(data);

@@ -53,6 +53,7 @@ export const loadChartData = async (
   range: number,
   metric: Metric,
   appid: string,
+  chartType: string,
 ): Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
@@ -74,12 +75,26 @@ export const loadChartData = async (
   const dateCounter = new Date(from);
   let dataLength = 0;
 
-  if (range === 1) {
-    dataLength = 24 * 3;
-  } else if (range === 7 || range === 15) {
-    dataLength = 24 * range;
+  if (chartType === 'trend') {
+    if (range === 1) {
+      dataLength = 24 * 3;
+    } else if (range === 7) {
+      dataLength = 24 * range;
+    } else if (range === 15) {
+      dataLength = 15 * 2;
+    } else if (range === 30) {
+      dataLength = range;
+    } else {
+      dataLength = 52;
+    }
   } else {
-    dataLength = range;
+    if (range === 1) {
+      dataLength = 24;
+    } else if (range === 7 || range === 15 || range === 30) {
+      dataLength = range;
+    } else {
+      dataLength = 12;
+    }
   }
 
   const now = new Date();
@@ -95,12 +110,26 @@ export const loadChartData = async (
       }
     }
     tmpData.push(data);
-    if (range === 1) {
-      dateCounter.setMinutes(dateCounter.getMinutes() + 20);
-    } else if (range === 7 || range === 15) {
-      dateCounter.setHours(dateCounter.getHours() + 1);
+    if (chartType === 'trend') {
+      if (range === 1) {
+        dateCounter.setMinutes(dateCounter.getMinutes() + 20);
+      } else if (range === 7) {
+        dateCounter.setHours(dateCounter.getHours() + 1);
+      } else if (range === 15) {
+        dateCounter.setHours(dateCounter.getHours() + 12);
+      } else if (range === 30) {
+        dateCounter.setDate(dateCounter.getDate() + 1);
+      } else {
+        dateCounter.setDate(dateCounter.getDate() + 7);
+      }
     } else {
-      dateCounter.setDate(dateCounter.getDate() + 1);
+      if (range === 1) {
+        dateCounter.setHours(dateCounter.getHours() + 1);
+      } else if (range === 7 || range === 15 || range === 30) {
+        dateCounter.setDate(dateCounter.getDate() + 1);
+      } else {
+        dateCounter.setMonth(dateCounter.getMonth() + 1);
+      }
     }
   }
   await fetch(
@@ -122,24 +151,43 @@ export const loadChartData = async (
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
             let matches = false;
-            if (range === 1) {
-              matches =
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                eventDate.getHours() === tmpData[j].date.getHours() &&
-                eventDate.getMinutes() === tmpData[j].date.getMinutes();
-            } else if (range === 7 || range === 15) {
-              matches =
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                eventDate.getHours() === tmpData[j].date.getHours();
+            if (chartType === 'trend') {
+              if (range === 1) {
+                matches =
+                  eventDate.getDate() === tmpData[j].date.getDate() &&
+                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                  eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                  eventDate.getHours() === tmpData[j].date.getHours() &&
+                  eventDate.getMinutes() === tmpData[j].date.getMinutes();
+              } else if (range === 7 || range === 15) {
+                matches =
+                  eventDate.getDate() === tmpData[j].date.getDate() &&
+                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                  eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                  eventDate.getHours() === tmpData[j].date.getHours();
+              } else {
+                matches =
+                  eventDate.getDate() === tmpData[j].date.getDate() &&
+                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                  eventDate.getFullYear() === tmpData[j].date.getFullYear();
+              }
             } else {
-              matches =
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear();
+              if (range === 1) {
+                matches =
+                  eventDate.getDate() === tmpData[j].date.getDate() &&
+                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                  eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                  eventDate.getHours() === tmpData[j].date.getHours();
+              } else if (range === 7 || range === 15 || range === 30) {
+                matches =
+                  eventDate.getDate() === tmpData[j].date.getDate() &&
+                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                  eventDate.getFullYear() === tmpData[j].date.getFullYear();
+              } else {
+                matches =
+                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                  eventDate.getFullYear() === tmpData[j].date.getFullYear();
+              }
             }
 
             if (matches) {
@@ -156,20 +204,46 @@ export const loadChartData = async (
       }
     });
 
-  let jump = 1;
-  let next = 0;
-
-  if (range === 1) {
-    jump = 3;
-  } else if (range === 7 || range === 15) {
-    jump = 24;
-  }
+  let lastDate = undefined;
 
   for (let i = 0; i < tmpData.length; i++) {
-    tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    if (i === next) {
-      tmpData[i].date = tmpData[i].tooltiplabel;
-      next += jump;
+    if (chartType === 'trend') {
+      if (range === 1) {
+        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
+      } else if (range === 7 || range === 15) {
+        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 1);
+      } else {
+        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, 7);
+      }
+    } else {
+      tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+    }
+
+    let matches = false;
+    if (lastDate !== undefined) {
+      if (range === 1) {
+        matches =
+          tmpData[i].date.getDate() === lastDate.getDate() &&
+          tmpData[i].date.getMonth() === lastDate.getMonth() &&
+          tmpData[i].date.getFullYear() === lastDate.getFullYear() &&
+          tmpData[i].date.getHours() === lastDate.getHours();
+      } else if (range === 7 || range === 15 || range === 30) {
+        matches =
+          tmpData[i].date.getDate() === lastDate.getDate() &&
+          tmpData[i].date.getMonth() === lastDate.getMonth() &&
+          tmpData[i].date.getFullYear() === lastDate.getFullYear();
+      } else {
+        matches =
+          tmpData[i].date.getMonth() === lastDate.getMonth() &&
+          tmpData[i].date.getFullYear() === lastDate.getFullYear();
+      }
+    }
+
+    if (!matches) {
+      lastDate = new Date(tmpData[i].date);
+      tmpData[i].date = parseXAxis(tmpData[i].date, range);
     } else {
       tmpData[i].date = '';
     }
@@ -197,8 +271,7 @@ export const fetchNextEvent = async (
 
   const to = new Date(from);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${
-      appid
+    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
     }&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
     {
       method: 'GET',
@@ -261,8 +334,7 @@ export const fetchDailySummary = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${
-      appid
+    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
     }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',
@@ -330,7 +402,7 @@ export const calculateTrend = (
       totalpos =
         trend[i]['Positive Trend'] -
         trend[i][
-          metric.type === MetricType.Base ? metric.name : metric.namepos
+        metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
       totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
       trend[i]['Total'] =
@@ -338,7 +410,7 @@ export const calculateTrend = (
     } else {
       if (
         trend[i][
-          metric.type === MetricType.Base ? metric.name : metric.namepos
+        metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
         trend[i]['Positive Trend'] = totalpos;
@@ -354,9 +426,13 @@ export const calculateTrend = (
 };
 
 export const parseXAxis = (value: Date, range: number) => {
-  if (range === 1) {
+  if (range === 0) {
+    return value.getMinutes() + ' MIN';
+  } else if (range === 1) {
     return value.getHours().toString() + ' H';
-  } else {
+  } else if (range === 7 || range === 15 || range === 30) {
     return getMonthsFromDate(value) + ' ' + value.getDate().toString();
+  } else {
+    return getMonthsFromDate(value);
   }
 };
