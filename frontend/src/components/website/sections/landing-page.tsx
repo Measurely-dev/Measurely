@@ -11,10 +11,10 @@ export default function LandingSection() {
     <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[18vh]'>
       <Link
         href={'/blog/1'}
-        className='group flex cursor-pointer select-none flex-row bg-accent/40 items-center gap-5 rounded-full border border-accent p-1 pr-2 text-sm shadow-inner transition-all duration-200 hover:shadow-transparent max-sm:scale-90'
+        className='group flex cursor-pointer select-none flex-row items-center gap-5 rounded-full border border-accent bg-accent/40 p-1 pr-2 text-sm shadow-inner transition-all duration-200 hover:shadow-transparent max-sm:scale-90'
       >
         <div className='rounded-full border bg-background px-4 py-1.5'>
-          Measurely <span className='font-mono ml-1'>1.0</span>
+          Measurely <span className='ml-1 font-mono'>1.0</span>
         </div>
         <span className='flex w-[110px] flex-row items-center justify-between gap-2 pr-2 transition-all duration-200 group-hover:pr-1'>
           Learn more <MoveRight className='size-4' />
@@ -31,7 +31,7 @@ export default function LandingSection() {
         <WebButton className='mt-8'>Get started</WebButton>
       </Link>
       <div className='absolute left-[0] top-[0] z-[-10] h-[100%] w-screen bg-accent/40 backdrop-blur-2xl' />
-      <div className='relative mx-2 mt-20 flex h-full w-fit max-w-[90%] items-center justify-center max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
+      <div className='relative mx-2 mt-20 flex h-full w-fit max-w-[90%] select-none items-center justify-center max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -49,6 +49,7 @@ export default function LandingSection() {
           <Image
             src={Preview}
             alt='Preview image'
+            draggable={false}
             className={`relative z-10 h-full w-fit rounded-xl rounded-b-none bg-background p-2 px-1 pb-0 ring-4 ring-background/50 duration-1000`}
           />
         </motion.div>
