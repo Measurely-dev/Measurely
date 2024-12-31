@@ -20,12 +20,12 @@ export const footerData = [
     title: 'Documentation',
     links: [
       { name: 'Getting started', href: '/docs/getting-started/introduction' },
-      { name: 'Quickstart', href: '/docs/setup/quickstart/' },
       {
         name: 'JS/TS Integration',
         href: '/docs/code-integrations/javascript-typescript/',
       },
       { name: 'Golang Integration', href: '/docs/code-integrations/golang/' },
+      { name: 'Python Integration', href: '/docs/code-integrations/python/' },
     ],
   },
   {
