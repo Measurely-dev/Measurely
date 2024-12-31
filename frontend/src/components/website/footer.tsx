@@ -4,6 +4,7 @@ import LogoSvg from '@/components/global/logo-svg';
 import { usePathname } from 'next/navigation';
 import { footerData } from './footer-data';
 import FooterLink from './footer-link';
+import Link from 'next/link';
 
 export default function Footer(props: {
   border: boolean;
@@ -32,9 +33,9 @@ export default function Footer(props: {
           })}
         </div>
         <div className='flex w-full flex-col items-end gap-5 max-md:mb-10 max-md:items-start'>
-          <div className='flex items-center gap-2 text-sm text-secondary'>
+          <Link href={'/'}>
             <LogoSvg className='size-10' />
-          </div>
+          </Link>
         </div>
       </div>
 
@@ -45,7 +46,9 @@ export default function Footer(props: {
             Measurely-dev - All rights reserved.
           </span>
         </div>
-        <WebButton>Get started</WebButton>
+        <Link href={'/register'}>
+          <WebButton>Get started</WebButton>
+        </Link>
       </div>
     </footer>
   );
