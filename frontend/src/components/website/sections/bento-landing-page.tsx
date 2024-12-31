@@ -56,7 +56,7 @@ export default function BentoUiSection(props: {
           />
           <WebBentoBox
             type='vertical'
-            className='mt-5'
+            className='mt-5 max-md:mt-0'
             title='Seamless Integration'
             description='Straightforward API integration that allows you to seamlessly start tracking your metrics in no time.'
             img={Image4}
