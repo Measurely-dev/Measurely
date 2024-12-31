@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
-import WebPageHeader from '@/components/website/page-header';
 import { Author, BlogMdxFrontmatter, getAllBlogs } from '@/lib/markdown';
 import { formatDate2, stringToDate } from '@/lib/utils';
 import { Metadata } from 'next';
@@ -9,9 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { parseISO, differenceInDays } from 'date-fns';
 import WebFooterHeader from '@/components/website/footer-header';
-import WebTitle from '@/components/website/title';
-import { Accordion, Content, Tab, Trigger } from '@/components/ui/accordion';
-import { FAQQuestions } from '@/components/global/faq-questions';
+
 
 export const metadata: Metadata = {
   title: 'Blog',
@@ -43,7 +40,6 @@ export default async function BlogIndexPage() {
 function BlogCard({
   date,
   title,
-  description,
   slug,
   cover,
   authors,
