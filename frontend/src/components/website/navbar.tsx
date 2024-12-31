@@ -45,7 +45,7 @@ export default function Navbar(props: {
       </div>
       <Drawer>
         <DrawerTrigger className='md:hidden'>
-          <Menu className='mr-2 size-5' />
+          <Menu className='mr-2 size-5' aria-label='Menu' />
         </DrawerTrigger>
         <DrawerContent className='flex flex-col gap-2 px-10 py-10 !pt-0 max-sm:p-3'>
           <div className='h-8 w-full' />
