@@ -75,26 +75,16 @@ export const loadChartData = async (
   const dateCounter = new Date(from);
   let dataLength = 0;
 
-  if (chartType === 'trend') {
-    if (range === 1) {
+  if (range === 1) {
+    if (chartType === 'trend') {
       dataLength = 24 * 3;
-    } else if (range === 7) {
-      dataLength = 24 * range;
-    } else if (range === 15) {
-      dataLength = 15 * 2;
-    } else if (range >= 365) {
-      dataLength = 52;
-    } else if (range >= 28) {
-      dataLength = range;
-    }
-  } else {
-    if (range === 1) {
-      dataLength = 24;
-    } else if (range >= 365) {
-      dataLength = 12;
     } else {
-      dataLength = range;
+      dataLength = 24;
     }
+  } else if (range >= 365) {
+    dataLength = 12;
+  } else {
+    dataLength = range;
   }
 
   const now = new Date();
@@ -110,26 +100,16 @@ export const loadChartData = async (
       }
     }
     tmpData.push(data);
-    if (chartType === 'trend') {
-      if (range === 1) {
+    if (range === 1) {
+      if (chartType === 'trend') {
         dateCounter.setMinutes(dateCounter.getMinutes() + 20);
-      } else if (range === 7) {
+      } else {
         dateCounter.setHours(dateCounter.getHours() + 1);
-      } else if (range === 15) {
-        dateCounter.setHours(dateCounter.getHours() + 12);
-      } else if (range >= 365) {
-        dateCounter.setDate(dateCounter.getDate() + 7);
-      } else if (range >= 28) {
-        dateCounter.setDate(dateCounter.getDate() + 1);
       }
+    } else if (range >= 365) {
+      dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
-      if (range === 1) {
-        dateCounter.setHours(dateCounter.getHours() + 1);
-      } else if (range >= 365) {
-        dateCounter.setMonth(dateCounter.getMonth() + 1);
-      } else if (range === 7 || range === 15 || range >= 28) {
-        dateCounter.setDate(dateCounter.getDate() + 1);
-      }
+      dateCounter.setDate(dateCounter.getDate() + 1);
     }
   }
   await fetch(
@@ -151,43 +131,27 @@ export const loadChartData = async (
           const eventDate = new Date(json[i].date);
           for (let j = 0; j < tmpData.length; j++) {
             let matches = false;
-            if (chartType === 'trend') {
-              if (range === 1) {
+            if (range === 1) {
+              matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
+                eventDate.getHours() === tmpData[j].date.getHours();
+
+              if (chartType === 'trend') {
                 matches =
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                  eventDate.getHours() === tmpData[j].date.getHours() &&
+                  matches &&
                   eventDate.getMinutes() === tmpData[j].date.getMinutes();
-              } else if (range === 7 || range === 15) {
-                matches =
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                  eventDate.getHours() === tmpData[j].date.getHours();
-              } else {
-                matches =
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear();
               }
-            } else {
-              if (range === 1) {
-                matches =
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                  eventDate.getHours() === tmpData[j].date.getHours();
-              } else if (range >= 365) {
-                matches =
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              } else if (range === 7 || range === 15 || range >= 28) {
-                matches =
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
-                  eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                  eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              }
+            } else if (range >= 365) {
+              matches =
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear();
+            } else if (range === 7 || range === 15 || range >= 28) {
+              matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear();
             }
 
             if (matches) {
@@ -207,18 +171,10 @@ export const loadChartData = async (
   let lastDate = undefined;
 
   for (let i = 0; i < tmpData.length; i++) {
-    if (chartType === 'trend') {
-      if (range === 1) {
-        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
-      } else if (range === 7 || range === 15) {
-        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 1);
-      } else {
-        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, 7);
-      }
-    } else {
-      tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+    tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+
+    if (chartType === 'trend' && range === 1) {
+      tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
     }
 
     let matches = false;
