@@ -82,18 +82,18 @@ export const loadChartData = async (
       dataLength = 24 * range;
     } else if (range === 15) {
       dataLength = 15 * 2;
-    } else if (range === 30) {
-      dataLength = range;
-    } else {
+    } else if (range >= 365) {
       dataLength = 52;
+    } else if (range >= 28) {
+      dataLength = range;
     }
   } else {
     if (range === 1) {
       dataLength = 24;
-    } else if (range === 7 || range === 15 || range === 30) {
-      dataLength = range;
-    } else {
+    } else if (range >= 365) {
       dataLength = 12;
+    } else {
+      dataLength = range;
     }
   }
 
@@ -117,18 +117,18 @@ export const loadChartData = async (
         dateCounter.setHours(dateCounter.getHours() + 1);
       } else if (range === 15) {
         dateCounter.setHours(dateCounter.getHours() + 12);
-      } else if (range === 30) {
-        dateCounter.setDate(dateCounter.getDate() + 1);
-      } else {
+      } else if (range >= 365) {
         dateCounter.setDate(dateCounter.getDate() + 7);
+      } else if (range >= 28) {
+        dateCounter.setDate(dateCounter.getDate() + 1);
       }
     } else {
       if (range === 1) {
         dateCounter.setHours(dateCounter.getHours() + 1);
-      } else if (range === 7 || range === 15 || range === 30) {
-        dateCounter.setDate(dateCounter.getDate() + 1);
-      } else {
+      } else if (range >= 365) {
         dateCounter.setMonth(dateCounter.getMonth() + 1);
+      } else if (range === 7 || range === 15 || range >= 28) {
+        dateCounter.setDate(dateCounter.getDate() + 1);
       }
     }
   }
@@ -178,13 +178,13 @@ export const loadChartData = async (
                   eventDate.getMonth() === tmpData[j].date.getMonth() &&
                   eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
                   eventDate.getHours() === tmpData[j].date.getHours();
-              } else if (range === 7 || range === 15 || range === 30) {
+              } else if (range >= 365) {
                 matches =
-                  eventDate.getDate() === tmpData[j].date.getDate() &&
                   eventDate.getMonth() === tmpData[j].date.getMonth() &&
                   eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              } else {
+              } else if (range === 7 || range === 15 || range >= 28) {
                 matches =
+                  eventDate.getDate() === tmpData[j].date.getDate() &&
                   eventDate.getMonth() === tmpData[j].date.getMonth() &&
                   eventDate.getFullYear() === tmpData[j].date.getFullYear();
               }
@@ -229,13 +229,13 @@ export const loadChartData = async (
           tmpData[i].date.getMonth() === lastDate.getMonth() &&
           tmpData[i].date.getFullYear() === lastDate.getFullYear() &&
           tmpData[i].date.getHours() === lastDate.getHours();
-      } else if (range === 7 || range === 15 || range === 30) {
+      } else if (range >= 365) {
         matches =
-          tmpData[i].date.getDate() === lastDate.getDate() &&
           tmpData[i].date.getMonth() === lastDate.getMonth() &&
           tmpData[i].date.getFullYear() === lastDate.getFullYear();
-      } else {
+      } else if (range === 7 || range === 15 || range >= 28) {
         matches =
+          tmpData[i].date.getDate() === lastDate.getDate() &&
           tmpData[i].date.getMonth() === lastDate.getMonth() &&
           tmpData[i].date.getFullYear() === lastDate.getFullYear();
       }
@@ -430,9 +430,9 @@ export const parseXAxis = (value: Date, range: number) => {
     return value.getMinutes() + ' MIN';
   } else if (range === 1) {
     return value.getHours().toString() + ' H';
-  } else if (range === 7 || range === 15 || range === 30) {
-    return getMonthsFromDate(value) + ' ' + value.getDate().toString();
-  } else {
+  } else if (range >= 365) {
     return getMonthsFromDate(value);
+  } else if (range === 7 || range === 15 || range >= 28) {
+    return getMonthsFromDate(value) + ' ' + value.getDate().toString();
   }
 };
