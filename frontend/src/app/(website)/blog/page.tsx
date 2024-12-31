@@ -22,46 +22,17 @@ export default async function BlogIndexPage() {
     (a, b) => stringToDate(b.date).getTime() - stringToDate(a.date).getTime(),
   );
   return (
-    <WebContainer>
-      <ContentContainer type='page' className='max-w-[800px]'>
-        <WebPageHeader
-          title={
-            <span>
-              Explore
-              <br className='sm:hidden' /> our{' '}
-              <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
-                blog
-              </span>
-              <br /> and updates
-            </span>
-          }
-          description='Stay updated with the latest articles, tutorials, and insights from our team.'
-          className='mb-[120px]'
-        />
-        <div className='mb-5 grid grid-cols-1 gap-4 max-md:grid-cols-1'>
+    <WebContainer className='w-full'>
+      <ContentContainer type='page' className='mx-auto w-[95%]'>
+        <div className='mb-20 w-full text-6xl'>
+          <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+            Blog
+          </span>
+        </div>
+        <div className='mb-5 grid grid-cols-2 gap-10 max-md:grid-cols-1'>
           {blogs.map((blog) => (
             <BlogCard {...blog} slug={blog.slug} key={blog.slug} />
           ))}
-        </div>
-        <div className='mt-[145px] rounded-3xl bg-secondaryColor p-5 py-7 pt-12'>
-          <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />
-          <div className='mt-[70px] flex w-full items-start justify-center'>
-            <div className='w-full'>
-              <Accordion>
-                {FAQQuestions.map((e, i) => {
-                  return (
-                    <Tab
-                      key={i}
-                      className='mb-3 rounded-[12px] bg-background p-2 px-4'
-                    >
-                      <Trigger className='text-md'>{e.question}</Trigger>
-                      <Content>{e.answer}</Content>
-                    </Tab>
-                  );
-                })}
-              </Accordion>
-            </div>
-          </div>
         </div>
         <WebFooterHeader className='mt-[170px]' />
       </ContentContainer>
@@ -84,33 +55,33 @@ function BlogCard({
   return (
     <Link
       href={`/blog/${slug}`}
-      className='group relative flex select-none flex-col items-start gap-2 rounded-2xl border p-1 transition-all duration-200 hover:scale-[1.0025] hover:shadow-lg'
+      className='group relative flex select-none flex-col items-start gap-2'
     >
-      <div className='w-full'>
+      <div className='relative w-full'>
         <Image
           src={cover}
           alt={title}
-          width={10000}
-          height={10000}
-          quality={100}
-          className='mb-3 h-fit w-full rounded-xl rounded-b-md border object-cover'
+          width={500}
+          height={800}
+          quality={80}
+          className='mb-3 h-fit w-full rounded-xl border object-cover'
         />
+        {isNew && (
+          <div className='absolute bottom-0 left-0 h-fit w-fit animate-gradient rounded-[8px] bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 p-0.5 px-2 text-xs font-medium text-white'>
+            New
+          </div>
+        )}
       </div>
-      <div className='pt-none p-4'>
-        <div className='mb-3 flex flex-row items-center gap-3 text-xl font-semibold max-md:flex-col-reverse max-md:items-start'>
+      <div className='pt-none w-full'>
+        <div className='mb-3 flex flex-row items-center gap-3 text-2xl font-semibold'>
           {title}
-          {isNew && (
-            <div className='h-fit w-fit animate-gradient rounded-[8px] bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 p-0.5 px-2 text-xs font-medium text-white'>
-              New
-            </div>
-          )}
         </div>
-        <div className='text-sm'>{description}</div>
-        <div className='mt-auto flex w-full items-center justify-between'>
+        <div className='mt-auto flex w-full items-center gap-2'>
+          <AvatarGroup users={authors} />
+
           <div className='text-[13px] text-muted-foreground'>
             Published on {formatDate2(date)}
           </div>
-          <AvatarGroup users={authors} />
         </div>
       </div>
     </Link>
@@ -126,7 +97,7 @@ function AvatarGroup({ users, max = 4 }: { users: Author[]; max?: number }) {
       {displayUsers.map((user, index) => (
         <Avatar
           key={user.username}
-          className={`inline-block h-9 w-9 border border-input ${
+          className={`inline-block size-7 border border-input ${
             index !== 0 ? '-ml-3' : ''
           } `}
         >
