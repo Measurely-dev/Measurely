@@ -1,6 +1,6 @@
 import WebContainer from '@/components/website/container';
-import BentoUiSection from '@/components/website/sections/bento';
-import ShowcaseLandingSection from '@/components/website/sections/showcase';
+import BentoUiSection from '@/components/website/sections/bento-landing-page';
+import Landing from '@/components/website/sections/landing-page';
 import { headers } from 'next/headers';
 import Measurely from 'measurely-js';
 
@@ -15,7 +15,7 @@ export default function Home() {
   }
   return (
     <WebContainer>
-      <ShowcaseLandingSection />
+      <Landing />
       <BentoUiSection isAuthentificated={is_authenticated} />
     </WebContainer>
   );
