@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import WebButton from './button';
 import LogoSvg from '@/components/global/logo-svg';
 import { usePathname } from 'next/navigation';
@@ -23,7 +22,9 @@ export default function Footer(props: {
                 <div className='font-mono font-medium'>{section.title}</div>
                 <div className='flex flex-col gap-3'>
                   {section.links.map((link, i) => {
-                    return <FooterLink href={link.href} name={link.name} />;
+                    return (
+                      <FooterLink href={link.href} name={link.name} key={i} />
+                    );
                   })}
                 </div>
               </div>
