@@ -8,18 +8,24 @@ export const footerData = [
     ],
   },
   {
-    title: 'Products',
+    title: 'Resources',
     links: [
       { name: 'Pricing', href: '/pricing' },
       { name: 'Basic metric', href: '/docs/features/basic-metric/' },
       { name: 'Dual metric', href: '/docs/features/dual-metric/' },
+      { name: 'Help', href: '/help' },
     ],
   },
   {
-    title: 'Resources',
+    title: 'Documentation',
     links: [
-      { name: 'Docs', href: '/docs/getting-started/introduction' },
-      { name: 'Help', href: '/help' },
+      { name: 'Getting started', href: '/docs/getting-started/introduction' },
+      { name: 'Quickstart', href: '/docs/setup/quickstart/' },
+      {
+        name: 'JS/TS Integration',
+        href: '/docs/code-integrations/javascript-typescript/',
+      },
+      { name: 'Golang Integration', href: '/docs/code-integrations/golang/' },
     ],
   },
   {
