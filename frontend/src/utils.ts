@@ -53,7 +53,7 @@ export const loadChartData = async (
   range: number,
   metric: Metric,
   appid: string,
-  chartType: string,
+  chartType: 'trend' | 'bar',
 ): Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
@@ -81,6 +81,12 @@ export const loadChartData = async (
     } else {
       dataLength = 24;
     }
+  } else if (range === 7) {
+    if (chartType === 'trend') {
+      dataLength = range * 3;
+    } else {
+      dataLength = 24;
+    }
   } else if (range >= 365) {
     dataLength = 12;
   } else {
@@ -105,6 +111,12 @@ export const loadChartData = async (
         dateCounter.setMinutes(dateCounter.getMinutes() + 20);
       } else {
         dateCounter.setHours(dateCounter.getHours() + 1);
+      }
+    } else if (range === 7) {
+      if (chartType === 'trend') {
+        dateCounter.setHours(dateCounter.getHours() + 8);
+      } else {
+        dateCounter.setDate(dateCounter.getDate() + 1);
       }
     } else if (range >= 365) {
       dateCounter.setMonth(dateCounter.getMonth() + 1);
@@ -137,17 +149,27 @@ export const loadChartData = async (
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
                 eventDate.getHours() === tmpData[j].date.getHours();
-
               if (chartType === 'trend') {
                 matches =
                   matches &&
                   eventDate.getMinutes() === tmpData[j].date.getMinutes();
               }
+            } else if (range === 7) {
+              matches =
+                eventDate.getDate() === tmpData[j].date.getDate() &&
+                eventDate.getMonth() === tmpData[j].date.getMonth() &&
+                eventDate.getFullYear() === tmpData[j].date.getFullYear();
+              if (chartType === 'trend') {
+                matches =
+                  matches &&
+                  eventDate.getHours() >= tmpData[j].date.getHours() &&
+                  eventDate.getHours() <= tmpData[j].date.getHours() + 8;
+              }
             } else if (range >= 365) {
               matches =
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear();
-            } else if (range === 7 || range === 15 || range >= 28) {
+            } else {
               matches =
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
@@ -172,9 +194,12 @@ export const loadChartData = async (
 
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-
-    if (chartType === 'trend' && range === 1) {
-      tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
+    if (chartType === 'trend') {
+      if (range === 1) {
+        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
+      } else if (range === 7) {
+        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 1);
+      }
     }
 
     let matches = false;
