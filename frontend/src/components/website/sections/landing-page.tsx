@@ -51,8 +51,8 @@ export default function LandingSection() {
           <Image
             src={Preview}
             alt='Preview image'
-            height={2762}
-            width={1762}
+            height={1762}
+            width={2762}
             className='relative z-10 mx-auto h-full max-md:h-fit w-fit rounded-2xl rounded-b-none bg-background object-contain p-2 px-1 pb-0 ring-4 ring-background/50 max-sm:ml-5 max-sm:w-[125vw] max-sm:min-w-[700px] '
             priority
           />
