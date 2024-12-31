@@ -49,7 +49,7 @@ function sortByTotal(a: Metric, b: Metric): number {
   } else if (aTotal > bTotal) {
     return -1;
   } else {
-    return 0;
+    return sortbyDate(a, b, 'new');
   }
 }
 
@@ -103,7 +103,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (applications[activeApp].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                  user.plan.metric_per_app_limit - 1;
+                user.plan.metric_per_app_limit - 1;
               return (
                 <Item
                   key={metric.id}
@@ -170,15 +170,15 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
         applications.map((v) =>
           v.id === props.metric?.appid
             ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === props.metric?.id
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
+              metrics: v.metrics?.map((m) =>
+                m.id === props.metric?.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
             : v,
         ),
       );
