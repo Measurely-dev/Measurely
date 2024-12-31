@@ -4,12 +4,25 @@ import Landing from '@/components/website/sections/landing-page';
 import { headers } from 'next/headers';
 import Measurely from 'measurely-js';
 
-export default function Home() {
+export default function Home({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const is_authenticated = headers().get('is-authentificated');
 
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
     Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
-    Measurely.capture('beff3986-f11f-4e19-93e0-7654604f1d3b', {
+
+    let id = 'beff3986-f11f-4e19-93e0-7654604f1d3b';
+
+    if (searchParams?.['ref'] === 'reddit') {
+      id = 'f1462a96-73be-4f00-a162-a49edfbedefc';
+    } else if (searchParams?.['ref'] === 'twitter') {
+      id = '3970f9cd-eb3b-40ee-b16a-24a3ffd41963';
+    }
+
+    Measurely.capture(id, {
       value: 1,
     });
   }

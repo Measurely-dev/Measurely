@@ -117,7 +117,7 @@ export default function EditMetricDialogContent(props: {
                 type='text'
                 className='h-11 rounded-[12px]'
                 value={name}
-                onChange={(e) => setName(e.target.value.trim())}
+                onChange={(e) => setName(e.target.value.trimStart())}
               />
             </div>
             {props.metric?.type === MetricType.Dual ? (
@@ -129,7 +129,7 @@ export default function EditMetricDialogContent(props: {
                     type='text'
                     className='h-11 rounded-[12px]'
                     value={posName}
-                    onChange={(e) => setPosName(e.target.value.trim())}
+                    onChange={(e) => setPosName(e.target.value.trimStart())}
                   />
                 </div>
                 <div className='flex w-full flex-col gap-3'>
@@ -139,7 +139,7 @@ export default function EditMetricDialogContent(props: {
                     type='text'
                     className='h-11 rounded-[12px]'
                     value={negName}
-                    onChange={(e) => setNegName(e.target.value.trim())}
+                    onChange={(e) => setNegName(e.target.value.trimStart())}
                   />
                 </div>
               </>
