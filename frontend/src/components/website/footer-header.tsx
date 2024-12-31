@@ -15,7 +15,9 @@ export default function WebFooterHeader(props: { className?: string }) {
         <br /> insights and seamless integration.
       </div>
       <Link href='/register'>
-        <WebButton>Get started</WebButton>
+        <WebButton className='scale-[1.20] max-md:scale-100 mt-2'>
+          Get started
+        </WebButton>
       </Link>
     </div>
   );
