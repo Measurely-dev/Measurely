@@ -6,7 +6,7 @@ import WebFooterHeader from '../footer-header';
 import WebTitle from '../title';
 import ContentContainer from '../content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
-import SubscriptionUiSection from './pricing';
+import SubscriptionUiSection from './pricing-landing-page';
 import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
