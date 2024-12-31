@@ -28,7 +28,9 @@ export default function LandingSection() {
         <br className='max-md:hidden' /> grow with confidence.
       </h1>
       <Link href='/register'>
-        <WebButton className='mt-10 scale-[1.20] max-md:scale-100'>Get started</WebButton>
+        <WebButton className='mt-10 !rounded-xl px-4 py-2.5'>
+          <div className='text-lg'>Get started</div>
+        </WebButton>
       </Link>
       <div className='absolute left-[0] top-[0] z-[-10] h-[100%] w-screen bg-accent/40 backdrop-blur-2xl' />
       <div className='relative mx-2 mt-20 flex h-full w-fit max-w-[90%] select-none items-center justify-center max-lg:mt-10 max-sm:ml-40 max-sm:w-[120vw] max-sm:min-w-[450px] max-sm:max-w-[120vw]'>

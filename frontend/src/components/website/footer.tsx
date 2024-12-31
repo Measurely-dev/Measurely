@@ -34,7 +34,8 @@ export default function Footer(props: {
         </div>
         <div className='flex w-full flex-col items-end gap-5 max-md:mb-10 max-md:items-start'>
           <Link href={'/'}>
-            <LogoSvg className='size-10' />
+            <LogoSvg className='size-10' aria-hidden='true' />
+            <span className='sr-only'>Go to homepage</span>
           </Link>
         </div>
       </div>
