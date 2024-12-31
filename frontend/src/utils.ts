@@ -78,10 +78,14 @@ export const loadChartData = async (
   if (chartType === 'trend') {
     if (range === 1) {
       dataLength = 24 * 3;
-    } else if (range === 7 || range === 15) {
+    } else if (range === 7) {
       dataLength = 24 * range;
-    } else {
+    } else if (range === 15) {
+      dataLength = 15 * 2;
+    } else if (range === 30) {
       dataLength = range;
+    } else {
+      dataLength = 52;
     }
   } else {
     if (range === 1) {
@@ -109,10 +113,14 @@ export const loadChartData = async (
     if (chartType === 'trend') {
       if (range === 1) {
         dateCounter.setMinutes(dateCounter.getMinutes() + 20);
-      } else if (range === 7 || range === 15) {
+      } else if (range === 7) {
         dateCounter.setHours(dateCounter.getHours() + 1);
-      } else {
+      } else if (range === 15) {
+        dateCounter.setHours(dateCounter.getHours() + 12);
+      } else if (range === 30) {
         dateCounter.setDate(dateCounter.getDate() + 1);
+      } else {
+        dateCounter.setDate(dateCounter.getDate() + 7);
       }
     } else {
       if (range === 1) {
@@ -199,10 +207,21 @@ export const loadChartData = async (
   let lastDate = undefined;
 
   for (let i = 0; i < tmpData.length; i++) {
-    tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+    if (chartType === 'trend') {
+      if (range === 1) {
+        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
+      } else if (range === 7 || range === 15) {
+        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+        tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 1);
+      } else {
+        tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, 7);
+      }
+    } else {
+      tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
+    }
 
     let matches = false;
-
     if (lastDate !== undefined) {
       if (range === 1) {
         matches =
@@ -224,7 +243,7 @@ export const loadChartData = async (
 
     if (!matches) {
       lastDate = new Date(tmpData[i].date);
-      tmpData[i].date = tmpData[i].tooltiplabel;
+      tmpData[i].date = parseXAxis(tmpData[i].date, range);
     } else {
       tmpData[i].date = '';
     }
@@ -407,7 +426,9 @@ export const calculateTrend = (
 };
 
 export const parseXAxis = (value: Date, range: number) => {
-  if (range === 1) {
+  if (range === 0) {
+    return value.getMinutes() + ' MIN';
+  } else if (range === 1) {
     return value.getHours().toString() + ' H';
   } else if (range === 7 || range === 15 || range === 30) {
     return getMonthsFromDate(value) + ' ' + value.getDate().toString();
