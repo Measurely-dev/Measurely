@@ -36,7 +36,7 @@ export default function SubLink({
       Comp
     )
   ) : (
-    <h4 className='text-sm font-semibold text-primary'>{title}</h4>
+    <div className='text-sm font-semibold text-primary'>{title}</div>
   );
 
   if (!items) {
