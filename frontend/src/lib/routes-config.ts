@@ -43,6 +43,7 @@ export const ROUTES: EachRoute[] = [
     items: [
       { title: 'JS/TS', href: '/javascript-typescript' },
       { title: 'Golang', href: '/golang' },
+      { title: 'Python', href: '/python' },
     ],
   },
 ];
