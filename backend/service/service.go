@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -1460,7 +1461,9 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 			}
 			jsonData, err := json.Marshal(data)
 			if err == nil {
-				req, err := http.NewRequest("POST", GetURL()+"/event/"+app.ApiKey+"/"+metric.Id.String(), bytes.NewBuffer(jsonData))
+				req, err := http.NewRequest("POST", GetURL()+"/event/v1/"+metric.Id.String(), bytes.NewBuffer(jsonData))
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", app.ApiKey))
 				if err == nil {
 					resp, err := http.DefaultClient.Do(req)
 					if err == nil && resp.StatusCode == 200 {
