@@ -199,8 +199,14 @@
   margin-bottom: 15px;
 }
 
+.markdown code {
+  background-color: #f4f4f5;
+  padding: 4px;
+  border-radius: 6px;
+}
+
 .markdown pre > code {
-  display: grid;
+  display: grid !important;
   max-width: inherit !important;
   padding: 14px 0 !important;
 }

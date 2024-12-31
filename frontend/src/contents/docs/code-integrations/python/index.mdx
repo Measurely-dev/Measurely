@@ -61,14 +61,16 @@ The `capture` method returns a `CaptureResult` dictionary that contains two fiel
 
 ## API Reference
 
-#### `init(NEW_API_KEY: str)`
+`init(NEW_API_KEY: str)`
 
 - **Description**: Initializes the Measurely package with your API key.
 - **Parameters**:
   - `NEW_API_KEY`: The API key provided by Measurely.
 - **Returns**: None.
 
-#### `capture(metric_identifier: str, payload: CapturePayload) -> CaptureResult`
+```python
+capture(metric_identifier: str, payload: CapturePayload) -> CaptureResult
+```
 
 - **Description**: Sends a metric value to Measurely for tracking.
 - **Parameters**:
@@ -78,7 +80,7 @@ The `capture` method returns a `CaptureResult` dictionary that contains two fiel
 
 ### Types
 
-#### `CapturePayload`
+`CapturePayload`
 
 ```python
 from typing import TypedDict
@@ -91,7 +93,7 @@ class CapturePayload(TypedDict):
 - **Fields**:
   - `value` (int): The metric value that you want to track.
 
-#### `CaptureResult`
+`CaptureResult`
 
 ```python
 class CaptureResult(TypedDict):

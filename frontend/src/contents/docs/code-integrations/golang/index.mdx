@@ -78,14 +78,16 @@ The `Capture` function returns a `CaptureResult` struct that contains two fields
 
 ## API Reference
 
-#### `Init(NEW_API_KEY string)`
+`Init(NEW_API_KEY string)`
 
 - **Description**: Initializes the Measurely package with your API key.
 - **Parameters**:
   - `NEW_API_KEY`: The API key provided by Measurely.
 - **Returns**: None.
 
-#### `Capture(metric_identifier string, payload CapturePayload) CaptureResult`
+```go
+Capture(metric_identifier string, payload CapturePayload) CaptureResult
+```
 
 - **Description**: Sends a metric value to Measurely for tracking.
 - **Parameters**:
@@ -95,7 +97,7 @@ The `Capture` function returns a `CaptureResult` struct that contains two fields
 
 ### Types
 
-#### `CapturePayload`
+`CapturePayload`
 
 ```go
 type CapturePayload struct {
@@ -107,7 +109,7 @@ type CapturePayload struct {
 - **Fields**:
   - `Value` (int): The metric value that you want to track.
 
-#### `CaptureResult`
+`CaptureResult`
 
 ```go
 type CaptureResult struct {

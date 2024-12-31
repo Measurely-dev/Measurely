@@ -67,14 +67,16 @@ The `capture` function returns a promise that resolves to a `CaptureResult` obje
 
 ## API Reference
 
-#### `init(API_KEY : string) : void `
+`init(API_KEY : string) : void `
 
 - **Description**: Initializes the Measurely package with your API key.
 - **Parameters**:
   - `API_KEY`: The API key provided by Measurely.
 - **Returns**: None.
 
-#### `capture(metric_identifier : string, payload : CapturePayload) : Promise<CapturePayload>`
+```js
+capture(metric_identifier : string, payload : CapturePayload) : Promise<CapturePayload>
+```
 
 - **Description**: Sends a metric value to Measurely for tracking.
 - **Parameters**:
