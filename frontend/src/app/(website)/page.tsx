@@ -20,6 +20,8 @@ export default function Home({
       id = 'f1462a96-73be-4f00-a162-a49edfbedefc';
     } else if (searchParams?.['ref'] === 'twitter') {
       id = '3970f9cd-eb3b-40ee-b16a-24a3ffd41963';
+    } else if (searchParams?.['ref'] === 'bluesky') {
+      id = '54215fad-ec90-4f98-9843-3039c3f28881';
     }
 
     Measurely.capture(id, {
