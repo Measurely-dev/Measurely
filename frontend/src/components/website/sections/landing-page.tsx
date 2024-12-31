@@ -51,10 +51,10 @@ export default function LandingSection() {
           <Image
             src={Preview}
             alt='Preview image'
-            draggable={false}
             height={2108}
             width={1820}
-            className={`relative z-10 h-full w-fit rounded-xl rounded-b-none bg-background p-2 px-1 pb-0 ring-4 ring-background/50 duration-1000`}
+            className='relative z-10 h-full w-fit rounded-xl rounded-b-none bg-background p-2 px-1 pb-0 ring-4 ring-background/50'
+            priority
           />
         </motion.div>
       </div>
