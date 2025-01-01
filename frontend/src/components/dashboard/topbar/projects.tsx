@@ -21,11 +21,11 @@ export default function ProjectsChip() {
     useContext(ProjectsContext);
 
   const projectsLimitReached = useMemo(() => {
-    return projects.length > user.plan.applimit;
+    return projects.length > user.plan.projectlimit;
   }, [projects]);
 
   const handleAppSelect = async (index: number) => {
-    if (projectsLimitReached && index > user.plan.applimit - 1) {
+    if (projectsLimitReached && index > user.plan.projectlimit - 1) {
       toast.error(
         'You have exceeded your plan limits. Please upgrade to unlock your projects',
       );
@@ -77,7 +77,7 @@ export default function ProjectsChip() {
         align='start'
       >
         {projects.map((app, i) => {
-          const isBlocked = projectsLimitReached && i > user.plan.applimit - 1;
+          const isBlocked = projectsLimitReached && i > user.plan.projectlimit - 1;
 
           return (
             <div

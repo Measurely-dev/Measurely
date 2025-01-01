@@ -49,8 +49,8 @@ export interface UserProvider {
 export interface Plan {
   name: string;
   identifier: string;
-  applimit: number;
-  metric_per_app_limit: number;
+  projectlimit: number;
+  metric_per_project_limit: number;
   requestlimit: number;
   monthlyeventlimit: number;
 }

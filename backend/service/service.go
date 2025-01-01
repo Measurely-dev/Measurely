@@ -1144,7 +1144,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Plan not found.", http.StatusNotFound)
 		return
 	}
-	if plan.AppLimit >= 0 {
+	if plan.ProjectLimit >= 0 {
 		count, cerr := s.db.GetProjectCountByUser(token.Id)
 		if cerr != nil {
 			log.Println("Error retrieving project count:", cerr)
@@ -1152,7 +1152,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if count >= plan.AppLimit {
+		if count >= plan.ProjectLimit{
 			http.Error(w, "Project limit reached", http.StatusForbidden)
 			return
 		}
@@ -1429,7 +1429,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if count >= plan.MetricPerAppLimit {
+	if count >= plan.MetricPerProjectLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}

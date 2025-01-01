@@ -61,7 +61,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
     if (projects[activeProject].metrics === null) return false;
     else
       return (
-        projects[activeProject].metrics.length > user.plan.metric_per_app_limit
+        projects[activeProject].metrics.length > user.plan.metric_per_project_limit
       );
   }, [projects[activeProject].metrics]);
 
@@ -103,7 +103,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 (projects[activeProject].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
-                user.plan.metric_per_app_limit - 1;
+                user.plan.metric_per_project_limit - 1;
               return (
                 <Item
                   key={metric.id}

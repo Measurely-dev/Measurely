@@ -182,7 +182,7 @@ export default function DashboardMetricPage() {
       if (index !== undefined && index !== -1) {
         const metricData = projects[activeProject].metrics?.[index];
 
-        if (index > user.plan.metric_per_app_limit - 1) {
+        if (index > user.plan.metric_per_project_limit - 1) {
           toast.error(
             'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
           );

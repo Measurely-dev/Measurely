@@ -108,12 +108,12 @@ export default function SettingPaymentPage() {
           {
             title: `Metrics limit`,
             description: `For '${projects?.[activeProject].name.charAt(0).toUpperCase() + projects?.[activeProject].name.slice(1).toLowerCase()}'`,
-            value: `${projects?.[activeProject].metrics === null ? 0 : projects?.[activeProject].metrics.length}/${user?.plan.metric_per_app_limit}`,
+            value: `${projects?.[activeProject].metrics === null ? 0 : projects?.[activeProject].metrics.length}/${user?.plan.metric_per_project_limit}`,
           },
           {
             title: 'Projects limit',
             description: 'On this plan',
-            value: `${projects?.length}/${user?.plan.applimit}`,
+            value: `${projects?.length}/${user?.plan.projectlimit}`,
           },
           {
             title: 'Update limit',

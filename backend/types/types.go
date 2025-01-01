@@ -98,12 +98,12 @@ type Feedback struct {
 }
 
 type Plan struct {
-	Name              string `json:"name"`
-	Identifier        string `json:"identifier"`
-	Price             string `json:"price"`
-	AppLimit          int    `json:"applimit"`
-	MetricPerAppLimit int    `json:"metric_per_app_limit"`
-	RequestLimit      int    `json:"requestlimit"`
-	MonthlyEventLimit int64  `json:"monthlyeventlimit"`
-	Range             int    `json:"range"`
+	Name                  string `json:"name"`
+	Identifier            string `json:"identifier"`
+	Price                 string `json:"price"`
+	ProjectLimit          int    `json:"projectlimit"`
+	MetricPerProjectLimit int    `json:"metric_per_project_limit"`
+	RequestLimit          int    `json:"requestlimit"`
+	MonthlyEventLimit     int64  `json:"monthlyeventlimit"`
+	Range                 int    `json:"range"`
 }

@@ -618,7 +618,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 	var plans []types.Plan
 	for rows.Next() {
 		var plan types.Plan
-		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &plan.MonthlyEventLimit, &plan.Range)
+		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.ProjectLimit, &plan.MetricPerProjectLimit, &plan.RequestLimit, &plan.MonthlyEventLimit, &plan.Range)
 		if err != nil {
 			return []types.Plan{}, err
 		}
@@ -629,11 +629,11 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 }
 
 func (db *DB) CreatePlan(plan types.Plan) error {
-	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, monthlyeventlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, plan.RequestLimit, plan.MonthlyEventLimit, plan.Range)
+	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, projectlimit, metricperprojectlimit, requestlimit, monthlyeventlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", plan.Name, plan.Identifier, plan.Price, plan.ProjectLimit, plan.MetricPerProjectLimit, plan.RequestLimit, plan.MonthlyEventLimit, plan.Range)
 	return err
 }
 
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
-	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, new_plan.Range, new_plan.RequestLimit, identifier)
+	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, project = $3, metricperprojectlimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.ProjectLimit, new_plan.MetricPerProjectLimit, new_plan.Range, new_plan.RequestLimit, identifier)
 	return err
 }

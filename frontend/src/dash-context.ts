@@ -10,8 +10,8 @@ export const defaultUser: User = {
   plan: {
     name: '',
     requestlimit: 0,
-    applimit: 0,
-    metric_per_app_limit: 0,
+    projectlimit: 0,
+    metric_per_project_limit: 0,
     identifier: '',
     monthlyeventlimit: 0,
   },
