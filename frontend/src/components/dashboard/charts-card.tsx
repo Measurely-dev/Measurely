@@ -60,8 +60,16 @@ export function ChartsCard() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const metricList = useMemo(() => {
+    return applications[activeApp].metrics
+      ? applications[activeApp].metrics.sort(
+        (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
+      )
+      : null;
+  }, [activeApp, applications]);
+
   const loadData = async () => {
-    const metricData = applications[activeApp].metrics?.[activeMetric] ?? null;
+    const metricData = metricList?.[activeMetric] ?? null;
     if (!metricData) return;
     const from = new Date();
     from.setDate(1);
@@ -86,7 +94,7 @@ export function ChartsCard() {
   };
 
   const loadDailyUpdate = async () => {
-    const metricData = applications[activeApp].metrics?.[activeMetric] ?? null;
+    const metricData = metricList?.[activeMetric] ?? null;
     if (!metricData) return;
 
     const { relativetotalpos, relativetotalneg, results } =
@@ -101,7 +109,7 @@ export function ChartsCard() {
         applications.map((app, i) =>
           i === activeApp
             ? Object.assign({}, app, {
-              metrics: app.metrics?.map((m, j) =>
+              metrics: metricList?.map((m, j) =>
                 j === activeMetric
                   ? Object.assign({}, m, {
                     totalpos: relativetotalpos,
@@ -126,11 +134,11 @@ export function ChartsCard() {
     return () => {
       clearInterval(interval);
     };
-  }, [activeMetric]);
+  }, [activeMetric, metricList]);
 
   const metric = useMemo(() => {
-    return applications[activeApp].metrics?.[activeMetric] ?? null;
-  }, [activeMetric, applications]);
+    return metricList?.[activeMetric] ?? null;
+  }, [activeMetric, metricList]);
 
   useEffect(() => {
     const new_index =
@@ -181,7 +189,7 @@ export function ChartsCard() {
           <Header
             activeMetric={activeMetric}
             setActiveMetric={setActiveMetric}
-            metrics={applications[activeApp].metrics ?? []}
+            metrics={metricList ?? []}
           />
           <CardContent className='flex flex-col'>
             {(metric?.totalpos ?? 0) - (metric?.totalneg ?? 0) === 0 ? (
@@ -282,30 +290,25 @@ function Header(props: {
             <CommandList>
               <CommandEmpty>No metric found.</CommandEmpty>
               <CommandGroup>
-                {props.metrics
-                  .sort(
-                    (a, b) =>
-                      b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
-                  )
-                  .map((metric, i) => (
-                    <CommandItem
-                      key={metric.id}
-                      className='truncate rounded-[10px]'
-                      onSelect={() => {
-                        props.setActiveMetric(i);
-                        setOpen(false);
-                      }}
-                    >
-                      {i === props.activeMetric ? (
-                        <Check className={cn('mr-2 size-4 stroke-[3px]')} />
-                      ) : metric.type === MetricType.Dual ? (
-                        <ArrowUpDown className={cn('mr-2 size-4')} />
-                      ) : (
-                        <ArrowUpFromDot className={cn('mr-2 size-4')} />
-                      )}
-                      <div className='w-full truncate'>{metric.name}</div>
-                    </CommandItem>
-                  ))}
+                {props.metrics.map((metric, i) => (
+                  <CommandItem
+                    key={metric.id}
+                    className='truncate rounded-[10px]'
+                    onSelect={() => {
+                      props.setActiveMetric(i);
+                      setOpen(false);
+                    }}
+                  >
+                    {i === props.activeMetric ? (
+                      <Check className={cn('mr-2 size-4 stroke-[3px]')} />
+                    ) : metric.type === MetricType.Dual ? (
+                      <ArrowUpDown className={cn('mr-2 size-4')} />
+                    ) : (
+                      <ArrowUpFromDot className={cn('mr-2 size-4')} />
+                    )}
+                    <div className='w-full truncate'>{metric.name}</div>
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </CommandList>
           </Command>
