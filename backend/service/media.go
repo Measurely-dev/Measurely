@@ -18,7 +18,7 @@ import (
 
 const MAX_SIZE = 500 * 1024
 
-func (s *Service) UploadApplicationImage(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UploadProjectImage(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the token from the request context
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
@@ -26,20 +26,20 @@ func (s *Service) UploadApplicationImage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Parse the application ID from the URL parameters
-	appid, err := uuid.Parse(chi.URLParam(r, "appid"))
+	// Parse the project ID from the URL parameters
+	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
 	if err != nil {
-		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
-	// Fetch the application from the database
-	app, err := s.db.GetApplication(appid, token.Id)
+	// Fetch the project from the database
+	project, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Application not found", http.StatusNotFound)
 		} else {
-			log.Println("Error fetching application:", err)
+			log.Println("Error fetching project:", err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 		}
 		return
@@ -59,8 +59,8 @@ func (s *Service) UploadApplicationImage(w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
-	// Generate a file name based on the application ID and the uploaded file's name
-	fileName := appid.String() + header.Filename
+	// Generate a file name based on the project ID and the uploaded file's name
+	fileName := projectid.String() + header.Filename
 
 	// Upload the file to S3
 	_, err = s.s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
@@ -92,19 +92,19 @@ func (s *Service) UploadApplicationImage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// If the application already has an image, delete the old one
-	if app.Image != "" {
+	// If the project already has an image, delete the old one
+	if project.Image != "" {
 		if _, err := s.s3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 			Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
-			Key:    aws.String(app.Image),
+			Key:    aws.String(project.Image),
 		}); err != nil {
-			log.Printf("Failed to delete old application image: %s\n", err)
+			log.Printf("Failed to delete old project image: %s\n", err)
 		}
 	}
 
-	// Update the application image URL in the database
-	if err := s.db.UpdateApplicationImage(appid, response.URL); err != nil {
-		log.Printf("Failed to update application image in the database: %s\n", err)
+	// Update the project image URL in the database
+	if err := s.db.UpdateProjectImage(projectid, response.URL); err != nil {
+		log.Printf("Failed to update project image in the database: %s\n", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}

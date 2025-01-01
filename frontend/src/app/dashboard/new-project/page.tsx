@@ -8,22 +8,23 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
-import { AppsContext } from '@/dash-context';
-import { ImageIcon } from 'lucide-react';
+import { ProjectsContext } from '@/dash-context';
+import { ArrowRight, ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dispatch, useContext, useState } from 'react';
 import { toast } from 'sonner';
 import { loadMetrics, MAXFILESIZE } from '@/utils';
+import { Separator } from '@/components/ui/separator';
 
-export default function NewApp() {
+export default function NewProject() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
 
   const router = useRouter();
 
-  const { setActiveApp, applications, setApplications } =
-    useContext(AppsContext);
+  const { setActiveProject, projects, setProjects } =
+    useContext(ProjectsContext);
 
   function createApp() {
     if (name === '') {
@@ -75,9 +76,9 @@ export default function NewApp() {
         }
 
         json.metrics = await loadMetrics(json.id);
-        setApplications((apps) => [...apps, json]);
-        setActiveApp(applications.length - 1);
-        localStorage.setItem('activeApp', (applications.length - 1).toString());
+        setProjects((apps) => [...apps, json]);
+        setActiveProject(projects.length - 1);
+        localStorage.setItem('activeProject', (projects.length - 1).toString());
         router.push('/dashboard');
       });
   }
@@ -85,7 +86,7 @@ export default function NewApp() {
   return (
     <div className='flex flex-col'>
       <WebContainer className='h-[100vh] w-[100vw]'>
-        {applications.length === 0 ? (
+        {projects.length === 0 ? (
           <AuthNavbar isDashboard button={null} />
         ) : (
           <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
@@ -107,36 +108,36 @@ export default function NewApp() {
               createApp();
             }}
           >
-            {/* /Breadcrumb */}
-            <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6 rounded-3xl max-md:max-w-[95%]'>
-              <div className='flex flex-col gap-[5px]'>
+            <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6 rounded-3xl bg-accent max-md:max-w-[95%]'>
+              <div className='flex flex-col gap-[5px] p-6 border-b'>
                 <div className='text-xl font-medium'>
-                  {applications === null
-                    ? 'Create your first application'
-                    : 'Create application'}
+                  {projects === null
+                    ? 'Start your first project'
+                    : 'Start a new project'}
                 </div>
-                <div className='text-sm text-secondary'>
-                  Set up a new application to start tracking metrics and
-                  managing your data efficiently
+                <div className='text-sm text-muted-foreground'>
+                  Set up a new project to start tracking metrics and managing
+                  your data efficiently
                 </div>
               </div>
-              {/* Inputs */}
               <Inputs
                 name={name}
                 setName={setName}
                 file={file}
                 setFile={setFile}
               />
-              {/* Continu btn */}
-              <Button
-                className='w-full rounded-[12px]'
-                type='submit'
-                loading={loading}
-                disabled={loading || name === ''}
-              >
-                Create application
-              </Button>
-              {/* </Link> */}
+              <Separator />
+              <div className='flex w-full justify-end p-6 pt-0'>
+                <Button
+                  className='group w-fit rounded-[12px]'
+                  type='submit'
+                  loading={loading}
+                  disabled={loading || name === ''}
+                >
+                  Create project{' '}
+                  <ArrowRight className='ml-2 size-4 transition-all duration-200 group-hover:ml-4' />
+                </Button>
+              </div>
             </div>
           </form>
         </ContentContainer>
@@ -155,17 +156,16 @@ function Inputs(props: {
   const [reader, setReader] = useState<any>(null);
 
   return (
-    <div className='flex flex-col gap-[15px]'>
-      {/* Name */}
+    <div className='flex flex-col gap-[15px] px-6'>
       <div className='flex w-full items-center gap-5'>
-        <Avatar className='relative size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-[16px]'>
+        <Avatar className='relative size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-background'>
           <Label className='relative h-full w-full cursor-pointer'>
             <AvatarImage
-              className='rounded-[16px]'
+              className='rounded-full'
               src={reader}
-              alt='Application image'
+              alt='Project image'
             />
-            <AvatarFallback className='h-full w-full !rounded-[16px]'>
+            <AvatarFallback className='h-full w-full !rounded-full bg-background'>
               <ImageIcon className='text-secondary' />
             </AvatarFallback>
             <Input
@@ -187,18 +187,18 @@ function Inputs(props: {
               }}
               type='file'
               accept='.jpg, .jpeg, .png, .webp .svg'
-              className='absolute left-0 top-0 h-full w-full cursor-pointer opacity-0'
+              className='absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0'
             />
           </Label>
         </Avatar>
         <Label className='flex w-full flex-col gap-2'>
-          Name
+          Project name
           <Input
             value={props.name}
             type='text'
             maxLength={20}
             onChange={(e) => props.setName(e.target.value.trimStart())}
-            className='h-[40px] rounded-[12px] border-none bg-accent'
+            className='h-[40px] rounded-[12px] border-none bg-background'
             placeholder='Name...'
           />
         </Label>

@@ -2,16 +2,16 @@ export const plans = [
   {
     name: 'Starter',
     identifier: 'starter',
-    description: 'Free with 5 metrics, 1 app. No setup or hidden fees.',
+    description: 'Free with 5 metrics, 1 project. No setup or hidden fees.',
     price: 0,
     reccurence: 'forever',
     target: 'very small teams',
     list: [
       <div key='1'>
-        <strong className='text-black'>1</strong> application
+        <strong className='text-black'>1</strong> project
       </div>,
       <div key='2'>
-        <strong className='text-black'>5</strong> metrics per application
+        <strong className='text-black'>5</strong> metrics per project
       </div>,
       <div key='3'>
         <strong className='text-black'>25</strong> updates per minute
@@ -34,10 +34,10 @@ export const plans = [
     target: 'growing teams',
     list: [
       <div key='1'>
-        <strong className='text-black'>3</strong> applications
+        <strong className='text-black'>3</strong> projects
       </div>,
       <div key='2'>
-        <strong className='text-black'>15</strong> metrics per application
+        <strong className='text-black'>15</strong> metrics per project
       </div>,
       <div key='3'>
         <strong className='text-black'>1K</strong> updates per minute
@@ -60,10 +60,10 @@ export const plans = [
     target: 'scaling businesses',
     list: [
       <div key='1'>
-        <strong className='text-black'>10</strong> applications
+        <strong className='text-black'>10</strong> projects
       </div>,
       <div key='2'>
-        <strong className='text-black'>35</strong> metrics per application
+        <strong className='text-black'>35</strong> metrics per project
       </div>,
       <div key='3'>
         <strong className='text-black'>10K</strong> updates per minute

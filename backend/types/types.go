@@ -46,7 +46,7 @@ type UserProvider struct {
 	ProviderUserId string    `json:"provideruserid"`
 }
 
-type Application struct {
+type Project struct {
 	Id     uuid.UUID `json:"id"`
 	ApiKey string    `json:"apikey"`
 	UserId uuid.UUID `json:"userid"`

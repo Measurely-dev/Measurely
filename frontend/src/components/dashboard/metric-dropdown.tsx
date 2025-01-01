@@ -7,19 +7,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AppsContext } from '@/dash-context';
-import { Metric } from '@/types';
+import { Metric, Project } from '@/types';
 import { useContext, useState } from 'react';
 import { toast } from 'sonner';
 import EditMetricDialogContent from './edit-metric-dialog-content';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Trash } from 'lucide-react';
+import { ProjectsContext } from '@/dash-context';
 
 export default function MetricDropdown(props: {
   children: any;
   metric: Metric;
 }) {
-  const { setApplications, applications } = useContext(AppsContext);
+  const { setProjects, projects } = useContext(ProjectsContext);
   const [open, setOpen] = useState(false);
   const confirm = useConfirm();
   const DeleteMetric = async () => {
@@ -57,16 +57,16 @@ export default function MetricDropdown(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          appid: props.metric.appid,
+          projectid: props.metric.projectid,
           metricid: props.metric.id,
         }),
         credentials: 'include',
       }).then((res) => {
-        if (res.ok && applications !== null) {
+        if (res.ok && projects !== null) {
           toast.success('Metric succesfully deleted');
-          setApplications(
-            applications?.map((v) =>
-              v.id === props.metric.appid
+          setProjects(
+            projects?.map((v : Project) =>
+              v.id === props.metric.projectid
                 ? Object.assign({}, v, {
                     metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
                   })

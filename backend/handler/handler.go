@@ -78,11 +78,11 @@ func (h *Handler) setup_api() {
 	authRouter.Patch("/password", h.service.UpdatePassword)
 	authRouter.Post("/requestemailchange", h.service.RequestEmailChange)
 
-	authRouter.Get("/applications", h.service.GetApplications)
-	authRouter.Post("/application", h.service.CreateApplication)
-	authRouter.Delete("/application", h.service.DeleteApplication)
-	authRouter.Patch("/app-name", h.service.UpdateApplicationName)
-	authRouter.Post("/app-image/{appid}", h.service.UploadApplicationImage)
+	authRouter.Get("/projects", h.service.GetProjects)
+	authRouter.Post("/project", h.service.CreateProject)
+	authRouter.Delete("/project", h.service.DeleteProject)
+	authRouter.Patch("/project-name", h.service.UpdateProjectName)
+	authRouter.Post("/project-image/{project}", h.service.UploadProjectImage)
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
 
 	authRouter.Get("/metrics", h.service.GetMetrics)

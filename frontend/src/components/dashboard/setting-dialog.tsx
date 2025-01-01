@@ -11,9 +11,9 @@ import { CreditCard, Home, X } from 'lucide-react';
 import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
 import SettingGeneralPage from './setting-pages/general';
 import { Hexagon } from 'react-feather';
-import SettingAppsPage from './setting-pages/apps-api';
 import SettingPaymentPage from './setting-pages/payment';
 import { Button } from '@/components/ui/button';
+import SettingProjectPage from './setting-pages/projects';
 
 interface SettingPage {
   name: string;
@@ -26,17 +26,17 @@ export default function SettingDialog(props: { children: ReactNode }) {
   const settings: SettingPage[] = [
     {
       name: 'General',
-      icon: <Home className='size-4 text-blue-500' />,
+      icon: <Home className='size-4 stroke-[2px] text-blue-500' />,
       value: 'general',
     },
     {
-      name: 'Applications',
-      icon: <Hexagon className='size-4 text-blue-500' />,
-      value: 'applications',
+      name: 'Projects',
+      icon: <Hexagon className='size-4 stroke-[2px] text-purple-500' />,
+      value: 'projects',
     },
     {
       name: 'Payment',
-      icon: <CreditCard className='size-4 text-blue-500' />,
+      icon: <CreditCard className='size-4 stroke-[2px] text-pink-500' />,
       value: 'payment',
     },
   ];
@@ -44,8 +44,8 @@ export default function SettingDialog(props: { children: ReactNode }) {
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 !shadow-none ring-1 ring-input max-lg:min-w-[95%] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col lg:min-w-[900px] lg:max-w-[900px]'>
-        <DialogTitle className='absolute -z-10 hidden'>Settings</DialogTitle>
-        <DialogDescription className='absolute -z-10 hidden'>
+        <DialogTitle className='sr-only'>Settings</DialogTitle>
+        <DialogDescription className='sr-only'>
           Settings dialog
         </DialogDescription>
         <Navbar page={page} setPage={setPage} settings={settings} />
@@ -105,8 +105,8 @@ function Content(props: {
     switch (props.page) {
       case 'general':
         return <SettingGeneralPage />;
-      case 'applications':
-        return <SettingAppsPage />;
+      case 'projects':
+        return <SettingProjectPage />;
       case 'payment':
         return <SettingPaymentPage />;
     }

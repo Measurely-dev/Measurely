@@ -180,12 +180,12 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
 	return new_metric, err
 }
 
-func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
-	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND appid = $2", id, appid)
+func (db *DB) DeleteMetric(id uuid.UUID, projectid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND projectid = $2", id, projectid)
 	return err
 }
 
@@ -323,19 +323,19 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	return nil, monthlyCount
 }
 
-func (db *DB) GetMetricsCount(appid uuid.UUID) (int, error) {
+func (db *DB) GetMetricsCount(projectid uuid.UUID) (int, error) {
 	var count int = 0
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE appid = $1", appid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE projectid = $1", projectid)
 	return count, err
 }
 
-func (db *DB) UpdateMetric(id uuid.UUID, appid uuid.UUID, name string, namepos string, nameneg string) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET name = $1, namepos = $2, nameneg = $3 WHERE id = $4 AND appid = $5", name, namepos, nameneg, id, appid)
+func (db *DB) UpdateMetric(id uuid.UUID, projectid uuid.UUID, name string, namepos string, nameneg string) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET name = $1, namepos = $2, nameneg = $3 WHERE id = $4 AND projectid = $5", name, namepos, nameneg, id, projectid)
 	return err
 }
 
-func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE appid = $1", appid)
+func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
+	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE projectid = $1", projectid)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.AppId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
 		if err != nil {
 			return nil, err
 		}
@@ -369,9 +369,9 @@ func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 	return metrics, nil
 }
 
-func (db *DB) GetMetricByName(name string, appid uuid.UUID) (types.Metric, error) {
+func (db *DB) GetMetricByName(name string, projectid uuid.UUID) (types.Metric, error) {
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE appid = $1 AND name = $2", appid, name)
+	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE projectid = $1 AND name = $2", projectid, name)
 	return metric, err
 }
 
@@ -457,72 +457,72 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 	return events, nil
 }
 
-func (db *DB) GetApplication(id uuid.UUID, userid uuid.UUID) (types.Application, error) {
-	var app types.Application
-	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE id = $1 AND userid = $2", id, userid)
-	return app, err
+func (db *DB) GetProject(id uuid.UUID, userid uuid.UUID) (types.Project, error) {
+	var project types.Project
+	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE id = $1 AND userid = $2", id, userid)
+	return project, err
 }
 
-func (db *DB) UpdateApplicationImage(id uuid.UUID, image string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET image = $1 WHERE id = $2", image, id)
+func (db *DB) UpdateProjectImage(id uuid.UUID, image string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET image = $1 WHERE id = $2", image, id)
 	return err
 }
 
-func (db *DB) GetApplicationCountByUser(userid uuid.UUID) (int, error) {
+func (db *DB) GetProjectCountByUser(userid uuid.UUID) (int, error) {
 	var count int = 0
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM applications WHERE userid = $1", userid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM projects WHERE userid = $1", userid)
 	return count, err
 }
 
-func (db *DB) GetApplicationByApi(key string) (types.Application, error) {
-	var app types.Application
-	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE apikey = $1", key)
-	return app, err
+func (db *DB) GetProjectByApi(key string) (types.Project, error) {
+	var project types.Project
+	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE apikey = $1", key)
+	return project, err
 }
 
-func (db *DB) GetApplications(userid uuid.UUID) ([]types.Application, error) {
-	rows, err := db.Conn.Query("SELECT * FROM applications WHERE userid = $1", userid)
+func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
+	rows, err := db.Conn.Query("SELECT * FROM projects WHERE userid = $1", userid)
 	if err != nil {
-		return []types.Application{}, err
+		return []types.Project{}, err
 	}
 	defer rows.Close()
-	var apps []types.Application
+	var projects []types.Project
 	for rows.Next() {
-		var app types.Application
+		var app types.Project
 		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Image)
 		if err != nil {
-			return []types.Application{}, err
+			return []types.Project{}, err
 		}
-		apps = append(apps, app)
+		projects = append(projects, app)
 	}
 
-	return apps, nil
+	return projects, nil
 }
 
-func (db *DB) GetApplicationByName(userid uuid.UUID, name string) (types.Application, error) {
-	var app types.Application
-	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE userid = $1 AND name = $2", userid, name)
+func (db *DB) GetProjectByName(userid uuid.UUID, name string) (types.Project, error) {
+	var app types.Project
+	err := db.Conn.Get(&app, "SELECT * FROM projects WHERE userid = $1 AND name = $2", userid, name)
 	return app, err
 }
 
-func (db *DB) CreateApplication(app types.Application) (types.Application, error) {
-	var new_app types.Application
-	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", app.UserId, app.ApiKey, app.Name).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Image)
-	return new_app, err
+func (db *DB) CreateProject(project types.Project) (types.Project, error) {
+	var new_project types.Project
+	err := db.Conn.QueryRow("INSERT INTO projects (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", project.UserId, project.ApiKey, project.Name).Scan(&new_project.Id, &new_project.ApiKey, &new_project.UserId, &new_project.Name, &new_project.Image)
+	return new_project, err
 }
 
-func (db *DB) UpdateApplicationApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
+func (db *DB) UpdateProjectApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
 	return err
 }
 
-func (db DB) UpdateApplicationName(id uuid.UUID, userid uuid.UUID, newname string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
+func (db DB) UpdateProjectName(id uuid.UUID, userid uuid.UUID, newname string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
 	return err
 }
 
-func (db *DB) DeleteApplication(id uuid.UUID, userid uuid.UUID) error {
-	_, err := db.Conn.Exec("DELETE FROM applications WHERE id = $1 AND userid = $2", id, userid)
+func (db *DB) DeleteProject(id uuid.UUID, userid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM projects WHERE id = $1 AND userid = $2", id, userid)
 	return err
 }
 

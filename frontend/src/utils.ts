@@ -5,9 +5,9 @@ export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 10000;
 export const INTERVAL_LONG = 20000;
 
-export async function loadMetrics(appid: string): Promise<Metric[]> {
+export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + '/metrics?appid=' + appid,
+    process.env.NEXT_PUBLIC_API_URL + '/metrics?projectid=' + projectid,
     {
       method: 'GET',
       headers: {
@@ -52,7 +52,7 @@ export const loadChartData = async (
   date: Date,
   range: number,
   metric: Metric,
-  appid: string,
+  projectid: string,
   chartType: 'trend' | 'bar',
 ): Promise<any[]> => {
   const tmpData: any[] = [];
@@ -82,7 +82,11 @@ export const loadChartData = async (
       dataLength = 24;
     }
   } else if (range === 7) {
-    dataLength = range * 3;
+    if (chartType === 'trend') {
+      dataLength = range * 3;
+    } else {
+      dataLength = range;
+    }
   } else if (range >= 365) {
     dataLength = 12;
   } else {
@@ -109,7 +113,11 @@ export const loadChartData = async (
         dateCounter.setHours(dateCounter.getHours() + 1);
       }
     } else if (range === 7) {
-      dateCounter.setHours(dateCounter.getHours() + 8);
+      if (chartType === 'trend') {
+        dateCounter.setHours(dateCounter.getHours() + 8);
+      } else {
+        dateCounter.setDate(dateCounter.getDate() + 1);
+      }
     } else if (range >= 365) {
       dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
@@ -117,7 +125,7 @@ export const loadChartData = async (
     }
   }
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toISOString()}&end=${to.toISOString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&projectid=${projectid}&start=${from.toISOString()}&end=${to.toISOString()}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -151,10 +159,12 @@ export const loadChartData = async (
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              matches =
-                matches &&
-                eventDate.getHours() >= tmpData[j].date.getHours() &&
-                eventDate.getHours() < tmpData[j].date.getHours() + 8;
+              if (chartType === 'trend') {
+                matches =
+                  matches &&
+                  eventDate.getHours() >= tmpData[j].date.getHours() &&
+                  eventDate.getHours() < tmpData[j].date.getHours() + 8;
+              }
             } else if (range >= 365) {
               matches =
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
@@ -186,10 +196,6 @@ export const loadChartData = async (
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
     if (range === 1 && chartType === 'trend') {
       tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
-    }
-
-    if (range === 7) {
-      tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 1);
     }
 
     let matches = false;
@@ -224,7 +230,7 @@ export const loadChartData = async (
 };
 
 export const fetchNextEvent = async (
-  appid: string,
+  projectid: string,
   metricid: string,
   start?: Date,
 ): Promise<{
@@ -242,8 +248,7 @@ export const fetchNextEvent = async (
 
   const to = new Date(from);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
-    }&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?projectid=${projectid}&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
     {
       method: 'GET',
       credentials: 'include',
@@ -284,7 +289,7 @@ export const fetchNextEvent = async (
 };
 
 export const fetchDailySummary = async (
-  appid: string,
+  projectid: string,
   metricid: string,
 ): Promise<{
   pos: number;
@@ -305,7 +310,7 @@ export const fetchDailySummary = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
+    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${projectid
     }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',

@@ -15,11 +15,11 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
-import { AppsContext } from '@/dash-context';
 import { MetricType } from '@/types';
 import { useRouter } from 'next/navigation';
 import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import { toast } from 'sonner';
+import { ProjectsContext } from '@/dash-context';
 
 export default function NewMetric() {
   const [step, setStep] = useState(1);
@@ -135,7 +135,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   const [name, setName] = useState('');
   const [baseValue, setBaseValue] = useState<number | string>(0);
   const [loading, setLoading] = useState(false);
-  const { applications, setApplications, activeApp } = useContext(AppsContext);
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const router = useRouter();
 
   return (
@@ -176,7 +176,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               credentials: 'include',
               body: JSON.stringify({
                 name: name,
-                appid: applications[activeApp].id,
+                projectid: projects[activeProject].id,
                 basevalue: baseValue,
                 type: MetricType.Base,
                 namepos: '',
@@ -197,12 +197,12 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 if (json === null || json === undefined) {
                   return;
                 }
-                setApplications(
-                  applications.map((v, i) =>
-                    i === activeApp
+                setProjects(
+                  projects.map((v, i) =>
+                    i === activeProject
                       ? Object.assign({}, v, {
                           metrics: [
-                            ...(applications[activeApp].metrics ?? []),
+                            ...(projects[activeProject].metrics ?? []),
                             json,
                           ],
                         })
@@ -290,7 +290,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
 
   const [loading, setLoading] = useState(false);
 
-  const { applications, setApplications, activeApp } = useContext(AppsContext);
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const router = useRouter();
 
   return (
@@ -334,7 +334,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             credentials: 'include',
             body: JSON.stringify({
               name: name,
-              appid: applications[activeApp].id,
+              projectid: projects[activeProject].id,
               basevalue: baseValue,
               type: MetricType.Dual,
               namepos: namePos,
@@ -355,17 +355,17 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               if (
                 json === null ||
                 json === undefined ||
-                applications[activeApp].metrics === null
+                projects[activeProject].metrics === null
               ) {
                 return;
               }
 
-              setApplications(
-                applications.map((v, i) =>
-                  i === activeApp
+              setProjects(
+                projects.map((v, i) =>
+                  i === activeProject
                     ? Object.assign({}, v, {
                         metrics: [
-                          ...(applications[activeApp].metrics ?? []),
+                          ...(projects[activeProject].metrics ?? []),
                           json,
                         ],
                       })
@@ -389,7 +389,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               <div className='flex w-full flex-col gap-3'>
                 <Label>Metric name</Label>
                 <Input
-                  placeholder='Users, Transfers, Applications'
+                  placeholder='Users, Transfers, Projects'
                   maxLength={30}
                   type='text'
                   value={name}

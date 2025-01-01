@@ -166,8 +166,9 @@ export default function SettingGeneralPage() {
   };
 
   return (
-    <div className='grid gap-6'>
+    <div className='grid'>
       <SettingCard
+        top
         title='Profile'
         description='Used to identify your account.'
         btn_loading={loadingProfile}
@@ -365,6 +366,7 @@ export default function SettingGeneralPage() {
       />
 
       <SettingCard
+        bottom
         title='Delete account'
         btn_loading={false}
         btn_disabled={false}

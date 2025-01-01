@@ -1,4 +1,4 @@
-export interface Application {
+export interface Project {
   id: string;
   apikey: string;
   name: string;
@@ -8,7 +8,7 @@ export interface Application {
 
 export interface Metric {
   id: string;
-  appid: string;
+  projectid: string;
   name: string;
   type: MetricType;
   totalpos: number;

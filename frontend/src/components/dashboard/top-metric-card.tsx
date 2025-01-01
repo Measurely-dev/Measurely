@@ -8,20 +8,20 @@ import {
   CardTitle,
 } from '../ui/card';
 import { BarChart } from '../ui/bar-chart';
-import { AppsContext } from '@/dash-context';
 import { EmptyState } from '../ui/empty-state';
 import { ChartNetwork } from 'lucide-react';
+import { ProjectsContext } from '@/dash-context';
 
 export const TopMetricCard = () => {
-  const { applications, activeApp } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const topMetricData = useMemo(() => {
     const data = [];
 
-    if (applications[activeApp].metrics === null) return [];
-    if (applications[activeApp].metrics.length === 0) return [];
+    if (projects[activeProject].metrics === null) return [];
+    if (projects[activeProject].metrics.length === 0) return [];
     let addedMetrics = 0;
-    for (let i = 0; i < applications[activeApp].metrics.length; i++) {
-      const metric = applications[activeApp].metrics[i];
+    for (let i = 0; i < projects[activeProject].metrics.length; i++) {
+      const metric = projects[activeProject].metrics[i];
       const total = metric.totalpos - metric.totalneg;
 
       if (total !== 0) {
@@ -36,13 +36,13 @@ export const TopMetricCard = () => {
     }
 
     return data.sort((a, b) => b.total - a.total);
-  }, [activeApp]);
+  }, [activeProject, projects]);
 
   return (
     <Card className='mt-10 rounded-none border-none'>
       <CardHeader className='p-0'>
         <CardTitle>Top metric chart</CardTitle>
-        <CardDescription>Top metric across this application.</CardDescription>
+        <CardDescription>Top metric(s) across this project.</CardDescription>
       </CardHeader>
       {topMetricData.length < 2 ? (
         <EmptyState

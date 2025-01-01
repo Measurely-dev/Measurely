@@ -1,4 +1,3 @@
-// Application logo as an SVG
 export default function LogoSvg(props: { className?: string }) {
   return (
     <svg

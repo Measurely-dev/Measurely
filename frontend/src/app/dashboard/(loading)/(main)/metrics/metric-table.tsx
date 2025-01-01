@@ -1,7 +1,7 @@
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { Metric } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
@@ -54,20 +54,20 @@ function sortByTotal(a: Metric, b: Metric): number {
 }
 
 export default function MetricTable(props: { search: string; filter: string }) {
-  const { applications, activeApp } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const { user } = useContext(UserContext);
 
   const metricsLimitReached = useMemo(() => {
-    if (applications[activeApp].metrics === null) return false;
+    if (projects[activeProject].metrics === null) return false;
     else
       return (
-        applications[activeApp].metrics.length > user.plan.metric_per_app_limit
+        projects[activeProject].metrics.length > user.plan.metric_per_app_limit
       );
-  }, [applications[activeApp].metrics]);
+  }, [projects[activeProject].metrics]);
 
   const filteredMetrics = useMemo(() => {
     return (
-      applications[activeApp].metrics
+      projects[activeProject].metrics
         ?.sort((a, b) => {
           if (props.filter === 'new' || props.filter === 'old') {
             return sortbyDate(a, b, props.filter);
@@ -81,7 +81,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
           group.name.toLowerCase().includes(props.search.toLowerCase()),
         ) ?? []
     );
-  }, [activeApp, props.filter, props.search, applications]);
+  }, [activeProject, props.filter, props.search, projects]);
 
   return (
     <div className='flex flex-col gap-[15px]'>
@@ -100,7 +100,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
             {filteredMetrics.map((metric, i) => {
               const isBlocked =
                 metricsLimitReached &&
-                (applications[activeApp].metrics?.findIndex(
+                (projects[activeProject].metrics?.findIndex(
                   (m) => m.id === metric.id,
                 ) ?? 0) >
                 user.plan.metric_per_app_limit - 1;
@@ -133,7 +133,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { applications, setApplications } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(ProjectsContext);
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
       return '';
@@ -158,7 +158,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
 
   const load = async () => {
     const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(props.metric.appid, props.metric.id);
+      await fetchDailySummary(props.metric.projectid, props.metric.id);
     setDailyUpdate(pos - neg);
 
     if (
@@ -166,9 +166,9 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
         props.metric.totalneg !== relativetotalneg) &&
       results !== 0
     ) {
-      setApplications(
-        applications.map((v) =>
-          v.id === props.metric?.appid
+      setProjects(
+        projects.map((v) =>
+          v.id === props.metric?.projectid
             ? Object.assign({}, v, {
               metrics: v.metrics?.map((m) =>
                 m.id === props.metric?.id

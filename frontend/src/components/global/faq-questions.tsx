@@ -1,15 +1,15 @@
 export const FAQQuestions = [
   {
     question: 'What is a metric?',
-    answer: `A metric in Measurely is a data point used to track and analyze the performance of your application or feature. Metrics can be either basic (a single value) or dual (positive and negative values, like gains and losses).`,
+    answer: `A metric in Measurely is a data point used to track and analyze the performance of your project or feature. Metrics can be either basic (a single value) or dual (positive and negative values, like gains and losses).`,
   },
   {
-    question: 'How can Measurely help improve my app?',
+    question: 'How can Measurely help improve my project?',
     answer: `Measurely helps you monitor key performance metrics, enabling you to identify trends, optimize features, and make informed decisions to improve your app’s effectiveness and user experience.`,
   },
   {
     question: 'Can I update my metrics programmatically?',
-    answer: `Yes, Measurely offers an API that allows you to update your metrics programmatically for seamless integration with your applications.`,
+    answer: `Yes, Measurely offers an API that allows you to update your metrics programmatically for seamless integration with your projects.`,
   },
   {
     question: 'What subscription plans does Measurely offer?',

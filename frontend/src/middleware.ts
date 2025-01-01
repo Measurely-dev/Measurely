@@ -13,25 +13,17 @@ export default async function middleware(request: NextRequest) {
   if (logged) {
     if (url === '/') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
-    } else if (url === '/home') {
-      return NextResponse.rewrite(new URL('/', request.url));
-    }
-
+    } 
     if (url.includes('sign-in') || url.includes('register')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   } else {
-
     if (url === '/home/') {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
     if (url.includes('sign-in') || url.includes('register')) {
       return NextResponse.next();
-    }
-
-    if (url === '/') {
-      return NextResponse.rewrite(new URL('/home', request.url));
     }
   }
 
@@ -60,7 +52,7 @@ export const config = {
     '/sign-in',
     '/register',
     '/forgot-password',
-    '/new-app',
+    '/new-project',
     '/dashboard',
     '/dashboard/:appname*',
   ],
