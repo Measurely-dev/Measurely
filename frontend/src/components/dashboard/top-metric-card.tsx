@@ -36,7 +36,7 @@ export const TopMetricCard = () => {
     }
 
     return data.sort((a, b) => b.total - a.total);
-  }, [activeApp]);
+  }, [activeApp, applications]);
 
   return (
     <Card className='mt-10 rounded-none border-none'>

@@ -78,7 +78,7 @@ export function ChartsCard() {
       nbrDaysInMonth,
       metricData,
       metricData.appid,
-      "trend"
+      'trend',
     );
 
     setChartData(data);
@@ -101,15 +101,15 @@ export function ChartsCard() {
         applications.map((app, i) =>
           i === activeApp
             ? Object.assign({}, app, {
-                metrics: app.metrics?.map((m, j) =>
-                  j === activeMetric
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
+              metrics: app.metrics?.map((m, j) =>
+                j === activeMetric
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
             : app,
         ),
       );
@@ -176,7 +176,7 @@ export function ChartsCard() {
         ]}
       />
       {applications[activeApp].metrics !== undefined &&
-      applications[activeApp].metrics?.length! > 0 ? (
+        applications[activeApp].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -215,7 +215,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => {}}
+                          onValueChange={() => { }}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -256,7 +256,7 @@ function Header(props: {
         <CardTitle>
           {valueFormatter(
             props.metrics[props.activeMetric].totalpos -
-              props.metrics[props.activeMetric].totalneg,
+            props.metrics[props.activeMetric].totalneg,
           )}{' '}
           {props.metrics[props.activeMetric]?.name}
         </CardTitle>
@@ -282,25 +282,30 @@ function Header(props: {
             <CommandList>
               <CommandEmpty>No metric found.</CommandEmpty>
               <CommandGroup>
-                {props.metrics.map((metric, i) => (
-                  <CommandItem
-                    key={metric.id}
-                    className='truncate rounded-[10px]'
-                    onSelect={() => {
-                      props.setActiveMetric(i);
-                      setOpen(false);
-                    }}
-                  >
-                    {i === props.activeMetric ? (
-                      <Check className={cn('mr-2 size-4 stroke-[3px]')} />
-                    ) : metric.type === MetricType.Dual ? (
-                      <ArrowUpDown className={cn('mr-2 size-4')} />
-                    ) : (
-                      <ArrowUpFromDot className={cn('mr-2 size-4')} />
-                    )}
-                    <div className='w-full truncate'>{metric.name}</div>
-                  </CommandItem>
-                ))}
+                {props.metrics
+                  .sort(
+                    (a, b) =>
+                      b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
+                  )
+                  .map((metric, i) => (
+                    <CommandItem
+                      key={metric.id}
+                      className='truncate rounded-[10px]'
+                      onSelect={() => {
+                        props.setActiveMetric(i);
+                        setOpen(false);
+                      }}
+                    >
+                      {i === props.activeMetric ? (
+                        <Check className={cn('mr-2 size-4 stroke-[3px]')} />
+                      ) : metric.type === MetricType.Dual ? (
+                        <ArrowUpDown className={cn('mr-2 size-4')} />
+                      ) : (
+                        <ArrowUpFromDot className={cn('mr-2 size-4')} />
+                      )}
+                      <div className='w-full truncate'>{metric.name}</div>
+                    </CommandItem>
+                  ))}
               </CommandGroup>
             </CommandList>
           </Command>
