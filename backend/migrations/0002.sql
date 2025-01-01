@@ -12,24 +12,39 @@ ADD COLUMN IF NOT EXISTS ParentMetricId UUID;
 -- Update unique constraint for the Metrics table
 DO $$
 BEGIN
-    -- Check if the unique constraint exists and drop it
+    -- Check if the unique constraint for (Name, AppId) exists and drop it
     IF EXISTS (
         SELECT 1 
         FROM information_schema.table_constraints 
-        WHERE table_name = 'metrics' AND constraint_name = 'metrics_name_appid_key'
+        WHERE table_name = 'metrics' 
+          AND constraint_name = 'metrics_name_appid_key'
     ) THEN
         ALTER TABLE Metrics DROP CONSTRAINT metrics_name_appid_key;
     END IF;
 
-    -- Add the new unique constraint
-    ALTER TABLE Metrics
-    ADD CONSTRAINT metrics_parentmetricid_name_filtercategory_key UNIQUE (ParentMetricId, Name, FilterCategory);
-END $$;
+    -- Check if the unique constraint for ParentMetricId, Name, FilterCategory exists and add it
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'metrics' 
+          AND constraint_name = 'metrics_parentmetricid_name_filtercategory_key'
+    ) THEN
+        ALTER TABLE Metrics
+        ADD CONSTRAINT metrics_parentmetricid_name_filtercategory_key UNIQUE (ParentMetricId, Name, FilterCategory);
+    END IF;
 
--- Add a foreign key constraint for ParentMetricId referencing Metrics.Id
-ALTER TABLE Metrics
-ADD CONSTRAINT fk_metrics_parentmetricid
-FOREIGN KEY (ParentMetricId) REFERENCES Metrics(Id) ON DELETE CASCADE;
+    -- Check if the foreign key constraint for ParentMetricId exists and add it
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'metrics' 
+          AND constraint_name = 'fk_metrics_parentmetricid'
+    ) THEN
+        ALTER TABLE Metrics
+        ADD CONSTRAINT fk_metrics_parentmetricid
+        FOREIGN KEY (ParentMetricId) REFERENCES Metrics(Id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- Add an index on ParentMetricId for faster lookup
 CREATE INDEX IF NOT EXISTS idx_metrics_parentmetricid ON Metrics(ParentMetricId);
