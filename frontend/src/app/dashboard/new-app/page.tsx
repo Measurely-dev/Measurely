@@ -86,9 +86,9 @@ export default function NewApp() {
     <div className='flex flex-col'>
       <WebContainer className='h-[100vh] w-[100vw]'>
         {applications.length === 0 ? (
-          <AuthNavbar href='' button={null} />
+          <AuthNavbar isDashboard button={null} />
         ) : (
-          <AuthNavbar href='/dashboard' button='Dashboard' />
+          <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
         )}
         <ContentContainer className='flex h-full items-center justify-center'>
           <form
@@ -141,7 +141,7 @@ export default function NewApp() {
           </form>
         </ContentContainer>
       </WebContainer>
-      <Footer border bg='secondary' />
+      <Footer border bg='secondary' isHome />
     </div>
   );
 }

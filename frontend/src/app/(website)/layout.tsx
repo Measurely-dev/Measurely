@@ -7,12 +7,28 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const is_authentificated = headers().get('is-authentificated');
+  const is_authenticated = headers().get('is-authenticated');
+  const pathname = headers().get('x-request-pathname');
+
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
-      <Navbar type={is_authentificated === 'true' ? 'logged' : 'default'} />
+      <Navbar
+        isHome={
+          is_authenticated === 'true' || pathname === '/home' ? true : false
+        }
+        type={
+          is_authenticated === 'true' || pathname === '/home'
+            ? 'logged'
+            : 'default'
+        }
+      />
       <div className='min-h-screen w-screen'>{children}</div>
-      <Footer border={false} />
+      <Footer
+        border={false}
+        isHome={
+          is_authenticated === 'true' || pathname === '/home' ? true : false
+        }
+      />
     </div>
   );
 }

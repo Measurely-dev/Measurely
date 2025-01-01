@@ -33,7 +33,7 @@ export const navItem = [
 export default function DashboardNavbar() {
   return (
     <div className='flex h-screen flex-col py-[15px] pl-5'>
-      <Link href='/'>
+      <Link href='/home'>
         <div className='flex size-[45px] min-h-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-input/75'>
           <LogoSvg className='size-[30px]' />
         </div>
