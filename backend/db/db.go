@@ -211,6 +211,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	).Scan(&totalPos, &totalNeg, &appid, &metricType)
 	if err != nil {
 		tx.Rollback()
+    log.Println("here")
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
 	}
 
@@ -248,7 +249,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	}
 
 	// Insert or update the MetricEvent in metricevents table for the main metric
-	_, err = tx.Exec(
+	_, err = tx.NamedExec(
 		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
         VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
         ON CONFLICT (metricid, date)
