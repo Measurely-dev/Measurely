@@ -82,7 +82,11 @@ export const loadChartData = async (
       dataLength = 24;
     }
   } else if (range === 7) {
-    dataLength = range * 3;
+    if (chartType === 'trend') {
+      dataLength = range * 3;
+    } else {
+      dataLength = range;
+    }
   } else if (range >= 365) {
     dataLength = 12;
   } else {
@@ -109,7 +113,11 @@ export const loadChartData = async (
         dateCounter.setHours(dateCounter.getHours() + 1);
       }
     } else if (range === 7) {
-      dateCounter.setHours(dateCounter.getHours() + 8);
+      if (chartType === 'trend') {
+        dateCounter.setHours(dateCounter.getHours() + 8);
+      } else {
+        dateCounter.setDate(dateCounter.getDate() + 1);
+      }
     } else if (range >= 365) {
       dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
@@ -151,10 +159,12 @@ export const loadChartData = async (
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              matches =
-                matches &&
-                eventDate.getHours() >= tmpData[j].date.getHours() &&
-                eventDate.getHours() < tmpData[j].date.getHours() + 8;
+              if (chartType === 'trend') {
+                matches =
+                  matches &&
+                  eventDate.getHours() >= tmpData[j].date.getHours() &&
+                  eventDate.getHours() < tmpData[j].date.getHours() + 8;
+              }
             } else if (range >= 365) {
               matches =
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
@@ -186,10 +196,6 @@ export const loadChartData = async (
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
     if (range === 1 && chartType === 'trend') {
       tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
-    }
-
-    if (range === 7) {
-      tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 1);
     }
 
     let matches = false;
