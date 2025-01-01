@@ -22,6 +22,22 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
   function Capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+  const handleLogout = () => {
+    fetch(process.env.NEXT_PUBLIC_API_URL + '/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+      .then(() => {
+        router.push('/sign-in');
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error('Logout failed:', error);
+      });
+  };
   return (
     <Drawer>
       <DrawerTrigger className='md:hidden'>{props.children}</DrawerTrigger>
@@ -96,17 +112,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         <Button
           className='h-[35px] gap-[8px] rounded-[12px] bg-red-500/5 !text-red-500 transition-all hover:!bg-red-500/20'
           variant='default'
-          onClick={() => {
-            fetch(process.env.NEXT_PUBLIC_API_URL + '/logout', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              credentials: 'include',
-            }).then(() => {
-              router.push('/sign-in');
-            });
-          }}
+          onClick={handleLogout}
         >
           <LogOut className='size-[16px]' />
           Logout

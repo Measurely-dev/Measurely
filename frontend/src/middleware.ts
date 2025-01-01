@@ -1,17 +1,39 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
 
 export default async function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
-  const cookie = cookies().get('measurely-session');
-  let logged = false;
-  if (cookie !== undefined) {
-    logged = true;
-  }
+  const cookie = request.cookies.get('measurely-session');
+  const logged = cookie !== undefined;
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('is-authentificated', logged ? 'true' : 'false');
+  requestHeaders.set('is-authenticated', logged ? 'true' : 'false');
+  requestHeaders.set('x-request-pathname', url);
+
+  if (logged) {
+    if (url === '/') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    } else if (url === '/home') {
+      return NextResponse.rewrite(new URL('/', request.url));
+    }
+
+    if (url.includes('sign-in') || url.includes('register')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+  } else {
+
+    if (url === '/home/') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    if (url.includes('sign-in') || url.includes('register')) {
+      return NextResponse.next();
+    }
+
+    if (url === '/') {
+      return NextResponse.rewrite(new URL('/home', request.url));
+    }
+  }
 
   if (
     url.includes('dashboard') ||
@@ -20,10 +42,6 @@ export default async function middleware(request: NextRequest) {
   ) {
     if (!logged) {
       return NextResponse.redirect(new URL('/sign-in', request.url));
-    }
-  } else if (url.includes('sign-in') || url.includes('register')) {
-    if (logged) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
@@ -34,10 +52,10 @@ export default async function middleware(request: NextRequest) {
   });
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
   matcher: [
     '/',
+    '/home',
     '/pricing',
     '/sign-in',
     '/register',

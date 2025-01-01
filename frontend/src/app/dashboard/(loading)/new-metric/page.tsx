@@ -58,7 +58,7 @@ export default function NewMetric() {
   return (
     <div className='flex flex-col'>
       <WebContainer className='h-[100vh] min-h-[700px] w-[100vw]'>
-        <AuthNavbar href='/dashboard' button='Dashboard' />
+        <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
         <ContentContainer className='flex h-full items-center justify-center'>
           {step === 1 ? (
             <>
@@ -97,7 +97,7 @@ export default function NewMetric() {
           )}
         </ContentContainer>
       </WebContainer>
-      <Footer border bg='secondary' />
+      <Footer border bg='secondary' isHome />
     </div>
   );
 }
