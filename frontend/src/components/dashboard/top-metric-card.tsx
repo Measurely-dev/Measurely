@@ -35,7 +35,7 @@ export const TopMetricCard = () => {
       if (addedMetrics >= 7) break;
     }
 
-    return data.sort((a, b) => (a.total > b.total ? 1 : -1));
+    return data.sort((a, b) => b.total - a.total);
   }, [activeApp, applications]);
 
   return (
