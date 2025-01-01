@@ -194,30 +194,39 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	userid uuid.UUID,
 	toAdd int,
 	toRemove int,
+	filters *map[string]string, // Accept filters as a map
 ) (error, int64) {
 	tx, err := db.Conn.Beginx()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err), 0
 	}
 
+	// Update metric totals (totalpos, totalneg)
 	var totalPos, totalNeg int64
+	var appid uuid.UUID
+	var metricType int
 	err = tx.QueryRowx(
-		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg",
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, appid, type",
 		toAdd, toRemove, metricid,
-	).Scan(&totalPos, &totalNeg)
+	).Scan(&totalPos, &totalNeg, &appid, &metricType)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
 	}
 
+	// Update user's monthly event count
 	var monthlyCount int64
 	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount", userid).Scan(&monthlyCount)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update user's monthly event count: %v", err), 0
+	}
 
+	// Get current time and round to the nearest 20-minute interval
 	now := time.Now().UTC().Truncate(time.Second)
 	minute := now.Minute()
 	var roundedMinute int
 
-	// Determine the rounded time
 	if minute < 20 {
 		roundedMinute = 0
 	} else if minute < 40 {
@@ -227,6 +236,8 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	}
 
 	date := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), roundedMinute, 0, 0, time.UTC)
+
+	// Prepare the MetricEvent for the main metric
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
@@ -235,15 +246,18 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		ValueNeg:         toRemove,
 		Date:             date,
 	}
-	_, err = tx.NamedExec(
+
+	// Insert or update the MetricEvent in metricevents table for the main metric
+	_, err = tx.Exec(
 		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
-    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
-    ON CONFLICT (metricid, date)
-    DO UPDATE SET 
-    valuepos = metricevents.valuepos + EXCLUDED.valuepos,
-    valueneg = metricevents.valueneg + EXCLUDED.valueneg,
-    relativetotalpos = EXCLUDED.relativetotalpos,
-    relativetotalneg = EXCLUDED.relativetotalneg`,
+        VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
+        ON CONFLICT (metricid, date)
+        DO UPDATE SET 
+        valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+        valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+        relativetotalpos = EXCLUDED.relativetotalpos,
+        relativetotalneg = EXCLUDED.relativetotalneg
+       `,
 		event,
 	)
 	if err != nil {
@@ -251,7 +265,55 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-	// Commit the transaction
+	// Collect filter metrics that need to be inserted or updated
+
+	// Bulk insert or update filter metrics
+	for key, value := range *filters {
+		var filtertotalPos, filtertotalNeg int64
+		var filterId uuid.UUID
+		err = tx.QueryRowx(`
+			INSERT INTO metrics (appid, parentmetricid, name, filtercategory, type)
+			VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT (parentmetricid, name, filtercategory)
+			DO UPDATE 
+				SET totalpos = metrics.totalpos + $6,
+					totalneg = metrics.totalneg + $7
+      RETURN id, totalpos, totalneg
+		`, appid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
+		}
+
+		filterEvent := types.MetricEvent{
+			RelativeTotalPos: filtertotalPos,
+			RelativeTotalNeg: filtertotalNeg,
+			MetricId:         filterId,
+			ValuePos:         toAdd,
+			ValueNeg:         toRemove,
+			Date:             date,
+		}
+
+		// Insert or update MetricEvent for the filter
+		_, err = tx.Exec(
+			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
+			VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
+			ON CONFLICT (metricid, date)
+			DO UPDATE SET 
+			valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+			valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+			relativetotalpos = EXCLUDED.relativetotalpos,
+			relativetotalneg = EXCLUDED.relativetotalneg
+			`,
+			filterEvent,
+		)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to insert filter metric event: %v", err), 0
+		}
+
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %v", err), 0

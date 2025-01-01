@@ -156,7 +156,8 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Value int `json:"value"`
+		Value   int               `json:"value"`
+		Filters map[string]string `json:"filters"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -229,7 +230,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg); err != nil {
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg, &request.Filters); err != nil {
 		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
