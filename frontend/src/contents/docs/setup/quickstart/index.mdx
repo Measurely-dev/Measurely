@@ -65,7 +65,7 @@ export const updateMetric = async (API_KEY, METRIC_ID, value) => {
     {
       method: 'POST',
       headers: {
-        'Content-Type': 'project/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ value: value }),
     },
@@ -88,7 +88,7 @@ export const updateMetric = async (
     {
       method: 'POST',
       headers: {
-        'Content-Type': 'project/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ value: value }),
     },

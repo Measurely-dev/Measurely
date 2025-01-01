@@ -56,7 +56,7 @@ export default function DashboardContentLayout({
     }
 
     if (projectsLoading) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/applications', {
+      fetch(process.env.NEXT_PUBLIC_API_URL + '/projects', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -84,10 +84,16 @@ export default function DashboardContentLayout({
           );
           if (savedActiveProject > json.length - 1 || savedActiveProject < 0) {
             savedActiveProject = 0;
-            localStorage.setItem('activeProject', savedActiveProject.toString());
+            localStorage.setItem(
+              'activeProject',
+              savedActiveProject.toString(),
+            );
           }
           for (let i = 0; i < json.length; i++) {
-            if (i === savedActiveProject && json.length >= savedActiveProject + 1) {
+            if (
+              i === savedActiveProject &&
+              json.length >= savedActiveProject + 1
+            ) {
               json[i].metrics = await loadMetrics(json[savedActiveProject].id);
             } else {
               json[i].metrics = null;

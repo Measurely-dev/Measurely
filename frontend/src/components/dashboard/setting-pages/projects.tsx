@@ -59,7 +59,7 @@ export default function SettingProjectPage() {
       },
     });
     if (isConfirmed) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/application`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/project`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

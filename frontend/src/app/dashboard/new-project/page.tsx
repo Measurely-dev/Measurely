@@ -33,7 +33,7 @@ export default function NewProject() {
       return;
     }
 
-    fetch(process.env.NEXT_PUBLIC_API_URL + '/application', {
+    fetch(process.env.NEXT_PUBLIC_API_URL + '/project', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

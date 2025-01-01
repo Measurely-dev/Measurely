@@ -57,8 +57,33 @@ func migrate(db *sqlx.DB) error {
 		}
 	}
 
+	// Sort migration files to ensure they run in order
 	sort.Strings(migrationFiles)
+
+	// Retrieve already applied migrations from the database
+
+	appliedMigrations := make(map[string]bool)
+	rows, err := db.Query("SELECT filename FROM migrations")
+	if err == nil {
+		defer rows.Close()
+
+		for rows.Next() {
+			var filename string
+			if err := rows.Scan(&filename); err != nil {
+				log.Println("Error scanning migration row:", err)
+				return err
+			}
+			appliedMigrations[filename] = true
+		}
+	}
+
+	// Run only new migrations
 	for _, migrationFile := range migrationFiles {
+		if appliedMigrations[filepath.Base(migrationFile)] {
+			fmt.Printf("Skipping already applied migration: %s\n", migrationFile)
+			continue
+		}
+
 		b, err := os.ReadFile(migrationFile)
 		if err != nil {
 			return err
@@ -68,6 +93,14 @@ func migrate(db *sqlx.DB) error {
 			log.Printf("Error running migration %s: %v\n", migrationFile, err)
 			return err
 		}
+
+		// Record the applied migration in the database
+		_, err = db.Exec("INSERT INTO migrations (filename) VALUES ($1)", filepath.Base(migrationFile))
+		if err != nil {
+			log.Printf("Error recording migration %s: %v\n", migrationFile, err)
+			return err
+		}
+
 		fmt.Printf("Successfully ran migration: %s\n", migrationFile)
 	}
 
@@ -351,9 +384,9 @@ func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 		}
 
 		if metric.ParentMetricId.Valid {
-      if metricsMap[metric.ParentMetricId.V] == nil {
-        metricsMap[metric.ParentMetricId.V] = make(map[string][]types.Metric)
-      }
+			if metricsMap[metric.ParentMetricId.V] == nil {
+				metricsMap[metric.ParentMetricId.V] = make(map[string][]types.Metric)
+			}
 			metricsMap[metric.ParentMetricId.V][metric.FilterCategory] = append(metricsMap[metric.ParentMetricId.V][metric.FilterCategory], metric)
 		} else {
 			metrics = append(metrics, metric)

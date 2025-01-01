@@ -280,7 +280,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 
 	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
 	if err != nil {
-		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
@@ -301,7 +301,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		usenext = true
 	}
 
-	// Get the application
+	// Get the project
 	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -375,7 +375,7 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 
 	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
 	if err != nil {
-		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
@@ -391,7 +391,7 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
+	// Get the project
 	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)

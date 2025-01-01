@@ -1117,7 +1117,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9_ ]+$`, request.Name)
 	if reerr != nil {
-		http.Error(w, "Invalid application name format", http.StatusBadRequest)
+		http.Error(w, "Invalid project name format", http.StatusBadRequest)
 		return
 	}
 	if !match {
@@ -1147,8 +1147,8 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 	if plan.AppLimit >= 0 {
 		count, cerr := s.db.GetProjectCountByUser(token.Id)
 		if cerr != nil {
-			log.Println("Error retrieving application count:", cerr)
-			http.Error(w, "Error checking application count, please try again later", http.StatusInternalServerError)
+			log.Println("Error retrieving project count:", cerr)
+			http.Error(w, "Error checking project count, please try again later", http.StatusInternalServerError)
 			return
 		}
 
@@ -1183,14 +1183,14 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		UserId: token.Id,
 	})
 	if err != nil {
-		log.Println("Error creating application:", err)
-		http.Error(w, "Failed to create application", http.StatusInternalServerError)
+		log.Println("Error creating project:", err)
+		http.Error(w, "Failed to create project", http.StatusInternalServerError)
 		return
 	}
 
 	bytes, jerr := json.Marshal(newApp)
 	if jerr != nil {
-		http.Error(w, "Failed to marshal application data", http.StatusInternalServerError)
+		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
 		return
 	}
 
@@ -1218,10 +1218,10 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch the application from the database
+	// Fetch the project from the database
 	_, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
-		log.Println("Error fetching application:", err)
+		log.Println("Error fetching project:", err)
 		http.Error(w, "Project does not exist.", http.StatusNotFound)
 		return
 	}
@@ -1253,9 +1253,9 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update the application with the new API key
+	// Update the project with the new API key
 	if err := s.db.UpdateProjectApiKey(request.ProjectId, token.Id, apiKey); err != nil {
-		log.Println("Error updating application API key:", err)
+		log.Println("Error updating project API key:", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -1283,10 +1283,10 @@ func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Delete the application
+	// Delete the project
 	if err := s.db.DeleteProject(request.ProjectId, token.Id); err != nil {
-		log.Println("Error deleting application:", err)
-		http.Error(w, "Failed to delete application", http.StatusInternalServerError)
+		log.Println("Error deleting project:", err)
+		http.Error(w, "Failed to delete project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1317,8 +1317,8 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
-			log.Println("Error updating application name:", err)
-			http.Error(w, "Failed to update application name", http.StatusInternalServerError)
+			log.Println("Error updating project name:", err)
+			http.Error(w, "Failed to update project name", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -1399,11 +1399,11 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
+	// Get the project
 	_, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1504,11 +1504,11 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
+	// Get the project
 	app, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1546,14 +1546,14 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get application
+	// Get project
 	_, err := s.db.GetProject(projectid, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1608,8 +1608,8 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 

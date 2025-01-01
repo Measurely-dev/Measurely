@@ -37,7 +37,7 @@ func (s *Service) UploadProjectImage(w http.ResponseWriter, r *http.Request) {
 	project, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Application not found", http.StatusNotFound)
+			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
 			log.Println("Error fetching project:", err)
 			http.Error(w, "Internal error", http.StatusInternalServerError)

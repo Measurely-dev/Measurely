@@ -103,6 +103,11 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
     Content TEXT NOT NULL
 );
 
+-- Create Migrations table 
+CREATE TABLE IF NOT EXISTS Migrations (
+  Filename TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_users_email ON Users(Email);
 CREATE INDEX IF NOT EXISTS idx_emailchange_userid ON EmailChange(UserId);  
 CREATE INDEX IF NOT EXISTS idx_accountrecovery_userid ON AccountRecovery(UserId);  
