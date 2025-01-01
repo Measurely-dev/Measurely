@@ -43,7 +43,7 @@ export default function Footer(props: {
 
       <div className='mt-24 flex w-full max-w-[1100px] items-center justify-between text-sm text-[#666666] max-md:mt-16 max-sm:mt-6'>
         <div>
-          © 2024 <span className='max-md:hidden'>Measurely-dev</span>
+          © 2025 <span className='max-md:hidden'>Measurely-dev</span>
         </div>
         <Link href={'/register'}>
           <WebButton>Get started</WebButton>
