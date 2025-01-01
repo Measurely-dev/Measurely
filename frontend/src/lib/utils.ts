@@ -81,7 +81,6 @@ export function advanceSearch(query: string) {
   ).flat();
 }
 
-// Thursday, May 23, 2024
 export function formatDate(dateStr: string): string {
   const [day, month, year] = dateStr.split('-').map(Number);
   const date = new Date(year, month - 1, day);
@@ -96,7 +95,6 @@ export function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', options);
 }
 
-//  May 23, 2024
 export function formatDate2(dateStr: string): string {
   const [day, month, year] = dateStr.split('-').map(Number);
   const date = new Date(year, month - 1, day);
