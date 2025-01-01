@@ -7,7 +7,7 @@ import FeedbackPopover from '../feedback-popover';
 import AvatarDropdown from './dropdown';
 import Link from 'next/link';
 import { useContext } from 'react';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import ApiDialog from '../api-dialog';
 import { DrawerMenu } from './drawer-menu';
 import LogoSvg from '@/components/global/logo-svg';
@@ -16,7 +16,7 @@ import ProjectsChip from './projects';
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
-  const { projects, activeProject } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
 
   return (
     <div className='absolute top-[0px] z-[30] flex h-[65px] w-full flex-row justify-between border-b border-accent bg-background pr-[15px] pt-[15px] max-md:fixed max-md:left-0 max-md:px-5'>
@@ -28,7 +28,7 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ProjectsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog appId={projects[activeProject]?.id ?? ''}>
+            <ApiDialog projectid={projects[activeProject]?.id ?? ''}>
               <Button
                 size={'sm'}
                 variant={'secondary'}

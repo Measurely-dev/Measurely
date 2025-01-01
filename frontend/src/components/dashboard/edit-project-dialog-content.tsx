@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AppsContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { Project } from '@/types';
 import { MAXFILESIZE } from '@/utils';
 import { ImageIcon } from 'lucide-react';
@@ -17,18 +17,18 @@ import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function EditAppDialogContent(props: {
-  app: Project | null;
+  project: Project | null;
 }) {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
   const [file, setFile] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
 
-  const { projects, setProjects } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(ProjectsContext);
 
   async function updateProject() {
-    if (name !== '' && name !== props.app?.name) {
-      await fetch(process.env.NEXT_PUBLIC_API_URL + '/app-name', {
+    if (name !== '' && name !== props.project?.name) {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + '/project-name', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export default function EditAppDialogContent(props: {
         credentials: 'include',
         body: JSON.stringify({
           new_name: name,
-          app_id: props.app?.id,
+          projectid: props.project?.id,
         }),
       }).then((res) => {
         if (!res.ok) {
@@ -46,10 +46,10 @@ export default function EditAppDialogContent(props: {
         } else {
           toast.success('Successfully updated the project name');
           setProjects(
-            projects?.map((app) =>
-              app.id === props.app?.id
-                ? Object.assign({}, app, { name: name })
-                : app,
+            projects?.map((proj) =>
+              proj.id === props.project?.id
+                ? Object.assign({}, proj, { name: name })
+                : proj,
             ) ?? [],
           );
         }
@@ -61,7 +61,7 @@ export default function EditAppDialogContent(props: {
       formData.append('file', file);
 
       await fetch(
-        process.env.NEXT_PUBLIC_API_URL + '/app-image/' + props.app?.id,
+        process.env.NEXT_PUBLIC_API_URL + '/project-image/' + props.project?.id,
         {
           method: 'POST',
           credentials: 'include',
@@ -81,12 +81,12 @@ export default function EditAppDialogContent(props: {
         .then((url) => {
           if (url === undefined) return;
           setProjects(
-            projects?.map((app) =>
-              app.id === props.app?.id
-                ? Object.assign({}, app, {
+            projects?.map((proj) =>
+              proj.id === props.project?.id
+                ? Object.assign({}, proj, {
                     image: url,
                   })
-                : app,
+                : proj,
             ) ?? [],
           );
         });
@@ -94,10 +94,10 @@ export default function EditAppDialogContent(props: {
   }
 
   useEffect(() => {
-    setName(props.app?.name ?? '');
+    setName(props.project?.name ?? '');
     setFile(null);
     setReader(null);
-  }, [props.app]);
+  }, [props.project]);
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
@@ -127,7 +127,7 @@ export default function EditAppDialogContent(props: {
             <Label className='relative h-full w-full cursor-pointer'>
               <AvatarImage
                 className='rounded-[16px]'
-                src={reader === null ? props.app?.image : reader}
+                src={reader === null ? props.project?.image : reader}
                 alt='Project image'
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>
@@ -187,7 +187,7 @@ export default function EditAppDialogContent(props: {
             loading={loading}
             disabled={
               loading ||
-              ((name === '' || name === props.app?.name) && file === null)
+              ((name === '' || name === props.project?.name) && file === null)
             }
           >
             Update

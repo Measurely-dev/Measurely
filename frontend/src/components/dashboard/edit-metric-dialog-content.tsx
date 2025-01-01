@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AppsContext } from '@/dash-context';
-import { Metric, MetricType } from '@/types';
+import { ProjectsContext } from '@/dash-context';
+import { Metric, MetricType, Project } from '@/types';
 import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -23,7 +23,7 @@ export default function EditMetricDialogContent(props: {
   const [posName, setPosName] = useState<string>(props.metric?.namepos ?? '');
   const [negName, setNegName] = useState<string>(props.metric?.nameneg ?? '');
   const [loading, setLoading] = useState<boolean>(false);
-  const { projects, setProjects } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(ProjectsContext);
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
@@ -66,7 +66,7 @@ export default function EditMetricDialogContent(props: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                appid: props.metric?.appid,
+                projectid: props.metric?.projectid,
                 metricid: props.metric?.id,
                 name: name,
                 namepos: posName,
@@ -86,8 +86,8 @@ export default function EditMetricDialogContent(props: {
 
           if (projects !== null) {
             setProjects(
-              projects.map((v) =>
-                v.id === props.metric?.appid
+              projects.map((v: Project) =>
+                v.id === props.metric?.projectid
                   ? Object.assign({}, v, {
                       metrics: v.metrics?.map((m) =>
                         m.id === props.metric?.id

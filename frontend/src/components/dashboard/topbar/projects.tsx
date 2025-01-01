@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { loadMetrics } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -18,7 +18,7 @@ export default function ProjectsChip() {
   const [open, setOpen] = useState(false);
   const { user } = useContext(UserContext);
   const { projects, activeProject, setActiveProject, setProjects } =
-    useContext(AppsContext);
+    useContext(ProjectsContext);
 
   const projectsLimitReached = useMemo(() => {
     return projects.length > user.plan.applimit;
@@ -36,8 +36,8 @@ export default function ProjectsChip() {
       if (projects[index].metrics === null) {
         const metrics = await loadMetrics(projects?.[index].id ?? '');
         setProjects(
-          projects?.map((app, i) =>
-            i === index ? Object.assign({}, app, { metrics: metrics }) : app,
+          projects?.map((proj, i) =>
+            i === index ? Object.assign({}, proj, { metrics: metrics }) : proj,
           ),
         );
       }
@@ -77,8 +77,7 @@ export default function ProjectsChip() {
         align='start'
       >
         {projects.map((app, i) => {
-          const isBlocked =
-            projectsLimitReached && i > user.plan.applimit - 1;
+          const isBlocked = projectsLimitReached && i > user.plan.applimit - 1;
 
           return (
             <div

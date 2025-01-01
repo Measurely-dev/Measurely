@@ -8,12 +8,12 @@ import {
   CardTitle,
 } from '../ui/card';
 import { BarChart } from '../ui/bar-chart';
-import { AppsContext } from '@/dash-context';
 import { EmptyState } from '../ui/empty-state';
 import { ChartNetwork } from 'lucide-react';
+import { ProjectsContext } from '@/dash-context';
 
 export const TopMetricCard = () => {
-  const { projects, activeProject } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const topMetricData = useMemo(() => {
     const data = [];
 

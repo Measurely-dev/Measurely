@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import PlansDialog from '../plans-dialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
 import { Rocket } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export default function SettingPaymentPage() {
   const router = useRouter();
   const { user } = useContext(UserContext);
 
-  const { projects, activeProject } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
 
   const handleManageBilling = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

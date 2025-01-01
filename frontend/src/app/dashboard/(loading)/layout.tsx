@@ -1,6 +1,6 @@
 'use client';
 
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
@@ -19,7 +19,7 @@ export default function DashboardContentLayout({
     setActiveProject,
     projectsLoading,
     setProjectsLoading,
-  } = useContext(AppsContext);
+  } = useContext(ProjectsContext);
   const { setUser, userLoading, setUserLoading } = useContext(UserContext);
 
   const router = useRouter();

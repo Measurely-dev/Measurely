@@ -30,13 +30,13 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { AppsContext } from '@/dash-context';
 import { BoxIcon, CurlyBraces, Link2Icon, Loader } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRouter } from 'next/navigation';
+import { ProjectsContext } from '@/dash-context';
 
 export default function DashboardMetrics() {
-  const { projects, activeProject } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('total');
   const router = useRouter();

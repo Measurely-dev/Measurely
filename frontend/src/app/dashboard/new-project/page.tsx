@@ -8,7 +8,7 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
-import { AppsContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { ArrowRight, ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dispatch, useContext, useState } from 'react';
@@ -24,7 +24,7 @@ export default function NewProject() {
   const router = useRouter();
 
   const { setActiveProject, projects, setProjects } =
-    useContext(AppsContext);
+    useContext(ProjectsContext);
 
   function createApp() {
     if (name === '') {

@@ -1,11 +1,18 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useContext, useEffect, useState } from 'react';
-import { AppsContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ApiDialog from '../api-dialog';
 import Link from 'next/link';
-import { ChartNoAxesCombined, FileQuestion, Key, MoreHorizontal, Search, Trash } from 'lucide-react';
+import {
+  ChartNoAxesCombined,
+  FileQuestion,
+  Key,
+  MoreHorizontal,
+  Search,
+  Trash,
+} from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import EditAppDialogContent from '../edit-project-dialog-content';
 import { AlertDialog } from '@/components/ui/alert-dialog';
@@ -23,14 +30,14 @@ import { toast } from 'sonner';
 
 export default function SettingProjectPage() {
   const { activeProject, projects, setProjects, setActiveProject } =
-    useContext(AppsContext);
+    useContext(ProjectsContext);
   const [sortedProjects, setSortedProjects] = useState<any>([]);
-  const [selectedApp, setSelectedApp] = useState<Project>(projects[0]);
+  const [selectedProject, setSelectedProject] = useState<Project>(projects[0]);
   const confirm = useConfirm();
 
-  const DeleteApp = async (app: any) => {
+  const DeleteProject = async (project: Project) => {
     const isConfirmed = await confirm({
-      title: 'Delete ' + app?.name,
+      title: 'Delete ' + project.name,
       icon: <Trash className='size-6 text-destructive' />,
       description:
         'Are you sure you want to delete this app? You will loose all the data linked to this app forever.',
@@ -58,10 +65,10 @@ export default function SettingProjectPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ appid: app?.id }),
+        body: JSON.stringify({ projectid: project.id }),
       }).then(async (resp) => {
         if (resp.status === 200) {
-          toast.success('Successfully deleted project: ' + app?.name);
+          toast.success('Successfully deleted project: ' + project.name);
 
           if (projects?.length === 1 || projects === undefined) {
             window.location.reload();
@@ -69,12 +76,10 @@ export default function SettingProjectPage() {
           }
 
           let newActiveProject = 0;
-          if (projects?.[activeProject].id === app?.id) {
+          if (projects?.[activeProject].id === project.id) {
             newActiveProject = 0;
           } else {
-            const toRemove = projects?.findIndex(
-              (app) => app.id === app?.id,
-            );
+            const toRemove = projects?.findIndex((proj) => proj.id === project.id);
             if (toRemove === -1 || toRemove === undefined) return;
             if (toRemove < activeProject) {
               newActiveProject = activeProject - 1;
@@ -85,10 +90,10 @@ export default function SettingProjectPage() {
             if (projects[newActiveProject].metrics === null) {
               const metrics = await loadMetrics(projects[newActiveProject].id);
               setProjects(
-                projects.map((app, id) =>
+                projects.map((proj, id) =>
                   id === newActiveProject
-                    ? Object.assign({}, app, { metrics: metrics })
-                    : app,
+                    ? Object.assign({}, proj, { metrics: metrics })
+                    : proj,
                 ),
               );
             }
@@ -97,9 +102,7 @@ export default function SettingProjectPage() {
           setActiveProject(newActiveProject);
           localStorage.setItem('activeProject', newActiveProject.toString());
 
-          setProjects(
-            projects?.filter((app) => app.id !== app?.id) ?? [],
-          );
+          setProjects(projects?.filter((proj) => proj.id !== project.id) ?? []);
         } else {
           resp.text().then((text) => {
             toast.error(text);
@@ -111,12 +114,8 @@ export default function SettingProjectPage() {
   useEffect(() => {
     if (projects.length !== 0) {
       const sorted = [
-        ...projects.filter(
-          (app) => app.name === projects[activeProject]?.name,
-        ),
-        ...projects.filter(
-          (app) => app.name !== projects[activeProject]?.name,
-        ),
+        ...projects.filter((proj) => proj.name === projects[activeProject]?.name),
+        ...projects.filter((proj) => proj.name !== projects[activeProject]?.name),
       ];
       setSortedProjects(sorted);
     }
@@ -126,8 +125,12 @@ export default function SettingProjectPage() {
     <Dialog>
       <AlertDialog>
         <Link href={'/dashboard/new-project'}>
-          <Button variant={'secondary'} size={'lg'} className='mb-5 w-full py-5 rounded-[12px]'>
-            <ChartNoAxesCombined className='size-4 mr-2'/>
+          <Button
+            variant={'secondary'}
+            size={'lg'}
+            className='mb-5 w-full rounded-[12px] py-5'
+          >
+            <ChartNoAxesCombined className='mr-2 size-4' />
             Start a new project
           </Button>
         </Link>
@@ -140,28 +143,28 @@ export default function SettingProjectPage() {
             />
           ) : (
             <div className='flex flex-col divide-y'>
-              {sortedProjects.map((app: Project, i: number) => {
+              {sortedProjects.map((proj: Project, i: number) => {
                 return (
                   <div
                     key={i}
-                    className='flex items-center justify-between py-3 hover:bg-accent px-3'
+                    className='flex items-center justify-between px-3 py-3 hover:bg-accent'
                   >
                     <div className='flex flex-row items-center gap-2'>
                       <Avatar className='size-10 rounded-full border bg-accent'>
-                        <AvatarImage src={app.image} />
+                        <AvatarImage src={proj.image} />
                         <AvatarFallback>
-                          {app.name.charAt(0).toUpperCase()}
+                          {proj.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className='flex flex-col'>
                         <p className='text-sm font-medium leading-none'>
-                          {app.name.charAt(0).toUpperCase() +
-                            app.name.slice(1).toLowerCase()}
+                          {proj.name.charAt(0).toUpperCase() +
+                            proj.name.slice(1).toLowerCase()}
                         </p>
                       </div>
                     </div>
                     <div className='flex flex-row items-center gap-2'>
-                      <ApiDialog randomize appId={app.id}>
+                      <ApiDialog randomize projectid={proj.id}>
                         <Button
                           variant={'outline'}
                           size={'icon'}
@@ -183,12 +186,12 @@ export default function SettingProjectPage() {
                         <DropdownMenuContent className='mr-20'>
                           <DialogTrigger
                             className='w-full'
-                            onClick={() => setSelectedApp(app)}
+                            onClick={() => setSelectedProject(proj)}
                           >
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                           </DialogTrigger>
                           <DropdownMenuItem
-                            onClick={() => DeleteApp(app)}
+                            onClick={() => DeleteProject(proj)}
                             className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
                           >
                             Delete
@@ -202,7 +205,7 @@ export default function SettingProjectPage() {
             </div>
           )}
         </div>
-        <EditAppDialogContent app={selectedApp} />
+        <EditAppDialogContent project={selectedProject} />
       </AlertDialog>
     </Dialog>
   );

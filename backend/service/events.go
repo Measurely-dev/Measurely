@@ -32,13 +32,13 @@ func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
 			log.Println(err)
 			return false
 		}
-		app, err := s.db.GetApplicationByApi(apikey)
+		app, err := s.db.GetProjectByApi(apikey)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
 
-		if app.Id != metric.AppId {
+		if app.Id != metric.ProjectId{
 			return false
 		}
 
@@ -69,7 +69,7 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 	}
 
 	if !ok || expired {
-		app, err := s.db.GetApplicationByApi(apikey)
+		app, err := s.db.GetProjectByApi(apikey)
 		if err != nil {
 			log.Println(err)
 			return false
@@ -81,7 +81,7 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 			return false
 		}
 
-		if app.Id != metric.AppId {
+		if app.Id != metric.ProjectId {
 			return false
 		}
 
@@ -257,7 +257,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
+	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
 	if err != nil {
 		http.Error(w, "Invalid application ID", http.StatusBadRequest)
 		return
@@ -281,7 +281,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	app, err := s.db.GetApplication(appid, token.Id)
+	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -352,7 +352,7 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
+	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
 	if err != nil {
 		http.Error(w, "Invalid application ID", http.StatusBadRequest)
 		return
@@ -371,7 +371,7 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the application
-	app, err := s.db.GetApplication(appid, token.Id)
+	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return

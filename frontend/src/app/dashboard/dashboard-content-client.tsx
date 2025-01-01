@@ -1,6 +1,6 @@
 'use client';
 
-import { AppsContext, defaultUser, UserContext } from '@/dash-context';
+import { defaultUser, ProjectsContext, UserContext } from '@/dash-context';
 import { useState } from 'react';
 import { Project, User } from '@/types';
 import { ConfirmDialogProvider } from '@omit/react-confirm-dialog';
@@ -21,7 +21,7 @@ export default function DashboardContentClient({
       <UserContext.Provider
         value={{ user, setUser, userLoading, setUserLoading }}
       >
-        <AppsContext.Provider
+        <ProjectsContext.Provider
           value={{
             projects,
             setProjects,
@@ -32,7 +32,7 @@ export default function DashboardContentClient({
           }}
         >
           {children}
-        </AppsContext.Provider>
+        </ProjectsContext.Provider>
       </UserContext.Provider>
     </ConfirmDialogProvider>
   );

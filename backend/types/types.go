@@ -45,7 +45,7 @@ type UserProvider struct {
 	ProviderUserId string    `json:"provideruserid"`
 }
 
-type Application struct {
+type Project struct {
 	Id     uuid.UUID `json:"id"`
 	ApiKey string    `json:"apikey"`
 	UserId uuid.UUID `json:"userid"`
@@ -54,15 +54,15 @@ type Application struct {
 }
 
 type Metric struct {
-	Id       uuid.UUID `json:"id"`
-	AppId    uuid.UUID `json:"appid"`
-	Name     string    `json:"name"`
-	Type     int       `json:"type"`
-	TotalPos int64     `json:"totalpos"`
-	TotalNeg int64     `json:"totalneg"`
-	NamePos  string    `json:"namepos"`
-	NameNeg  string    `json:"nameneg"`
-	Created  time.Time `json:"created"`
+	Id        uuid.UUID `json:"id"`
+	ProjectId uuid.UUID `json:"projectid"`
+	Name      string    `json:"name"`
+	Type      int       `json:"type"`
+	TotalPos  int64     `json:"totalpos"`
+	TotalNeg  int64     `json:"totalneg"`
+	NamePos   string    `json:"namepos"`
+	NameNeg   string    `json:"nameneg"`
+	Created   time.Time `json:"created"`
 }
 
 type MetricEvent struct {

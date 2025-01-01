@@ -1,7 +1,7 @@
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { Metric } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
@@ -54,7 +54,7 @@ function sortByTotal(a: Metric, b: Metric): number {
 }
 
 export default function MetricTable(props: { search: string; filter: string }) {
-  const { projects, activeProject } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const { user } = useContext(UserContext);
 
   const metricsLimitReached = useMemo(() => {
@@ -133,7 +133,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { projects, setProjects } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(ProjectsContext);
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
       return '';
@@ -158,7 +158,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
 
   const load = async () => {
     const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(props.metric.appid, props.metric.id);
+      await fetchDailySummary(props.metric.projectid, props.metric.id);
     setDailyUpdate(pos - neg);
 
     if (
@@ -168,7 +168,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
     ) {
       setProjects(
         projects.map((v) =>
-          v.id === props.metric?.appid
+          v.id === props.metric?.projectid
             ? Object.assign({}, v, {
               metrics: v.metrics?.map((m) =>
                 m.id === props.metric?.id

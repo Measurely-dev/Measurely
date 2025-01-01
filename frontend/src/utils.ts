@@ -5,9 +5,9 @@ export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 10000;
 export const INTERVAL_LONG = 20000;
 
-export async function loadMetrics(appid: string): Promise<Metric[]> {
+export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + '/metrics?appid=' + appid,
+    process.env.NEXT_PUBLIC_API_URL + '/metrics?projectid=' + projectid,
     {
       method: 'GET',
       headers: {
@@ -52,7 +52,7 @@ export const loadChartData = async (
   date: Date,
   range: number,
   metric: Metric,
-  appid: string,
+  projectid: string,
   chartType: 'trend' | 'bar',
 ): Promise<any[]> => {
   const tmpData: any[] = [];
@@ -125,7 +125,7 @@ export const loadChartData = async (
     }
   }
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toISOString()}&end=${to.toISOString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&projectid=${projectid}&start=${from.toISOString()}&end=${to.toISOString()}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -230,7 +230,7 @@ export const loadChartData = async (
 };
 
 export const fetchNextEvent = async (
-  appid: string,
+  projectid: string,
   metricid: string,
   start?: Date,
 ): Promise<{
@@ -248,8 +248,7 @@ export const fetchNextEvent = async (
 
   const to = new Date(from);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
-    }&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?projectid=${projectid}&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
     {
       method: 'GET',
       credentials: 'include',
@@ -290,7 +289,7 @@ export const fetchNextEvent = async (
 };
 
 export const fetchDailySummary = async (
-  appid: string,
+  projectid: string,
   metricid: string,
 ): Promise<{
   pos: number;
@@ -311,7 +310,7 @@ export const fetchDailySummary = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
+    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${projectid
     }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',

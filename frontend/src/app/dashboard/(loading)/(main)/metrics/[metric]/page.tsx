@@ -39,7 +39,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { Metric, MetricType } from '@/types';
 import {
   calculateTrend,
@@ -170,7 +170,7 @@ const valueFormatter = (number: number) => {
 
 export default function DashboardMetricPage() {
   const router = useRouter();
-  const { projects, activeProject, setProjects } = useContext(AppsContext);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
@@ -202,7 +202,7 @@ export default function DashboardMetricPage() {
 
   const loadDailyValues = async (metric: Metric) => {
     const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(metric.appid, metric.id);
+      await fetchDailySummary(metric.projectid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
@@ -213,7 +213,7 @@ export default function DashboardMetricPage() {
     ) {
       setProjects(
         projects.map((v) =>
-          v.id === metric.appid
+          v.id === metric.projectid
             ? Object.assign({}, v, {
               metrics: v.metrics?.map((m) =>
                 m.id === metric.id
@@ -397,7 +397,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
       from,
       range,
       props.metric,
-      props.metric.appid,
+      props.metric.projectid,
       'bar',
     );
     setChartData(data);
@@ -731,7 +731,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
       totalNeg = props.metric.totalneg;
     } else {
       const { pos, neg, relativetotalpos, relativetotalneg, results } =
-        await fetchNextEvent(props.metric.appid, props.metric.id, to);
+        await fetchNextEvent(props.metric.projectid, props.metric.id, to);
 
       if (results === 0) {
         totalPos = props.metric.totalpos;
@@ -746,7 +746,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
       from,
       range,
       props.metric,
-      props.metric.appid,
+      props.metric.projectid,
       'trend',
     );
 

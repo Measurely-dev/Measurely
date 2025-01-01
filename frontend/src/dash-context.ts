@@ -26,7 +26,7 @@ export interface UserContextType {
   setUserLoading: Dispatch<React.SetStateAction<boolean>>;
 }
 
-export interface AppsContextType {
+export interface ProjectsContextType {
   projects: Project[];
   setProjects: Dispatch<React.SetStateAction<Project[]>>;
   activeProject: number;
@@ -41,7 +41,7 @@ export const UserContext = createContext<UserContextType>({
   userLoading: true,
   setUserLoading: () => {},
 });
-export const AppsContext = createContext<AppsContextType>({
+export const ProjectsContext = createContext<ProjectsContextType>({
   projects: [],
   setProjects: () => {},
   activeProject: -1,
