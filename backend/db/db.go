@@ -180,7 +180,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
 	return new_metric, err
 }
 
@@ -203,15 +203,14 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 	// Update metric totals (totalpos, totalneg)
 	var totalPos, totalNeg int64
-	var appid uuid.UUID
+	var projectid uuid.UUID
 	var metricType int
 	err = tx.QueryRowx(
-		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, appid, type",
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type",
 		toAdd, toRemove, metricid,
-	).Scan(&totalPos, &totalNeg, &appid, &metricType)
+	).Scan(&totalPos, &totalNeg, &projectid, &metricType)
 	if err != nil {
 		tx.Rollback()
-		log.Println("here")
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
 	}
 
@@ -273,14 +272,14 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		var filtertotalPos, filtertotalNeg int64
 		var filterId uuid.UUID
 		err = tx.QueryRowx(`
-			INSERT INTO metrics (appid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
+			INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (parentmetricid, name, filtercategory)
 			DO UPDATE 
 				SET totalpos = metrics.totalpos + $6,
 					totalneg = metrics.totalneg + $7
       RETURNING id, totalpos, totalneg
-		`, appid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+		`, projectid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
@@ -346,7 +345,7 @@ func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId)
 		if err != nil {
 			return nil, err
 		}
