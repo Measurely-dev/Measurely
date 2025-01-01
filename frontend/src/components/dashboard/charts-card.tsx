@@ -145,6 +145,20 @@ export function ChartsCard() {
     }
   }, [activeApp]);
 
+  useEffect(() => {
+    const metrics = applications[activeApp].metrics ?? [];
+    if (metrics.length === 0) return;
+  
+    const highestMetricIndex = metrics.reduce((maxIndex, metric, currentIndex, array) => {
+      const currentTotal = (metric.totalpos ?? 0) + (metric.totalneg ?? 0);
+      const maxTotal = (array[maxIndex].totalpos ?? 0) + (array[maxIndex].totalneg ?? 0);
+      return currentTotal > maxTotal ? currentIndex : maxIndex;
+    }, 0);
+  
+    setActiveMetric(highestMetricIndex);
+  }, [activeApp, applications]);
+  
+
   return (
     <Card className='mb-20 rounded-t-none border-input'>
       <MetricStats
