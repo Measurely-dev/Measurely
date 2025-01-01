@@ -41,6 +41,10 @@ next-env.d.ts
 # ds store
 .DS.Store
 
+# sitemap
+frontend/public/sitemap.xml
+frontend/public/robot.txt
+
 dump.rdb
 
 todo.md

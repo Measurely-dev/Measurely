@@ -15,7 +15,7 @@ Follow these steps to get started with Measurely:
 Create an account on our platform and receive your unique API key.  
 
 ### 2. Connect Your Metrics  
-Use our API documentation to integrate Measurely into your application.  
+Use our API documentation to integrate Measurely into your project.  
 
 ### 3. Monitor Your Data  
 Log in to the dashboard to view and analyze your metrics in real-time.  

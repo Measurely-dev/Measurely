@@ -4,7 +4,6 @@ import { useContext, useEffect, useState } from 'react';
 import { AppsContext } from '@/dash-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ApiDialog from '../api-dialog';
-import { Plus } from 'react-feather';
 import Link from 'next/link';
 import { ChartNoAxesCombined, FileQuestion, Key, MoreHorizontal, Search, Trash } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
