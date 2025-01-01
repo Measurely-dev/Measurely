@@ -211,7 +211,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	).Scan(&totalPos, &totalNeg, &appid, &metricType)
 	if err != nil {
 		tx.Rollback()
-    log.Println("here")
+		log.Println("here")
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
 	}
 
@@ -273,13 +273,13 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		var filtertotalPos, filtertotalNeg int64
 		var filterId uuid.UUID
 		err = tx.QueryRowx(`
-			INSERT INTO metrics (appid, parentmetricid, name, filtercategory, type)
-			VALUES ($1, $2, $3, $4, $5)
+			INSERT INTO metrics (appid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (parentmetricid, name, filtercategory)
 			DO UPDATE 
 				SET totalpos = metrics.totalpos + $6,
 					totalneg = metrics.totalneg + $7
-      RETURN id, totalpos, totalneg
+      RETURNING id, totalpos, totalneg
 		`, appid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
 		if err != nil {
 			tx.Rollback()
@@ -296,7 +296,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		}
 
 		// Insert or update MetricEvent for the filter
-		_, err = tx.Exec(
+		_, err = tx.NamedExec(
 			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
 			VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
 			ON CONFLICT (metricid, date)
@@ -337,17 +337,30 @@ func (db *DB) UpdateMetric(id uuid.UUID, appid uuid.UUID, name string, namepos s
 func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE appid = $1", appid)
 	if err != nil {
-		return []types.Metric{}, err
+		return nil, err
 	}
 	defer rows.Close()
+
+	metricsMap := make(map[uuid.UUID]map[string][]types.Metric)
 	var metrics []types.Metric
+
 	for rows.Next() {
 		var metric types.Metric
 		err := rows.Scan(&metric.Id, &metric.AppId, &metric.FilterCategory, &metric.ParentMetricId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
 		if err != nil {
-			return []types.Metric{}, err
+			return nil, err
 		}
-		metrics = append(metrics, metric)
+
+		if metric.ParentMetricId.Valid {
+			metricsMap[metric.ParentMetricId.V][metric.FilterCategory] = append(metricsMap[metric.ParentMetricId.V][metric.FilterCategory], metric)
+		} else {
+			metrics = append(metrics, metric)
+		}
+
+	}
+
+	for i, metric := range metrics {
+		metrics[i].Filters = metricsMap[metric.Id]
 	}
 
 	return metrics, nil

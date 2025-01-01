@@ -15,6 +15,9 @@ export interface Metric {
   totalneg: number;
   namepos: string;
   nameneg: string;
+  filters: {
+    [category: string]: Metric;
+  };
   created: Date;
 }
 

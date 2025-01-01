@@ -55,17 +55,18 @@ type Application struct {
 }
 
 type Metric struct {
-	Id             uuid.UUID           `json:"id"`
-	AppId          uuid.UUID           `json:"appid"`
-	FilterCategory string              `json:"filtercategory"`
-	ParentMetricId sql.Null[uuid.UUID] `json:"parentmetricid"`
-	Name           string              `json:"name"`
-	Type           int                 `json:"type"`
-	TotalPos       int64               `json:"totalpos"`
-	TotalNeg       int64               `json:"totalneg"`
-	NamePos        string              `json:"namepos"`
-	NameNeg        string              `json:"nameneg"`
-	Created        time.Time           `json:"created"`
+	Id             uuid.UUID                 `json:"id"`
+	AppId          uuid.UUID                 `json:"appid"`
+	FilterCategory string                    `json:"filtercategory"`
+	ParentMetricId sql.Null[uuid.UUID]       `json:"parentmetricid"`
+	Name           string                    `json:"name"`
+	Type           int                       `json:"type"`
+	TotalPos       int64                     `json:"totalpos"`
+	TotalNeg       int64                     `json:"totalneg"`
+	NamePos        string                    `json:"namepos"`
+	NameNeg        string                    `json:"nameneg"`
+	Filters        map[string][]Metric `json:"filters"`
+	Created        time.Time                 `json:"created"`
 }
 
 type MetricEvent struct {
