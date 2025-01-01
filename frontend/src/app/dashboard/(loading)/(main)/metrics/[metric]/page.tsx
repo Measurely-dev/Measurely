@@ -170,17 +170,17 @@ const valueFormatter = (number: number) => {
 
 export default function DashboardMetricPage() {
   const router = useRouter();
-  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  const { projects, activeProject, setProjects } = useContext(AppsContext);
   const { user } = useContext(UserContext);
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
   const [metric, setMetric] = useState(() => {
-    if (applications[activeApp]) {
-      const index = applications[activeApp].metrics?.findIndex(
+    if (projects[activeProject]) {
+      const index = projects[activeProject].metrics?.findIndex(
         (g) => g.name === metricName,
       );
       if (index !== undefined && index !== -1) {
-        const metricData = applications[activeApp].metrics?.[index];
+        const metricData = projects[activeProject].metrics?.[index];
 
         if (index > user.plan.metric_per_app_limit - 1) {
           toast.error(
@@ -211,8 +211,8 @@ export default function DashboardMetricPage() {
         metric.totalneg !== relativetotalneg) &&
       results !== 0
     ) {
-      setApplications(
-        applications.map((v) =>
+      setProjects(
+        projects.map((v) =>
           v.id === metric.appid
             ? Object.assign({}, v, {
               metrics: v.metrics?.map((m) =>

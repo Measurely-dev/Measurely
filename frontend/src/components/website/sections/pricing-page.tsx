@@ -15,11 +15,11 @@ export default function PricingCardsSection(props: {
 
   const enterpriseList = [
     <div key='1'>
-      Up to <strong className='text-black'>100</strong> applications
+      Up to <strong className='text-black'>100</strong> projects
     </div>,
     <div key='2'>
       Up to an <strong className='text-black'>unlimited</strong> amount of
-      metrics per application
+      metrics per project
     </div>,
     <div key='3'>
       Up to <strong className='text-black'>10,000</strong> updates per minute

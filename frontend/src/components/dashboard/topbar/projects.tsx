@@ -14,35 +14,35 @@ import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-export default function ApplicationsChip() {
+export default function ProjectsChip() {
   const [open, setOpen] = useState(false);
   const { user } = useContext(UserContext);
-  const { applications, activeApp, setActiveApp, setApplications } =
+  const { projects, activeProject, setActiveProject, setProjects } =
     useContext(AppsContext);
 
-  const applicationsLimitReached = useMemo(() => {
-    return applications.length > user.plan.applimit;
-  }, [applications]);
+  const projectsLimitReached = useMemo(() => {
+    return projects.length > user.plan.applimit;
+  }, [projects]);
 
   const handleAppSelect = async (index: number) => {
-    if (applicationsLimitReached && index > user.plan.applimit - 1) {
+    if (projectsLimitReached && index > user.plan.applimit - 1) {
       toast.error(
-        'You have exceeded your plan limits. Please upgrade to unlock your applications',
+        'You have exceeded your plan limits. Please upgrade to unlock your projects',
       );
       return;
     }
 
-    if (index <= applications.length - 1) {
-      if (applications[index].metrics === null) {
-        const metrics = await loadMetrics(applications?.[index].id ?? '');
-        setApplications(
-          applications?.map((app, i) =>
+    if (index <= projects.length - 1) {
+      if (projects[index].metrics === null) {
+        const metrics = await loadMetrics(projects?.[index].id ?? '');
+        setProjects(
+          projects?.map((app, i) =>
             i === index ? Object.assign({}, app, { metrics: metrics }) : app,
           ),
         );
       }
-      setActiveApp(index);
-      localStorage.setItem('activeApp', index.toString());
+      setActiveProject(index);
+      localStorage.setItem('activeProject', index.toString());
     }
 
     setOpen(false);
@@ -60,14 +60,14 @@ export default function ApplicationsChip() {
           }`}
         >
           <Avatar className='size-6 border bg-accent'>
-            <AvatarImage src={applications[activeApp].image} />
+            <AvatarImage src={projects[activeProject].image} />
             <AvatarFallback>
-              {applications[activeApp]
-                ? applications[activeApp].name.charAt(0).toUpperCase()
+              {projects[activeProject]
+                ? projects[activeProject].name.charAt(0).toUpperCase()
                 : ''}
             </AvatarFallback>
           </Avatar>
-          {applications[activeApp] ? applications[activeApp].name : ''}
+          {projects[activeProject] ? projects[activeProject].name : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>
@@ -76,9 +76,9 @@ export default function ApplicationsChip() {
         side='bottom'
         align='start'
       >
-        {applications.map((app, i) => {
+        {projects.map((app, i) => {
           const isBlocked =
-            applicationsLimitReached && i > user.plan.applimit - 1;
+            projectsLimitReached && i > user.plan.applimit - 1;
 
           return (
             <div
@@ -100,18 +100,18 @@ export default function ApplicationsChip() {
                 <div className='text-[14px] font-medium'>{app.name}</div>
               </div>
               <CheckIcon
-                className={`size-4 ${activeApp === i ? '' : 'hidden'}`}
+                className={`size-4 ${activeProject === i ? '' : 'hidden'}`}
               />
             </div>
           );
         })}
-        <Link href={'/dashboard/new-app'}>
+        <Link href={'/dashboard/new-project'}>
           <Button
             variant={'default'}
             className='mt-1 flex w-full items-center gap-1 rounded-[12px] text-[14px] font-medium'
           >
-            <PlusIcon className='size-5' />
-            New Application
+            <PlusIcon className='size-4' />
+            Create project
           </Button>
         </Link>
       </PopoverContent>

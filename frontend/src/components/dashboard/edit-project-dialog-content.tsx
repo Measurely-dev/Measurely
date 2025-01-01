@@ -10,23 +10,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AppsContext } from '@/dash-context';
-import { Application } from '@/types';
+import { Project } from '@/types';
 import { MAXFILESIZE } from '@/utils';
 import { ImageIcon } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function EditAppDialogContent(props: {
-  app: Application | null;
+  app: Project | null;
 }) {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
   const [file, setFile] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
 
-  const { applications, setApplications } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(AppsContext);
 
-  async function updateApplication() {
+  async function updateProject() {
     if (name !== '' && name !== props.app?.name) {
       await fetch(process.env.NEXT_PUBLIC_API_URL + '/app-name', {
         method: 'PATCH',
@@ -44,9 +44,9 @@ export default function EditAppDialogContent(props: {
             toast.error(text);
           });
         } else {
-          toast.success('Successfully updated the application name');
-          setApplications(
-            applications?.map((app) =>
+          toast.success('Successfully updated the project name');
+          setProjects(
+            projects?.map((app) =>
               app.id === props.app?.id
                 ? Object.assign({}, app, { name: name })
                 : app,
@@ -70,7 +70,7 @@ export default function EditAppDialogContent(props: {
       )
         .then((res) => {
           if (res.ok) {
-            toast.success('Successfully updated the application image');
+            toast.success('Successfully updated the project image');
             return res.json();
           } else {
             res.text().then((text) => {
@@ -80,8 +80,8 @@ export default function EditAppDialogContent(props: {
         })
         .then((url) => {
           if (url === undefined) return;
-          setApplications(
-            applications?.map((app) =>
+          setProjects(
+            projects?.map((app) =>
               app.id === props.app?.id
                 ? Object.assign({}, app, {
                     image: url,
@@ -102,7 +102,7 @@ export default function EditAppDialogContent(props: {
   return (
     <DialogContent className='rounded-sm shadow-sm'>
       <DialogHeader className='static'>
-        <DialogTitle>Edit application</DialogTitle>
+        <DialogTitle>Edit Project</DialogTitle>
       </DialogHeader>
       <form
         className='flex flex-col gap-4'
@@ -118,7 +118,7 @@ export default function EditAppDialogContent(props: {
             }
           }
 
-          await updateApplication();
+          await updateProject();
           setLoading(false);
         }}
       >
@@ -128,7 +128,7 @@ export default function EditAppDialogContent(props: {
               <AvatarImage
                 className='rounded-[16px]'
                 src={reader === null ? props.app?.image : reader}
-                alt='Application image'
+                alt='Project image'
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>
                 <ImageIcon className='text-secondary' />
@@ -157,9 +157,9 @@ export default function EditAppDialogContent(props: {
             </Label>
           </Avatar>
           <div className='flex w-full flex-col gap-3'>
-            <Label>Application name</Label>
+            <Label>Project name</Label>
             <Input
-              placeholder='Application Name'
+              placeholder='Project Name'
               type='text'
               className='h-11 rounded-[12px]'
               value={name}

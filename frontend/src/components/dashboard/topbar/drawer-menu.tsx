@@ -18,7 +18,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
   const pathname = usePathname();
   const { user } = useContext(UserContext);
   const router = useRouter();
-  const { applications, activeApp } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(AppsContext);
   function Capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
@@ -81,7 +81,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
           </Button>
         </Link>
         <div className='sm:hidden'>
-          <ApiDialog appId={applications?.[activeApp]?.id ?? ''}>
+          <ApiDialog appId={projects?.[activeProject]?.id ?? ''}>
             <Button
               variant={'secondary'}
               className='w-full gap-1.5 rounded-[12px]'

@@ -23,7 +23,7 @@ export default function EditMetricDialogContent(props: {
   const [posName, setPosName] = useState<string>(props.metric?.namepos ?? '');
   const [negName, setNegName] = useState<string>(props.metric?.nameneg ?? '');
   const [loading, setLoading] = useState<boolean>(false);
-  const { applications, setApplications } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(AppsContext);
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
@@ -75,7 +75,7 @@ export default function EditMetricDialogContent(props: {
               credentials: 'include',
             });
 
-            if (res.ok && applications !== null) {
+            if (res.ok && projects !== null) {
               metric = Object.assign({}, metric, {
                 name: name,
                 namepos: posName,
@@ -84,9 +84,9 @@ export default function EditMetricDialogContent(props: {
             }
           }
 
-          if (applications !== null) {
-            setApplications(
-              applications.map((v) =>
+          if (projects !== null) {
+            setProjects(
+              projects.map((v) =>
                 v.id === props.metric?.appid
                   ? Object.assign({}, v, {
                       metrics: v.metrics?.map((m) =>

@@ -1,5 +1,5 @@
 import React, { createContext, Dispatch } from 'react';
-import { Application, User } from './types';
+import { Project, User } from './types';
 
 export const defaultUser: User = {
   firstname: '',
@@ -27,12 +27,12 @@ export interface UserContextType {
 }
 
 export interface AppsContextType {
-  applications: Application[];
-  setApplications: Dispatch<React.SetStateAction<Application[]>>;
-  activeApp: number;
-  setActiveApp: Dispatch<React.SetStateAction<number>>;
-  appsLoading: boolean;
-  setAppsLoading: Dispatch<React.SetStateAction<boolean>>;
+  projects: Project[];
+  setProjects: Dispatch<React.SetStateAction<Project[]>>;
+  activeProject: number;
+  setActiveProject: Dispatch<React.SetStateAction<number>>;
+  projectsLoading: boolean;
+  setProjectsLoading: Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const UserContext = createContext<UserContextType>({
@@ -42,10 +42,10 @@ export const UserContext = createContext<UserContextType>({
   setUserLoading: () => {},
 });
 export const AppsContext = createContext<AppsContextType>({
-  applications: [],
-  setApplications: () => {},
-  activeApp: -1,
-  setActiveApp: () => {},
-  appsLoading: true,
-  setAppsLoading: () => {},
+  projects: [],
+  setProjects: () => {},
+  activeProject: -1,
+  setActiveProject: () => {},
+  projectsLoading: true,
+  setProjectsLoading: () => {},
 });

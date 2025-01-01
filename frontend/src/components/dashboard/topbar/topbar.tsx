@@ -4,9 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Code, Menu, MessageSquare, Plus, User } from 'react-feather';
 import FeedbackPopover from '../feedback-popover';
-
 import AvatarDropdown from './dropdown';
-import ApplicationsChip from './applications';
 import Link from 'next/link';
 import { useContext } from 'react';
 import { AppsContext, UserContext } from '@/dash-context';
@@ -14,10 +12,11 @@ import ApiDialog from '../api-dialog';
 import { DrawerMenu } from './drawer-menu';
 import LogoSvg from '@/components/global/logo-svg';
 import { Separator } from '@/components/ui/separator';
+import ProjectsChip from './projects';
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
-  const { applications, activeApp } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(AppsContext);
 
   return (
     <div className='absolute top-[0px] z-[30] flex h-[65px] w-full flex-row justify-between border-b border-accent bg-background pr-[15px] pt-[15px] max-md:fixed max-md:left-0 max-md:px-5'>
@@ -27,9 +26,9 @@ export default function DashboardTopbar() {
             <LogoSvg className='size-[35px]' />
           </Link>
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
-          <ApplicationsChip />
+          <ProjectsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog appId={applications[activeApp]?.id ?? ''}>
+            <ApiDialog appId={projects[activeProject]?.id ?? ''}>
               <Button
                 size={'sm'}
                 variant={'secondary'}

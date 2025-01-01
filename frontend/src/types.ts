@@ -1,4 +1,4 @@
-export interface Application {
+export interface Project {
   id: string;
   apikey: string;
   name: string;

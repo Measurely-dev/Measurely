@@ -19,7 +19,7 @@ export default function MetricDropdown(props: {
   children: any;
   metric: Metric;
 }) {
-  const { setApplications, applications } = useContext(AppsContext);
+  const { setProjects, projects } = useContext(AppsContext);
   const [open, setOpen] = useState(false);
   const confirm = useConfirm();
   const DeleteMetric = async () => {
@@ -62,10 +62,10 @@ export default function MetricDropdown(props: {
         }),
         credentials: 'include',
       }).then((res) => {
-        if (res.ok && applications !== null) {
+        if (res.ok && projects !== null) {
           toast.success('Metric succesfully deleted');
-          setApplications(
-            applications?.map((v) =>
+          setProjects(
+            projects?.map((v) =>
               v.id === props.metric.appid
                 ? Object.assign({}, v, {
                     metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
