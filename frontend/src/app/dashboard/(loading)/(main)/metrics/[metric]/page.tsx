@@ -14,6 +14,14 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
@@ -40,6 +48,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
+import { cn } from '@/lib/utils';
 import { Metric, MetricType } from '@/types';
 import {
   calculateTrend,
@@ -52,7 +61,11 @@ import { Dialog } from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpDown,
+  ArrowUpFromDot,
   Calendar,
+  Check,
+  ChevronsUpDown,
   Copy,
   Edit,
   Loader,
@@ -215,15 +228,15 @@ export default function DashboardMetricPage() {
         projects.map((v) =>
           v.id === metric.projectid
             ? Object.assign({}, v, {
-              metrics: v.metrics?.map((m) =>
-                m.id === metric.id
-                  ? Object.assign({}, m, {
-                    totalpos: relativetotalpos,
-                    totalneg: relativetotalneg,
-                  })
-                  : m,
-              ),
-            })
+                metrics: v.metrics?.map((m) =>
+                  m.id === metric.id
+                    ? Object.assign({}, m, {
+                        totalpos: relativetotalpos,
+                        totalneg: relativetotalneg,
+                      })
+                    : m,
+                ),
+              })
             : v,
         ),
       );
@@ -506,6 +519,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
             chartName='overview'
             metricId={props.metric?.id ?? ''}
             metricType={props.metric?.type ?? MetricType.Base}
+            filters={props.metric?.filters}
             chartType={overviewChartType}
             chartColor={overviewChartColor}
             dualMetricChartColor={dualMetricOverviewChartColor}
@@ -674,7 +688,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
             yAxisLabel='Total'
-            onValueChange={() => { }}
+            onValueChange={() => {}}
           />
         </div>
       )}
@@ -858,6 +872,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
             chartName='trend'
             metricId={props.metric?.id ?? ''}
             metricType={props.metric?.type ?? MetricType.Base}
+            filters={props.metric?.filters}
             chartType={trendChartType}
             chartColor={trendChartColor}
             checked={splitTrend}
@@ -1024,7 +1039,7 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
             }
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
-            onValueChange={() => { }}
+            onValueChange={() => {}}
           />
         </div>
       )}
@@ -1039,6 +1054,7 @@ function AdvancedOptions(props: {
   children: ReactNode;
   chartType: string;
   chartColor: string;
+  filters: any;
   dualMetricChartColor?: string;
   checked?: boolean;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;
@@ -1049,6 +1065,7 @@ function AdvancedOptions(props: {
   setChecked?: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isFiltersActivated, setIsFiltersActivated] = useState(false);
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
     let name = props.metricId + props.chartName;
@@ -1106,7 +1123,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1133,7 +1150,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-            (props.chartName === 'trend' && props.checked) ? (
+          (props.chartName === 'trend' && props.checked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1294,7 +1311,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-            props.metricType === MetricType.Dual ? (
+          props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
@@ -1311,6 +1328,57 @@ function AdvancedOptions(props: {
                 }}
               />
             </Label>
+          ) : (
+            <></>
+          )}
+          <Label className='flex flex-row items-center justify-between gap-4'>
+            <div className='flex flex-col gap-1'>
+              Activate filters
+              <div className='text-xs font-normal text-secondary'>
+                Change the value of the chart depending on filters
+              </div>
+            </div>
+            <Switch
+              checked={isFiltersActivated}
+              onCheckedChange={(e) => {
+                setIsFiltersActivated(e);
+              }}
+            />
+          </Label>
+          {isFiltersActivated ? (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant='outline'
+                  role='combobox'
+                  className='w-full min-w-full justify-between rounded-[12px]'
+                >
+                  Select filter(s)
+                  <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className='w-[240px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+                <Command>
+                  <CommandInput placeholder='Search filters...' />
+                  <CommandList>
+                    <CommandEmpty>No filter found.</CommandEmpty>
+                    <CommandGroup>
+                      {props.filters?.map((filter: any, i: any) => {
+                        return (
+                          <CommandItem
+                            key={i}
+                            className='truncate rounded-[10px]'
+                          >
+                            <Check className={cn('mr-2 size-4 stroke-[3px]')} />
+                            <div className='w-full truncate'>{filter.name}</div>
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           ) : (
             <></>
           )}
