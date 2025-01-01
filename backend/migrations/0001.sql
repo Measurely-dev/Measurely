@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS Applications (
 CREATE TABLE IF NOT EXISTS Metrics (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     AppId UUID NOT NULL,
-    FilterCategory TEXT NOT NULL DEFAULT "",
+    FilterCategory TEXT NOT NULL DEFAULT '',
     ParentMetricId UUID,
     Name VARCHAR(50) NOT NULL,
     Type SMALLINT NOT NULL,

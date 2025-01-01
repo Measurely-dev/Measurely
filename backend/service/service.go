@@ -1379,13 +1379,13 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	request.NamePos = strings.TrimSpace(request.NamePos)
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
-	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 ]+$`, request.Name)
-	if reerr != nil {
+	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, request.Name)
+  if reerr != nil {
 		http.Error(w, "Invalid name format: "+reerr.Error(), http.StatusBadRequest)
 		return
 	}
 	if !match {
-		http.Error(w, "Metric name can only contain letters, numbers, and spaces", http.StatusBadRequest)
+		http.Error(w, "Metric name can only contain letters, numbers, spaces, and these special characters ($, _ , - , / , & , *, ! , ~)", http.StatusBadRequest)
 		return
 	}
 

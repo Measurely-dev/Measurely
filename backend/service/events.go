@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -158,6 +159,25 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Value   int               `json:"value"`
 		Filters map[string]string `json:"filters"`
+	}
+
+	for key, value := range request.Filters {
+		match1, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, key)
+		if err != nil {
+			http.Error(w, "Invalid name format for filter category: ", http.StatusBadRequest)
+			return
+		}
+
+		match2, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, value)
+		if err != nil {
+			http.Error(w, "Invalid name format for filter name:", http.StatusBadRequest)
+			return
+		}
+		if !match1 || !match2 {
+			http.Error(w, "Metric name can only contain letters, numbers, spaces, and these special characters ($, _ , - , / , & , *, ! , ~)", http.StatusBadRequest)
+			return
+		}
+
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

@@ -180,7 +180,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
+	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
 	return new_metric, err
 }
 
@@ -342,7 +342,7 @@ func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
 	var metrics []types.Metric
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.AppId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
+		err := rows.Scan(&metric.Id, &metric.AppId, &metric.FilterCategory, &metric.ParentMetricId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
 		if err != nil {
 			return []types.Metric{}, err
 		}
