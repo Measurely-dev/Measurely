@@ -1113,7 +1113,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request.Name = strings.TrimSpace(request.Name)
+	request.Name = strings.ToLower(strings.TrimSpace(request.Name))
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9_ ]+$`, request.Name)
 	if reerr != nil {
@@ -1152,7 +1152,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if count >= plan.ProjectLimit{
+		if count >= plan.ProjectLimit {
 			http.Error(w, "Project limit reached", http.StatusForbidden)
 			return
 		}
@@ -1302,7 +1302,7 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		NewName string    `json:"new_name"`
+		NewName   string    `json:"new_name"`
 		ProjectId uuid.UUID `json:"projectid"`
 	}
 
@@ -1380,7 +1380,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, request.Name)
-  if reerr != nil {
+	if reerr != nil {
 		http.Error(w, "Invalid name format: "+reerr.Error(), http.StatusBadRequest)
 		return
 	}

@@ -279,7 +279,7 @@ function Header(props: {
             className='w-fit min-w-[200px] justify-between rounded-[12px]'
           >
             {props.metrics.length > 0
-              ? props.metrics.find((_, i) => i === props.activeMetric)?.name
+              ? props.metrics[props.activeMetric]?.name
               : 'Select metric...'}
             <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
           </Button>

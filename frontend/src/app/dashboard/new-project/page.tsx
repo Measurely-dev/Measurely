@@ -40,7 +40,7 @@ export default function NewProject() {
       },
       credentials: 'include',
       body: JSON.stringify({
-        name: name,
+        name: name.toLowerCase(),
       }),
     })
       .then((res) => {

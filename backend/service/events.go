@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -39,7 +40,7 @@ func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
 			return false
 		}
 
-		if app.Id != metric.ProjectId{
+		if app.Id != metric.ProjectId {
 			return false
 		}
 
@@ -161,7 +162,12 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 		Filters map[string]string `json:"filters"`
 	}
 
+	formattedFilters := make(map[string]string)
+
 	for key, value := range request.Filters {
+		key = strings.ToLower(strings.TrimSpace(key))
+		value = strings.ToLower(strings.TrimSpace(value))
+
 		match1, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, key)
 		if err != nil {
 			http.Error(w, "Invalid name format for filter category: ", http.StatusBadRequest)
@@ -178,6 +184,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		formattedFilters[key] = value
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -250,7 +257,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg, &request.Filters); err != nil {
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg, &formattedFilters); err != nil {
 		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return

@@ -61,8 +61,6 @@ import { Dialog } from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUpDown,
-  ArrowUpFromDot,
   Calendar,
   Check,
   ChevronsUpDown,
@@ -228,15 +226,15 @@ export default function DashboardMetricPage() {
         projects.map((v) =>
           v.id === metric.projectid
             ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === metric.id
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
+              metrics: v.metrics?.map((m) =>
+                m.id === metric.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
             : v,
         ),
       );
@@ -294,7 +292,7 @@ export default function DashboardMetricPage() {
         <div className='mt-5 flex h-full flex-col'>
           <div className='flex flex-row items-end justify-between max-sm:flex-col max-sm:items-start max-sm:gap-5'>
             <div className='flex flex-col gap-1 text-4xl font-semibold'>
-              <div className='text-lg font-normal capitalize text-muted-foreground'>
+              <div className='text-lg font-normal text-muted-foreground'>
                 {metric?.name ?? 'Unknown'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
@@ -385,6 +383,8 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
+  const [filtersChecked, setFiltersChecked] = useState(false);
+  const [activeFilterCategory, setActiveFilterCategory] = useState('');
 
   const rangeSummary = useMemo(() => {
     if (chartData === null) return 0;
@@ -519,7 +519,11 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
             chartName='overview'
             metricId={props.metric?.id ?? ''}
             metricType={props.metric?.type ?? MetricType.Base}
-            filters={props.metric?.filters}
+            filters={props.metric?.filters ?? {}}
+            filtersChecked={filtersChecked}
+            setFiltersChecked={setFiltersChecked}
+            activeFilterCategory={activeFilterCategory}
+            setActiveFilterCategory={setActiveFilterCategory}
             chartType={overviewChartType}
             chartColor={overviewChartColor}
             dualMetricChartColor={dualMetricOverviewChartColor}
@@ -688,7 +692,7 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
               `${Intl.NumberFormat('us').format(number).toString()}`
             }
             yAxisLabel='Total'
-            onValueChange={() => {}}
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -723,7 +727,9 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [splitTrend, setSplitTrend] = useState(false);
+  const [splitTrendChecked, setSplitTrendChecked] = useState(false);
+  const [filtersChecked, setFiltersChecked] = useState(false);
+  const [activeFilterCategory, setActiveFilterCategory] = useState("");
 
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
@@ -872,16 +878,20 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
             chartName='trend'
             metricId={props.metric?.id ?? ''}
             metricType={props.metric?.type ?? MetricType.Base}
-            filters={props.metric?.filters}
+            filters={props.metric?.filters ?? {}}
+            filtersChecked={filtersChecked}
+            setFiltersChecked={setFiltersChecked}
             chartType={trendChartType}
             chartColor={trendChartColor}
-            checked={splitTrend}
+            activeFilterCategory={activeFilterCategory}
+            setActiveFilterCategory={setActiveFilterCategory}
+            splitTrendChecked={splitTrendChecked}
+            setSplitTrendChecked={setSplitTrendChecked}
             setChartColor={setTrendChartColor}
             setChartType={setTrendChartType}
-            setChecked={setSplitTrend}
             dualMetricChartColor={dualTrendChartColor}
             setDualMetricChartColor={
-              splitTrend ? setDualTrendChartColor : undefined
+              splitTrendChecked ? setDualTrendChartColor : undefined
             }
           >
             <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
@@ -1032,14 +1042,18 @@ function TrendChart(props: { metric: Metric | null | undefined }) {
             index='date'
             customTooltip={customTooltip}
             colors={
-              splitTrend ? dualTrendChartConfig.colors : [trendChartColor]
+              splitTrendChecked
+                ? dualTrendChartConfig.colors
+                : [trendChartColor]
             }
             categories={
-              splitTrend ? ['Positive Trend', 'Negative Trend'] : ['Total']
+              splitTrendChecked
+                ? ['Positive Trend', 'Negative Trend']
+                : ['Total']
             }
             valueFormatter={(number: number) => valueFormatter(number)}
             yAxisLabel='Total'
-            onValueChange={() => {}}
+            onValueChange={() => { }}
           />
         </div>
       )}
@@ -1054,22 +1068,27 @@ function AdvancedOptions(props: {
   children: ReactNode;
   chartType: string;
   chartColor: string;
-  filters: any;
+  filters: {
+    [category: string]: Metric;
+  };
+  activeFilterCategory: string;
+  setActiveFilterCategory: Dispatch<SetStateAction<string>>;
   dualMetricChartColor?: string;
-  checked?: boolean;
+  filtersChecked: boolean;
+  setFiltersChecked: Dispatch<SetStateAction<boolean>>
+  splitTrendChecked?: boolean;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;
   setChartColor: Dispatch<SetStateAction<keyof ChartColors>>;
   setDualMetricChartColor?: Dispatch<
     SetStateAction<keyof DualMetricChartColors>
   >;
-  setChecked?: Dispatch<SetStateAction<boolean>>;
+  setSplitTrendChecked?: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isFiltersActivated, setIsFiltersActivated] = useState(false);
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
     let name = props.metricId + props.chartName;
-    if (props.chartName === 'trend' && props.checked) {
+    if (props.chartName === 'trend' && props.splitTrendChecked) {
       name += 'dual';
     }
     if (!settings[name]) return;
@@ -1088,12 +1107,12 @@ function AdvancedOptions(props: {
         props.setChartColor(settings[name].chartColor as keyof ChartColors);
       }
     }
-  }, [props.checked]);
+  }, [props.splitTrendChecked]);
 
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
     let name = props.metricId + props.chartName;
-    if (props.chartName === 'trend' && props.checked) {
+    if (props.chartName === 'trend' && props.splitTrendChecked) {
       name += 'dual';
     }
     if (!settings[name])
@@ -1115,7 +1134,7 @@ function AdvancedOptions(props: {
     props.chartType,
     props.chartColor,
     props.dualMetricChartColor,
-    props.checked,
+    props.splitTrendChecked,
   ]);
   return (
     <Popover open={isOpen} onOpenChange={(e) => setIsOpen(e)}>
@@ -1123,7 +1142,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1150,7 +1169,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-          (props.chartName === 'trend' && props.checked) ? (
+            (props.chartName === 'trend' && props.splitTrendChecked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1311,7 +1330,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-          props.metricType === MetricType.Dual ? (
+            props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
@@ -1320,10 +1339,10 @@ function AdvancedOptions(props: {
                 </div>
               </div>
               <Switch
-                checked={props.checked}
+                checked={props.splitTrendChecked}
                 onCheckedChange={(e) => {
-                  if (props.setChecked) {
-                    props.setChecked(e);
+                  if (props.setSplitTrendChecked) {
+                    props.setSplitTrendChecked(e);
                   }
                 }}
               />
@@ -1339,13 +1358,16 @@ function AdvancedOptions(props: {
               </div>
             </div>
             <Switch
-              checked={isFiltersActivated}
+              checked={props.filtersChecked}
               onCheckedChange={(e) => {
-                setIsFiltersActivated(e);
+                props.setFiltersChecked(e);
+                if (e === true) {
+                  props.setActiveFilterCategory(Object.keys(props.filters)[0])
+                }
               }}
             />
           </Label>
-          {isFiltersActivated ? (
+          {props.filtersChecked ? (
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -1353,7 +1375,9 @@ function AdvancedOptions(props: {
                   role='combobox'
                   className='w-full min-w-full justify-between rounded-[12px]'
                 >
-                  Select filter(s)
+                  {Object.keys(props.filters).length > 0
+                    ? props.activeFilterCategory
+                    : 'Select filter...'}
                   <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                 </Button>
               </PopoverTrigger>
@@ -1363,17 +1387,31 @@ function AdvancedOptions(props: {
                   <CommandList>
                     <CommandEmpty>No filter found.</CommandEmpty>
                     <CommandGroup>
-                      {props.filters?.map((filter: any, i: any) => {
-                        return (
-                          <CommandItem
-                            key={i}
-                            className='truncate rounded-[10px]'
-                          >
-                            <Check className={cn('mr-2 size-4 stroke-[3px]')} />
-                            <div className='w-full truncate'>{filter.name}</div>
-                          </CommandItem>
-                        );
-                      })}
+                      {Object.keys(props.filters).map(
+                        (filterCategory: string, i: number) => {
+                          return (
+                            <CommandItem
+                              key={i}
+                              className='truncate rounded-[10px]'
+                              onSelect={(value) => {
+                                props.setActiveFilterCategory(value);
+                              }}
+                            >
+                              {
+                                props.activeFilterCategory === filterCategory ?
+                                  <Check
+                                    className={cn('mr-2 size-4 stroke-[3px]')}
+                                  />
+                                  :
+                                  <></>
+                              }
+                              <div className='w-full truncate'>
+                                {filterCategory}
+                              </div>
+                            </CommandItem>
+                          );
+                        },
+                      )}
                     </CommandGroup>
                   </CommandList>
                 </Command>
