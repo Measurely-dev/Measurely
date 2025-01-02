@@ -386,79 +386,49 @@ function Chart(props: {
   const [loadingLeft, setLoadingLeft] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
   const [filtersChecked, setFiltersChecked] = useState(false);
-  const [activeFilterCategory, setActiveFilterCategory] = useState('');
+  const [activeFilter, setActiveFilter] = useState<Metric | null>(null);
   const [splitTrendChecked, setSplitTrendChecked] = useState(false);
   const [rangeSummary, setRangeSummary] = useState<{
     pos: number;
     neg: number;
   }>({ pos: 0, neg: 0 });
 
-  function mergeArraysByDate(...arrays: any[]) {
-    // Validate that arrays are of the same length
-    const length = arrays[0].length;
-    if (!arrays.every(arr => arr.length === length)) {
-      throw new Error("All arrays must have the same length.");
-    }
-
-    // Merge objects with the same index
-    return arrays[0].map((_: any, index: number) =>
-      arrays.reduce((merged, currentArray) => ({
-        ...merged,
-        ...currentArray[index],
-      }), {})
-    );
-  }
-
-
-
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
 
-    const data = await fetchChartData(
-      from,
-      range,
-      props.metric,
-      props.metric.projectid,
-      props.type,
-    );
+    let data = [];
 
-    const { pos, neg } = await loadRangeSummary(data, props.metric);
-    setRangeSummary({ pos, neg });
+    if (filtersChecked && activeFilter !== null) {
+      data = await fetchChartData(
+        from,
+        range,
+        activeFilter,
+        activeFilter.projectid,
+        props.type,
+      );
 
-    if (filtersChecked) {
-      const filters = props.metric.filters[activeFilterCategory];
-
-      const filtersData = [];
-      for (let i = 0; i < filters.length; i++) {
-        const filterData = await fetchChartData(
-          from,
-          range,
-          filters[i],
-          filters[i].projectid,
-          props.type,
-        );
-
-        if (props.type === 'trend') {
-          const { pos, neg } = await loadRangeSummary(filterData, filters[i]);
-          const trend = calculateTrend(filterData, filters[i], pos, neg);
-          filtersData.push(trend)
-        } else {
-          filtersData.push(data)
-        }
-      }
-      const merged = mergeArraysByDate(...filtersData)
-
-
-      setChartData(merged)
-    } else {
+      const { pos, neg } = await loadRangeSummary(data, props.metric);
+      setRangeSummary({ pos, neg });
       if (props.type === 'trend') {
-        const trend = calculateTrend(data, props.metric, pos, neg);
-        setChartData(trend);
-      } else {
-        setChartData(data);
+        data = calculateTrend(data, activeFilter, pos, neg);
+      }
+    } else {
+      data = await fetchChartData(
+        from,
+        range,
+        props.metric,
+        props.metric.projectid,
+        props.type,
+      );
+
+      const { pos, neg } = await loadRangeSummary(data, props.metric);
+      setRangeSummary({ pos, neg });
+      if (props.type === 'trend') {
+        data = calculateTrend(data, props.metric, pos, neg);
       }
     }
 
+    setChartData(data);
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
@@ -466,7 +436,7 @@ function Chart(props: {
 
   const loadRangeSummary = async (
     data: any[],
-    metric: Metric
+    metric: Metric,
   ): Promise<{ pos: number; neg: number }> => {
     if (props.type === 'trend') {
       let pos = 0;
@@ -474,12 +444,12 @@ function Chart(props: {
       let found = false;
       for (let i = data.length - 1; i >= 0; i--) {
         if (
-          data[i]['+' + metric.name] !== undefined &&
-          data[i]['-' + metric.name] !== undefined
+          data[i]['Positive Trend'] !== undefined &&
+          data[i]['Negative Trend'] !== undefined
         ) {
           found = true;
-          pos = data[i]['+' + metric.name];
-          neg = data[i]['-' + metric.name];
+          pos = data[i]['Positive Trend'];
+          neg = data[i]['Negative Trend'];
           break;
         }
       }
@@ -631,8 +601,8 @@ function Chart(props: {
             filters={props.metric?.filters ?? {}}
             filtersChecked={filtersChecked}
             setFiltersChecked={setFiltersChecked}
-            activeFilterCategory={activeFilterCategory}
-            setActiveFilterCategory={setActiveFilterCategory}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
             chartType={chartType}
             chartColor={chartColor}
             dualMetricChartColor={dualMetricChartColor}
@@ -776,7 +746,7 @@ function Chart(props: {
             {range === 365 ? `Summary of ${year}` : 'Summary'}
           </div>
           <div className='text-xl font-medium'>
-            {rangeSummary.pos - rangeSummary.neg > 0 ? '+' : ''}
+            {rangeSummary.pos - rangeSummary.neg > 0 && props.type === "overview" ? '+' : ''}
             {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
           </div>
 
@@ -788,23 +758,17 @@ function Chart(props: {
               index='date'
               customTooltip={customTooltip}
               colors={
-                splitTrendChecked
-                  ? dualMetricChartConfig.colors
-                  : [chartColor]
+                splitTrendChecked ? dualMetricChartConfig.colors : [chartColor]
               }
               categories={
                 splitTrendChecked
-                  ? (
-                    filtersChecked ?
-                      props.metric?.filters[activeFilterCategory].flatMap(filter => ['+' + filter.name, '-' + filter.name]) ?? []
-                      :
-                      ['+' + (props.metric?.name ?? ""), "-" + (props.metric?.name ?? "")]
-                  )
+                  ? ['Positive Trend', 'Negative Trend']
                   : (
                     filtersChecked ?
-                      props.metric?.filters[activeFilterCategory].map(filter => filter.name) ?? []
+                      [activeFilter?.name ?? '']
                       :
-                      [props.metric?.name ?? ""]
+                      [props.metric?.name ?? '']
+
                   )
               }
               valueFormatter={(number: number) => valueFormatter(number)}
@@ -826,19 +790,9 @@ function Chart(props: {
                     : [chartColor]
                 }
                 categories={
-                  filtersChecked ?
-                    (props.metric?.type === MetricType.Base
-                      ? props.metric?.filters[activeFilterCategory].map(filter => filter.name) ?? []
-                      : props.metric?.filters[activeFilterCategory].flatMap(filter => [filter.namepos, filter.nameneg]) ?? []
-                    )
-                    :
-                    (props.metric?.type === MetricType.Base
-                      ? [props.metric?.name ?? '']
-                      : [
-                        props.metric?.namepos ?? '',
-                        props.metric?.nameneg ?? '',
-                      ])
-
+                  props.metric?.type === MetricType.Base
+                    ? [props.metric?.name ?? '']
+                    : [props.metric?.namepos ?? '', props.metric?.nameneg ?? '']
                 }
                 valueFormatter={(number: number) =>
                   `${Intl.NumberFormat('us').format(number).toString()}`
@@ -848,9 +802,8 @@ function Chart(props: {
               />
             </>
           )}
-        </div >
-      )
-      }
+        </div>
+      )}
     </>
   );
 }
@@ -865,8 +818,8 @@ function AdvancedOptions(props: {
   filters: {
     [category: string]: Metric[];
   };
-  activeFilterCategory: string;
-  setActiveFilterCategory: Dispatch<SetStateAction<string>>;
+  activeFilter: Metric | null;
+  setActiveFilter: Dispatch<SetStateAction<Metric | null>>;
   dualMetricChartColor?: string;
   filtersChecked: boolean;
   setFiltersChecked: Dispatch<SetStateAction<boolean>>;
@@ -1144,29 +1097,29 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          {
-            Object.keys(props.filters).length > 0 ?
-              <Label className='flex flex-row items-center justify-between gap-4'>
-                <div className='flex flex-col gap-1'>
-                  Activate filters
-                  <div className='text-xs font-normal text-secondary'>
-                    Change the value of the chart depending on filters
-                  </div>
+          {Object.keys(props.filters).length > 0 ? (
+            <Label className='flex flex-row items-center justify-between gap-4'>
+              <div className='flex flex-col gap-1'>
+                Activate filters
+                <div className='text-xs font-normal text-secondary'>
+                  Change the value of the chart depending on filters
                 </div>
-                <Switch
-                  checked={props.filtersChecked}
-                  onCheckedChange={(e) => {
-                    props.setFiltersChecked(e);
-                    if (e === true) {
-                      props.setActiveFilterCategory(Object.keys(props.filters)[0]);
-                    }
-                  }}
-                />
-              </Label>
-
-              :
-              <></>
-          }
+              </div>
+              <Switch
+                checked={props.filtersChecked}
+                onCheckedChange={(e) => {
+                  props.setFiltersChecked(e);
+                  if (e === true) {
+                    props.setActiveFilter(
+                      props.filters[Object.keys(props.filters)[0]][0],
+                    );
+                  }
+                }}
+              />
+            </Label>
+          ) : (
+            <></>
+          )}
           {props.filtersChecked ? (
             <Popover>
               <PopoverTrigger asChild>
@@ -1175,8 +1128,8 @@ function AdvancedOptions(props: {
                   role='combobox'
                   className='w-full min-w-full justify-between rounded-[12px]'
                 >
-                  {Object.keys(props.filters).length > 0
-                    ? props.activeFilterCategory
+                  {props.activeFilter !== null
+                    ? props.activeFilter.name
                     : 'Select filter...'}
                   <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                 </Button>
@@ -1190,24 +1143,40 @@ function AdvancedOptions(props: {
                       {Object.keys(props.filters).map(
                         (filterCategory: string, i: number) => {
                           return (
-                            <CommandItem
-                              key={i}
-                              className='truncate rounded-[10px]'
-                              onSelect={(value) => {
-                                props.setActiveFilterCategory(value);
-                              }}
-                            >
-                              {props.activeFilterCategory === filterCategory ? (
-                                <Check
-                                  className={cn('mr-2 size-4 stroke-[3px]')}
-                                />
-                              ) : (
-                                <></>
-                              )}
-                              <div className='w-full truncate'>
+                            <>
+                              <div className='my-2 text-sm font-medium' key={i}>
                                 {filterCategory}
                               </div>
-                            </CommandItem>
+                              {props.filters[filterCategory].map(
+                                (filter, j) => {
+                                  return (
+                                    <CommandItem
+                                      key={j}
+                                      className='truncate rounded-[10px]'
+                                      onSelect={(value) => {
+                                        const metric = props.filters[
+                                          filterCategory
+                                        ].find((m) => m.name === value);
+                                        props.setActiveFilter(metric ?? null);
+                                      }}
+                                    >
+                                      {props.activeFilter?.id === filter.id ? (
+                                        <Check
+                                          className={cn(
+                                            'mr-2 size-4 stroke-[3px]',
+                                          )}
+                                        />
+                                      ) : (
+                                        <></>
+                                      )}
+                                      <div className='w-full truncate'>
+                                        {filter.name}
+                                      </div>
+                                    </CommandItem>
+                                  );
+                                },
+                              )}
+                            </>
                           );
                         },
                       )}

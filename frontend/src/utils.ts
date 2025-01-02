@@ -19,6 +19,22 @@ export async function loadMetrics(projectid: string): Promise<Metric[]> {
   if (res.ok) {
     const json = await res.json();
     if (json === null) return [];
+
+    for (let i = 0; i < json.length; i++) {
+      let namepos = json[i].namepos;
+      let nameneg = json[i].nameneg;
+
+      if(json[i].filters === null) continue
+      const filterCategories = Object.keys(json[i].filters);
+
+      for (let j = 0; j < filterCategories.length; j++) {
+        for (let k = 0; k < json[i].filters[filterCategories[j]].length; k++) {
+          json[i].filters[filterCategories[j]][k].namepos = namepos;
+          json[i].filters[filterCategories[j]][k].nameneg = nameneg;
+        }
+      }
+    }
+
     return json;
   }
 
@@ -182,8 +198,8 @@ export const fetchChartData = async (
               ] += json[i].valuepos;
               tmpData[j][metric.nameneg] += json[i].valueneg;
 
-              tmpData[j]['+' + metric.name] = json[i].relativetotalpos;
-              tmpData[j]['-' + metric.name] = json[i].relativetotalneg;
+              tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
+              tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
             }
           }
         }
@@ -372,30 +388,28 @@ export const calculateTrend = (
   const trend = data.map((obj) => ({ ...obj }));
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
-      trend[i]['+' + metric.name] !== undefined &&
-      trend[i]['-' + metric.name] !== undefined
+      trend[i]['Positive Trend'] !== undefined &&
+      trend[i]['Negative Trend'] !== undefined
     ) {
       totalpos =
-        trend[i]['+' + metric.name] -
+        trend[i]['Positive Trend'] -
         trend[i][
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
-      totalneg =
-        trend[i]['-' + metric.name] - (trend[i][metric.nameneg] ?? 0);
+      totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
       trend[i][metric.name] =
-        trend[i]['+' + metric.name] -
-        trend[i]['-' + metric.name];
+        trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
     } else {
       if (
         trend[i][
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
-        trend[i]['+' + metric.name] = totalpos;
+        trend[i]['Positive Trend'] = totalpos;
         trend[i][metric.name] = totalpos;
       }
       if (trend[i][metric.nameneg] !== undefined) {
-        trend[i]['-' + metric.name] = totalneg;
+        trend[i]['Negative Trend'] = totalneg;
         trend[i][metric.name] -= totalneg;
       }
     }

@@ -238,11 +238,10 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	var totalPos, totalNeg int64
 	var projectid uuid.UUID
 	var metricType int
-	var namepos, nameneg string
 	err = tx.QueryRowx(
-		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type, namepos, nameneg",
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type",
 		toAdd, toRemove, metricid,
-	).Scan(&totalPos, &totalNeg, &projectid, &metricType, &namepos, &nameneg)
+	).Scan(&totalPos, &totalNeg, &projectid, &metricType)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
@@ -306,14 +305,14 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		var filtertotalPos, filtertotalNeg int64
 		var filterId uuid.UUID
 		err = tx.QueryRowx(`
-			INSERT INTO metrics (projectid, parentmetricid, name, namepos, nameneg, filtercategory, type, totalpos, totalneg)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (parentmetricid, name, filtercategory)
 			DO UPDATE 
-				SET totalpos = metrics.totalpos + $8,
-					totalneg = metrics.totalneg + $9
+				SET totalpos = metrics.totalpos + $6,
+					totalneg = metrics.totalneg + $7
       RETURNING id, totalpos, totalneg
-		`, projectid, metricid, value, fmt.Sprintf("%s %s", namepos, value), fmt.Sprintf("%s %s", nameneg, value), key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+		`, projectid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
