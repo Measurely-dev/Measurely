@@ -92,14 +92,14 @@ Measurely.capture("metric-identifier", {
 
 ## API Reference
 
-### `Measurely.init(NEW_API_KEY: string): void`
+`Measurely.init(NEW_API_KEY: string): void`
 
 Initializes the library with the provided API key.
 
 - **Parameters:**
   - `NEW_API_KEY` (string): Your Measurely's Application API key.
 
-### `Measurely.capture(metric_identifier: string, payload: CapturePayload): Promise<CaptureResult>`
+`Measurely.capture(metric_identifier: string, payload: CapturePayload): Promise<CaptureResult>`
 
 Sends a metric payload to the Measurely API.
 
@@ -111,7 +111,7 @@ Sends a metric payload to the Measurely API.
 - **Returns:**
   - A Promise resolving to a `CaptureResult` object.
 
-#### `CapturePayload`
+`CapturePayload`
 
 ```typescript
 type CapturePayload = {
@@ -122,7 +122,7 @@ type CapturePayload = {
 };
 ```
 
-#### `CaptureResult`
+`CaptureResult`
 
 ```typescript
 type CaptureResult = {
