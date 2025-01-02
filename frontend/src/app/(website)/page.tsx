@@ -22,6 +22,8 @@ export default function Home({
       id = '3970f9cd-eb3b-40ee-b16a-24a3ffd41963';
     } else if (searchParams?.['ref'] === 'bluesky') {
       id = '54215fad-ec90-4f98-9843-3039c3f28881';
+    } else if (searchParams?.['ref'] === 'discord') {
+      id = 'a91f8bb9-21bb-41fa-a286-15c112a80c97';
     }
 
     Measurely.capture(id, {

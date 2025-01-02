@@ -4,105 +4,140 @@ description: How to interact with the Measurely API using the npm package.
 ---
 
 #
-Measurely-js is a lightweight JavaScript library for interacting with the Measurely API, enabling developers to manage and track custom metrics programmatically using JavaScript or Typescript.
+Measurely-js is a lightweight library for interacting with the Measurely API, enabling developers to manage and track custom metrics programmatically using JavaScript or TypeScript.
 
 ## Installation
 
-To use the Measurely package in your JavaScript/Node.js project, you can install it via npm:
+Install the package via npm:
 
 ```bash
 npm install measurely-js
 ```
 
+Or via yarn:
+
+```bash
+yarn add measurely-js
+```
+
 ## Usage
 
-### 1. Initialize the Measurely package
+### Initialize the Library
 
-Before you can send any metrics to Measurely, you need to initialize the package with your API key. The `init` function accepts your API key as a string and sets it for use in subsequent API calls.
+Before using any methods, initialize the library with your Measurely API key:
 
 ```javascript
-const measurely = require('measurely-js');
+import Measurely from "measurely-js";
 
-// Initialize the Measurely package with your API key
-measurely.init("YOUR_API_KEY");
+// Initialize the API key
+Measurely.init("your-api-key-here");
 ```
 
-### 2. Send a Metric (Capture)
+### Capture Metrics
 
-The `capture` function is used to send metric data to Measurely. You need to pass the metric identifier (which is a unique name or ID for the metric) and the metric value you want to track.
-
-#### Example of sending a metric
+Use the `capture` method to send metric data to the Measurely API:
 
 ```javascript
-const measurely = require('measurely-js');
-
-// Initialize the Measurely package with your API key
-measurely.init("YOUR_API_KEY");
-
-// Create a metric payload
+const metricIdentifier = "metric-identifier"; // Replace with your metric ID or metric name
 const payload = {
-  value: 42
+  value: 42, // Replace with the value you want to send
+  filters: { // Optional filters to categorize the metric
+    "environment": "production",
+    "region": "us-east-1",
+  },
 };
 
-// Capture the metric and get the result
-measurely.capture("example_metric", payload)
-  .then(result => {
-    if (result.success) {
-      console.log("Metric captured successfully!");
-    } else {
-      console.log("Error capturing metric:", result.message);
-    }
-  })
-  .catch(error => {
-    console.error("Error:", error);
-  });
+Measurely.capture(metricIdentifier, payload).then((result) => {
+  if (result.success) {
+    console.log("Metric captured successfully:", result.message);
+  } else {
+    console.error("Failed to capture metric:", result.message);
+  }
+});
 ```
 
-### 3. Error Handling
+### Response Format
 
-The `capture` function returns a promise that resolves to a `CaptureResult` object containing two fields:
+The `capture` method returns a `CaptureResult` object:
 
-- `success` (boolean): Indicates if the API call was successful.
-- `message` (string): Contains the response message from the server, which could either be a success message or an error message.
+```typescript
+type CaptureResult = {
+  success: boolean; // Indicates whether the API call was successful
+  message: string; // Contains the server response or error message
+};
+```
+
+### Example
+
+```javascript
+import Measurely from "measurely-js";
+
+// Initialize the API key
+Measurely.init("your-api-key-here");
+
+// Send a metric
+Measurely.capture("metric-identifier", {
+  value: 10,
+  filters: {
+    environment: "staging",
+  },
+}).then((result) => {
+  if (result.success) {
+    console.log("Metric captured successfully:", result.message);
+  } else {
+    console.error("Failed to capture metric:", result.message);
+  }
+});
+```
 
 ## API Reference
 
-`init(API_KEY : string) : void `
+### `Measurely.init(NEW_API_KEY: string): void`
 
-- **Description**: Initializes the Measurely package with your API key.
-- **Parameters**:
-  - `API_KEY`: The API key provided by Measurely.
-- **Returns**: None.
+Initializes the library with the provided API key.
 
-```js
-capture(metric_identifier : string, payload : CapturePayload) : Promise<CapturePayload>
+- **Parameters:**
+  - `NEW_API_KEY` (string): Your Measurely's Application API key.
+
+### `Measurely.capture(metric_identifier: string, payload: CapturePayload): Promise<CaptureResult>`
+
+Sends a metric payload to the Measurely API.
+
+- **Parameters:**
+
+  - `metric_identifier` (string): The unique identifier for the metric.
+  - `payload` (CapturePayload): The metric data to send.
+
+- **Returns:**
+  - A Promise resolving to a `CaptureResult` object.
+
+#### `CapturePayload`
+
+```typescript
+type CapturePayload = {
+  value: number; // The metric value to send
+  filters: {
+    [category: string]: string; // Optional key-value pairs to categorize the metric
+  };
+};
 ```
 
-- **Description**: Sends a metric value to Measurely for tracking.
-- **Parameters**:
-  - `metric_identifier`: The unique identifier for the metric you are capturing.
-  - `payload`: An object containing the metric value to be recorded.
-- **Returns**: A promise that resolves to a `CaptureResult` object.
+#### `CaptureResult`
 
-### Types
-
-`CaptureResult`
-
-```javascript
-{
-  success: boolean,  // Indicates if the API call was successful
-  message: string    // Contains the server's response or an error message
-}
+```typescript
+type CaptureResult = {
+  success: boolean; // Indicates whether the API call was successful
+  message: string; // Contains the server response or error message
+};
 ```
 
-- **Description**: This object represents the result of the API call to capture a metric.
-- **Fields**:
-  - `success` (boolean): Indicates if the metric capture was successful.
-  - `message` (string): Contains the server's response or an error message.
+## Example Project
+
+Check out the example project in the repository for a complete implementation.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request to improve the [library](https://github.com/measurely-dev/measurely-js).
+Contributions are welcome! Please open an issue or submit a pull request to improve the [library](https://github.com/measurely-dev/measurely-js.git).
 
 ## License
 
