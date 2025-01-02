@@ -64,6 +64,7 @@ import {
   Calendar,
   Check,
   ChevronsUpDown,
+  CircleOff,
   Copy,
   Edit,
   Loader,
@@ -768,7 +769,7 @@ function Chart(props: {
                   <Button
                     variant='outline'
                     role='combobox'
-                    className='w-[240px] justify-between rounded-[12px] border-none bg-background hover:bg-background/70'
+                    className='w-[240px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
                   >
                     {activeFilter !== null
                       ? activeFilter.name
@@ -776,29 +777,32 @@ function Chart(props: {
                     <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-[240px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+                <PopoverContent className='w-[260px] overflow-hidden rounded-[12px] border !p-0 shadow-md'>
                   <Command>
                     <CommandInput placeholder='Search filters...' />
                     <CommandList>
-                      <CommandEmpty className='flex flex-col w-full items-center justify-center py-5'>
+                      <CommandEmpty className='flex w-full flex-col items-center justify-center py-5'>
                         <div className='relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500'>
-                          <Search className='h-6 w-6 text-muted-foreground' />
+                          <CircleOff className='h-6 w-6 text-muted-foreground' />
                         </div>
-                        <h2 className='text-[13px] font-normal text-muted-foreground max-w-[80%] text-center mt-3'>
-                          No filter to show at the moment
+                        <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
+                          No filter to show at the moment.{' '}
+                          <a
+                            href='/docs/features/filters'
+                            className='cursor-pointer text-blue-500 underline'
+                          >
+                            How to create one
+                          </a>
                         </h2>
                       </CommandEmpty>
-                      <CommandGroup>
-                        {Object.keys(props.metric?.filters ?? {}).map(
-                          (filterCategory: string, i: number) => {
-                            return (
-                              <>
-                                <div
-                                  className='my-2 text-sm font-medium'
-                                  key={i}
-                                >
-                                  {filterCategory}
-                                </div>
+                      {Object.keys(props.metric?.filters ?? {}).map(
+                        (filterCategory: string, i: number) => {
+                          return (
+                            <>
+                              <CommandGroup
+                                className='p-0'
+                                heading={filterCategory}
+                              >
                                 {props.metric?.filters[filterCategory].map(
                                   (filter, j) => {
                                     return (
@@ -828,11 +832,11 @@ function Chart(props: {
                                     );
                                   },
                                 )}
-                              </>
-                            );
-                          },
-                        )}
-                      </CommandGroup>
+                              </CommandGroup>
+                            </>
+                          );
+                        },
+                      )}
                     </CommandList>
                   </Command>
                 </PopoverContent>
@@ -1188,30 +1192,6 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          {Object.keys(props.filters).length > 0 ? (
-            <Label className='flex flex-row items-center justify-between gap-4'>
-              <div className='flex flex-col gap-1'>
-                Activate filters
-                <div className='text-xs font-normal text-secondary'>
-                  Change the value of the chart depending on filters
-                </div>
-              </div>
-              <Switch
-                checked={props.filtersChecked}
-                onCheckedChange={(e) => {
-                  props.setFiltersChecked(e);
-                  if (e === true) {
-                    props.setActiveFilter(
-                      props.filters[Object.keys(props.filters)[0]][0],
-                    );
-                  }
-                }}
-              />
-            </Label>
-          ) : (
-            <></>
-          )}
-          {props.filtersChecked ? <></> : <></>}
         </div>
       </PopoverContent>
     </Popover>
