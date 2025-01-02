@@ -52,7 +52,7 @@ export const config = {
     '/sign-in',
     '/register',
     '/forgot-password',
-    '/new-app',
+    '/new-project',
     '/dashboard',
     '/dashboard/:appname*',
   ],

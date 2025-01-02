@@ -9,26 +9,26 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AppsContext } from '@/dash-context';
-import { Application } from '@/types';
+import { ProjectsContext } from '@/dash-context';
+import { Project } from '@/types';
 import { MAXFILESIZE } from '@/utils';
 import { ImageIcon } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function EditAppDialogContent(props: {
-  app: Application | null;
+  project: Project | null;
 }) {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
   const [file, setFile] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
 
-  const { applications, setApplications } = useContext(AppsContext);
+  const { projects, setProjects } = useContext(ProjectsContext);
 
-  async function updateApplication() {
-    if (name !== '' && name !== props.app?.name) {
-      await fetch(process.env.NEXT_PUBLIC_API_URL + '/app-name', {
+  async function updateProject() {
+    if (name !== '' && name !== props.project?.name) {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + '/project-name', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export default function EditAppDialogContent(props: {
         credentials: 'include',
         body: JSON.stringify({
           new_name: name,
-          app_id: props.app?.id,
+          projectid: props.project?.id,
         }),
       }).then((res) => {
         if (!res.ok) {
@@ -44,12 +44,12 @@ export default function EditAppDialogContent(props: {
             toast.error(text);
           });
         } else {
-          toast.success('Successfully updated the application name');
-          setApplications(
-            applications?.map((app) =>
-              app.id === props.app?.id
-                ? Object.assign({}, app, { name: name })
-                : app,
+          toast.success('Successfully updated the project name');
+          setProjects(
+            projects?.map((proj) =>
+              proj.id === props.project?.id
+                ? Object.assign({}, proj, { name: name })
+                : proj,
             ) ?? [],
           );
         }
@@ -61,7 +61,7 @@ export default function EditAppDialogContent(props: {
       formData.append('file', file);
 
       await fetch(
-        process.env.NEXT_PUBLIC_API_URL + '/app-image/' + props.app?.id,
+        process.env.NEXT_PUBLIC_API_URL + '/project-image/' + props.project?.id,
         {
           method: 'POST',
           credentials: 'include',
@@ -70,7 +70,7 @@ export default function EditAppDialogContent(props: {
       )
         .then((res) => {
           if (res.ok) {
-            toast.success('Successfully updated the application image');
+            toast.success('Successfully updated the project image');
             return res.json();
           } else {
             res.text().then((text) => {
@@ -80,13 +80,13 @@ export default function EditAppDialogContent(props: {
         })
         .then((url) => {
           if (url === undefined) return;
-          setApplications(
-            applications?.map((app) =>
-              app.id === props.app?.id
-                ? Object.assign({}, app, {
+          setProjects(
+            projects?.map((proj) =>
+              proj.id === props.project?.id
+                ? Object.assign({}, proj, {
                     image: url,
                   })
-                : app,
+                : proj,
             ) ?? [],
           );
         });
@@ -94,15 +94,15 @@ export default function EditAppDialogContent(props: {
   }
 
   useEffect(() => {
-    setName(props.app?.name ?? '');
+    setName(props.project?.name ?? '');
     setFile(null);
     setReader(null);
-  }, [props.app]);
+  }, [props.project]);
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
       <DialogHeader className='static'>
-        <DialogTitle>Edit application</DialogTitle>
+        <DialogTitle>Edit Project</DialogTitle>
       </DialogHeader>
       <form
         className='flex flex-col gap-4'
@@ -118,7 +118,7 @@ export default function EditAppDialogContent(props: {
             }
           }
 
-          await updateApplication();
+          await updateProject();
           setLoading(false);
         }}
       >
@@ -127,8 +127,8 @@ export default function EditAppDialogContent(props: {
             <Label className='relative h-full w-full cursor-pointer'>
               <AvatarImage
                 className='rounded-[16px]'
-                src={reader === null ? props.app?.image : reader}
-                alt='Application image'
+                src={reader === null ? props.project?.image : reader}
+                alt='Project image'
               />
               <AvatarFallback className='h-full w-full !rounded-[16px]'>
                 <ImageIcon className='text-secondary' />
@@ -157,9 +157,9 @@ export default function EditAppDialogContent(props: {
             </Label>
           </Avatar>
           <div className='flex w-full flex-col gap-3'>
-            <Label>Application name</Label>
+            <Label>Project name</Label>
             <Input
-              placeholder='Application Name'
+              placeholder='Project Name'
               type='text'
               className='h-11 rounded-[12px]'
               value={name}
@@ -187,7 +187,7 @@ export default function EditAppDialogContent(props: {
             loading={loading}
             disabled={
               loading ||
-              ((name === '' || name === props.app?.name) && file === null)
+              ((name === '' || name === props.project?.name) && file === null)
             }
           >
             Update

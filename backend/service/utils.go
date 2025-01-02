@@ -140,36 +140,36 @@ func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
 		switch identifier {
 		case "starter":
 			new_plan = &types.Plan{
-				Price:             "",
-				Identifier:        "starter",
-				Name:              "Starter",
-				AppLimit:          1,
-				MetricPerAppLimit: 5,
-				RequestLimit:      25,
-				MonthlyEventLimit: 5000,
-				Range:             30,
+				Price:                 "",
+				Identifier:            "starter",
+				Name:                  "Starter",
+				ProjectLimit:          1,
+				MetricPerProjectLimit: 5,
+				RequestLimit:          25,
+				MonthlyEventLimit:     5000,
+				Range:                 30,
 			}
 		case "plus":
 			new_plan = &types.Plan{
-				Price:             os.Getenv("PLUS_PRICE_ID"),
-				Identifier:        "plus",
-				Name:              "Plus",
-				AppLimit:          3,
-				MetricPerAppLimit: 15,
-				RequestLimit:      1000,
-				MonthlyEventLimit: 1000000,
-				Range:             365,
+				Price:                 os.Getenv("PLUS_PRICE_ID"),
+				Identifier:            "plus",
+				Name:                  "Plus",
+				ProjectLimit:          3,
+				MetricPerProjectLimit: 15,
+				RequestLimit:          1000,
+				MonthlyEventLimit:     1000000,
+				Range:                 365,
 			}
 		case "pro":
 			new_plan = &types.Plan{
-				Price:             os.Getenv("PRO_PRICE_ID"),
-				Identifier:        "pro",
-				Name:              "Pro",
-				AppLimit:          10,
-				MetricPerAppLimit: 35,
-				RequestLimit:      10000,
-				MonthlyEventLimit: 10000000,
-				Range:             365,
+				Price:                 os.Getenv("PRO_PRICE_ID"),
+				Identifier:            "pro",
+				Name:                  "Pro",
+				ProjectLimit:          10,
+				MetricPerProjectLimit: 35,
+				RequestLimit:          10000,
+				MonthlyEventLimit:     10000000,
+				Range:                 365,
 			}
 		}
 

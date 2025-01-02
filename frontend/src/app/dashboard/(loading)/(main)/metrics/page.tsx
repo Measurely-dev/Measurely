@@ -30,13 +30,13 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { AppsContext } from '@/dash-context';
 import { BoxIcon, CurlyBraces, Link2Icon, Loader } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRouter } from 'next/navigation';
+import { ProjectsContext } from '@/dash-context';
 
 export default function DashboardMetrics() {
-  const { applications, activeApp } = useContext(AppsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('total');
   const router = useRouter();
@@ -68,7 +68,7 @@ export default function DashboardMetrics() {
       </Breadcrumb>
       {/* /Breadcrumb */}
       <div className='mt-5 flex h-full flex-row gap-5'>
-        {applications[activeApp].metrics === null ? (
+        {projects[activeProject].metrics === null ? (
           <div className='flex h-[calc(100vh-50px-15px-200px)] w-full items-center justify-center'>
             <Loader className='size-5 animate-spin' />
           </div>
@@ -84,8 +84,7 @@ export default function DashboardMetrics() {
                 </Button>
               </Link>
             </div>
-
-            {applications[activeApp].metrics?.length === 0 ? (
+            {projects[activeProject].metrics?.length === 0 ? (
               <EmptyState
                 className='w-full'
                 title='No Metric Created'

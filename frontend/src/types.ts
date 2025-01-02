@@ -1,4 +1,4 @@
-export interface Application {
+export interface Project {
   id: string;
   apikey: string;
   name: string;
@@ -8,13 +8,16 @@ export interface Application {
 
 export interface Metric {
   id: string;
-  appid: string;
+  projectid: string;
   name: string;
   type: MetricType;
   totalpos: number;
   totalneg: number;
   namepos: string;
   nameneg: string;
+  filters: {
+    [category: string]: Metric[];
+  };
   created: Date;
 }
 
@@ -46,8 +49,8 @@ export interface UserProvider {
 export interface Plan {
   name: string;
   identifier: string;
-  applimit: number;
-  metric_per_app_limit: number;
+  projectlimit: number;
+  metric_per_project_limit: number;
   requestlimit: number;
   monthlyeventlimit: number;
 }

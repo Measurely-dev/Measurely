@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -32,13 +34,13 @@ func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
 			log.Println(err)
 			return false
 		}
-		app, err := s.db.GetApplicationByApi(apikey)
+		app, err := s.db.GetProjectByApi(apikey)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
 
-		if app.Id != metric.AppId {
+		if app.Id != metric.ProjectId {
 			return false
 		}
 
@@ -69,7 +71,7 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 	}
 
 	if !ok || expired {
-		app, err := s.db.GetApplicationByApi(apikey)
+		app, err := s.db.GetProjectByApi(apikey)
 		if err != nil {
 			log.Println(err)
 			return false
@@ -81,7 +83,7 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 			return false
 		}
 
-		if app.Id != metric.AppId {
+		if app.Id != metric.ProjectId {
 			return false
 		}
 
@@ -156,12 +158,38 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Value int `json:"value"`
+		Value   int               `json:"value"`
+		Filters map[string]string `json:"filters"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
+	}
+
+	formattedFilters := make(map[string]string)
+
+	for key, value := range request.Filters {
+		key = strings.ToLower(strings.TrimSpace(key))
+		value = strings.ToLower(strings.TrimSpace(value))
+
+		match1, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, key)
+		if err != nil {
+			http.Error(w, "Invalid name format for filter category: ", http.StatusBadRequest)
+			return
+		}
+
+		match2, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, value)
+		if err != nil {
+			http.Error(w, "Invalid name format for filter name:", http.StatusBadRequest)
+			return
+		}
+		if !match1 || !match2 {
+			http.Error(w, "Metric name can only contain letters, numbers, spaces, and these special characters ($, _ , - , / , & , *, ! , ~)", http.StatusBadRequest)
+			return
+		}
+
+		formattedFilters[key] = value
 	}
 
 	var value any
@@ -229,7 +257,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg); err != nil {
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg, &formattedFilters); err != nil {
 		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
@@ -257,9 +285,9 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
+	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
 	if err != nil {
-		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
@@ -280,8 +308,8 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		usenext = true
 	}
 
-	// Get the application
-	app, err := s.db.GetApplication(appid, token.Id)
+	// Get the project
+	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -352,9 +380,9 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, err := uuid.Parse(r.URL.Query().Get("appid"))
+	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
 	if err != nil {
-		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
@@ -370,8 +398,8 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
-	app, err := s.db.GetApplication(appid, token.Id)
+	// Get the project
+	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return

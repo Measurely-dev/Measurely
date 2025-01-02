@@ -37,36 +37,36 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { AppsContext } from '@/dash-context';
 import {
   calculateTrend,
   fetchDailySummary,
   INTERVAL_LONG,
-  loadChartData,
+  fetchChartData,
 } from '@/utils';
-import { Metric, MetricType } from '@/types';
+import { Metric, MetricType, Project } from '@/types';
 import MetricStats from './metric-stats';
 import { Skeleton } from '../ui/skeleton';
 import { TopMetricCard } from './top-metric-card';
 import { EmptyState } from '../ui/empty-state';
 import { useRouter } from 'next/navigation';
+import { ProjectsContext } from '@/dash-context';
 const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
 export function ChartsCard() {
-  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [activeMetric, setActiveMetric] = useState(0);
   const router = useRouter();
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const metricList = useMemo(() => {
-    return applications[activeApp].metrics
-      ? applications[activeApp].metrics.sort(
-        (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
-      )
+    return projects[activeProject].metrics
+      ? projects[activeProject].metrics.sort(
+          (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
+        )
       : null;
-  }, [activeApp, applications]);
+  }, [activeProject, projects]);
 
   const loadData = async () => {
     const metricData = metricList?.[activeMetric] ?? null;
@@ -81,11 +81,11 @@ export function ChartsCard() {
     const to = new Date(from);
     to.setDate(to.getDate() + nbrDaysInMonth);
 
-    const data = await loadChartData(
+    const data = await fetchChartData(
       from,
       nbrDaysInMonth,
       metricData,
-      metricData.appid,
+      metricData.projectid,
       'trend',
     );
 
@@ -98,27 +98,27 @@ export function ChartsCard() {
     if (!metricData) return;
 
     const { relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(metricData.appid ?? '', metricData.id ?? '');
+      await fetchDailySummary(metricData.projectid ?? '', metricData.id ?? '');
 
     if (
       (metricData.totalpos !== relativetotalpos ||
         metricData.totalneg !== relativetotalneg) &&
       results !== 0
     ) {
-      setApplications(
-        applications.map((app, i) =>
-          i === activeApp
-            ? Object.assign({}, app, {
-              metrics: metricList?.map((m, j) =>
-                j === activeMetric
-                  ? Object.assign({}, m, {
-                    totalpos: relativetotalpos,
-                    totalneg: relativetotalneg,
-                  })
-                  : m,
-              ),
-            })
-            : app,
+      setProjects(
+        projects.map((proj: Project, i: number) =>
+          i === activeProject
+            ? Object.assign({}, proj, {
+                metrics: metricList?.map((m: Metric, j: number) =>
+                  j === activeMetric
+                    ? Object.assign({}, m, {
+                        totalpos: relativetotalpos,
+                        totalneg: relativetotalneg,
+                      })
+                    : m,
+                ),
+              })
+            : proj
         ),
       );
     }
@@ -142,16 +142,16 @@ export function ChartsCard() {
 
   useEffect(() => {
     const new_index =
-      applications[activeApp].metrics === null
+      projects[activeProject].metrics === null
         ? 0
-        : applications[activeApp].metrics.length === 0
+        : projects[activeProject].metrics.length === 0
           ? 0
-          : applications[activeApp].metrics.length - 1;
+          : projects[activeProject].metrics.length - 1;
 
     if (activeMetric > new_index) {
       setActiveMetric(new_index);
     }
-  }, [activeApp]);
+  }, [activeProject]);
 
   return (
     <Card className='mb-20 rounded-t-none border-input'>
@@ -159,20 +159,20 @@ export function ChartsCard() {
         stats={[
           {
             title: 'Metric used',
-            description: 'Across this application',
-            value: applications[activeApp].metrics?.length,
+            description: 'Across this project',
+            value: projects[activeProject].metrics?.length,
           },
           {
             title: 'Number of dual metric',
-            description: 'Across this application',
-            value: applications[activeApp].metrics?.filter(
+            description: 'Across this project',
+            value: projects[activeProject].metrics?.filter(
               (m) => m.type === MetricType.Dual,
             ).length,
           },
           {
             title: 'Number of basic metric',
-            description: 'Across this application',
-            value: applications[activeApp].metrics?.filter(
+            description: 'Across this project',
+            value: projects[activeProject].metrics?.filter(
               (m) => m.type === MetricType.Base,
             ).length,
           },
@@ -183,8 +183,8 @@ export function ChartsCard() {
           },
         ]}
       />
-      {applications[activeApp].metrics !== undefined &&
-        applications[activeApp].metrics?.length! > 0 ? (
+      {projects[activeProject].metrics !== undefined &&
+      projects[activeProject].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -223,7 +223,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => { }}
+                          onValueChange={() => {}}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -264,7 +264,7 @@ function Header(props: {
         <CardTitle>
           {valueFormatter(
             props.metrics[props.activeMetric].totalpos -
-            props.metrics[props.activeMetric].totalneg,
+              props.metrics[props.activeMetric].totalneg,
           )}{' '}
           {props.metrics[props.activeMetric]?.name}
         </CardTitle>
@@ -279,7 +279,7 @@ function Header(props: {
             className='w-fit min-w-[200px] justify-between rounded-[12px]'
           >
             {props.metrics.length > 0
-              ? props.metrics.find((_, i) => i === props.activeMetric)?.name
+              ? props.metrics[props.activeMetric]?.name
               : 'Select metric...'}
             <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
           </Button>

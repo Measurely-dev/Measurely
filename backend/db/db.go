@@ -57,8 +57,33 @@ func migrate(db *sqlx.DB) error {
 		}
 	}
 
+	// Sort migration files to ensure they run in order
 	sort.Strings(migrationFiles)
+
+	// Retrieve already applied migrations from the database
+
+	appliedMigrations := make(map[string]bool)
+	rows, err := db.Query("SELECT filename FROM migrations")
+	if err == nil {
+		defer rows.Close()
+
+		for rows.Next() {
+			var filename string
+			if err := rows.Scan(&filename); err != nil {
+				log.Println("Error scanning migration row:", err)
+				return err
+			}
+			appliedMigrations[filename] = true
+		}
+	}
+
+	// Run only new migrations
 	for _, migrationFile := range migrationFiles {
+		if appliedMigrations[filepath.Base(migrationFile)] {
+			fmt.Printf("Skipping already applied migration: %s\n", migrationFile)
+			continue
+		}
+
 		b, err := os.ReadFile(migrationFile)
 		if err != nil {
 			return err
@@ -68,6 +93,14 @@ func migrate(db *sqlx.DB) error {
 			log.Printf("Error running migration %s: %v\n", migrationFile, err)
 			return err
 		}
+
+		// Record the applied migration in the database
+		_, err = db.Exec("INSERT INTO migrations (filename) VALUES ($1)", filepath.Base(migrationFile))
+		if err != nil {
+			log.Printf("Error recording migration %s: %v\n", migrationFile, err)
+			return err
+		}
+
 		fmt.Printf("Successfully ran migration: %s\n", migrationFile)
 	}
 
@@ -180,12 +213,12 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (appid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.AppId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.AppId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
 	return new_metric, err
 }
 
-func (db *DB) DeleteMetric(id uuid.UUID, appid uuid.UUID) error {
-	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND appid = $2", id, appid)
+func (db *DB) DeleteMetric(id uuid.UUID, projectid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND projectid = $2", id, projectid)
 	return err
 }
 
@@ -194,30 +227,40 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	userid uuid.UUID,
 	toAdd int,
 	toRemove int,
+	filters *map[string]string, // Accept filters as a map
 ) (error, int64) {
 	tx, err := db.Conn.Beginx()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err), 0
 	}
 
+	// Update metric totals (totalpos, totalneg)
 	var totalPos, totalNeg int64
+	var projectid uuid.UUID
+	var metricType int
+	var namepos, nameneg string
 	err = tx.QueryRowx(
-		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg",
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type, namepos, nameneg",
 		toAdd, toRemove, metricid,
-	).Scan(&totalPos, &totalNeg)
+	).Scan(&totalPos, &totalNeg, &projectid, &metricType, &namepos, &nameneg)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
 	}
 
+	// Update user's monthly event count
 	var monthlyCount int64
 	err = tx.QueryRowx("UPDATE users SET monthlyeventcount = users.monthlyeventcount + 1 WHERE id = $1 RETURNING monthlyeventcount", userid).Scan(&monthlyCount)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update user's monthly event count: %v", err), 0
+	}
 
+	// Get current time and round to the nearest 20-minute interval
 	now := time.Now().UTC().Truncate(time.Second)
 	minute := now.Minute()
 	var roundedMinute int
 
-	// Determine the rounded time
 	if minute < 20 {
 		roundedMinute = 0
 	} else if minute < 40 {
@@ -227,6 +270,8 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	}
 
 	date := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), roundedMinute, 0, 0, time.UTC)
+
+	// Prepare the MetricEvent for the main metric
 	event := types.MetricEvent{
 		RelativeTotalPos: totalPos,
 		RelativeTotalNeg: totalNeg,
@@ -235,15 +280,18 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		ValueNeg:         toRemove,
 		Date:             date,
 	}
+
+	// Insert or update the MetricEvent in metricevents table for the main metric
 	_, err = tx.NamedExec(
 		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
-    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
-    ON CONFLICT (metricid, date)
-    DO UPDATE SET 
-    valuepos = metricevents.valuepos + EXCLUDED.valuepos,
-    valueneg = metricevents.valueneg + EXCLUDED.valueneg,
-    relativetotalpos = EXCLUDED.relativetotalpos,
-    relativetotalneg = EXCLUDED.relativetotalneg`,
+        VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
+        ON CONFLICT (metricid, date)
+        DO UPDATE SET 
+        valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+        valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+        relativetotalpos = EXCLUDED.relativetotalpos,
+        relativetotalneg = EXCLUDED.relativetotalneg
+       `,
 		event,
 	)
 	if err != nil {
@@ -251,7 +299,55 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-	// Commit the transaction
+	// Collect filter metrics that need to be inserted or updated
+
+	// Bulk insert or update filter metrics
+	for key, value := range *filters {
+		var filtertotalPos, filtertotalNeg int64
+		var filterId uuid.UUID
+		err = tx.QueryRowx(`
+			INSERT INTO metrics (projectid, parentmetricid, name, namepos, nameneg, filtercategory, type, totalpos, totalneg)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			ON CONFLICT (parentmetricid, name, filtercategory)
+			DO UPDATE 
+				SET totalpos = metrics.totalpos + $8,
+					totalneg = metrics.totalneg + $9
+      RETURNING id, totalpos, totalneg
+		`, projectid, metricid, value, fmt.Sprintf("%s %s", namepos, value), fmt.Sprintf("%s %s", nameneg, value), key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
+		}
+
+		filterEvent := types.MetricEvent{
+			RelativeTotalPos: filtertotalPos,
+			RelativeTotalNeg: filtertotalNeg,
+			MetricId:         filterId,
+			ValuePos:         toAdd,
+			ValueNeg:         toRemove,
+			Date:             date,
+		}
+
+		// Insert or update MetricEvent for the filter
+		_, err = tx.NamedExec(
+			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
+			VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
+			ON CONFLICT (metricid, date)
+			DO UPDATE SET 
+			valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+			valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+			relativetotalpos = EXCLUDED.relativetotalpos,
+			relativetotalneg = EXCLUDED.relativetotalneg
+			`,
+			filterEvent,
+		)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to insert filter metric event: %v", err), 0
+		}
+
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %v", err), 0
@@ -260,39 +356,55 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	return nil, monthlyCount
 }
 
-func (db *DB) GetMetricsCount(appid uuid.UUID) (int, error) {
+func (db *DB) GetMetricsCount(projectid uuid.UUID) (int, error) {
 	var count int = 0
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE appid = $1", appid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE projectid = $1", projectid)
 	return count, err
 }
 
-func (db *DB) UpdateMetric(id uuid.UUID, appid uuid.UUID, name string, namepos string, nameneg string) error {
-	_, err := db.Conn.Exec("UPDATE metrics SET name = $1, namepos = $2, nameneg = $3 WHERE id = $4 AND appid = $5", name, namepos, nameneg, id, appid)
+func (db *DB) UpdateMetric(id uuid.UUID, projectid uuid.UUID, name string, namepos string, nameneg string) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET name = $1, namepos = $2, nameneg = $3 WHERE id = $4 AND projectid = $5", name, namepos, nameneg, id, projectid)
 	return err
 }
 
-func (db *DB) GetMetrics(appid uuid.UUID) ([]types.Metric, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE appid = $1", appid)
+func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
+	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE projectid = $1", projectid)
 	if err != nil {
-		return []types.Metric{}, err
+		return nil, err
 	}
 	defer rows.Close()
+
+	metricsMap := make(map[uuid.UUID]map[string][]types.Metric)
 	var metrics []types.Metric
+
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.AppId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId)
 		if err != nil {
-			return []types.Metric{}, err
+			return nil, err
 		}
-		metrics = append(metrics, metric)
+
+		if metric.ParentMetricId.Valid {
+			if metricsMap[metric.ParentMetricId.V] == nil {
+				metricsMap[metric.ParentMetricId.V] = make(map[string][]types.Metric)
+			}
+			metricsMap[metric.ParentMetricId.V][metric.FilterCategory] = append(metricsMap[metric.ParentMetricId.V][metric.FilterCategory], metric)
+		} else {
+			metrics = append(metrics, metric)
+		}
+
+	}
+
+	for i, metric := range metrics {
+		metrics[i].Filters = metricsMap[metric.Id]
 	}
 
 	return metrics, nil
 }
 
-func (db *DB) GetMetricByName(name string, appid uuid.UUID) (types.Metric, error) {
+func (db *DB) GetMetricByName(name string, projectid uuid.UUID) (types.Metric, error) {
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE appid = $1 AND name = $2", appid, name)
+	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE projectid = $1 AND name = $2", projectid, name)
 	return metric, err
 }
 
@@ -378,72 +490,72 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 	return events, nil
 }
 
-func (db *DB) GetApplication(id uuid.UUID, userid uuid.UUID) (types.Application, error) {
-	var app types.Application
-	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE id = $1 AND userid = $2", id, userid)
-	return app, err
+func (db *DB) GetProject(id uuid.UUID, userid uuid.UUID) (types.Project, error) {
+	var project types.Project
+	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE id = $1 AND userid = $2", id, userid)
+	return project, err
 }
 
-func (db *DB) UpdateApplicationImage(id uuid.UUID, image string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET image = $1 WHERE id = $2", image, id)
+func (db *DB) UpdateProjectImage(id uuid.UUID, image string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET image = $1 WHERE id = $2", image, id)
 	return err
 }
 
-func (db *DB) GetApplicationCountByUser(userid uuid.UUID) (int, error) {
+func (db *DB) GetProjectCountByUser(userid uuid.UUID) (int, error) {
 	var count int = 0
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM applications WHERE userid = $1", userid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM projects WHERE userid = $1", userid)
 	return count, err
 }
 
-func (db *DB) GetApplicationByApi(key string) (types.Application, error) {
-	var app types.Application
-	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE apikey = $1", key)
-	return app, err
+func (db *DB) GetProjectByApi(key string) (types.Project, error) {
+	var project types.Project
+	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE apikey = $1", key)
+	return project, err
 }
 
-func (db *DB) GetApplications(userid uuid.UUID) ([]types.Application, error) {
-	rows, err := db.Conn.Query("SELECT * FROM applications WHERE userid = $1", userid)
+func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
+	rows, err := db.Conn.Query("SELECT * FROM projects WHERE userid = $1", userid)
 	if err != nil {
-		return []types.Application{}, err
+		return []types.Project{}, err
 	}
 	defer rows.Close()
-	var apps []types.Application
+	var projects []types.Project
 	for rows.Next() {
-		var app types.Application
+		var app types.Project
 		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Image)
 		if err != nil {
-			return []types.Application{}, err
+			return []types.Project{}, err
 		}
-		apps = append(apps, app)
+		projects = append(projects, app)
 	}
 
-	return apps, nil
+	return projects, nil
 }
 
-func (db *DB) GetApplicationByName(userid uuid.UUID, name string) (types.Application, error) {
-	var app types.Application
-	err := db.Conn.Get(&app, "SELECT * FROM applications WHERE userid = $1 AND name = $2", userid, name)
+func (db *DB) GetProjectByName(userid uuid.UUID, name string) (types.Project, error) {
+	var app types.Project
+	err := db.Conn.Get(&app, "SELECT * FROM projects WHERE userid = $1 AND name = $2", userid, name)
 	return app, err
 }
 
-func (db *DB) CreateApplication(app types.Application) (types.Application, error) {
-	var new_app types.Application
-	err := db.Conn.QueryRow("INSERT INTO applications (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", app.UserId, app.ApiKey, app.Name).Scan(&new_app.Id, &new_app.ApiKey, &new_app.UserId, &new_app.Name, &new_app.Image)
-	return new_app, err
+func (db *DB) CreateProject(project types.Project) (types.Project, error) {
+	var new_project types.Project
+	err := db.Conn.QueryRow("INSERT INTO projects (userid, apikey, name) VALUES ($1, $2, $3) RETURNING *", project.UserId, project.ApiKey, project.Name).Scan(&new_project.Id, &new_project.ApiKey, &new_project.UserId, &new_project.Name, &new_project.Image)
+	return new_project, err
 }
 
-func (db *DB) UpdateApplicationApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
+func (db *DB) UpdateProjectApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
 	return err
 }
 
-func (db DB) UpdateApplicationName(id uuid.UUID, userid uuid.UUID, newname string) error {
-	_, err := db.Conn.Exec("UPDATE applications SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
+func (db DB) UpdateProjectName(id uuid.UUID, userid uuid.UUID, newname string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
 	return err
 }
 
-func (db *DB) DeleteApplication(id uuid.UUID, userid uuid.UUID) error {
-	_, err := db.Conn.Exec("DELETE FROM applications WHERE id = $1 AND userid = $2", id, userid)
+func (db *DB) DeleteProject(id uuid.UUID, userid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM projects WHERE id = $1 AND userid = $2", id, userid)
 	return err
 }
 
@@ -507,7 +619,7 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 	var plans []types.Plan
 	for rows.Next() {
 		var plan types.Plan
-		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.AppLimit, &plan.MetricPerAppLimit, &plan.RequestLimit, &plan.MonthlyEventLimit, &plan.Range)
+		err := rows.Scan(&plan.Identifier, &plan.Name, &plan.Price, &plan.ProjectLimit, &plan.MetricPerProjectLimit, &plan.RequestLimit, &plan.MonthlyEventLimit, &plan.Range)
 		if err != nil {
 			return []types.Plan{}, err
 		}
@@ -518,11 +630,11 @@ func (db *DB) GetPlans() ([]types.Plan, error) {
 }
 
 func (db *DB) CreatePlan(plan types.Plan) error {
-	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, applimit, metricperapplimit, requestlimit, monthlyeventlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", plan.Name, plan.Identifier, plan.Price, plan.AppLimit, plan.MetricPerAppLimit, plan.RequestLimit, plan.MonthlyEventLimit, plan.Range)
+	_, err := db.Conn.Exec("INSERT INTO plans (name, identifier, price, projectlimit, metricperprojectlimit, requestlimit, monthlyeventlimit, range) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", plan.Name, plan.Identifier, plan.Price, plan.ProjectLimit, plan.MetricPerProjectLimit, plan.RequestLimit, plan.MonthlyEventLimit, plan.Range)
 	return err
 }
 
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
-	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, applimit = $3, metricperapplimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.AppLimit, new_plan.MetricPerAppLimit, new_plan.Range, new_plan.RequestLimit, identifier)
+	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, project = $3, metricperprojectlimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.ProjectLimit, new_plan.MetricPerProjectLimit, new_plan.Range, new_plan.RequestLimit, identifier)
 	return err
 }

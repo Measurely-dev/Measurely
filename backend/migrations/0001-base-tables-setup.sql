@@ -57,11 +57,12 @@ CREATE TABLE IF NOT EXISTS Metrics (
     Type SMALLINT NOT NULL,
     TotalPos BIGINT NOT NULL DEFAULT 0,
     TotalNeg BIGINT NOT NULL DEFAULT 0,
-    NamePos VARCHAR(50) NOT NULL,
-    NameNeg VARCHAR(50) NOT NULL,
+    NamePos VARCHAR(50) NOT NULL DEFAULT '',
+    NameNeg VARCHAR(50) NOT NULL DEFAULT '',
     Created TIMESTAMP NOT NULL DEFAULT timezone('UTC', CURRENT_TIMESTAMP),
-    UNIQUE(Name, AppId),
-    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
+    UNIQUE(ParentMetricId, Name, FilterCategory),
+    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE,
+    FOREIGN KEY (ParentMetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
 );
 
 -- Create Metric events table
@@ -98,6 +99,11 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
     Date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Email VARCHAR(255) NOT NULL,
     Content TEXT NOT NULL
+);
+
+-- Create Migrations table 
+CREATE TABLE IF NOT EXISTS Migrations (
+  Filename TEXT NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON Users(Email);

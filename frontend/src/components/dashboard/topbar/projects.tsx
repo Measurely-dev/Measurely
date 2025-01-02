@@ -7,42 +7,42 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { loadMetrics } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-export default function ApplicationsChip() {
+export default function ProjectsChip() {
   const [open, setOpen] = useState(false);
   const { user } = useContext(UserContext);
-  const { applications, activeApp, setActiveApp, setApplications } =
-    useContext(AppsContext);
+  const { projects, activeProject, setActiveProject, setProjects } =
+    useContext(ProjectsContext);
 
-  const applicationsLimitReached = useMemo(() => {
-    return applications.length > user.plan.applimit;
-  }, [applications]);
+  const projectsLimitReached = useMemo(() => {
+    return projects.length > user.plan.projectlimit;
+  }, [projects]);
 
   const handleAppSelect = async (index: number) => {
-    if (applicationsLimitReached && index > user.plan.applimit - 1) {
+    if (projectsLimitReached && index > user.plan.projectlimit - 1) {
       toast.error(
-        'You have exceeded your plan limits. Please upgrade to unlock your applications',
+        'You have exceeded your plan limits. Please upgrade to unlock your projects',
       );
       return;
     }
 
-    if (index <= applications.length - 1) {
-      if (applications[index].metrics === null) {
-        const metrics = await loadMetrics(applications?.[index].id ?? '');
-        setApplications(
-          applications?.map((app, i) =>
-            i === index ? Object.assign({}, app, { metrics: metrics }) : app,
+    if (index <= projects.length - 1) {
+      if (projects[index].metrics === null) {
+        const metrics = await loadMetrics(projects?.[index].id ?? '');
+        setProjects(
+          projects?.map((proj, i) =>
+            i === index ? Object.assign({}, proj, { metrics: metrics }) : proj,
           ),
         );
       }
-      setActiveApp(index);
-      localStorage.setItem('activeApp', index.toString());
+      setActiveProject(index);
+      localStorage.setItem('activeProject', index.toString());
     }
 
     setOpen(false);
@@ -60,14 +60,14 @@ export default function ApplicationsChip() {
           }`}
         >
           <Avatar className='size-6 border bg-accent'>
-            <AvatarImage src={applications[activeApp].image} />
+            <AvatarImage src={projects[activeProject].image} />
             <AvatarFallback>
-              {applications[activeApp]
-                ? applications[activeApp].name.charAt(0).toUpperCase()
+              {projects[activeProject]
+                ? projects[activeProject].name.charAt(0).toUpperCase()
                 : ''}
             </AvatarFallback>
           </Avatar>
-          {applications[activeApp] ? applications[activeApp].name : ''}
+          {projects[activeProject] ? projects[activeProject].name : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
         </Button>
       </PopoverTrigger>
@@ -76,9 +76,8 @@ export default function ApplicationsChip() {
         side='bottom'
         align='start'
       >
-        {applications.map((app, i) => {
-          const isBlocked =
-            applicationsLimitReached && i > user.plan.applimit - 1;
+        {projects.map((app, i) => {
+          const isBlocked = projectsLimitReached && i > user.plan.projectlimit - 1;
 
           return (
             <div
@@ -100,18 +99,18 @@ export default function ApplicationsChip() {
                 <div className='text-[14px] font-medium'>{app.name}</div>
               </div>
               <CheckIcon
-                className={`size-4 ${activeApp === i ? '' : 'hidden'}`}
+                className={`size-4 ${activeProject === i ? '' : 'hidden'}`}
               />
             </div>
           );
         })}
-        <Link href={'/dashboard/new-app'}>
+        <Link href={'/dashboard/new-project'}>
           <Button
             variant={'default'}
             className='mt-1 flex w-full items-center gap-1 rounded-[12px] text-[14px] font-medium'
           >
-            <PlusIcon className='size-5' />
-            New Application
+            <PlusIcon className='size-4' />
+            Create project
           </Button>
         </Link>
       </PopoverContent>

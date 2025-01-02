@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { EyeClosedIcon } from '@radix-ui/react-icons';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Eye } from 'react-feather';
-import { AppsContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { Loader, Shuffle, X } from 'lucide-react';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { toast } from 'sonner';
@@ -22,18 +22,18 @@ import { toast } from 'sonner';
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
-  appId: string;
+  projectid: string;
 }) {
   const [view, setView] = useState(false);
   const [copied, setCopied] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const { applications, activeApp, setApplications } = useContext(AppsContext);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    if (applications !== null) {
-      setApiIndex(applications.findIndex((app) => app.id === props.appId));
+    if (projects !== null) {
+      setApiIndex(projects.findIndex((proj) => proj.id === props.projectid));
     }
   }, []);
   const RandomizeAPI = async () => {
@@ -66,7 +66,7 @@ export default function ApiDialog(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          appid: apiIndex !== undefined ? applications?.[apiIndex].id : '',
+          projectid: apiIndex !== undefined ? projects?.[apiIndex].id : '',
         }),
         credentials: 'include',
       })
@@ -78,10 +78,10 @@ export default function ApiDialog(props: {
           }
         })
         .then((data) => {
-          if (data !== null && data !== undefined && applications !== null) {
+          if (data !== null && data !== undefined && projects !== null) {
             toast.success('API key succesfully randomized');
-            setApplications(
-              applications?.map((v, i) =>
+            setProjects(
+              projects?.map((v, i) =>
                 i === apiIndex
                   ? Object.assign({}, v, {
                       apikey: data,
@@ -95,13 +95,13 @@ export default function ApiDialog(props: {
   };
 
   useEffect(() => {
-    if (applications !== null && applications.length > 0) {
-      const appIndex = applications.findIndex((app) => app.id === props.appId);
-      if (appIndex !== -1 && applications[appIndex].apikey !== null) {
-        setApiKey(applications[appIndex].apikey);
+    if (projects !== null && projects.length > 0) {
+      const appIndex = projects.findIndex((app) => app.id === props.projectid);
+      if (appIndex !== -1 && projects[appIndex].apikey !== null) {
+        setApiKey(projects[appIndex].apikey);
       }
     }
-  }, [activeApp, applications]);
+  }, [activeProject, projects]);
 
   return (
     <Dialog onOpenChange={() => setView(false)}>

@@ -5,9 +5,9 @@ export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 10000;
 export const INTERVAL_LONG = 20000;
 
-export async function loadMetrics(appid: string): Promise<Metric[]> {
+export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + '/metrics?appid=' + appid,
+    process.env.NEXT_PUBLIC_API_URL + '/metrics?projectid=' + projectid,
     {
       method: 'GET',
       headers: {
@@ -48,12 +48,12 @@ export const getMonthsFromDate = (date: Date) => {
   return months[date.getMonth()];
 };
 
-export const loadChartData = async (
+export const fetchChartData = async (
   date: Date,
   range: number,
   metric: Metric,
-  appid: string,
-  chartType: 'trend' | 'bar',
+  projectid: string,
+  chartType: 'trend' | 'overview',
 ): Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
@@ -125,7 +125,7 @@ export const loadChartData = async (
     }
   }
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&appid=${appid}&start=${from.toISOString()}&end=${to.toISOString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&projectid=${projectid}&start=${from.toISOString()}&end=${to.toISOString()}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -182,8 +182,8 @@ export const loadChartData = async (
               ] += json[i].valuepos;
               tmpData[j][metric.nameneg] += json[i].valueneg;
 
-              tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
-              tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
+              tmpData[j]['+' + metric.name] = json[i].relativetotalpos;
+              tmpData[j]['-' + metric.name] = json[i].relativetotalneg;
             }
           }
         }
@@ -194,7 +194,7 @@ export const loadChartData = async (
 
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    if (range === 1 && chartType === 'trend') {
+    if ((range === 1 || range === 7) && chartType === 'trend') {
       tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
     }
 
@@ -230,7 +230,7 @@ export const loadChartData = async (
 };
 
 export const fetchNextEvent = async (
-  appid: string,
+  projectid: string,
   metricid: string,
   start?: Date,
 ): Promise<{
@@ -248,8 +248,7 @@ export const fetchNextEvent = async (
 
   const to = new Date(from);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?appid=${appid
-    }&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?projectid=${projectid}&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
     {
       method: 'GET',
       credentials: 'include',
@@ -290,7 +289,7 @@ export const fetchNextEvent = async (
 };
 
 export const fetchDailySummary = async (
-  appid: string,
+  projectid: string,
   metricid: string,
 ): Promise<{
   pos: number;
@@ -311,7 +310,7 @@ export const fetchDailySummary = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?appid=${appid
+    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${projectid
     }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',
@@ -370,32 +369,34 @@ export const calculateTrend = (
   totalneg: number,
 ): any[] => {
   if (!metric) return data;
-  const trend = [...data];
+  const trend = data.map((obj) => ({ ...obj }));
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
-      trend[i]['Positive Trend'] !== undefined &&
-      trend[i]['Negative Trend'] !== undefined
+      trend[i]['+' + metric.name] !== undefined &&
+      trend[i]['-' + metric.name] !== undefined
     ) {
       totalpos =
-        trend[i]['Positive Trend'] -
+        trend[i]['+' + metric.name] -
         trend[i][
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
-      totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
-      trend[i]['Total'] =
-        trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
+      totalneg =
+        trend[i]['-' + metric.name] - (trend[i][metric.nameneg] ?? 0);
+      trend[i][metric.name] =
+        trend[i]['+' + metric.name] -
+        trend[i]['-' + metric.name];
     } else {
       if (
         trend[i][
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
-        trend[i]['Positive Trend'] = totalpos;
-        trend[i]['Total'] = totalpos;
+        trend[i]['+' + metric.name] = totalpos;
+        trend[i][metric.name] = totalpos;
       }
       if (trend[i][metric.nameneg] !== undefined) {
-        trend[i]['Negative Trend'] = totalneg;
-        trend[i]['Total'] -= totalneg;
+        trend[i]['-' + metric.name] = totalneg;
+        trend[i][metric.name] -= totalneg;
       }
     }
   }

@@ -1097,7 +1097,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
+func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
@@ -1113,21 +1113,21 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request.Name = strings.TrimSpace(request.Name)
+	request.Name = strings.ToLower(strings.TrimSpace(request.Name))
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9_ ]+$`, request.Name)
 	if reerr != nil {
-		http.Error(w, "Invalid application name format", http.StatusBadRequest)
+		http.Error(w, "Invalid project name format", http.StatusBadRequest)
 		return
 	}
 	if !match {
-		http.Error(w, "Application name can only contain letters, numbers, and underscores", http.StatusBadRequest)
+		http.Error(w, "Project name can only contain letters, numbers, and underscores", http.StatusBadRequest)
 		return
 	}
 
-	_, err := s.db.GetApplicationByName(token.Id, request.Name)
+	_, err := s.db.GetProjectByName(token.Id, request.Name)
 	if err == nil {
-		http.Error(w, "Application with this name already exists", http.StatusBadRequest)
+		http.Error(w, "Project with this name already exists", http.StatusBadRequest)
 		return
 	}
 
@@ -1144,16 +1144,16 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Plan not found.", http.StatusNotFound)
 		return
 	}
-	if plan.AppLimit >= 0 {
-		count, cerr := s.db.GetApplicationCountByUser(token.Id)
+	if plan.ProjectLimit >= 0 {
+		count, cerr := s.db.GetProjectCountByUser(token.Id)
 		if cerr != nil {
-			log.Println("Error retrieving application count:", cerr)
-			http.Error(w, "Error checking application count, please try again later", http.StatusInternalServerError)
+			log.Println("Error retrieving project count:", cerr)
+			http.Error(w, "Error checking project count, please try again later", http.StatusInternalServerError)
 			return
 		}
 
-		if count >= plan.AppLimit {
-			http.Error(w, "Application limit reached", http.StatusForbidden)
+		if count >= plan.ProjectLimit {
+			http.Error(w, "Project limit reached", http.StatusForbidden)
 			return
 		}
 	}
@@ -1166,7 +1166,7 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		_, aerr = s.db.GetApplicationByApi(apiKey)
+		_, aerr = s.db.GetProjectByApi(apiKey)
 		if aerr != nil {
 			break
 		}
@@ -1177,20 +1177,20 @@ func (s *Service) CreateApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newApp, err := s.db.CreateApplication(types.Application{
+	newApp, err := s.db.CreateProject(types.Project{
 		ApiKey: apiKey,
 		Name:   request.Name,
 		UserId: token.Id,
 	})
 	if err != nil {
-		log.Println("Error creating application:", err)
-		http.Error(w, "Failed to create application", http.StatusInternalServerError)
+		log.Println("Error creating project:", err)
+		http.Error(w, "Failed to create project", http.StatusInternalServerError)
 		return
 	}
 
 	bytes, jerr := json.Marshal(newApp)
 	if jerr != nil {
-		http.Error(w, "Failed to marshal application data", http.StatusInternalServerError)
+		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
 		return
 	}
 
@@ -1209,7 +1209,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		AppId uuid.UUID `json:"appid"`
+		ProjectId uuid.UUID `json:"projectid"`
 	}
 
 	// Attempt to decode the request body into the `request` struct
@@ -1218,11 +1218,11 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch the application from the database
-	_, err := s.db.GetApplication(request.AppId, token.Id)
+	// Fetch the project from the database
+	_, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Application does not exist.", http.StatusNotFound)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Project does not exist.", http.StatusNotFound)
 		return
 	}
 
@@ -1240,7 +1240,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check if the API key already exists
-		_, err := s.db.GetApplicationByApi(apiKey)
+		_, err := s.db.GetProjectByApi(apiKey)
 		if err != nil {
 			// If the API key is unique, break out of the loop
 			break
@@ -1253,9 +1253,9 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update the application with the new API key
-	if err := s.db.UpdateApplicationApiKey(request.AppId, token.Id, apiKey); err != nil {
-		log.Println("Error updating application API key:", err)
+	// Update the project with the new API key
+	if err := s.db.UpdateProjectApiKey(request.ProjectId, token.Id, apiKey); err != nil {
+		log.Println("Error updating project API key:", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -1266,7 +1266,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(apiKey))
 }
 
-func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
+func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
@@ -1274,7 +1274,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		AppId uuid.UUID `json:"appid"`
+		ProjectId uuid.UUID `json:"project"`
 	}
 
 	// Try to unmarshal the request body
@@ -1283,10 +1283,10 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Delete the application
-	if err := s.db.DeleteApplication(request.AppId, token.Id); err != nil {
-		log.Println("Error deleting application:", err)
-		http.Error(w, "Failed to delete application", http.StatusInternalServerError)
+	// Delete the project
+	if err := s.db.DeleteProject(request.ProjectId, token.Id); err != nil {
+		log.Println("Error deleting project:", err)
+		http.Error(w, "Failed to delete project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1294,7 +1294,7 @@ func (s *Service) DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	go measurely.Capture(metricIds["apps"], measurely.CapturePayload{Value: -1})
 }
 
-func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
@@ -1302,8 +1302,8 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 	}
 
 	var request struct {
-		NewName string    `json:"new_name"`
-		AppId   uuid.UUID `json:"app_id"`
+		NewName   string    `json:"new_name"`
+		ProjectId uuid.UUID `json:"projectid"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1313,12 +1313,12 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 
 	request.NewName = strings.TrimSpace(request.NewName)
 
-	if err := s.db.UpdateApplicationName(request.AppId, token.Id, request.NewName); err != nil {
+	if err := s.db.UpdateProjectName(request.ProjectId, token.Id, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Application not found", http.StatusNotFound)
+			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
-			log.Println("Error updating application name:", err)
-			http.Error(w, "Failed to update application name", http.StatusInternalServerError)
+			log.Println("Error updating project name:", err)
+			http.Error(w, "Failed to update project name", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -1326,26 +1326,26 @@ func (s *Service) UpdateApplicationName(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) GetApplications(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	// Fetch Applications
-	apps, err := s.db.GetApplications(token.Id)
+	// Fetch Projects
+	projects, err := s.db.GetProjects(token.Id)
 	if err == sql.ErrNoRows {
-		apps = []types.Application{}
+		projects = []types.Project{}
 	} else if err != nil {
-		log.Println("Error fetching applications:", err)
-		http.Error(w, "Failed to retrieve applications", http.StatusInternalServerError)
+		log.Println("Error fetching projects:", err)
+		http.Error(w, "Failed to retrieve projects", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, err := json.Marshal(apps)
+	bytes, err := json.Marshal(projects)
 	if err != nil {
-		http.Error(w, "Failed to marshal applications data: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to marshal projects data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -1362,7 +1362,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		Name      string    `json:"name"`
-		AppId     uuid.UUID `json:"appid"`
+		ProjectId uuid.UUID `json:"projectid"`
 		Type      int       `json:"type"`
 		BaseValue int64     `json:"basevalue"`
 		NamePos   string    `json:"namepos"`
@@ -1379,13 +1379,13 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	request.NamePos = strings.TrimSpace(request.NamePos)
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
-	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 ]+$`, request.Name)
+	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, request.Name)
 	if reerr != nil {
 		http.Error(w, "Invalid name format: "+reerr.Error(), http.StatusBadRequest)
 		return
 	}
 	if !match {
-		http.Error(w, "Metric name can only contain letters, numbers, and spaces", http.StatusBadRequest)
+		http.Error(w, "Metric name can only contain letters, numbers, spaces, and these special characters ($, _ , - , / , & , *, ! , ~)", http.StatusBadRequest)
 		return
 	}
 
@@ -1399,16 +1399,16 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
-	_, err := s.db.GetApplication(request.AppId, token.Id)
+	// Get the project
+	_, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
 	// Get Metric Count
-	count, err := s.db.GetMetricsCount(request.AppId)
+	count, err := s.db.GetMetricsCount(request.ProjectId)
 	if err != nil {
 		log.Println("Error getting metrics count:", err)
 		http.Error(w, "Failed to retrieve metric count", http.StatusInternalServerError)
@@ -1429,19 +1429,19 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if count >= plan.MetricPerAppLimit {
+	if count >= plan.MetricPerProjectLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}
 
 	// Create the metric
 	metric, err := s.db.CreateMetric(types.Metric{
-		Name:    request.Name,
-		AppId:   request.AppId,
-		Type:    request.Type,
-		NamePos: request.NamePos,
-		NameNeg: request.NameNeg,
-		Created: time.Now().UTC(),
+		Name:      request.Name,
+		ProjectId: request.ProjectId,
+		Type:      request.Type,
+		NamePos:   request.NamePos,
+		NameNeg:   request.NameNeg,
+		Created:   time.Now().UTC(),
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1454,7 +1454,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.BaseValue != 0 {
-		app, err := s.db.GetApplication(request.AppId, token.Id)
+		app, err := s.db.GetProject(request.ProjectId, token.Id)
 		if err == nil {
 			data := map[string]interface{}{
 				"value": request.BaseValue,
@@ -1494,8 +1494,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MetricId uuid.UUID `json:"metricid"`
-		AppId    uuid.UUID `json:"appid"`
+		MetricId  uuid.UUID `json:"metricid"`
+		ProjectId uuid.UUID `json:"projectid"`
 	}
 
 	// Try to unmarshal the request body
@@ -1504,11 +1504,11 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the application
-	app, err := s.db.GetApplication(request.AppId, token.Id)
+	// Get the project
+	app, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1519,7 +1519,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the metric
-	if err := s.db.DeleteMetric(request.MetricId, request.AppId); err != nil {
+	if err := s.db.DeleteMetric(request.MetricId, request.ProjectId); err != nil {
 		log.Println("Error deleting metric:", err)
 		http.Error(w, "Failed to delete metric", http.StatusInternalServerError)
 		return
@@ -1540,25 +1540,25 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, perr := uuid.Parse(r.URL.Query().Get("appid"))
+	projectid, perr := uuid.Parse(r.URL.Query().Get("projectid"))
 	if perr != nil {
 		http.Error(w, "Invalid app ID format", http.StatusBadRequest)
 		return
 	}
 
-	// Get application
-	_, err := s.db.GetApplication(appid, token.Id)
+	// Get project
+	_, err := s.db.GetProject(projectid, token.Id)
 	if err == sql.ErrNoRows {
-		http.Error(w, "Application not found", http.StatusNotFound)
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
 	// Fetch Metrics
-	metrics, err := s.db.GetMetrics(appid)
+	metrics, err := s.db.GetMetrics(projectid)
 	if err == sql.ErrNoRows {
 		metrics = []types.Metric{}
 	} else if err != nil {
@@ -1585,11 +1585,11 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		AppId    uuid.UUID `json:"appid"`
-		MetricId uuid.UUID `json:"metricid"`
-		Name     string    `json:"name"`
-		NamePos  string    `json:"namepos"`
-		NameNeg  string    `json:"nameneg"`
+		ProjectId uuid.UUID `json:"projectid"`
+		MetricId  uuid.UUID `json:"metricid"`
+		Name      string    `json:"name"`
+		NamePos   string    `json:"namepos"`
+		NameNeg   string    `json:"nameneg"`
 	}
 
 	// Try to unmarshal the request body
@@ -1602,14 +1602,14 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	request.NamePos = strings.TrimSpace(request.NamePos)
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
-	// Get the application
-	app, err := s.db.GetApplication(request.AppId, token.Id)
+	// Get the project
+	app, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err == sql.ErrNoRows {
-		http.Error(w, "Application not found", http.StatusNotFound)
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Println("Error fetching application:", err)
-		http.Error(w, "Failed to retrieve application", http.StatusInternalServerError)
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
 		return
 	}
 
@@ -1620,7 +1620,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric
-	if err := s.db.UpdateMetric(request.MetricId, request.AppId, request.Name, request.NamePos, request.NameNeg); err != nil {
+	if err := s.db.UpdateMetric(request.MetricId, request.ProjectId, request.Name, request.NamePos, request.NameNeg); err != nil {
 		log.Println("Error updating metric:", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
@@ -1708,7 +1708,7 @@ func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
 // 		}
 // 	}
 //
-// 	bytes, err := json.Marshal(request.Plan)
+// 	bytes, err := json.Marsh(request.Plan)
 // 	if err != nil {
 // 		http.Error(w, err.Error(), http.StatusBadRequest)
 // 		return

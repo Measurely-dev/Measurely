@@ -19,7 +19,7 @@ export default function DashboardHomePage() {
     if (metaDescription) {
       metaDescription.setAttribute(
         'content',
-        'Welcome to your Measurely Dashboard. Get an overview of your metrics, analyze data trends, and manage your applications all in one place.',
+        'Welcome to your Measurely Dashboard. Get an overview of your metrics, analyze data trends, and manage your projects all in one place.',
       );
     }
   }, []);

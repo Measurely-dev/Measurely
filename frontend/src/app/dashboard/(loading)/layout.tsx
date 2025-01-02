@@ -1,6 +1,6 @@
 'use client';
 
-import { AppsContext, UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoSvg from '@/components/global/logo-svg';
@@ -14,19 +14,19 @@ export default function DashboardContentLayout({
   children: React.ReactNode;
 }>) {
   const {
-    applications,
-    setApplications,
-    setActiveApp,
-    appsLoading,
-    setAppsLoading,
-  } = useContext(AppsContext);
+    projects,
+    setProjects,
+    setActiveProject,
+    projectsLoading,
+    setProjectsLoading,
+  } = useContext(ProjectsContext);
   const { setUser, userLoading, setUserLoading } = useContext(UserContext);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (applications.length === 0 && !appsLoading) {
-      router.push('/dashboard/new-app');
+    if (projects.length === 0 && !projectsLoading) {
+      router.push('/dashboard/new-project');
     }
 
     if (userLoading) {
@@ -55,8 +55,8 @@ export default function DashboardContentLayout({
         });
     }
 
-    if (appsLoading) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/applications', {
+    if (projectsLoading) {
+      fetch(process.env.NEXT_PUBLIC_API_URL + '/projects', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -76,34 +76,40 @@ export default function DashboardContentLayout({
           if (json === undefined) return;
           if (json === null) json = [];
           if (json.length === 0) {
-            router.push('/dashboard/new-app');
+            router.push('/dashboard/new-project');
             return;
           }
-          let savedActiveApp = parseInt(
-            localStorage.getItem('activeApp') ?? '0',
+          let savedActiveProject = parseInt(
+            localStorage.getItem('activeProject') ?? '0',
           );
-          if (savedActiveApp > json.length - 1 || savedActiveApp < 0) {
-            savedActiveApp = 0;
-            localStorage.setItem('activeApp', savedActiveApp.toString());
+          if (savedActiveProject > json.length - 1 || savedActiveProject < 0) {
+            savedActiveProject = 0;
+            localStorage.setItem(
+              'activeProject',
+              savedActiveProject.toString(),
+            );
           }
           for (let i = 0; i < json.length; i++) {
-            if (i === savedActiveApp && json.length >= savedActiveApp + 1) {
-              json[i].metrics = await loadMetrics(json[savedActiveApp].id);
+            if (
+              i === savedActiveProject &&
+              json.length >= savedActiveProject + 1
+            ) {
+              json[i].metrics = await loadMetrics(json[savedActiveProject].id);
             } else {
               json[i].metrics = null;
             }
           }
 
-          setApplications(json);
-          setActiveApp(savedActiveApp);
-          setAppsLoading(false);
+          setProjects(json);
+          setActiveProject(savedActiveProject);
+          setProjectsLoading(false);
         });
     }
   }, []);
 
   return (
     <>
-      {appsLoading || userLoading ? (
+      {projectsLoading || userLoading ? (
         <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-8 bg-accent'>
           <div className='relative flex flex-col items-center justify-center gap-2'>
             <LogoSvg className='size-20' />

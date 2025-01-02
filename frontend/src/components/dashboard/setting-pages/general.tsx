@@ -166,7 +166,7 @@ export default function SettingGeneralPage() {
   };
 
   return (
-    <div className='grid gap-6'>
+    <div className='grid gap-5'>
       <SettingCard
         title='Profile'
         description='Used to identify your account.'
@@ -307,7 +307,7 @@ export default function SettingGeneralPage() {
                   className='flex items-center justify-between'
                 >
                   <div className='flex flex-row items-center gap-2'>
-                    <div className='flex size-10 items-center justify-center rounded-[6px] bg-accent'>
+                    <div className='flex size-10 items-center justify-center rounded-md bg-accent'>
                       {provider.logo}{' '}
                     </div>
                     <div className='flex flex-col'>
@@ -326,7 +326,7 @@ export default function SettingGeneralPage() {
                     <Button
                       variant={'ghost'}
                       size={'sm'}
-                      className='rounded-[12px]'
+                      className='rounded-md'
                       onClick={() => {
                         router.push(
                           `${process.env.NEXT_PUBLIC_API_URL}/oauth/${provider.name.toLowerCase()}?state=connect.${user?.id}`,
@@ -351,7 +351,7 @@ export default function SettingGeneralPage() {
                       <Button
                         variant={'ghost'}
                         size={'sm'}
-                        className='rounded-[12px]'
+                        className='rounded-md'
                       >
                         Disconnect
                       </Button>
@@ -378,7 +378,7 @@ export default function SettingGeneralPage() {
             <Button
               variant={'destructiveOutline'}
               size={'sm'}
-              className='rounded-[12px]'
+              className='rounded-md'
               onClick={DeleteAccount}
             >
               Delete account
