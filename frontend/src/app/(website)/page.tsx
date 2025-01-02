@@ -12,16 +12,29 @@ export default function Home({
   const is_authenticated = headers().get('is-authentificated');
 
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
+    let ref =
+      searchParams?.['ref'] === undefined
+        ? 'direct'
+        : (searchParams['ref'] as string);
+    const refs = [
+      'reddit',
+      'twitter',
+      'discord',
+      'bluesky',
+      'producthunt',
+      'direct',
+      'launchtory',
+    ];
+
+    if (!refs.includes(ref)) ref = 'direct';
+
     Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
 
     const metricId = 'beff3986-f11f-4e19-93e0-7654604f1d3b';
-
     const payload = {
       value: 1,
       filters: {
-        'traffic source': searchParams?.['ref']
-          ? (searchParams['ref'] as string)
-          : 'direct',
+        'traffic source': ref,
       },
     };
 
