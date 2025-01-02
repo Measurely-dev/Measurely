@@ -4,7 +4,7 @@ import Link from 'next/link';
 import WebButton from '../button';
 import Image from 'next/image';
 import Preview from '../../../../public/preview.png';
-import { ArrowRight, MoveRight } from 'lucide-react';
+import { MoveRight } from 'lucide-react';
 
 export default function LandingSection() {
   return (
