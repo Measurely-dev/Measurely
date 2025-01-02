@@ -742,9 +742,9 @@ function Chart(props: {
         </div>
 
         {chartData === null ? (
-          <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-[12px] bg-accent' />
+          <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg bg-accent' />
         ) : (
-          <div className='mt-2 w-full min-w-[600px] rounded-[12px] bg-accent p-5'>
+          <div className='mt-2 w-full min-w-[600px] rounded-lg bg-accent p-5'>
             <div className='flex w-full items-center justify-between gap-5'>
               <div className='flex flex-col'>
                 <div className='text-md text-secondary'>
@@ -764,7 +764,7 @@ function Chart(props: {
                   <Button
                     variant='outline'
                     role='combobox'
-                    className='w-[240px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
+                    className='w-[250px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
                   >
                     {activeFilter !== null
                       ? activeFilter.name.charAt(0).toUpperCase() +
@@ -773,7 +773,7 @@ function Chart(props: {
                     <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-[260px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+                <PopoverContent className='mr-10 w-fit min-w-[340px] max-w-[500px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
                   <Command>
                     <CommandInput placeholder='Search filters...' />
                     <CommandList>
@@ -782,7 +782,8 @@ function Chart(props: {
                           <CircleOff className='h-6 w-6 text-muted-foreground' />
                         </div>
                         <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
-                          No filter to show at the moment{' '}
+                          No filter to show at the moment
+                          <br />
                           <a
                             href='/docs/features/filters'
                             className='cursor-pointer text-blue-500 underline'
@@ -791,27 +792,30 @@ function Chart(props: {
                           </a>
                         </h2>
                       </CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          className='truncate rounded-[10px]'
-                          onSelect={() => setActiveFilter(null)}
-                        >
-                          {!activeFilter ? (
-                            <div
-                              className={cn(
-                                'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
-                              )}
-                            />
-                          ) : (
-                            <div
-                              className={cn(
-                                'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
-                              )}
-                            />
-                          )}
-                          None
-                        </CommandItem>
-                      </CommandGroup>
+                      {props.metric?.filters ? (
+                        <CommandGroup>
+                          <CommandItem
+                            className='truncate rounded-[10px]'
+                            onSelect={() => setActiveFilter(null)}
+                          >
+                            {!activeFilter ? (
+                              <div
+                                className={cn(
+                                  'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
+                                )}
+                              />
+                            ) : (
+                              <div
+                                className={cn(
+                                  'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
+                                )}
+                              />
+                            )}
+                            None
+                          </CommandItem>
+                        </CommandGroup>
+                      ) : null}
+
                       {Object.keys(props.metric?.filters ?? {}).map(
                         (filterCategory: string, i: number) => {
                           return (
@@ -829,6 +833,7 @@ function Chart(props: {
                                       <CommandItem
                                         key={j}
                                         className='truncate rounded-[10px]'
+                                        value={filter.name}
                                         onSelect={(value) => {
                                           if (activeFilter?.id === filter.id) {
                                             setActiveFilter(null);
@@ -854,8 +859,35 @@ function Chart(props: {
                                             )}
                                           />
                                         )}
-                                        <div className='text-medium w-full truncate capitalize'>
-                                          {filter.name}
+                                        <div className='text-medium flex w-full gap-1 truncate capitalize'>
+                                          {filter.totalpos + filter.totalneg ===
+                                          0 ? (
+                                            <div className='h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500'>
+                                              0
+                                            </div>
+                                          ) : filter.totalpos +
+                                              filter.totalneg >
+                                            0 ? (
+                                            <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500'>
+                                              +
+                                              {valueFormatter(
+                                                filter.totalpos +
+                                                  filter.totalneg,
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-xs text-red-500'>
+                                              -
+                                              {valueFormatter(
+                                                filter.totalpos +
+                                                  filter.totalneg,
+                                              )}
+                                            </div>
+                                          )}
+
+                                          <div className='w-full truncate'>
+                                            {filter.name}
+                                          </div>
                                         </div>
                                       </CommandItem>
                                     );
