@@ -1,9 +1,10 @@
 ---
+
 title: Measurely API
 description: How to interact with the Measurely API to update metric values.
 ---
 
-To interact with the Measurely API, you need to send a POST request to the endpoint with an application API key and the metric ID of the value you wish to update. Follow the steps below to understand how to use the API.
+To interact with the Measurely API, you need to send a POST request to the endpoint with an application API key and the metric ID of the value you wish to update. You can also use filters to categorize or refine the metric data. Follow the steps below to understand how to use the API.
 
 ## Prerequisites
 
@@ -29,120 +30,30 @@ POST https://api.measurely.dev/v1/event/{METRIC_ID OR METRIC_NAME}
 
 ### Request Body
 
-The request body should contain the value you wish to add or remove. The body format should be JSON:
+The request body should contain the value you wish to add or remove. Additionally, you can include filters as a key-value structure to categorize the metric. The body format should be JSON:
 
 ```json
 {
-  "value": 100
+  "value": 100,
+  "filters": {
+    "region": "US",
+    "device": "mobile"
+  }
 }
 ```
 
-### Code exemples
+### Code examples
 
-<Tabs defaultValue="javascript" className="pt-5 pb-1">
+<Tabs defaultValue="curl" className="pt-5 pb-1">
   <TabsList>
-    <TabsTrigger value="javascript">Javascript</TabsTrigger>
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-  </TabsList>
-  <TabsContent value="javascript">
-    ```javascript
-    export const updateMetric = async (API_KEY, METRIC_ID, value) => {
-      const response = await fetch(`https://api.measurely.dev/event/${METRIC_ID}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({ value: value }),
-      });
-      return response.status;
-    }
-    ```
-  </TabsContent>
-  <TabsContent value="typescript">
-    ```typescript
-    export const updateMetric = async (API_KEY: string, METRIC_ID: string, value: number): Promise<number> => {
-      const response = await fetch(`https://api.measurely.dev/event/${METRIC_ID}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({ value: value }),
-      });
-      return response.status;
-    };
-    ```
-  </TabsContent>
-</Tabs>
-
-<Tabs defaultValue="go" className="pt-5 pb-1">
-  <TabsList>
-    <TabsTrigger value="go">Go</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
     <TabsTrigger value="curl">Curl</TabsTrigger>
   </TabsList>
-  <TabsContent value="go">
-    ```go
-    package main
-
-    import (
-      "bytes"
-      "encoding/json"
-      "fmt"
-      "net/http"
-    )
-
-    func updateMetric(API_KEY string, METRIC_ID string, value int) (int, error) {
-      url := fmt.Sprintf("https://api.measurely.dev/event/%s", METRIC_ID)
-      jsonData := map[string]interface{}{
-        "value": value,
-      }
-      jsonValue, _ := json.Marshal(jsonData)
-
-      req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
-      if err != nil {
-        return 0, err
-      }
-
-      req.Header.Set("Content-Type", "application/json")
-      req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", API_KEY))
-
-      client := &http.Client{}
-      resp, err := client.Do(req)
-      if err != nil {
-        return 0, err
-      }
-      defer resp.Body.Close()
-
-      return resp.StatusCode, nil
-    }
-    ```
-
-  </TabsContent>
-  <TabsContent value="python">
-    ```python
-    import requests
-    import json
-
-    def update_metric(API_KEY, METRIC_ID, value):
-        url = f"https://api.measurely.dev/event/{METRIC_ID}"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {API_KEY}"
-        }
-        payload = {"value": value}
-        response = requests.post(url, json=payload, headers=headers)
-        return response.status_code
-    ```
-
-  </TabsContent>
   <TabsContent value="curl">
     ```bash
     curl -X POST https://api.measurely.dev/event/{METRIC_ID} \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer {API_KEY}" \
-      -d '{"value": {value}}'
+      -d '{"value": {value}, "filters": {"region": "US", "device": "mobile"}}'
     ```
   </TabsContent>
 </Tabs>
@@ -170,3 +81,4 @@ The rate limit has been exceeded. This typically occurs when the number of reque
 ### 500 - Internal server error
 
 An error occurred while processing the request, such as a failure to update the metric. This should be very rare.
+
