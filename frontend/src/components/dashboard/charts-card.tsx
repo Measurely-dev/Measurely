@@ -268,7 +268,7 @@ function Header(props: {
           )}{' '}
           {props.metrics[props.activeMetric]?.name}
         </CardTitle>
-        <CardDescription>Trend of the last month</CardDescription>
+        <CardDescription>Trend of this month</CardDescription>
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

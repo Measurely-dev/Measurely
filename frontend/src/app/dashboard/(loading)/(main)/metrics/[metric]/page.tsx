@@ -818,7 +818,7 @@ function Chart(props: {
                     `${Intl.NumberFormat('us').format(number).toString()}`
                   }
                   yAxisLabel='Total'
-                  onValueChange={() => { }}
+                  onValueChange={props.metric?.type === MetricType.Dual ? () => {} : undefined}
                 />
               </>
             )}
@@ -845,28 +845,31 @@ function Filters(props: {
 
     const finalFilters: { [category: string]: any[] } = {};
 
-    for (let i = 0; i < categories.length; i++) {
-      for (let j = 0; j < props.metric?.filters[categories[i]].length!; j++) {
-        const filter: any = props.metric?.filters[categories[i]][j];
+    await Promise.all(
+      categories.map(async (category) => {
+        const filters = props.metric?.filters[category] ?? [];
+        const updatedFilters = await Promise.all(
+          filters.map(async (filter: any) => {
+            const { pos, neg } = await fetchEventVariation(
+              filter.projectid,
+              filter.id,
+              props.start,
+              end,
+            );
 
-        if (finalFilters[categories[i]] === undefined) {
-          finalFilters[categories[i]] = [];
-        }
-
-        const { pos, neg } = await fetchEventVariation(
-          filter.projectid,
-          filter.id,
-          props.start,
-          end,
+            return {
+              ...filter,
+              summary: pos - neg,
+            };
+          }),
         );
 
-        filter['summary'] = pos - neg;
+        finalFilters[category] = updatedFilters.sort(
+          (a, b) => b.summary - a.summary,
+        );
 
-        finalFilters[categories[i]].push(filter);
-      }
-
-      finalFilters[categories[i]].sort((a, b) => b.summary - a.summary);
-    }
+      }),
+    );
 
     setFilters(finalFilters);
   };

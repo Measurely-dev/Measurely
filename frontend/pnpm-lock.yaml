@@ -90,8 +90,8 @@ importers:
         specifier: ^0.427.0
         version: 0.427.0(react@18.3.1)
       measurely-js:
-        specifier: ^1.0.5
-        version: 1.0.5
+        specifier: ^1.0.7
+        version: 1.0.7
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2620,8 +2620,8 @@ packages:
   mdast-util-to-string@4.0.0:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
 
-  measurely-js@1.0.5:
-    resolution: {integrity: sha512-GXXKhw/uCv6MJjAZKZFwp6XAMmuietUwkB5LPYHVGzfARSSjuSxADDJ8Q/dD24xr9mpOxZyR1AEHVCZXCh/b+Q==}
+  measurely-js@1.0.7:
+    resolution: {integrity: sha512-djwih3tjuKftGHAuwYy0fc455K+YX9spZ2UUxsPk3qQvFkpjMtW/lw3VQGH/btmrt7WM9PzUwtka1IQDkpMWJQ==}
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -6538,7 +6538,7 @@ snapshots:
     dependencies:
       '@types/mdast': 4.0.4
 
-  measurely-js@1.0.5: {}
+  measurely-js@1.0.7: {}
 
   merge2@1.4.1: {}
 
