@@ -277,7 +277,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
           </div>
         </TableCell>
         {/* Created */}
-        <TableCell className='text-secondary'>
+        <TableCell className='text-secondary text-nowrap'>
           {formattedDate(props.metric.created)}
         </TableCell>
         {/* Actions */}

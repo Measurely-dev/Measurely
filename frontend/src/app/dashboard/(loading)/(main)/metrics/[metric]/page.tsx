@@ -67,6 +67,7 @@ import {
   Copy,
   Edit,
   Loader,
+  Search,
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
@@ -226,15 +227,15 @@ export default function DashboardMetricPage() {
         projects.map((v) =>
           v.id === metric.projectid
             ? Object.assign({}, v, {
-              metrics: v.metrics?.map((m) =>
-                m.id === metric.id
-                  ? Object.assign({}, m, {
-                    totalpos: relativetotalpos,
-                    totalneg: relativetotalneg,
-                  })
-                  : m,
-              ),
-            })
+                metrics: v.metrics?.map((m) =>
+                  m.id === metric.id
+                    ? Object.assign({}, m, {
+                        totalpos: relativetotalpos,
+                        totalneg: relativetotalneg,
+                      })
+                    : m,
+                ),
+              })
             : v,
         ),
       );
@@ -547,19 +548,21 @@ function Chart(props: {
           Chart displaying an overview of this metric.
         </CardDescription>
       </CardHeader>
-      <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1 max-sm:flex-col max-sm:items-start'>
-        <div className='flex gap-2'>
-          <RangeSelector range={range} setRange={setRange} />
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
+      <div className='mb-5 overflow-x-auto'>
+        <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1'>
+          <div className='flex gap-2'>
+            <RangeSelector range={range} setRange={setRange} />
+            <Tooltip delayDuration={300}>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
-                    size={'icon'}
-                  >
-                    <Calendar className='size-4' />
-                  </Button>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+                      size={'icon'}
+                    >
+                      <Calendar className='size-4' />
+                    </Button>
+                  </TooltipTrigger>
                 </PopoverTrigger>
                 <PopoverContent
                   className='w-auto rounded-[16px] p-0'
@@ -577,233 +580,321 @@ function Chart(props: {
                   />
                 </PopoverContent>
               </Popover>
-            </TooltipTrigger>
-            <TooltipContent
-              side='bottom'
-              sideOffset={5}
-              className='rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary'
-            >
-              Starting point
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <Separator
-          orientation='vertical'
-          className='mx-2 h-[50%] max-sm:hidden'
-        />
-        <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
-          <AdvancedOptions
-            chartName={props.type}
-            metricId={props.metric?.id ?? ''}
-            metricType={props.metric?.type ?? MetricType.Base}
-            splitTrendChecked={splitTrendChecked}
-            setSplitTrendChecked={setSplitTrendChecked}
-            filters={props.metric?.filters ?? {}}
-            filtersChecked={filtersChecked}
-            setFiltersChecked={setFiltersChecked}
-            activeFilter={activeFilter}
-            setActiveFilter={setActiveFilter}
-            chartType={chartType}
-            chartColor={chartColor}
-            dualMetricChartColor={dualMetricChartColor}
-            setChartColor={setChartColor}
-            setChartType={setChartType}
-            setDualMetricChartColor={
-              props.metric?.type === MetricType.Base
-                ? undefined
-                : setDualMetricChartColor
-            }
-          >
-            <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
-              <Sliders className='mr-2 size-4' />
-              Advanced
-            </Button>
-          </AdvancedOptions>
-
-          <Separator
-            orientation='vertical'
-            className='mx-2 h-[50%] max-sm:hidden'
-          />
-          <OffsetBtns
-            onLeft={() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                if (new_year < 1999) {
-                  return;
-                }
-                setYear(new_year);
-                setLoadingLeft(true);
-                return;
-              }
-              setDate((prev) => {
-                if (
-                  prev === undefined ||
-                  prev.from === undefined ||
-                  prev.to === undefined
-                )
-                  return prev;
-                const from = new Date(prev.from);
-                const to = new Date(prev.to);
-                const toRemove = range;
-                from.setDate(from.getDate() - toRemove);
-                to.setDate(to.getDate() - toRemove);
-                if (to.getFullYear() < 1999) {
-                  return;
-                }
-                setLoadingLeft(true);
-                return {
-                  from: from,
-                  to: prev.to,
-                };
-              });
-            }}
-            onRight={() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() + 1;
-                const current_year = new Date().getFullYear();
-                if (new_year > current_year) {
-                  return;
-                }
-                setYear(new_year);
-                setLoadingRight(true);
-                return;
-              }
-
-              setDate((prev) => {
-                if (
-                  prev === undefined ||
-                  prev.from === undefined ||
-                  prev.to === undefined
-                )
-                  return prev;
-                const from = new Date(prev.from);
-                const to = new Date(prev.to);
-                const toAdd = range;
-                from.setDate(from.getDate() + toAdd);
-                to.setDate(to.getDate() + toAdd);
-                const now = new Date();
-                if (now < to) {
-                  return prev;
-                }
-                setLoadingRight(true);
-                return {
-                  from: from,
-                  to: prev.to,
-                };
-              });
-            }}
-            isLoadingLeft={loadingLeft}
-            isLoadingRight={loadingRight}
-            isDisabledLeft={useMemo(() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                return new_year < 1999;
-              } else {
-                if (date === undefined || date.to === undefined) {
-                  return false;
-                }
-                const to = new Date(date.to);
-                const toAdd = range;
-                to.setDate(to.getDate() - toAdd);
-                const result = to.getFullYear() < 1999;
-                return result;
-              }
-            }, [date, year])}
-            isDisabledRight={useMemo(() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() + 1;
-                const current_year = new Date().getFullYear();
-
-                return new_year > current_year;
-              } else {
-                if (date === undefined || date.to === undefined) {
-                  return false;
-                }
-                const now = new Date();
-                const to = new Date(date.to);
-                const toAdd = range;
-                to.setDate(to.getDate() + toAdd);
-                const result = now < to;
-                return result;
-              }
-            }, [date, year])}
-          />
-          {loading ? (
-            <div className='p-1'>
-              <Loader className='size-4 animate-spin' />
-            </div>
-          ) : (
-            <></>
-          )}
-        </div>
-      </div>
-
-      {chartData === null ? (
-        <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
-      ) : (
-        <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
-          <div className='text-md text-secondary'>
-            {range === 365 ? `Summary of ${year}` : 'Summary'}
+              <TooltipContent
+                side='bottom'
+                sideOffset={5}
+                className='rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary'
+              >
+                Starting point
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <div className='text-xl font-medium'>
-            {rangeSummary.pos - rangeSummary.neg > 0 && props.type === "overview" ? '+' : ''}
-            {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
-          </div>
+          <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
+            <Tooltip delayDuration={300}>
+              <AdvancedOptions
+                chartName={props.type}
+                metricId={props.metric?.id ?? ''}
+                metricType={props.metric?.type ?? MetricType.Base}
+                splitTrendChecked={splitTrendChecked}
+                setSplitTrendChecked={setSplitTrendChecked}
+                filters={props.metric?.filters ?? {}}
+                filtersChecked={filtersChecked}
+                setFiltersChecked={setFiltersChecked}
+                activeFilter={activeFilter}
+                setActiveFilter={setActiveFilter}
+                chartType={chartType}
+                chartColor={chartColor}
+                dualMetricChartColor={dualMetricChartColor}
+                setChartColor={setChartColor}
+                setChartType={setChartType}
+                setDualMetricChartColor={
+                  props.metric?.type === MetricType.Base
+                    ? undefined
+                    : setDualMetricChartColor
+                }
+              >
+                <TooltipTrigger asChild>
+                  <Button
+                    size={'icon'}
+                    className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+                  >
+                    <Sliders className='size-4' />
+                  </Button>
+                </TooltipTrigger>
+              </AdvancedOptions>
+              <TooltipContent
+                side='bottom'
+                sideOffset={5}
+                className='rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary'
+              >
+                Advanced options
+              </TooltipContent>
+            </Tooltip>
 
-          <Separator className='my-4' />
-          {props.type === 'trend' ? (
-            <AreaChart
-              className='min-h-[40vh] w-full'
-              data={chartData}
-              index='date'
-              customTooltip={customTooltip}
-              colors={
-                splitTrendChecked ? dualMetricChartConfig.colors : [chartColor]
-              }
-              categories={
-                splitTrendChecked
-                  ? ['Positive Trend', 'Negative Trend']
-                  : (
-                    filtersChecked ?
-                      [activeFilter?.name ?? '']
-                      :
-                      [props.metric?.name ?? '']
-
+            <OffsetBtns
+              onLeft={() => {
+                if (range >= 365) {
+                  const new_year = new Date(year, 1, 0).getFullYear() - 1;
+                  if (new_year < 1999) {
+                    return;
+                  }
+                  setYear(new_year);
+                  setLoadingLeft(true);
+                  return;
+                }
+                setDate((prev) => {
+                  if (
+                    prev === undefined ||
+                    prev.from === undefined ||
+                    prev.to === undefined
                   )
-              }
-              valueFormatter={(number: number) => valueFormatter(number)}
-              yAxisLabel='Total'
-              onValueChange={() => { }}
+                    return prev;
+                  const from = new Date(prev.from);
+                  const to = new Date(prev.to);
+                  const toRemove = range;
+                  from.setDate(from.getDate() - toRemove);
+                  to.setDate(to.getDate() - toRemove);
+                  if (to.getFullYear() < 1999) {
+                    return;
+                  }
+                  setLoadingLeft(true);
+                  return {
+                    from: from,
+                    to: prev.to,
+                  };
+                });
+              }}
+              onRight={() => {
+                if (range >= 365) {
+                  const new_year = new Date(year, 1, 0).getFullYear() + 1;
+                  const current_year = new Date().getFullYear();
+                  if (new_year > current_year) {
+                    return;
+                  }
+                  setYear(new_year);
+                  setLoadingRight(true);
+                  return;
+                }
+
+                setDate((prev) => {
+                  if (
+                    prev === undefined ||
+                    prev.from === undefined ||
+                    prev.to === undefined
+                  )
+                    return prev;
+                  const from = new Date(prev.from);
+                  const to = new Date(prev.to);
+                  const toAdd = range;
+                  from.setDate(from.getDate() + toAdd);
+                  to.setDate(to.getDate() + toAdd);
+                  const now = new Date();
+                  if (now < to) {
+                    return prev;
+                  }
+                  setLoadingRight(true);
+                  return {
+                    from: from,
+                    to: prev.to,
+                  };
+                });
+              }}
+              isLoadingLeft={loadingLeft}
+              isLoadingRight={loadingRight}
+              isDisabledLeft={useMemo(() => {
+                if (range >= 365) {
+                  const new_year = new Date(year, 1, 0).getFullYear() - 1;
+                  return new_year < 1999;
+                } else {
+                  if (date === undefined || date.to === undefined) {
+                    return false;
+                  }
+                  const to = new Date(date.to);
+                  const toAdd = range;
+                  to.setDate(to.getDate() - toAdd);
+                  const result = to.getFullYear() < 1999;
+                  return result;
+                }
+              }, [date, year])}
+              isDisabledRight={useMemo(() => {
+                if (range >= 365) {
+                  const new_year = new Date(year, 1, 0).getFullYear() + 1;
+                  const current_year = new Date().getFullYear();
+
+                  return new_year > current_year;
+                } else {
+                  if (date === undefined || date.to === undefined) {
+                    return false;
+                  }
+                  const now = new Date();
+                  const to = new Date(date.to);
+                  const toAdd = range;
+                  to.setDate(to.getDate() + toAdd);
+                  const result = now < to;
+                  return result;
+                }
+              }, [date, year])}
             />
-          ) : (
-            <>
-              <BarChart
+            {loading ? (
+              <div className='p-1'>
+                <Loader className='size-4 animate-spin' />
+              </div>
+            ) : (
+              <></>
+            )}
+          </div>
+        </div>
+
+        {chartData === null ? (
+          <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-[12px] bg-accent' />
+        ) : (
+          <div className='mt-2 w-full min-w-[600px] rounded-[12px] bg-accent p-5'>
+            <div className='flex w-full items-center justify-between gap-5'>
+              <div className='flex flex-col'>
+                <div className='text-md text-secondary'>
+                  {range === 365 ? `Summary of ${year}` : 'Summary'}
+                </div>
+                <div className='text-xl font-medium'>
+                  {rangeSummary.pos - rangeSummary.neg > 0 &&
+                  props.type === 'overview'
+                    ? '+'
+                    : ''}
+                  {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
+                </div>
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant='outline'
+                    role='combobox'
+                    className='w-[240px] justify-between rounded-[12px] border-none bg-background hover:bg-background/70'
+                  >
+                    {activeFilter !== null
+                      ? activeFilter.name
+                      : 'Select a filter'}
+                    <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-[240px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+                  <Command>
+                    <CommandInput placeholder='Search filters...' />
+                    <CommandList>
+                      <CommandEmpty className='flex flex-col w-full items-center justify-center py-5'>
+                        <div className='relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500'>
+                          <Search className='h-6 w-6 text-muted-foreground' />
+                        </div>
+                        <h2 className='text-[13px] font-normal text-muted-foreground max-w-[80%] text-center mt-3'>
+                          No filter to show at the moment
+                        </h2>
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {Object.keys(props.metric?.filters ?? {}).map(
+                          (filterCategory: string, i: number) => {
+                            return (
+                              <>
+                                <div
+                                  className='my-2 text-sm font-medium'
+                                  key={i}
+                                >
+                                  {filterCategory}
+                                </div>
+                                {props.metric?.filters[filterCategory].map(
+                                  (filter, j) => {
+                                    return (
+                                      <CommandItem
+                                        key={j}
+                                        className='truncate rounded-[10px]'
+                                        onSelect={(value) => {
+                                          const metric = props.metric?.filters[
+                                            filterCategory
+                                          ].find((m) => m.name === value);
+                                          setActiveFilter(metric ?? null);
+                                        }}
+                                      >
+                                        {activeFilter?.id === filter.id ? (
+                                          <Check
+                                            className={cn(
+                                              'mr-2 size-4 stroke-[3px]',
+                                            )}
+                                          />
+                                        ) : (
+                                          <></>
+                                        )}
+                                        <div className='w-full truncate'>
+                                          {filter.name}
+                                        </div>
+                                      </CommandItem>
+                                    );
+                                  },
+                                )}
+                              </>
+                            );
+                          },
+                        )}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <Separator className='my-4' />
+            {props.type === 'trend' ? (
+              <AreaChart
                 className='min-h-[40vh] w-full'
                 data={chartData}
-                customTooltip={customTooltip}
                 index='date'
-                tabIndex={0}
-                type={chartType}
+                customTooltip={customTooltip}
                 colors={
-                  props.metric?.type === MetricType.Dual
+                  splitTrendChecked
                     ? dualMetricChartConfig.colors
                     : [chartColor]
                 }
                 categories={
-                  props.metric?.type === MetricType.Base
-                    ? [props.metric?.name ?? '']
-                    : [props.metric?.namepos ?? '', props.metric?.nameneg ?? '']
+                  splitTrendChecked
+                    ? ['Positive Trend', 'Negative Trend']
+                    : filtersChecked
+                      ? [activeFilter?.name ?? '']
+                      : [props.metric?.name ?? '']
                 }
-                valueFormatter={(number: number) =>
-                  `${Intl.NumberFormat('us').format(number).toString()}`
-                }
+                valueFormatter={(number: number) => valueFormatter(number)}
                 yAxisLabel='Total'
-                onValueChange={() => { }}
+                onValueChange={() => {}}
               />
-            </>
-          )}
-        </div>
-      )}
+            ) : (
+              <>
+                <BarChart
+                  className='min-h-[40vh] w-full'
+                  data={chartData}
+                  customTooltip={customTooltip}
+                  index='date'
+                  tabIndex={0}
+                  type={chartType}
+                  colors={
+                    props.metric?.type === MetricType.Dual
+                      ? dualMetricChartConfig.colors
+                      : [chartColor]
+                  }
+                  categories={
+                    props.metric?.type === MetricType.Base
+                      ? [props.metric?.name ?? '']
+                      : [
+                          props.metric?.namepos ?? '',
+                          props.metric?.nameneg ?? '',
+                        ]
+                  }
+                  valueFormatter={(number: number) =>
+                    `${Intl.NumberFormat('us').format(number).toString()}`
+                  }
+                  yAxisLabel='Total'
+                  onValueChange={() => {}}
+                />
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 }
@@ -889,7 +980,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -916,7 +1007,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-            (props.chartName === 'trend' && props.splitTrendChecked) ? (
+          (props.chartName === 'trend' && props.splitTrendChecked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1077,7 +1168,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-            props.metricType === MetricType.Dual ? (
+          props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
@@ -1120,74 +1211,7 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          {props.filtersChecked ? (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant='outline'
-                  role='combobox'
-                  className='w-full min-w-full justify-between rounded-[12px]'
-                >
-                  {props.activeFilter !== null
-                    ? props.activeFilter.name
-                    : 'Select filter...'}
-                  <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-[240px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
-                <Command>
-                  <CommandInput placeholder='Search filters...' />
-                  <CommandList>
-                    <CommandEmpty>No filter found.</CommandEmpty>
-                    <CommandGroup>
-                      {Object.keys(props.filters).map(
-                        (filterCategory: string, i: number) => {
-                          return (
-                            <>
-                              <div className='my-2 text-sm font-medium' key={i}>
-                                {filterCategory}
-                              </div>
-                              {props.filters[filterCategory].map(
-                                (filter, j) => {
-                                  return (
-                                    <CommandItem
-                                      key={j}
-                                      className='truncate rounded-[10px]'
-                                      onSelect={(value) => {
-                                        const metric = props.filters[
-                                          filterCategory
-                                        ].find((m) => m.name === value);
-                                        props.setActiveFilter(metric ?? null);
-                                      }}
-                                    >
-                                      {props.activeFilter?.id === filter.id ? (
-                                        <Check
-                                          className={cn(
-                                            'mr-2 size-4 stroke-[3px]',
-                                          )}
-                                        />
-                                      ) : (
-                                        <></>
-                                      )}
-                                      <div className='w-full truncate'>
-                                        {filter.name}
-                                      </div>
-                                    </CommandItem>
-                                  );
-                                },
-                              )}
-                            </>
-                          );
-                        },
-                      )}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          ) : (
-            <></>
-          )}
+          {props.filtersChecked ? <></> : <></>}
         </div>
       </PopoverContent>
     </Popover>
