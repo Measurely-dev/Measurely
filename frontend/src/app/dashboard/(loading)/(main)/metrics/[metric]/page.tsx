@@ -843,7 +843,7 @@ function Filters(props: {
     end.setDate(end.getDate() + (props.range - 1));
     const categories = Object.keys(props.metric?.filters ?? []);
 
-    let finalFilters: { [category: string]: any[] } = {};
+    const finalFilters: { [category: string]: any[] } = {};
 
     for (let i = 0; i < categories.length; i++) {
       for (let j = 0; j < props.metric?.filters[categories[i]].length!; j++) {
