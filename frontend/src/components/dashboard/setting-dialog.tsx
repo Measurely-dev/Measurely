@@ -26,17 +26,17 @@ export default function SettingDialog(props: { children: ReactNode }) {
   const settings: SettingPage[] = [
     {
       name: 'General',
-      icon: <Home className='size-4 stroke-[2px] text-blue-500' />,
+      icon: <Home className='size-4 stroke-[2px]' />,
       value: 'general',
     },
     {
       name: 'Projects',
-      icon: <Hexagon className='size-4 stroke-[2px] text-purple-500' />,
+      icon: <Hexagon className='size-4 stroke-[2px]' />,
       value: 'projects',
     },
     {
       name: 'Payment',
-      icon: <CreditCard className='size-4 stroke-[2px] text-pink-500' />,
+      icon: <CreditCard className='size-4 stroke-[2px]' />,
       value: 'payment',
     },
   ];

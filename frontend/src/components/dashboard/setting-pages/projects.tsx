@@ -159,10 +159,10 @@ export default function SettingProjectPage() {
             />
           ) : (
             <div className='flex flex-col divide-y'>
-              <Table>
+              <Table className='rounded-[12px] overflow-hidden'>
                 <TableCaption>A list of your projects.</TableCaption>
                 <TableHeader>
-                  <TableRow className='hover:bg-transparent'>
+                  <TableRow className='bg-accent/60'>
                     <TableHead className='min-w-[80px] w-[80px]'>Image</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead className='text-right' colSpan={4}>Action</TableHead>
