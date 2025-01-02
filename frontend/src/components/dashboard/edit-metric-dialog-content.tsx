@@ -59,7 +59,7 @@ export default function EditMetricDialogContent(props: {
             }
           }
 
-          if (name !== props.metric?.name) {
+          if (name !== props.metric?.name || posName !== props.metric.namepos || negName !== props.metric.nameneg) {
             res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'PATCH',
               headers: {
@@ -75,6 +75,7 @@ export default function EditMetricDialogContent(props: {
               credentials: 'include',
             });
 
+
             if (res.ok && projects !== null) {
               metric = Object.assign({}, metric, {
                 name: name,
@@ -89,12 +90,12 @@ export default function EditMetricDialogContent(props: {
               projects.map((v: Project) =>
                 v.id === props.metric?.projectid
                   ? Object.assign({}, v, {
-                      metrics: v.metrics?.map((m) =>
-                        m.id === props.metric?.id
-                          ? Object.assign({}, m, metric)
-                          : m,
-                      ),
-                    })
+                    metrics: v.metrics?.map((m) =>
+                      m.id === props.metric?.id
+                        ? Object.assign({}, m, metric)
+                        : m,
+                    ),
+                  })
                   : v,
               ),
             );
