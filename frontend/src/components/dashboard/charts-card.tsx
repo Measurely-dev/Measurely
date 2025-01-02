@@ -63,8 +63,8 @@ export function ChartsCard() {
   const metricList = useMemo(() => {
     return projects[activeProject].metrics
       ? projects[activeProject].metrics.sort(
-          (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
-        )
+        (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
+      )
       : null;
   }, [activeProject, projects]);
 
@@ -109,16 +109,16 @@ export function ChartsCard() {
         projects.map((proj: Project, i: number) =>
           i === activeProject
             ? Object.assign({}, proj, {
-                metrics: metricList?.map((m: Metric, j: number) =>
-                  j === activeMetric
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
-            : proj
+              metrics: metricList?.map((m: Metric, j: number) =>
+                j === activeMetric
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
+            : proj,
         ),
       );
     }
@@ -184,7 +184,7 @@ export function ChartsCard() {
         ]}
       />
       {projects[activeProject].metrics !== undefined &&
-      projects[activeProject].metrics?.length! > 0 ? (
+        projects[activeProject].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -219,11 +219,11 @@ export function ChartsCard() {
                           )}
                           index='date'
                           color='blue'
-                          categories={['Total']}
+                          categories={[metric.name]}
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => {}}
+                          onValueChange={() => { }}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -264,7 +264,7 @@ function Header(props: {
         <CardTitle>
           {valueFormatter(
             props.metrics[props.activeMetric].totalpos -
-              props.metrics[props.activeMetric].totalneg,
+            props.metrics[props.activeMetric].totalneg,
           )}{' '}
           {props.metrics[props.activeMetric]?.name}
         </CardTitle>
