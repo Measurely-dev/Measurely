@@ -367,7 +367,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
+      go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
 			go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 		} else if action == "connect" {
@@ -568,7 +568,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
+  go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
 	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
@@ -824,7 +824,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1})
+  go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : user.CurrentPlan}})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -903,7 +903,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
+  go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{

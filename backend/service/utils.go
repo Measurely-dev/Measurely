@@ -19,10 +19,8 @@ import (
 )
 
 var metricIds = map[string]string{
-	"metrics":   "f0411319-7560-4c64-b09d-a2cd9137b053",
-	"pro":       "696afc2e-3c8c-4752-9588-493602c6a7ad",
-	"plus":      "4a58fb8b-ef70-483c-9f83-8cb67aa79315",
-	"starter":   "729fb8b3-3e87-4279-9bd4-17a21f7530d5",
+	"metrics":   "dfc36841-99b2-4615-b1dc-fec5fba66153",
+	"users":     "519b356c-0f82-4004-8b2c-13bca28fed2c",
 	"signups":   "2efb5cb3-9ed6-40f3-bbb3-2df19faf8ba7",
 	"apps":      "eb585285-4397-4007-a877-07e54aff06c7",
 	"feedbacks": "fc7306fd-0d8c-4e3d-a3f0-e0ce8d961a2d",

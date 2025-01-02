@@ -150,8 +150,8 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		s.db.UpdateUserPlan(token.Id, "starter")
 		s.cache.users.Delete(token.Id)
 
-		go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
-		go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
+    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
+    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -262,8 +262,8 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		s.db.UpdateUserPlan(user.Id, planData.Identifier)
 		s.cache.users.Delete(user.Id)
 
-		go measurely.Capture(metricIds[planData.Identifier], measurely.CapturePayload{Value: 1})
-		go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
+    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : planData.Identifier}})
+    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -347,8 +347,8 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 
 		s.db.UpdateUserPlan(user.Id, "starter")
 
-		go measurely.Capture(metricIds["starter"], measurely.CapturePayload{Value: 1})
-		go measurely.Capture(metricIds[user.CurrentPlan], measurely.CapturePayload{Value: -1})
+    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
+    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{

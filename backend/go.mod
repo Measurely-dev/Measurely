@@ -14,7 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	github.com/measurely-dev/measurely-go v0.1.1
+	github.com/measurely-dev/measurely-go v0.1.2
 	github.com/stripe/stripe-go/v79 v79.8.0
 	golang.org/x/crypto v0.26.0
 	golang.org/x/oauth2 v0.24.0
