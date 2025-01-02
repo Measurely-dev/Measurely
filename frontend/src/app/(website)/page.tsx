@@ -19,7 +19,9 @@ export default function Home({
     const payload = {
       value: 1,
       filters: {
-        "traffic source": searchParams?.['ref'] ? searchParams['ref'] : 'direct',
+        'traffic source': searchParams?.['ref']
+          ? (searchParams['ref'] as string)
+          : 'direct',
       },
     };
 
