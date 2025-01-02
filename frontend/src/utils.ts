@@ -48,12 +48,12 @@ export const getMonthsFromDate = (date: Date) => {
   return months[date.getMonth()];
 };
 
-export const loadChartData = async (
+export const fetchChartData = async (
   date: Date,
   range: number,
   metric: Metric,
   projectid: string,
-  chartType: 'trend' | 'bar',
+  chartType: 'trend' | 'overview',
 ): Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
@@ -194,7 +194,7 @@ export const loadChartData = async (
 
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    if (range === 1 && chartType === 'trend') {
+    if ((range === 1 || range === 7) && chartType === 'trend') {
       tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
     }
 
@@ -369,7 +369,7 @@ export const calculateTrend = (
   totalneg: number,
 ): any[] => {
   if (!metric) return data;
-  const trend = [...data];
+  const trend = data.map(obj => ({ ...obj }));
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
       trend[i]['Positive Trend'] !== undefined &&

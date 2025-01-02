@@ -55,7 +55,7 @@ import {
   fetchDailySummary,
   fetchNextEvent,
   INTERVAL,
-  loadChartData,
+  fetchChartData,
 } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
@@ -350,26 +350,28 @@ export default function DashboardMetricPage() {
               </Dialog>
             </div>
           </div>
-          <OverviewChart metric={metric} />
-          <TrendChart metric={metric} />
+          <Chart metric={metric} type='overview' />
+          <Chart metric={metric} type='trend' />
         </div>
       </TooltipProvider>
     </DashboardContentContainer>
   );
 }
 
-function OverviewChart(props: { metric: Metric | null | undefined }) {
-  const [overviewChartType, setOverviewChartType] = useState<
-    'stacked' | 'percent' | 'default'
-  >('default');
-  const [overviewChartColor, setOverviewChartColor] =
-    useState<keyof ChartColors>('blue');
-  const [dualMetricOverviewChartColor, setDualMetricOverviewChartColor] =
+function Chart(props: {
+  metric: Metric | null | undefined;
+  type: 'trend' | 'overview';
+}) {
+  const [chartType, setChartType] = useState<'stacked' | 'percent' | 'default'>(
+    'default',
+  );
+  const [chartColor, setChartColor] = useState<keyof ChartColors>('blue');
+  const [dualMetricChartColor, setDualMetricChartColor] =
     useState<keyof DualMetricChartColors>('default');
   const dualMetricChartConfig = {
     colors: getDualMetricChartColors(
       dualMetricChartColors,
-      dualMetricOverviewChartColor,
+      dualMetricChartColor,
     ),
   };
   const [range, setRange] = useState<number>(1);
@@ -385,39 +387,104 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const [filtersChecked, setFiltersChecked] = useState(false);
   const [activeFilterCategory, setActiveFilterCategory] = useState('');
-
-  const rangeSummary = useMemo(() => {
-    if (chartData === null) return 0;
-    let total = 0;
-
-    for (let i = 0; i < chartData.length; i++) {
-      if (props.metric?.type === MetricType.Base) {
-        total += chartData[i][props.metric?.name] ?? 0;
-      } else {
-        total =
-          total +
-          ((chartData[i][props.metric?.namepos ?? ''] ?? 0) -
-            (chartData[i][props.metric?.nameneg ?? ''] ?? 0));
-      }
-    }
-    return total;
-  }, [chartData, props.metric]);
+  const [splitTrendChecked, setSplitTrendChecked] = useState(false);
+  const [rangeSummary, setRangeSummary] = useState<{
+    pos: number;
+    neg: number;
+  }>({ pos: 0, neg: 0 });
 
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
 
-    const data = await loadChartData(
+    const data = await fetchChartData(
       from,
       range,
       props.metric,
       props.metric.projectid,
-      'bar',
+      props.type,
     );
-    setChartData(data);
+
+
+    const { pos, neg } = await loadRangeSummary(data)
+    if (props.type === "trend") {
+      const trend = calculateTrend(data, props.metric, pos, neg)
+      setChartData(trend);
+    } else {
+      setChartData(data)
+    }
+
+
+    setRangeSummary({ pos, neg })
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
   };
+
+
+  const loadRangeSummary = async (data: any[]): Promise<{ pos: number, neg: number }> => {
+    if (!props.metric) return { pos: 0, neg: 0 };
+    if (props.type === 'trend') {
+      let pos = 0;
+      let neg = 0;
+      let found = false;
+      for (let i = data.length - 1; i >= 0; i--) {
+        if (
+          data[i]['Positive Trend'] !== undefined &&
+          data[i]['Negative Trend'] !== undefined
+        ) {
+          found = true;
+          pos = data[i]['Positive Trend'];
+          neg = data[i]['Negative Trend'];
+          break;
+        }
+      }
+
+      if (!found) {
+        if (date?.from === undefined) return { pos: 0, neg: 0 };
+        const end = new Date(date.from);
+        end.setDate(end.getDate() + 1);
+        end.setHours(0);
+        end.setMinutes(0);
+        end.setSeconds(0);
+
+        const now = new Date()
+        if (end.getTime() > now.getTime()) {
+          return {
+            pos: props.metric.totalpos,
+            neg: props.metric.totalneg
+          }
+        }
+
+        const { relativetotalpos, relativetotalneg, pos, neg } = await fetchNextEvent(
+          props.metric?.projectid,
+          props.metric?.id,
+          end,
+        )
+
+        return {
+          pos: relativetotalpos - pos,
+          neg: relativetotalneg - neg
+        }
+      }
+
+      return { pos, neg }
+    } else {
+      if (chartData === null) return { pos: 0, neg: 0 };
+      let totalpos = 0;
+      let totalneg = 0;
+
+      for (let i = 0; i < chartData.length; i++) {
+        if (props.metric?.type === MetricType.Base) {
+          totalpos += chartData[i][props.metric?.name] ?? 0;
+        } else {
+          totalpos += chartData[i][props.metric?.namepos ?? ''] ?? 0;
+          totalneg += chartData[i][props.metric?.nameneg ?? ''] ?? 0;
+        }
+      }
+      return { pos: totalpos, neg: totalneg };
+    }
+  };
+
 
   useEffect(() => {
     let interval: any;
@@ -461,7 +528,6 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
       clearInterval(interval);
     };
   }, [date?.from, range, year]);
-
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -516,23 +582,25 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
         />
         <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
           <AdvancedOptions
-            chartName='overview'
+            chartName={props.type}
             metricId={props.metric?.id ?? ''}
             metricType={props.metric?.type ?? MetricType.Base}
+            splitTrendChecked={splitTrendChecked}
+            setSplitTrendChecked={setSplitTrendChecked}
             filters={props.metric?.filters ?? {}}
             filtersChecked={filtersChecked}
             setFiltersChecked={setFiltersChecked}
             activeFilterCategory={activeFilterCategory}
             setActiveFilterCategory={setActiveFilterCategory}
-            chartType={overviewChartType}
-            chartColor={overviewChartColor}
-            dualMetricChartColor={dualMetricOverviewChartColor}
-            setChartColor={setOverviewChartColor}
-            setChartType={setOverviewChartType}
+            chartType={chartType}
+            chartColor={chartColor}
+            dualMetricChartColor={dualMetricChartColor}
+            setChartColor={setChartColor}
+            setChartType={setChartType}
             setDualMetricChartColor={
               props.metric?.type === MetricType.Base
                 ? undefined
-                : setDualMetricOverviewChartColor
+                : setDualMetricChartColor
             }
           >
             <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
@@ -667,394 +735,54 @@ function OverviewChart(props: { metric: Metric | null | undefined }) {
             {range === 365 ? `Summary of ${year}` : 'Summary'}
           </div>
           <div className='text-xl font-medium'>
-            {rangeSummary > 0 ? '+' : ''}
-            {valueFormatter(rangeSummary)}
+            {rangeSummary.pos - rangeSummary.neg > 0 ? '+' : ''}
+            {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
           </div>
+
           <Separator className='my-4' />
-          <BarChart
-            className='min-h-[40vh] w-full'
-            data={chartData}
-            customTooltip={customTooltip}
-            index='date'
-            tabIndex={0}
-            type={overviewChartType}
-            colors={
-              props.metric?.type === MetricType.Dual
-                ? dualMetricChartConfig.colors
-                : [overviewChartColor]
-            }
-            categories={
-              props.metric?.type === MetricType.Base
-                ? [props.metric?.name ?? '']
-                : [props.metric?.namepos ?? '', props.metric?.nameneg ?? '']
-            }
-            valueFormatter={(number: number) =>
-              `${Intl.NumberFormat('us').format(number).toString()}`
-            }
-            yAxisLabel='Total'
-            onValueChange={() => { }}
-          />
-        </div>
-      )}
-    </>
-  );
-}
-
-function TrendChart(props: { metric: Metric | null | undefined }) {
-  const [trendChartType, setTrendChartType] = useState<
-    'default' | 'percent' | 'stacked'
-  >('default');
-  const [trendChartColor, setTrendChartColor] =
-    useState<keyof ChartColors>('blue');
-  const [dualTrendChartColor, setDualTrendChartColor] =
-    useState<keyof DualMetricChartColors>('default');
-  const dualTrendChartConfig = {
-    colors: getDualMetricChartColors(
-      dualMetricChartColors,
-      dualTrendChartColor,
-    ),
-  };
-
-  const [range, setRange] = useState<number>(1);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
-  });
-  const [chartData, setChartData] = useState<any[] | null>(null);
-  const [nextTotalPos, setNextTotalPos] = useState(0);
-  const [nextTotalNeg, setNextTotalNeg] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [loadingRight, setLoadingRight] = useState(false);
-  const [loadingLeft, setLoadingLeft] = useState(false);
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [splitTrendChecked, setSplitTrendChecked] = useState(false);
-  const [filtersChecked, setFiltersChecked] = useState(false);
-  const [activeFilterCategory, setActiveFilterCategory] = useState("");
-
-  const loadChart = async (from: Date) => {
-    if (!props.metric) return;
-    const now = new Date();
-    from.setHours(0);
-    from.setMinutes(0);
-    from.setSeconds(0);
-    const to = new Date(from);
-    to.setDate(to.getDate() + range);
-
-    let totalPos = 0;
-    let totalNeg = 0;
-
-    if (
-      new Date(to.getFullYear(), to.getMonth(), to.getDate()) >
-      new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    ) {
-      totalPos = props.metric.totalpos;
-      totalNeg = props.metric.totalneg;
-    } else {
-      const { pos, neg, relativetotalpos, relativetotalneg, results } =
-        await fetchNextEvent(props.metric.projectid, props.metric.id, to);
-
-      if (results === 0) {
-        totalPos = props.metric.totalpos;
-        totalNeg = props.metric.totalneg;
-      } else {
-        totalPos = relativetotalpos - pos;
-        totalNeg = relativetotalneg - neg;
-      }
-    }
-
-    const data = await loadChartData(
-      from,
-      range,
-      props.metric,
-      props.metric.projectid,
-      'trend',
-    );
-
-    setNextTotalPos(totalPos);
-    setNextTotalNeg(totalNeg);
-    setChartData(data);
-    setLoading(false);
-    setLoadingLeft(false);
-    setLoadingRight(false);
-  };
-
-  useEffect(() => {
-    let interval: any;
-    if (range >= 365) {
-      const start = new Date(year, 1, 0);
-      start.setDate(1);
-      if (!loadingLeft && !loadingRight) {
-        setLoading(true);
-      }
-      loadChart(start);
-      interval = setInterval(() => {
-        loadChart(start);
-      }, INTERVAL);
-    } else {
-      if (date !== undefined && date.from !== undefined) {
-        setYear(date.from.getFullYear());
-        const to = new Date(date.from);
-        to.setDate(date.from.getDate() - (range - 1));
-        const now = new Date();
-        if (now < to) {
-          setDate({
-            from: new Date(),
-          });
-        } else {
-          if (!loadingLeft && !loadingRight) {
-            setLoading(true);
-          }
-          loadChart(to);
-          interval = setInterval(() => {
-            loadChart(to);
-          }, INTERVAL);
-          setDate({
-            from: date.from,
-            to: to,
-          });
-        }
-      }
-    }
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [date?.from, range, year, props.metric]);
-
-  return (
-    <>
-      <CardHeader className='mt-10 p-0'>
-        <CardTitle>Trend</CardTitle>
-        <CardDescription>
-          See data shifts and trends at a glance.
-        </CardDescription>
-      </CardHeader>
-      <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1 max-sm:flex-col max-sm:items-start'>
-        <div className='flex gap-2'>
-          <RangeSelector range={range} setRange={setRange} />
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
-                    size={'icon'}
-                  >
-                    <Calendar className='size-4' />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className='w-auto rounded-[16px] p-0'
-                  align='start'
-                >
-                  <MetricDatePicker
-                    selected={date}
-                    onSelect={setDate}
-                    mode='range'
-                    autoFocus
-                    startMonth={new Date(1999, 11)}
-                    endMonth={new Date()}
-                    max={1}
-                    disabled={range >= 365}
-                  />
-                </PopoverContent>
-              </Popover>
-            </TooltipTrigger>
-            <TooltipContent
-              side='bottom'
-              sideOffset={5}
-              className='rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary'
-            >
-              Starting point
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <Separator
-          orientation='vertical'
-          className='mx-2 h-[50%] max-sm:hidden'
-        />
-        <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
-          <AdvancedOptions
-            chartName='trend'
-            metricId={props.metric?.id ?? ''}
-            metricType={props.metric?.type ?? MetricType.Base}
-            filters={props.metric?.filters ?? {}}
-            filtersChecked={filtersChecked}
-            setFiltersChecked={setFiltersChecked}
-            chartType={trendChartType}
-            chartColor={trendChartColor}
-            activeFilterCategory={activeFilterCategory}
-            setActiveFilterCategory={setActiveFilterCategory}
-            splitTrendChecked={splitTrendChecked}
-            setSplitTrendChecked={setSplitTrendChecked}
-            setChartColor={setTrendChartColor}
-            setChartType={setTrendChartType}
-            dualMetricChartColor={dualTrendChartColor}
-            setDualMetricChartColor={
-              splitTrendChecked ? setDualTrendChartColor : undefined
-            }
-          >
-            <Button className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'>
-              <Sliders className='mr-2 size-4' />
-              Advanced
-            </Button>
-          </AdvancedOptions>
-
-          <Separator
-            orientation='vertical'
-            className='mx-2 h-[50%] max-sm:hidden'
-          />
-          <OffsetBtns
-            onLeft={() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                if (new_year < 1999) {
-                  return;
-                }
-                setYear(new_year);
-                setLoadingLeft(true);
-                return;
+          {props.type === 'trend' ? (
+            <AreaChart
+              className='min-h-[40vh] w-full'
+              data={chartData}
+              index='date'
+              customTooltip={customTooltip}
+              colors={
+                splitTrendChecked ? dualMetricChartConfig.colors : [chartColor]
               }
-              setDate((prev) => {
-                if (
-                  prev === undefined ||
-                  prev.from === undefined ||
-                  prev.to === undefined
-                )
-                  return prev;
-                const from = new Date(prev.from);
-                const to = new Date(prev.to);
-                const toRemove = range;
-                from.setDate(from.getDate() - toRemove);
-                to.setDate(to.getDate() - toRemove);
-                if (to.getFullYear() < 1999) {
-                  return;
-                }
-                setLoadingLeft(true);
-                return {
-                  from: from,
-                  to: prev.to,
-                };
-              });
-            }}
-            onRight={() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() + 1;
-                const current_year = new Date().getFullYear();
-                if (new_year > current_year) {
-                  return;
-                }
-                setYear(new_year);
-                setLoadingRight(true);
-                return;
+              categories={
+                splitTrendChecked
+                  ? ['Positive Trend', 'Negative Trend']
+                  : ['Total']
               }
-
-              setDate((prev) => {
-                if (
-                  prev === undefined ||
-                  prev.from === undefined ||
-                  prev.to === undefined
-                )
-                  return prev;
-                const from = new Date(prev.from);
-                const to = new Date(prev.to);
-                const toAdd = range;
-                from.setDate(from.getDate() + toAdd);
-                to.setDate(to.getDate() + toAdd);
-                const now = new Date();
-                if (now < to) {
-                  return prev;
-                }
-                setLoadingRight(true);
-                return {
-                  from: from,
-                  to: prev.to,
-                };
-              });
-            }}
-            isLoadingLeft={loadingLeft}
-            isLoadingRight={loadingRight}
-            isDisabledLeft={useMemo(() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                return new_year < 1999;
-              } else {
-                if (date === undefined || date.to === undefined) {
-                  return false;
-                }
-                const to = new Date(date.to);
-                const toAdd = range === 0 ? 1 : range;
-                to.setDate(to.getDate() - toAdd);
-                const result = to.getFullYear() < 1999;
-                return result;
-              }
-            }, [date, year])}
-            isDisabledRight={useMemo(() => {
-              if (range >= 365) {
-                const new_year = new Date(year, 1, 0).getFullYear() + 1;
-                const current_year = new Date().getFullYear();
-
-                return new_year > current_year;
-              } else {
-                if (date === undefined || date.to === undefined) {
-                  return false;
-                }
-                const now = new Date();
-                const to = new Date(date.to);
-                const toAdd = range;
-                to.setDate(to.getDate() + toAdd);
-                const result = now < to;
-                return result;
-              }
-            }, [date, year])}
-          />
-          {loading ? (
-            <div className='p-1'>
-              <Loader className='size-4 animate-spin' />
-            </div>
+              valueFormatter={(number: number) => valueFormatter(number)}
+              yAxisLabel='Total'
+              onValueChange={() => { }}
+            />
           ) : (
-            <></>
+            <BarChart
+              className='min-h-[40vh] w-full'
+              data={chartData}
+              customTooltip={customTooltip}
+              index='date'
+              tabIndex={0}
+              type={chartType}
+              colors={
+                props.metric?.type === MetricType.Dual
+                  ? dualMetricChartConfig.colors
+                  : [chartColor]
+              }
+              categories={
+                props.metric?.type === MetricType.Base
+                  ? [props.metric?.name ?? '']
+                  : [props.metric?.namepos ?? '', props.metric?.nameneg ?? '']
+              }
+              valueFormatter={(number: number) =>
+                `${Intl.NumberFormat('us').format(number).toString()}`
+              }
+              yAxisLabel='Total'
+              onValueChange={() => { }}
+            />
           )}
-        </div>
-      </div>
-
-      {chartData === null ? (
-        <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full rounded-[12px] bg-accent' />
-      ) : (
-        <div className='mb-20 mt-2 w-full rounded-[12px] bg-accent p-5'>
-          <div className='text-md text-secondary'>
-            {' '}
-            {range === 365 ? `Total of ${year}` : 'Total'}
-          </div>
-          <div className='text-xl font-medium'>
-            {valueFormatter(nextTotalPos - nextTotalNeg)}
-          </div>
-          <Separator className='my-4' />
-
-          <AreaChart
-            className='min-h-[40vh] w-full'
-            data={calculateTrend(
-              chartData,
-              props.metric,
-              nextTotalPos,
-              nextTotalNeg,
-            )}
-            index='date'
-            customTooltip={customTooltip}
-            colors={
-              splitTrendChecked
-                ? dualTrendChartConfig.colors
-                : [trendChartColor]
-            }
-            categories={
-              splitTrendChecked
-                ? ['Positive Trend', 'Negative Trend']
-                : ['Total']
-            }
-            valueFormatter={(number: number) => valueFormatter(number)}
-            yAxisLabel='Total'
-            onValueChange={() => { }}
-          />
         </div>
       )}
     </>
@@ -1075,7 +803,7 @@ function AdvancedOptions(props: {
   setActiveFilterCategory: Dispatch<SetStateAction<string>>;
   dualMetricChartColor?: string;
   filtersChecked: boolean;
-  setFiltersChecked: Dispatch<SetStateAction<boolean>>
+  setFiltersChecked: Dispatch<SetStateAction<boolean>>;
   splitTrendChecked?: boolean;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;
   setChartColor: Dispatch<SetStateAction<keyof ChartColors>>;
@@ -1362,7 +1090,7 @@ function AdvancedOptions(props: {
               onCheckedChange={(e) => {
                 props.setFiltersChecked(e);
                 if (e === true) {
-                  props.setActiveFilterCategory(Object.keys(props.filters)[0])
+                  props.setActiveFilterCategory(Object.keys(props.filters)[0]);
                 }
               }}
             />
@@ -1397,14 +1125,13 @@ function AdvancedOptions(props: {
                                 props.setActiveFilterCategory(value);
                               }}
                             >
-                              {
-                                props.activeFilterCategory === filterCategory ?
-                                  <Check
-                                    className={cn('mr-2 size-4 stroke-[3px]')}
-                                  />
-                                  :
-                                  <></>
-                              }
+                              {props.activeFilterCategory === filterCategory ? (
+                                <Check
+                                  className={cn('mr-2 size-4 stroke-[3px]')}
+                                />
+                              ) : (
+                                <></>
+                              )}
                               <div className='w-full truncate'>
                                 {filterCategory}
                               </div>

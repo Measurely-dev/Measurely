@@ -41,7 +41,7 @@ import {
   calculateTrend,
   fetchDailySummary,
   INTERVAL_LONG,
-  loadChartData,
+  fetchChartData,
 } from '@/utils';
 import { Metric, MetricType, Project } from '@/types';
 import MetricStats from './metric-stats';
@@ -81,7 +81,7 @@ export function ChartsCard() {
     const to = new Date(from);
     to.setDate(to.getDate() + nbrDaysInMonth);
 
-    const data = await loadChartData(
+    const data = await fetchChartData(
       from,
       nbrDaysInMonth,
       metricData,
