@@ -162,6 +162,11 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 		Filters map[string]string `json:"filters"`
 	}
 
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
 	formattedFilters := make(map[string]string)
 
 	for key, value := range request.Filters {
@@ -185,11 +190,6 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 		}
 
 		formattedFilters[key] = value
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
-		return
 	}
 
 	var value any

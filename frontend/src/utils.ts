@@ -182,8 +182,8 @@ export const fetchChartData = async (
               ] += json[i].valuepos;
               tmpData[j][metric.nameneg] += json[i].valueneg;
 
-              tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
-              tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
+              tmpData[j]['+' + metric.name] = json[i].relativetotalpos;
+              tmpData[j]['-' + metric.name] = json[i].relativetotalneg;
             }
           }
         }
@@ -369,32 +369,34 @@ export const calculateTrend = (
   totalneg: number,
 ): any[] => {
   if (!metric) return data;
-  const trend = data.map(obj => ({ ...obj }));
+  const trend = data.map((obj) => ({ ...obj }));
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
-      trend[i]['Positive Trend'] !== undefined &&
-      trend[i]['Negative Trend'] !== undefined
+      trend[i]['+' + metric.name] !== undefined &&
+      trend[i]['-' + metric.name] !== undefined
     ) {
       totalpos =
-        trend[i]['Positive Trend'] -
+        trend[i]['+' + metric.name] -
         trend[i][
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ];
-      totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
-      trend[i]['Total'] =
-        trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
+      totalneg =
+        trend[i]['-' + metric.name] - (trend[i][metric.nameneg] ?? 0);
+      trend[i][metric.name] =
+        trend[i]['+' + metric.name] -
+        trend[i]['-' + metric.name];
     } else {
       if (
         trend[i][
         metric.type === MetricType.Base ? metric.name : metric.namepos
         ] !== undefined
       ) {
-        trend[i]['Positive Trend'] = totalpos;
-        trend[i]['Total'] = totalpos;
+        trend[i]['+' + metric.name] = totalpos;
+        trend[i][metric.name] = totalpos;
       }
       if (trend[i][metric.nameneg] !== undefined) {
-        trend[i]['Negative Trend'] = totalneg;
-        trend[i]['Total'] -= totalneg;
+        trend[i]['-' + metric.name] = totalneg;
+        trend[i][metric.name] -= totalneg;
       }
     }
   }

@@ -16,7 +16,7 @@ export interface Metric {
   namepos: string;
   nameneg: string;
   filters: {
-    [category: string]: Metric;
+    [category: string]: Metric[];
   };
   created: Date;
 }

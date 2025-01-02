@@ -393,6 +393,24 @@ function Chart(props: {
     neg: number;
   }>({ pos: 0, neg: 0 });
 
+  function mergeArraysByDate(...arrays: any[]) {
+    // Validate that arrays are of the same length
+    const length = arrays[0].length;
+    if (!arrays.every(arr => arr.length === length)) {
+      throw new Error("All arrays must have the same length.");
+    }
+
+    // Merge objects with the same index
+    return arrays[0].map((_: any, index: number) =>
+      arrays.reduce((merged, currentArray) => ({
+        ...merged,
+        ...currentArray[index],
+      }), {})
+    );
+  }
+
+
+
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
 
@@ -404,37 +422,64 @@ function Chart(props: {
       props.type,
     );
 
+    const { pos, neg } = await loadRangeSummary(data, props.metric);
+    setRangeSummary({ pos, neg });
 
-    const { pos, neg } = await loadRangeSummary(data)
-    if (props.type === "trend") {
-      const trend = calculateTrend(data, props.metric, pos, neg)
-      setChartData(trend);
+    if (filtersChecked) {
+      const filters = props.metric.filters[activeFilterCategory];
+
+      const filtersData = [];
+      for (let i = 0; i < filters.length; i++) {
+        const filterData = await fetchChartData(
+          from,
+          range,
+          filters[i],
+          filters[i].projectid,
+          props.type,
+        );
+
+        if (props.type === 'trend') {
+          const { pos, neg } = await loadRangeSummary(filterData, filters[i]);
+          const trend = calculateTrend(filterData, filters[i], pos, neg);
+          filtersData.push(trend)
+        } else {
+          filtersData.push(data)
+        }
+      }
+      const merged = mergeArraysByDate(...filtersData)
+
+
+      setChartData(merged)
     } else {
-      setChartData(data)
+      if (props.type === 'trend') {
+        const trend = calculateTrend(data, props.metric, pos, neg);
+        setChartData(trend);
+      } else {
+        setChartData(data);
+      }
     }
 
-
-    setRangeSummary({ pos, neg })
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
   };
 
-
-  const loadRangeSummary = async (data: any[]): Promise<{ pos: number, neg: number }> => {
-    if (!props.metric) return { pos: 0, neg: 0 };
+  const loadRangeSummary = async (
+    data: any[],
+    metric: Metric
+  ): Promise<{ pos: number; neg: number }> => {
     if (props.type === 'trend') {
       let pos = 0;
       let neg = 0;
       let found = false;
       for (let i = data.length - 1; i >= 0; i--) {
         if (
-          data[i]['Positive Trend'] !== undefined &&
-          data[i]['Negative Trend'] !== undefined
+          data[i]['+' + metric.name] !== undefined &&
+          data[i]['-' + metric.name] !== undefined
         ) {
           found = true;
-          pos = data[i]['Positive Trend'];
-          neg = data[i]['Negative Trend'];
+          pos = data[i]['+' + metric.name];
+          neg = data[i]['-' + metric.name];
           break;
         }
       }
@@ -447,44 +492,40 @@ function Chart(props: {
         end.setMinutes(0);
         end.setSeconds(0);
 
-        const now = new Date()
+        const now = new Date();
         if (end.getTime() > now.getTime()) {
           return {
-            pos: props.metric.totalpos,
-            neg: props.metric.totalneg
-          }
+            pos: metric.totalpos,
+            neg: metric.totalneg,
+          };
         }
 
-        const { relativetotalpos, relativetotalneg, pos, neg } = await fetchNextEvent(
-          props.metric?.projectid,
-          props.metric?.id,
-          end,
-        )
+        const { relativetotalpos, relativetotalneg, pos, neg } =
+          await fetchNextEvent(metric.projectid, metric.id, end);
 
         return {
           pos: relativetotalpos - pos,
-          neg: relativetotalneg - neg
-        }
+          neg: relativetotalneg - neg,
+        };
       }
 
-      return { pos, neg }
+      return { pos, neg };
     } else {
       if (chartData === null) return { pos: 0, neg: 0 };
       let totalpos = 0;
       let totalneg = 0;
 
-      for (let i = 0; i < chartData.length; i++) {
-        if (props.metric?.type === MetricType.Base) {
-          totalpos += chartData[i][props.metric?.name] ?? 0;
+      for (let i = 0; i < data.length; i++) {
+        if (metric.type === MetricType.Base) {
+          totalpos += data[i][metric.name] ?? 0;
         } else {
-          totalpos += chartData[i][props.metric?.namepos ?? ''] ?? 0;
-          totalneg += chartData[i][props.metric?.nameneg ?? ''] ?? 0;
+          totalpos += data[i][metric.namepos ?? ''] ?? 0;
+          totalneg += data[i][metric.nameneg ?? ''] ?? 0;
         }
       }
       return { pos: totalpos, neg: totalneg };
     }
   };
-
 
   useEffect(() => {
     let interval: any;
@@ -527,7 +568,7 @@ function Chart(props: {
     return () => {
       clearInterval(interval);
     };
-  }, [date?.from, range, year]);
+  }, [date?.from, range, year, filtersChecked]);
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -747,44 +788,69 @@ function Chart(props: {
               index='date'
               customTooltip={customTooltip}
               colors={
-                splitTrendChecked ? dualMetricChartConfig.colors : [chartColor]
+                splitTrendChecked
+                  ? dualMetricChartConfig.colors
+                  : [chartColor]
               }
               categories={
                 splitTrendChecked
-                  ? ['Positive Trend', 'Negative Trend']
-                  : ['Total']
+                  ? (
+                    filtersChecked ?
+                      props.metric?.filters[activeFilterCategory].flatMap(filter => ['+' + filter.name, '-' + filter.name]) ?? []
+                      :
+                      ['+' + (props.metric?.name ?? ""), "-" + (props.metric?.name ?? "")]
+                  )
+                  : (
+                    filtersChecked ?
+                      props.metric?.filters[activeFilterCategory].map(filter => filter.name) ?? []
+                      :
+                      [props.metric?.name ?? ""]
+                  )
               }
               valueFormatter={(number: number) => valueFormatter(number)}
               yAxisLabel='Total'
               onValueChange={() => { }}
             />
           ) : (
-            <BarChart
-              className='min-h-[40vh] w-full'
-              data={chartData}
-              customTooltip={customTooltip}
-              index='date'
-              tabIndex={0}
-              type={chartType}
-              colors={
-                props.metric?.type === MetricType.Dual
-                  ? dualMetricChartConfig.colors
-                  : [chartColor]
-              }
-              categories={
-                props.metric?.type === MetricType.Base
-                  ? [props.metric?.name ?? '']
-                  : [props.metric?.namepos ?? '', props.metric?.nameneg ?? '']
-              }
-              valueFormatter={(number: number) =>
-                `${Intl.NumberFormat('us').format(number).toString()}`
-              }
-              yAxisLabel='Total'
-              onValueChange={() => { }}
-            />
+            <>
+              <BarChart
+                className='min-h-[40vh] w-full'
+                data={chartData}
+                customTooltip={customTooltip}
+                index='date'
+                tabIndex={0}
+                type={chartType}
+                colors={
+                  props.metric?.type === MetricType.Dual
+                    ? dualMetricChartConfig.colors
+                    : [chartColor]
+                }
+                categories={
+                  filtersChecked ?
+                    (props.metric?.type === MetricType.Base
+                      ? props.metric?.filters[activeFilterCategory].map(filter => filter.name) ?? []
+                      : props.metric?.filters[activeFilterCategory].flatMap(filter => [filter.namepos, filter.nameneg]) ?? []
+                    )
+                    :
+                    (props.metric?.type === MetricType.Base
+                      ? [props.metric?.name ?? '']
+                      : [
+                        props.metric?.namepos ?? '',
+                        props.metric?.nameneg ?? '',
+                      ])
+
+                }
+                valueFormatter={(number: number) =>
+                  `${Intl.NumberFormat('us').format(number).toString()}`
+                }
+                yAxisLabel='Total'
+                onValueChange={() => { }}
+              />
+            </>
           )}
-        </div>
-      )}
+        </div >
+      )
+      }
     </>
   );
 }
@@ -797,7 +863,7 @@ function AdvancedOptions(props: {
   chartType: string;
   chartColor: string;
   filters: {
-    [category: string]: Metric;
+    [category: string]: Metric[];
   };
   activeFilterCategory: string;
   setActiveFilterCategory: Dispatch<SetStateAction<string>>;
@@ -1078,23 +1144,29 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
-          <Label className='flex flex-row items-center justify-between gap-4'>
-            <div className='flex flex-col gap-1'>
-              Activate filters
-              <div className='text-xs font-normal text-secondary'>
-                Change the value of the chart depending on filters
-              </div>
-            </div>
-            <Switch
-              checked={props.filtersChecked}
-              onCheckedChange={(e) => {
-                props.setFiltersChecked(e);
-                if (e === true) {
-                  props.setActiveFilterCategory(Object.keys(props.filters)[0]);
-                }
-              }}
-            />
-          </Label>
+          {
+            Object.keys(props.filters).length > 0 ?
+              <Label className='flex flex-row items-center justify-between gap-4'>
+                <div className='flex flex-col gap-1'>
+                  Activate filters
+                  <div className='text-xs font-normal text-secondary'>
+                    Change the value of the chart depending on filters
+                  </div>
+                </div>
+                <Switch
+                  checked={props.filtersChecked}
+                  onCheckedChange={(e) => {
+                    props.setFiltersChecked(e);
+                    if (e === true) {
+                      props.setActiveFilterCategory(Object.keys(props.filters)[0]);
+                    }
+                  }}
+                />
+              </Label>
+
+              :
+              <></>
+          }
           {props.filtersChecked ? (
             <Popover>
               <PopoverTrigger asChild>
