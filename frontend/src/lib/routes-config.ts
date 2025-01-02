@@ -28,6 +28,7 @@ export const ROUTES: EachRoute[] = [
       { title: 'Basic metric', href: '/basic-metric' },
       { title: 'Dual metric', href: '/dual-metric' },
       { title: 'Chart Options', href: '/chart-options' },
+      { title: 'Filters', href: '/filters' }
     ],
   },
   {

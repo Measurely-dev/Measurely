@@ -1,0 +1,89 @@
+---
+title: Filters
+description: Learn what filters are and how to use them to categorize your metrics.
+---
+
+## What is a Filter?
+
+A **filter** is a key-value pair used to add additional metadata to your metrics. Filters provide context about your data, allowing you to categorize, segment, and analyze metrics effectively.
+
+### Why Use Filters?
+Filters are helpful when you want to:
+- Track metrics across different environments (e.g., production, staging, development).
+- Segment data based on user attributes, regions, or other categories.
+- Add flexible and descriptive labels to your metrics for better analysis.
+
+### Example Use Cases
+- **Environment-based segmentation:** Use filters to track metrics in specific environments like `production` or `development`.
+- **Region-based analysis:** Monitor metrics across geographical locations like `us-east` or `eu-west`.
+
+---
+
+# How to Create a Filter
+
+Filters are defined as a map of key-value pairs in your metric payload. Here's how to add filters when capturing a metric.
+
+### Step-by-Step Guide
+
+1. **Define your filters:** Decide the context you want to add (e.g., `environment`, `region`).
+2. **Add filters to your payload:** Include a `filters` object when sending your metric.
+
+### Example in TypeScript
+Below is an example of creating a metric with filters using the Measurely TypeScript SDK:
+
+```typescript
+import { Measurely } from "measurely-sdk";
+
+// Initialize Measurely with your API key
+const measurely = new Measurely("YOUR_API_KEY");
+
+// Define your filters
+const filters = {
+  environment: "production",
+  region: "us-east",
+};
+
+// Create a metric payload with value and filters
+const payload = {
+  value: 42,
+  filters: filters,
+};
+
+// Capture the metric
+measurely.capture("example_metric", payload)
+  .then((result) => {
+    if (result.success) {
+      console.log("Metric captured successfully!");
+    } else {
+      console.error("Error capturing metric:", result.message);
+    }
+  })
+  .catch((error) => {
+    console.error("Unexpected error:", error);
+  });
+```
+
+---
+
+# Best Practices for Filters
+
+- Use **consistent keys**: Stick to a naming convention for keys like `environment`, `region`, or `user_type`.
+- **Keep filters relevant**: Only include filters that add meaningful context to your metrics.
+- Avoid **excessive filters**: Too many filters can complicate your data analysis.
+
+---
+
+# API Reference for Filters
+
+Filters are part of the payload used in the `capture` function:
+
+```typescript
+interface CapturePayload {
+  value: number; // The metric value to be recorded.
+  filters?: Record<string, string>; // Optional filters for categorizing the metric.
+}
+```
+
+### Fields
+- **value (number):** The metric value you want to track.
+- **filters (Record<string, string>):** Optional key-value pairs for categorizing the metric.

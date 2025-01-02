@@ -18,10 +18,10 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
   if (!res)
     return (
       <div className='flex h-[calc(100vh-70px)] w-full flex-col items-center justify-center gap-4'>
-        <div className='font-mono text-6xl font-semibold'>Docs</div>
-        <div className='text-xl text-secondary'>Couldn't be found</div>
+        <div className='font-mono text-4xl font-semibold'>Documentation</div>
+        <div className='text-lg text-secondary'>Couldn't be found</div>
         <Link href={'/docs/getting-started/introduction'}>
-          <Button className='mt-5 h-[45px] rounded-[12px] text-lg' size={'lg'}>
+          <Button className='mt-3 h-[45px] rounded-[12px] text-md' size={'lg'}>
             Back to docs
           </Button>
         </Link>
