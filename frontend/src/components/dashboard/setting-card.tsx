@@ -20,13 +20,11 @@ const SettingCard = (props: {
   action?: (_: FormEvent<HTMLFormElement>) => void;
   btn?: string | undefined;
   danger?: boolean | false;
-  top?: boolean | false;
-  bottom?: boolean | false;
 }) => {
   return (
     <form className='flex flex-col' onSubmit={props.action}>
       <Card
-        className={`relative overflow-hidden rounded-none border-b-0 ${props.danger ? 'border-red-500/40' : ''} ${props.top ? 'rounded-t-[12px]' : ''} ${props.bottom ? 'rounded-b-[12px] border-b' : ''} `}
+        className={`relative overflow-hidden rounded-lg ${props.danger ? 'border-red-500/40' : ''}`}
       >
         {props.disabled ? (
           <div className='absolute left-0 top-0 z-10 flex h-full w-full flex-col items-center justify-center gap-4 bg-accent/20 backdrop-blur-lg'>
@@ -36,7 +34,7 @@ const SettingCard = (props: {
           <></>
         )}
         <div
-          className={`p-5 pt-6 ${props.danger ? 'text-red-500' : ''} ${props.btn !== undefined ? '' : 'pb-6'} ${props.danger ? 'border-red-500 bg-red-500/10' : ''}`}
+          className={`p-5 ${props.danger ? 'text-red-500' : ''} ${props.btn !== undefined ? '' : 'pb-6'} ${props.danger ? 'border-red-500 bg-red-500/10' : ''}`}
         >
           <CardHeader className='mb-4 p-0'>
             <CardTitle>{props.title}</CardTitle>
@@ -48,9 +46,9 @@ const SettingCard = (props: {
           <CardContent className='p-0'>{props.content}</CardContent>
         </div>
         {props.btn !== undefined ? (
-          <CardFooter className='border-t p-4 px-5 pb-6'>
+          <CardFooter className='border-t p-5 pt-4'>
             <Button
-              className='w-full rounded-[12px]'
+              className='w-full rounded-md'
               type='submit'
               loading={props.btn_loading}
               disabled={props.btn_loading || props.btn_disabled}

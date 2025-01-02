@@ -49,9 +49,9 @@ export default function SettingPaymentPage() {
   };
 
   return (
-    <div className='flex flex-col'>
+    <div className='flex flex-col gap-5'>
       <div
-        className={`flex w-full flex-row items-center justify-between rounded-[12px] rounded-b-none px-5 py-3 max-md:flex-col max-md:gap-4 ${user?.plan.identifier === 'starter' ? 'bg-accent' : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'}`}
+        className={`flex w-full flex-row items-center justify-between rounded-lg px-5 py-3 max-md:flex-col max-md:gap-4 ${user?.plan.identifier === 'starter' ? 'bg-accent' : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'}`}
       >
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
@@ -70,7 +70,7 @@ export default function SettingPaymentPage() {
         </div>
         <PlansDialog>
           <Button
-            className={`rounded-[10px] max-md:w-full ${user?.plan.identifier === 'starter' ? '' : 'bg-background text-primary hover:bg-background hover:text-primary/80'}`}
+            className={`rounded-md max-md:w-full ${user?.plan.identifier === 'starter' ? '' : 'bg-background text-primary hover:bg-background hover:text-primary/80'}`}
             variant={
               user?.plan.identifier === 'starter' ? 'default' : 'outline'
             }
@@ -91,7 +91,7 @@ export default function SettingPaymentPage() {
         description='To manage your payment methods and plans please go on stripe.'
         content={
           <Button
-            className='w-full rounded-[12px]'
+            className='w-full rounded-md'
             variant={'default'}
             type='submit'
             loading={loadingBilling}
@@ -103,7 +103,7 @@ export default function SettingPaymentPage() {
       />
       <MetricStats
         differ
-        className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px] rounded-t-none'
+        className='grid !grid-cols-1 gap-3 divide-x-0 rounded-lg'
         stats={[
           {
             title: `Metrics limit`,

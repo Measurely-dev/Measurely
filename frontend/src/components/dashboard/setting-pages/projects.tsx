@@ -6,10 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ApiDialog from '../api-dialog';
 import Link from 'next/link';
 import {
-  ChartNoAxesCombined,
   FileQuestion,
   Key,
   MoreHorizontal,
+  Plus,
   Search,
   Trash,
 } from 'lucide-react';
@@ -27,6 +27,16 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { loadMetrics } from '@/utils';
 import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 export default function SettingProjectPage() {
   const { activeProject, projects, setProjects, setActiveProject } =
@@ -79,7 +89,9 @@ export default function SettingProjectPage() {
           if (projects?.[activeProject].id === project.id) {
             newActiveProject = 0;
           } else {
-            const toRemove = projects?.findIndex((proj) => proj.id === project.id);
+            const toRemove = projects?.findIndex(
+              (proj) => proj.id === project.id,
+            );
             if (toRemove === -1 || toRemove === undefined) return;
             if (toRemove < activeProject) {
               newActiveProject = activeProject - 1;
@@ -114,8 +126,12 @@ export default function SettingProjectPage() {
   useEffect(() => {
     if (projects.length !== 0) {
       const sorted = [
-        ...projects.filter((proj) => proj.name === projects[activeProject]?.name),
-        ...projects.filter((proj) => proj.name !== projects[activeProject]?.name),
+        ...projects.filter(
+          (proj) => proj.name === projects[activeProject]?.name,
+        ),
+        ...projects.filter(
+          (proj) => proj.name !== projects[activeProject]?.name,
+        ),
       ];
       setSortedProjects(sorted);
     }
@@ -128,9 +144,9 @@ export default function SettingProjectPage() {
           <Button
             variant={'secondary'}
             size={'lg'}
-            className='mb-5 w-full rounded-[12px] py-5'
+            className='w-full rounded-[12px] py-5'
           >
-            <ChartNoAxesCombined className='mr-2 size-4' />
+            <Plus className='mr-2 size-4' />
             Start a new project
           </Button>
         </Link>
@@ -143,65 +159,80 @@ export default function SettingProjectPage() {
             />
           ) : (
             <div className='flex flex-col divide-y'>
-              {sortedProjects.map((proj: Project, i: number) => {
-                return (
-                  <div
-                    key={i}
-                    className='flex items-center justify-between px-3 py-3 hover:bg-accent'
-                  >
-                    <div className='flex flex-row items-center gap-2'>
-                      <Avatar className='size-10 rounded-full border bg-accent'>
-                        <AvatarImage src={proj.image} />
-                        <AvatarFallback>
-                          {proj.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className='flex flex-col'>
-                        <p className='text-sm font-medium leading-none'>
+              <Table>
+                <TableCaption>A list of your projects.</TableCaption>
+                <TableHeader>
+                  <TableRow className='hover:bg-transparent'>
+                    <TableHead className='min-w-[80px] w-[80px]'>Image</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead className='text-right' colSpan={4}>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedProjects.map((proj: Project, i: number) => {
+                    return (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Avatar className='size-10 rounded-full border bg-accent'>
+                            <AvatarImage src={proj.image} />
+                            <AvatarFallback>
+                              {proj.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
+                        <TableCell>
                           {proj.name.charAt(0).toUpperCase() +
                             proj.name.slice(1).toLowerCase()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className='flex flex-row items-center gap-2'>
-                      <ApiDialog randomize projectid={proj.id}>
-                        <Button
-                          variant={'outline'}
-                          size={'icon'}
-                          className='rounded-[12px] hover:bg-background'
-                        >
-                          <Key className='size-4' />
-                        </Button>
-                      </ApiDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size={'icon'}
-                            variant={'ghost'}
-                            className='rounded-[12px] hover:bg-background'
-                          >
-                            <MoreHorizontal className='size-4' />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className='mr-20'>
-                          <DialogTrigger
-                            className='w-full'
-                            onClick={() => setSelectedProject(proj)}
-                          >
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                          </DialogTrigger>
-                          <DropdownMenuItem
-                            onClick={() => DeleteProject(proj)}
-                            className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                );
-              })}
+                        </TableCell>
+                        <TableCell className='w-full' colSpan={4}>
+                          <div className='flex w-full flex-row items-center justify-end gap-2'>
+                            <ApiDialog randomize projectid={proj.id}>
+                              <Button
+                                variant={'outline'}
+                                size={'icon'}
+                                className='rounded-[12px] hover:bg-background'
+                              >
+                                <Key className='size-4' />
+                              </Button>
+                            </ApiDialog>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  size={'icon'}
+                                  variant={'ghost'}
+                                  className='rounded-[12px] hover:bg-background'
+                                >
+                                  <MoreHorizontal className='size-4' />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className='mr-20'>
+                                <DialogTrigger
+                                  className='w-full'
+                                  onClick={() => setSelectedProject(proj)}
+                                >
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                </DialogTrigger>
+                                <DropdownMenuItem
+                                  onClick={() => DeleteProject(proj)}
+                                  className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>{' '}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={3}>Total</TableCell>
+                    <TableCell className='text-right'>{sortedProjects.length}</TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
             </div>
           )}
         </div>
