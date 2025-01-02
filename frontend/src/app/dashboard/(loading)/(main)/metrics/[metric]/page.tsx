@@ -818,7 +818,7 @@ function Chart(props: {
                     `${Intl.NumberFormat('us').format(number).toString()}`
                   }
                   yAxisLabel='Total'
-                  onValueChange={() => { }}
+                  onValueChange={props.metric?.type === MetricType.Dual ? () => {} : undefined}
                 />
               </>
             )}
