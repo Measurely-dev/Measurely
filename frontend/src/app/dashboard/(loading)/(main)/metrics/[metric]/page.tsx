@@ -226,15 +226,15 @@ export default function DashboardMetricPage() {
         projects.map((v) =>
           v.id === metric.projectid
             ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === metric.id
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
+              metrics: v.metrics?.map((m) =>
+                m.id === metric.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
             : v,
         ),
       );
@@ -394,7 +394,6 @@ function Chart(props: {
 
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
-
     let data = [];
 
     if (activeFilter !== null) {
@@ -480,7 +479,6 @@ function Chart(props: {
 
       return { pos, neg };
     } else {
-      if (chartData === null) return { pos: 0, neg: 0 };
       let totalpos = 0;
       let totalneg = 0;
 
@@ -752,7 +750,7 @@ function Chart(props: {
                 </div>
                 <div className='text-xl font-medium'>
                   {rangeSummary.pos - rangeSummary.neg > 0 &&
-                  props.type === 'overview'
+                    props.type === 'overview'
                     ? '+'
                     : ''}
                   {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
@@ -768,7 +766,7 @@ function Chart(props: {
                   >
                     {activeFilter !== null
                       ? activeFilter.name.charAt(0).toUpperCase() +
-                        activeFilter.name.slice(1).toLowerCase()
+                      activeFilter.name.slice(1).toLowerCase()
                       : 'Select a filter'}
                     <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                   </Button>
@@ -861,18 +859,18 @@ function Chart(props: {
                                         )}
                                         <div className='text-medium flex w-full gap-1 truncate capitalize'>
                                           {filter.totalpos + filter.totalneg ===
-                                          0 ? (
+                                            0 ? (
                                             <div className='h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500'>
                                               0
                                             </div>
                                           ) : filter.totalpos +
-                                              filter.totalneg >
+                                            filter.totalneg >
                                             0 ? (
                                             <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500'>
                                               +
                                               {valueFormatter(
                                                 filter.totalpos +
-                                                  filter.totalneg,
+                                                filter.totalneg,
                                               )}
                                             </div>
                                           ) : (
@@ -880,7 +878,7 @@ function Chart(props: {
                                               -
                                               {valueFormatter(
                                                 filter.totalpos +
-                                                  filter.totalneg,
+                                                filter.totalneg,
                                               )}
                                             </div>
                                           )}
@@ -925,7 +923,7 @@ function Chart(props: {
                 }
                 valueFormatter={(number: number) => valueFormatter(number)}
                 yAxisLabel='Total'
-                onValueChange={() => {}}
+                onValueChange={() => { }}
               />
             ) : (
               <>
@@ -944,20 +942,20 @@ function Chart(props: {
                   categories={
                     props.metric?.type === MetricType.Base
                       ? [
-                          activeFilter !== null
-                            ? activeFilter.name
-                            : (props.metric?.name ?? ''),
-                        ]
+                        activeFilter !== null
+                          ? activeFilter.name
+                          : (props.metric?.name ?? ''),
+                      ]
                       : [
-                          props.metric?.namepos ?? '',
-                          props.metric?.nameneg ?? '',
-                        ]
+                        props.metric?.namepos ?? '',
+                        props.metric?.nameneg ?? '',
+                      ]
                   }
                   valueFormatter={(number: number) =>
                     `${Intl.NumberFormat('us').format(number).toString()}`
                   }
                   yAxisLabel='Total'
-                  onValueChange={() => {}}
+                  onValueChange={() => { }}
                 />
               </>
             )}
@@ -1047,7 +1045,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
+            props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1074,7 +1072,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-          (props.chartName === 'trend' && props.splitTrendChecked) ? (
+            (props.chartName === 'trend' && props.splitTrendChecked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1235,7 +1233,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-          props.metricType === MetricType.Dual ? (
+            props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
