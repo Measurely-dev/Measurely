@@ -768,12 +768,12 @@ function Chart(props: {
                     className='w-[240px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
                   >
                     {activeFilter !== null
-                      ? activeFilter.name
+                      ? activeFilter.name.charAt(0).toUpperCase() + activeFilter.name.slice(1).toLowerCase()
                       : 'Select a filter'}
                     <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-[260px] overflow-hidden rounded-[12px] border !p-0 shadow-md'>
+                <PopoverContent className='w-[260px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
                   <Command>
                     <CommandInput placeholder='Search filters...' />
                     <CommandList>
@@ -797,8 +797,10 @@ function Chart(props: {
                             <>
                               <CommandGroup
                                 key={i}
-                                className='p-0'
-                                heading={filterCategory}
+                                heading={
+                                  filterCategory.charAt(0).toUpperCase() +
+                                  filterCategory.slice(1).toLowerCase()
+                                }
                               >
                                 {props.metric?.filters[filterCategory].map(
                                   (filter, j) => {
@@ -821,13 +823,17 @@ function Chart(props: {
                                         {activeFilter?.id === filter.id ? (
                                           <Check
                                             className={cn(
-                                              'mr-2 size-4 stroke-[3px]',
+                                              'mr-1 size-4 stroke-[3px]',
                                             )}
                                           />
                                         ) : (
-                                          <></>
+                                          <Check
+                                            className={cn(
+                                              'mr-1 size-4 stroke-[3px] invisible',
+                                            )}
+                                          />
                                         )}
-                                        <div className='w-full truncate'>
+                                        <div className='w-full truncate capitalize text-medium'>
                                           {filter.name}
                                         </div>
                                       </CommandItem>
