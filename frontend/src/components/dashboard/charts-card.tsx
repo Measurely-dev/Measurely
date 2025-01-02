@@ -39,9 +39,9 @@ import {
 import { useContext, useEffect, useMemo, useState } from 'react';
 import {
   calculateTrend,
-  fetchDailySummary,
-  INTERVAL_LONG,
+  INTERVAL,
   fetchChartData,
+  fetchEventVariation,
 } from '@/utils';
 import { Metric, MetricType, Project } from '@/types';
 import MetricStats from './metric-stats';
@@ -98,7 +98,7 @@ export function ChartsCard() {
     if (!metricData) return;
 
     const { relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(metricData.projectid ?? '', metricData.id ?? '');
+      await fetchEventVariation(metricData.projectid ?? '', metricData.id ?? '');
 
     if (
       (metricData.totalpos !== relativetotalpos ||
@@ -130,7 +130,7 @@ export function ChartsCard() {
     const interval = setInterval(() => {
       loadData();
       loadDailyUpdate();
-    }, INTERVAL_LONG);
+    }, INTERVAL);
     return () => {
       clearInterval(interval);
     };

@@ -7,7 +7,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
-import { fetchDailySummary, INTERVAL } from '@/utils';
+import { fetchEventVariation, INTERVAL } from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpDown,
@@ -130,7 +130,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                     (projects[activeProject].metrics?.findIndex(
                       (m) => m.id === metric.id,
                     ) ?? 0) >
-                      user.plan.metric_per_project_limit - 1;
+                    user.plan.metric_per_project_limit - 1;
                   return (
                     <Item
                       key={metric.id}
@@ -187,7 +187,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
 
   const load = async () => {
     const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(props.metric.projectid, props.metric.id);
+      await fetchEventVariation(props.metric.projectid, props.metric.id);
     setDailyUpdate(pos - neg);
 
     if (
@@ -199,15 +199,15 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
         projects.map((v) =>
           v.id === props.metric?.projectid
             ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === props.metric?.id
-                    ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                      })
-                    : m,
-                ),
-              })
+              metrics: v.metrics?.map((m) =>
+                m.id === props.metric?.id
+                  ? Object.assign({}, m, {
+                    totalpos: relativetotalpos,
+                    totalneg: relativetotalneg,
+                  })
+                  : m,
+              ),
+            })
             : v,
         ),
       );
@@ -277,7 +277,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
           </div>
         </TableCell>
         {/* Created */}
-        <TableCell className='text-secondary text-nowrap'>
+        <TableCell className='text-nowrap text-secondary'>
           {formattedDate(props.metric.created)}
         </TableCell>
         {/* Actions */}
@@ -299,7 +299,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
           </MetricDropdown>
         </TableCell>
       </TableRow>
-      <EditMetricDialogContent metric={props.metric} setOpen={setIsEditOpen}/>
+      <EditMetricDialogContent metric={props.metric} setOpen={setIsEditOpen} />
     </Dialog>
   );
 };

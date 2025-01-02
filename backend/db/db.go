@@ -357,7 +357,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 func (db *DB) GetMetricsCount(projectid uuid.UUID) (int, error) {
 	var count int = 0
-	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE projectid = $1", projectid)
+	err := db.Conn.Get(&count, "SELECT COUNT(*) FROM metrics WHERE projectid = $1 AND parentmetricid IS NULL", projectid)
 	return count, err
 }
 

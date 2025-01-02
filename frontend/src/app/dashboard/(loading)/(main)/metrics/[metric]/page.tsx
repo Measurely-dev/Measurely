@@ -52,10 +52,10 @@ import { cn } from '@/lib/utils';
 import { Metric, MetricType } from '@/types';
 import {
   calculateTrend,
-  fetchDailySummary,
   fetchNextEvent,
   INTERVAL,
   fetchChartData,
+  fetchEventVariation,
 } from '@/utils';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
@@ -213,7 +213,7 @@ export default function DashboardMetricPage() {
 
   const loadDailyValues = async (metric: Metric) => {
     const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchDailySummary(metric.projectid, metric.id);
+      await fetchEventVariation(metric.projectid, metric.id);
     setPosDaily(pos);
     setNegDaily(neg);
 
@@ -756,150 +756,13 @@ function Chart(props: {
                   {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
                 </div>
               </div>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant='outline'
-                    role='combobox'
-                    className='w-[250px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
-                  >
-                    {activeFilter !== null
-                      ? activeFilter.name.charAt(0).toUpperCase() +
-                      activeFilter.name.slice(1).toLowerCase()
-                      : 'Select a filter'}
-                    <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='mr-10 w-fit min-w-[340px] max-w-[500px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
-                  <Command>
-                    <CommandInput placeholder='Search filters...' />
-                    <CommandList>
-                      <CommandEmpty className='flex w-full flex-col items-center justify-center py-5'>
-                        <div className='relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500'>
-                          <CircleOff className='h-6 w-6 text-muted-foreground' />
-                        </div>
-                        <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
-                          No filter to show at the moment
-                          <br />
-                          <a
-                            href='/docs/features/filters'
-                            className='cursor-pointer text-blue-500 underline'
-                          >
-                            How to create one
-                          </a>
-                        </h2>
-                      </CommandEmpty>
-                      {props.metric?.filters ? (
-                        <CommandGroup>
-                          <CommandItem
-                            className='truncate rounded-[10px]'
-                            onSelect={() => setActiveFilter(null)}
-                          >
-                            {!activeFilter ? (
-                              <div
-                                className={cn(
-                                  'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
-                                )}
-                              />
-                            ) : (
-                              <div
-                                className={cn(
-                                  'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
-                                )}
-                              />
-                            )}
-                            None
-                          </CommandItem>
-                        </CommandGroup>
-                      ) : null}
-
-                      {Object.keys(props.metric?.filters ?? {}).map(
-                        (filterCategory: string, i: number) => {
-                          return (
-                            <>
-                              <CommandGroup
-                                key={i}
-                                heading={
-                                  filterCategory.charAt(0).toUpperCase() +
-                                  filterCategory.slice(1).toLowerCase()
-                                }
-                              >
-                                {props.metric?.filters[filterCategory].map(
-                                  (filter, j) => {
-                                    return (
-                                      <CommandItem
-                                        key={j}
-                                        className='truncate rounded-[10px]'
-                                        value={filter.name}
-                                        onSelect={(value) => {
-                                          if (activeFilter?.id === filter.id) {
-                                            setActiveFilter(null);
-                                          } else {
-                                            const metric =
-                                              props.metric?.filters[
-                                                filterCategory
-                                              ].find((m) => m.name === value);
-                                            setActiveFilter(metric ?? null);
-                                          }
-                                        }}
-                                      >
-                                        {activeFilter?.id === filter.id ? (
-                                          <div
-                                            className={cn(
-                                              'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
-                                            )}
-                                          />
-                                        ) : (
-                                          <div
-                                            className={cn(
-                                              'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
-                                            )}
-                                          />
-                                        )}
-                                        <div className='text-medium flex w-full gap-1 truncate capitalize'>
-                                          {filter.totalpos + filter.totalneg ===
-                                            0 ? (
-                                            <div className='h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500'>
-                                              0
-                                            </div>
-                                          ) : filter.totalpos +
-                                            filter.totalneg >
-                                            0 ? (
-                                            <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500'>
-                                              +
-                                              {valueFormatter(
-                                                filter.totalpos +
-                                                filter.totalneg,
-                                              )}
-                                            </div>
-                                          ) : (
-                                            <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-xs text-red-500'>
-                                              -
-                                              {valueFormatter(
-                                                filter.totalpos +
-                                                filter.totalneg,
-                                              )}
-                                            </div>
-                                          )}
-
-                                          <div className='w-full truncate'>
-                                            {filter.name}
-                                          </div>
-                                        </div>
-                                      </CommandItem>
-                                    );
-                                  },
-                                )}
-                              </CommandGroup>
-                            </>
-                          );
-                        },
-                      )}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Filters
+                metric={props.metric}
+                activeFilter={activeFilter}
+                setActiveFilter={setActiveFilter}
+                range={range}
+                start={date?.to ?? new Date()}
+              />
             </div>
 
             <Separator className='my-4' />
@@ -963,6 +826,181 @@ function Chart(props: {
         )}
       </div>
     </>
+  );
+}
+
+function Filters(props: {
+  metric: Metric | null | undefined;
+  activeFilter: Metric | null;
+  setActiveFilter: Dispatch<SetStateAction<Metric | null>>;
+  range: number;
+  start: Date;
+}) {
+  const [filters, setFilters] = useState<{ [category: string]: any[] }>({});
+
+  const updateFilters = async () => {
+    const end = new Date(props.start);
+    end.setDate(end.getDate() + (props.range - 1));
+    const categories = Object.keys(props.metric?.filters ?? []);
+
+    let finalFilters: { [category: string]: any[] } = {};
+
+    for (let i = 0; i < categories.length; i++) {
+      for (let j = 0; j < props.metric?.filters[categories[i]].length!; j++) {
+        const filter: any = props.metric?.filters[categories[i]][j];
+
+        if (finalFilters[categories[i]] === undefined) {
+          finalFilters[categories[i]] = [];
+        }
+
+        const { pos, neg } = await fetchEventVariation(
+          filter.projectid,
+          filter.id,
+          props.start,
+          end,
+        );
+
+        filter['summary'] = pos - neg;
+
+        finalFilters[categories[i]].push(filter);
+      }
+
+      finalFilters[categories[i]].sort((a, b) => b.summary - a.summary);
+    }
+
+    setFilters(finalFilters);
+  };
+
+  useEffect(() => {
+    updateFilters();
+  }, [props.metric, props.range, props.start]);
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant='outline'
+          role='combobox'
+          className='w-[250px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
+        >
+          {props.activeFilter !== null
+            ? props.activeFilter.name.charAt(0).toUpperCase() +
+            props.activeFilter.name.slice(1).toLowerCase()
+            : 'Select a filter'}
+          <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className='mr-10 w-fit min-w-[340px] max-w-[500px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+        <Command>
+          <CommandInput placeholder='Search filters...' />
+          <CommandList>
+            <CommandEmpty className='flex w-full flex-col items-center justify-center py-5'>
+              <div className='relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500'>
+                <CircleOff className='h-6 w-6 text-muted-foreground' />
+              </div>
+              <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
+                No filter to show at the moment
+                <br />
+                <a
+                  href='/docs/features/filters'
+                  className='cursor-pointer text-blue-500 underline'
+                >
+                  How to create one
+                </a>
+              </h2>
+            </CommandEmpty>
+            {props.metric?.filters ? (
+              <CommandGroup>
+                <CommandItem
+                  className='truncate rounded-[10px]'
+                  onSelect={() => props.setActiveFilter(null)}
+                >
+                  {!props.activeFilter ? (
+                    <div
+                      className={cn(
+                        'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
+                      )}
+                    />
+                  ) : (
+                    <div
+                      className={cn(
+                        'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
+                      )}
+                    />
+                  )}
+                  None
+                </CommandItem>
+              </CommandGroup>
+            ) : null}
+
+            {Object.keys(filters).map((filterCategory: string) => {
+              return (
+                <>
+                  <CommandGroup
+                    key={filterCategory}
+                    heading={
+                      filterCategory.charAt(0).toUpperCase() +
+                      filterCategory.slice(1).toLowerCase()
+                    }
+                  >
+                    {filters[filterCategory].map((filter) => {
+                      return (
+                        <CommandItem
+                          key={filter.id}
+                          className='truncate rounded-[10px]'
+                          value={filter.name}
+                          onSelect={(value) => {
+                            if (props.activeFilter?.id === filter.id) {
+                              props.setActiveFilter(null);
+                            } else {
+                              const metric = props.metric?.filters[
+                                filterCategory
+                              ].find((m) => m.name === value);
+                              props.setActiveFilter(metric ?? null);
+                            }
+                          }}
+                        >
+                          {props.activeFilter?.id === filter.id ? (
+                            <div
+                              className={cn(
+                                'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
+                              )}
+                            />
+                          ) : (
+                            <div
+                              className={cn(
+                                'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
+                              )}
+                            />
+                          )}
+                          <div className='text-medium flex w-full gap-1 truncate capitalize'>
+                            {filter.summary === 0 ? (
+                              <div className='h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500'>
+                                0
+                              </div>
+                            ) : filter.summary > 0 ? (
+                              <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500'>
+                                +{valueFormatter(filter.summary)}
+                              </div>
+                            ) : (
+                              <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-xs text-red-500'>
+                                -{valueFormatter(filter.summary)}
+                              </div>
+                            )}
+
+                            <div className='w-full truncate'>{filter.name}</div>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </>
+              );
+            })}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 

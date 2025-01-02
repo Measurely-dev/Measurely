@@ -18,6 +18,7 @@ export interface Metric {
   filters: {
     [category: string]: Metric[];
   };
+  filtercategory: string;
   created: Date;
 }
 

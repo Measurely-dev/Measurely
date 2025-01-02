@@ -2,8 +2,7 @@ import { toast } from 'sonner';
 import { Metric, MetricType } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
-export const INTERVAL = 10000;
-export const INTERVAL_LONG = 20000;
+export const INTERVAL = 20000;
 
 export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(
@@ -24,7 +23,7 @@ export async function loadMetrics(projectid: string): Promise<Metric[]> {
       const namepos = json[i].namepos;
       const nameneg = json[i].nameneg;
 
-      if(json[i].filters === null) continue
+      if (json[i].filters === null) continue;
       const filterCategories = Object.keys(json[i].filters);
 
       for (let j = 0; j < filterCategories.length; j++) {
@@ -304,9 +303,11 @@ export const fetchNextEvent = async (
   };
 };
 
-export const fetchDailySummary = async (
+export const fetchEventVariation = async (
   projectid: string,
   metricid: string,
+  startDate?: Date,
+  endDate?: Date,
 ): Promise<{
   pos: number;
   neg: number;
@@ -314,13 +315,13 @@ export const fetchDailySummary = async (
   relativetotalneg: number;
   results: number;
 }> => {
-  const start = new Date();
+  const start = startDate === undefined ? new Date() : startDate;
   start.setHours(0);
   start.setMinutes(0);
   start.setSeconds(0);
   start.setMilliseconds(0);
 
-  const end = new Date(start);
+  const end = endDate === undefined ? new Date(start) : endDate;
   end.setHours(23);
   end.setMinutes(59);
   end.setSeconds(59);
