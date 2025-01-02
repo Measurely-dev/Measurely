@@ -24,6 +24,7 @@ export default function Home({
       'producthunt',
       'direct',
       'launchtory',
+      'quora'
     ];
 
     if (!refs.includes(ref)) ref = 'direct';
