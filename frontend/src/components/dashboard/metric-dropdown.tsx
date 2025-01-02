@@ -1,5 +1,5 @@
 'use client';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { DialogTrigger } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,9 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Metric, Project } from '@/types';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { toast } from 'sonner';
-import EditMetricDialogContent from './edit-metric-dialog-content';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Trash } from 'lucide-react';
 import { ProjectsContext } from '@/dash-context';
@@ -18,9 +17,10 @@ import { ProjectsContext } from '@/dash-context';
 export default function MetricDropdown(props: {
   children: any;
   metric: Metric;
+  isOpen: boolean | false;
+  setIsOpen: (state: any) => void;
 }) {
   const { setProjects, projects } = useContext(ProjectsContext);
-  const [open, setOpen] = useState(false);
   const confirm = useConfirm();
   const DeleteMetric = async () => {
     const isConfirmed = await confirm({
@@ -65,7 +65,7 @@ export default function MetricDropdown(props: {
         if (res.ok && projects !== null) {
           toast.success('Metric succesfully deleted');
           setProjects(
-            projects?.map((v : Project) =>
+            projects?.map((v: Project) =>
               v.id === props.metric.projectid
                 ? Object.assign({}, v, {
                     metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
@@ -81,34 +81,40 @@ export default function MetricDropdown(props: {
   };
   return (
     <>
-      <Dialog onOpenChange={(e) => setOpen(e)} open={open}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
-          <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-            <DialogTrigger asChild>
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-            </DialogTrigger>
-            <>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(props.metric.id);
-                  toast.success('Succefully copied metric ID');
-                }}
-              >
-                Copy ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </>
-            <DropdownMenuItem
-              onClick={DeleteMetric}
-              className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
-            >
-              Delete
+      <DropdownMenu
+        open={props.isOpen}
+        onOpenChange={(e) => props.setIsOpen(e)}
+      >
+        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
+        <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
+          <DialogTrigger asChild>
+            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+              Edit
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <EditMetricDialogContent metric={props.metric} setOpen={setOpen} />
-      </Dialog>
+          </DialogTrigger>
+          <>
+            <DropdownMenuItem
+              onClick={(e) => {
+                navigator.clipboard.writeText(props.metric.id);
+                toast.success('Succefully copied metric ID');
+                e.stopPropagation();
+              }}
+            >
+              Copy ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              DeleteMetric();
+            }}
+            className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
+          >
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   );
 }
