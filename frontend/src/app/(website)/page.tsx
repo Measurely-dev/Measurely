@@ -14,22 +14,18 @@ export default function Home({
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
     Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
 
-    let id = 'beff3986-f11f-4e19-93e0-7654604f1d3b';
+    const metricId = 'beff3986-f11f-4e19-93e0-7654604f1d3b';
 
-    if (searchParams?.['ref'] === 'reddit') {
-      id = 'f1462a96-73be-4f00-a162-a49edfbedefc';
-    } else if (searchParams?.['ref'] === 'twitter') {
-      id = '3970f9cd-eb3b-40ee-b16a-24a3ffd41963';
-    } else if (searchParams?.['ref'] === 'bluesky') {
-      id = '54215fad-ec90-4f98-9843-3039c3f28881';
-    } else if (searchParams?.['ref'] === 'discord') {
-      id = 'a91f8bb9-21bb-41fa-a286-15c112a80c97';
-    }
-
-    Measurely.capture(id, {
+    const payload = {
       value: 1,
-    });
+      filters: {
+        "traffic source": searchParams?.['ref'] ? searchParams['ref'] : 'direct',
+      },
+    };
+
+    Measurely.capture(metricId, payload);
   }
+
   return (
     <WebContainer>
       <Landing />
