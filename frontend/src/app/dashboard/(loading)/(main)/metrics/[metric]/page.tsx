@@ -68,7 +68,6 @@ import {
   Copy,
   Edit,
   Loader,
-  Search,
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
@@ -387,7 +386,6 @@ function Chart(props: {
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [filtersChecked, setFiltersChecked] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Metric | null>(null);
   const [splitTrendChecked, setSplitTrendChecked] = useState(false);
   const [rangeSummary, setRangeSummary] = useState<{
@@ -400,7 +398,7 @@ function Chart(props: {
 
     let data = [];
 
-    if (filtersChecked && activeFilter !== null) {
+    if (activeFilter !== null) {
       data = await fetchChartData(
         from,
         range,
@@ -409,7 +407,7 @@ function Chart(props: {
         props.type,
       );
 
-      const { pos, neg } = await loadRangeSummary(data, props.metric);
+      const { pos, neg } = await loadRangeSummary(data, activeFilter);
       setRangeSummary({ pos, neg });
       if (props.type === 'trend') {
         data = calculateTrend(data, activeFilter, pos, neg);
@@ -540,7 +538,7 @@ function Chart(props: {
     return () => {
       clearInterval(interval);
     };
-  }, [date?.from, range, year, filtersChecked]);
+  }, [date?.from, range, year, activeFilter]);
   return (
     <>
       <CardHeader className='mt-10 p-0'>
@@ -599,8 +597,6 @@ function Chart(props: {
                 splitTrendChecked={splitTrendChecked}
                 setSplitTrendChecked={setSplitTrendChecked}
                 filters={props.metric?.filters ?? {}}
-                filtersChecked={filtersChecked}
-                setFiltersChecked={setFiltersChecked}
                 activeFilter={activeFilter}
                 setActiveFilter={setActiveFilter}
                 chartType={chartType}
@@ -800,6 +796,7 @@ function Chart(props: {
                           return (
                             <>
                               <CommandGroup
+                                key={i}
                                 className='p-0'
                                 heading={filterCategory}
                               >
@@ -810,10 +807,15 @@ function Chart(props: {
                                         key={j}
                                         className='truncate rounded-[10px]'
                                         onSelect={(value) => {
-                                          const metric = props.metric?.filters[
-                                            filterCategory
-                                          ].find((m) => m.name === value);
-                                          setActiveFilter(metric ?? null);
+                                          if (activeFilter?.id === filter.id) {
+                                            setActiveFilter(null);
+                                          } else {
+                                            const metric =
+                                              props.metric?.filters[
+                                                filterCategory
+                                              ].find((m) => m.name === value);
+                                            setActiveFilter(metric ?? null);
+                                          }
                                         }}
                                       >
                                         {activeFilter?.id === filter.id ? (
@@ -858,8 +860,8 @@ function Chart(props: {
                 categories={
                   splitTrendChecked
                     ? ['Positive Trend', 'Negative Trend']
-                    : filtersChecked
-                      ? [activeFilter?.name ?? '']
+                    : activeFilter !== null
+                      ? [activeFilter.name ?? '']
                       : [props.metric?.name ?? '']
                 }
                 valueFormatter={(number: number) => valueFormatter(number)}
@@ -882,7 +884,11 @@ function Chart(props: {
                   }
                   categories={
                     props.metric?.type === MetricType.Base
-                      ? [props.metric?.name ?? '']
+                      ? [
+                          activeFilter !== null
+                            ? activeFilter.name
+                            : (props.metric?.name ?? ''),
+                        ]
                       : [
                           props.metric?.namepos ?? '',
                           props.metric?.nameneg ?? '',
@@ -916,8 +922,6 @@ function AdvancedOptions(props: {
   activeFilter: Metric | null;
   setActiveFilter: Dispatch<SetStateAction<Metric | null>>;
   dualMetricChartColor?: string;
-  filtersChecked: boolean;
-  setFiltersChecked: Dispatch<SetStateAction<boolean>>;
   splitTrendChecked?: boolean;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;
   setChartColor: Dispatch<SetStateAction<keyof ChartColors>>;
