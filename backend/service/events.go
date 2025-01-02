@@ -425,6 +425,11 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 
 	body, err := json.Marshal(events)
 
+	if end.Before(time.Now()) {
+		SetupCacheControl(w, 100000000)
+	} else {
+		SetupCacheControl(w, 5)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }
