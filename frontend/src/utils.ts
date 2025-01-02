@@ -21,8 +21,8 @@ export async function loadMetrics(projectid: string): Promise<Metric[]> {
     if (json === null) return [];
 
     for (let i = 0; i < json.length; i++) {
-      let namepos = json[i].namepos;
-      let nameneg = json[i].nameneg;
+      const namepos = json[i].namepos;
+      const nameneg = json[i].nameneg;
 
       if(json[i].filters === null) continue
       const filterCategories = Object.keys(json[i].filters);
