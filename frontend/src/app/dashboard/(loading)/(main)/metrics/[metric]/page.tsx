@@ -62,7 +62,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Calendar,
-  Check,
   ChevronsUpDown,
   CircleOff,
   Copy,
@@ -768,7 +767,8 @@ function Chart(props: {
                     className='w-[240px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
                   >
                     {activeFilter !== null
-                      ? activeFilter.name.charAt(0).toUpperCase() + activeFilter.name.slice(1).toLowerCase()
+                      ? activeFilter.name.charAt(0).toUpperCase() +
+                        activeFilter.name.slice(1).toLowerCase()
                       : 'Select a filter'}
                     <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
                   </Button>
@@ -782,7 +782,7 @@ function Chart(props: {
                           <CircleOff className='h-6 w-6 text-muted-foreground' />
                         </div>
                         <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
-                          No filter to show at the moment.{' '}
+                          No filter to show at the moment{' '}
                           <a
                             href='/docs/features/filters'
                             className='cursor-pointer text-blue-500 underline'
@@ -791,6 +791,27 @@ function Chart(props: {
                           </a>
                         </h2>
                       </CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          className='truncate rounded-[10px]'
+                          onSelect={() => setActiveFilter(null)}
+                        >
+                          {!activeFilter ? (
+                            <div
+                              className={cn(
+                                'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
+                              )}
+                            />
+                          ) : (
+                            <div
+                              className={cn(
+                                'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
+                              )}
+                            />
+                          )}
+                          None
+                        </CommandItem>
+                      </CommandGroup>
                       {Object.keys(props.metric?.filters ?? {}).map(
                         (filterCategory: string, i: number) => {
                           return (
@@ -821,19 +842,19 @@ function Chart(props: {
                                         }}
                                       >
                                         {activeFilter?.id === filter.id ? (
-                                          <Check
+                                          <div
                                             className={cn(
-                                              'mr-1 size-4 stroke-[3px]',
+                                              'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
                                             )}
                                           />
                                         ) : (
-                                          <Check
+                                          <div
                                             className={cn(
-                                              'mr-1 size-4 stroke-[3px] invisible',
+                                              'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
                                             )}
                                           />
                                         )}
-                                        <div className='w-full truncate capitalize text-medium'>
+                                        <div className='text-medium w-full truncate capitalize'>
                                           {filter.name}
                                         </div>
                                       </CommandItem>
