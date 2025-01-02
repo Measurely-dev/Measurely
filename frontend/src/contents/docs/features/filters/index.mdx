@@ -17,7 +17,6 @@ Filters are helpful when you want to:
 - **Environment-based segmentation:** Use filters to track metrics in specific environments like `production` or `development`.
 - **Region-based analysis:** Monitor metrics across geographical locations like `us-east` or `eu-west`.
 
----
 
 # How to Create a Filter
 
@@ -26,7 +25,7 @@ Filters are defined as a map of key-value pairs in your metric payload. Here's h
 ### Step-by-Step Guide
 
 1. **Define your filters:** Decide the context you want to add (e.g., `environment`, `region`).
-2. **Add filters to your payload:** Include a `filters` object when sending your metric.
+2. **Add filters to your payload:** Include a `filters` object when sending your event.
 
 ### Example in TypeScript
 Below is an example of creating a metric with filters using the Measurely TypeScript SDK:
@@ -65,7 +64,7 @@ measurely.capture("example_metric", payload)
 
 ---
 
-# Best Practices for Filters
+## Best Practices for Filters
 
 - Use **consistent keys**: Stick to a naming convention for keys like `environment`, `region`, or `user_type`.
 - **Keep filters relevant**: Only include filters that add meaningful context to your metrics.
@@ -73,17 +72,4 @@ measurely.capture("example_metric", payload)
 
 ---
 
-# API Reference for Filters
 
-Filters are part of the payload used in the `capture` function:
-
-```typescript
-interface CapturePayload {
-  value: number; // The metric value to be recorded.
-  filters?: Record<string, string>; // Optional filters for categorizing the metric.
-}
-```
-
-### Fields
-- **value (number):** The metric value you want to track.
-- **filters (Record<string, string>):** Optional key-value pairs for categorizing the metric.
