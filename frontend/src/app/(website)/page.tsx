@@ -24,7 +24,8 @@ export default function Home({
       'producthunt',
       'direct',
       'launchtory',
-      'quora'
+      'quora',
+      'indiehackers'
     ];
 
     if (!refs.includes(ref)) ref = 'direct';
