@@ -75,7 +75,8 @@ export default function TeamPage() {
               Measurely.capture('275b1ffa-e304-4476-8e88-312b3d0a0dc6', {
                 value: 1,
                 filters: {},
-              }).finally(() => {
+              }).then((res) => {
+                console.log(res);
                 setLoading(false);
                 window.localStorage.setItem('request-team-feature', 'true');
                 toast.success('Thank you for your feedback');
