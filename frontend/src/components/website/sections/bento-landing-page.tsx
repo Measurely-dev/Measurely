@@ -37,13 +37,13 @@ export default function BentoUiSection(props: {
       <ContentContainer>
         <WebTitle
           subtitle='Discover Measurely'
-          title='Effortless metric tracking'
+          title='Effortless Metric Tracking for All'
         />
         <WebBentoBox
           type={bentoBoxType}
           className='mt-20'
           title='Simplify Your Metrics'
-          description='Measurely is a powerful tool that makes it easy to track and analyze your key metrics. With a simple API integration, you can send your data to Measurely for real-time monitoring and visualization.'
+          description='Measurely is your all-in-one solution for tracking and analyzing key metrics. With our API integration, monitor data in real-time and access detailed insights at your fingertips.'
           img={Image1}
         />
         <div className='grid grid-cols-2 gap-5 max-md:grid-cols-1 max-md:grid-rows-2'>
@@ -51,67 +51,65 @@ export default function BentoUiSection(props: {
             type='vertical'
             className='mt-5'
             title='Visualize Your Data, Your Way'
-            description='Data is displayed in easy-to-understand charts & tables, with advanced options.'
+            description='Transform your data into clear, actionable charts with advanced customization options.'
             img={Image5}
           />
           <WebBentoBox
             type='vertical'
             className='mt-5 max-md:mt-0'
             title='Seamless Integration'
-            description='Straightforward API integration that allows you to seamlessly start tracking your metrics in no time.'
+            description='Start tracking your metrics effortlessly with our straightforward API & SDKs setup.'
             img={Image4}
           />
         </div>
         <WebBentoBox
           type={bentoBoxType}
           className='mt-5'
-          title='Multiple metric types'
-          description='Measurely tracks single (basic) and dual metrics. Basic metrics monitor growth, while dual metrics compare positive and negative influences on a key metric.'
+          title='Multiple Metric Types'
+          description='Track both single and dual metrics. Single metrics monitor growth, while dual metrics capture positive and negative trends for deeper analysis.'
           img={Image2}
         />
         <SubscriptionUiSection isAuthentificated={props.isAuthentificated} />
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
-          title={`Focus on What Matters with Measurely`}
+          title='Focus on What Matters with Measurely'
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <WebBox
             icon={<Gauge className='size-10 stroke-[1] text-secondary' />}
             title='Instant Insights'
-            description='Access real-time data to make quick, informed decisions.'
+            description='Gain real-time data insights for fast and informed decision-making.'
           />
           <WebBox
             icon={
               <SparklesIcon className='size-10 stroke-[1] text-secondary' />
             }
             title='Custom Metrics'
-            description='Tailor tracking to your unique needs for precise monitoring.'
+            description='Tailor your tracking to suit unique business needs with flexible metric options.'
           />
           <WebBox
             icon={
               <LayoutGridIcon className='size-10 stroke-[1] text-secondary' />
             }
             title='Effortless Integration'
-            description='Seamlessly connect with your existing tools and workflows.'
+            description='Connect easily with your current tools and workflows without hassle.'
           />
         </div>
         <div className='mt-[145px] rounded-3xl bg-background p-5 py-7 pt-12'>
-          <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />
+          <WebTitle subtitle='FAQ' title='Frequently Asked Questions' />
           <div className='mt-[70px] flex w-full items-start justify-center'>
             <div className='w-full'>
               <Accordion>
-                {FAQQuestions.map((e, i) => {
-                  return (
-                    <Tab
-                      key={i}
-                      className='mb-3 rounded-[12px] bg-accent p-2 px-4'
-                    >
-                      <Trigger className='text-md'>{e.question}</Trigger>
-                      <Content>{e.answer}</Content>
-                    </Tab>
-                  );
-                })}
+                {FAQQuestions.map((e, i) => (
+                  <Tab
+                    key={i}
+                    className='mb-3 rounded-[12px] bg-accent p-2 px-4'
+                  >
+                    <Trigger className='text-md'>{e.question}</Trigger>
+                    <Content>{e.answer}</Content>
+                  </Tab>
+                ))}
               </Accordion>
             </div>
           </div>
