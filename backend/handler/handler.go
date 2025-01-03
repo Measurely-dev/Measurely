@@ -37,8 +37,10 @@ func (h *Handler) setup_api() {
 	privateCors := service.SetupCors().Handler
 
 	publicCors := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"OPTIONS", "POST"},
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"OPTIONS", "POST"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: false,
 	}).Handler
 
 	privateRouter := chi.NewRouter()
