@@ -111,8 +111,8 @@ func (d *DB) Close() error {
 	return d.Conn.Close()
 }
 
-func (db *DB) CreateWaitlistEntry(email string) error {
-	_, err := db.Conn.Exec("INSERT into waitlists (email) VALUES ($1)", email)
+func (db *DB) CreateWaitlistEntry(email string, name string) error {
+	_, err := db.Conn.Exec("INSERT into waitlists (email, name) VALUES ($1, $2)", email, name)
 	return err
 }
 

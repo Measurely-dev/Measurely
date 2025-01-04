@@ -3,10 +3,12 @@ import AuthForm from '@/components/website/auth';
 import AuthNavbar from '@/components/website/auth-navbar';
 import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
-import React from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 const Waitlist = () => {
+  const [loading, setLoading] = useState(false);
+
   return (
     <WebContainer className='min-h-[800px]'>
       <div className='mb-[150px]'>
@@ -19,10 +21,10 @@ const Waitlist = () => {
           providers={false}
           form={[
             {
-              label: 'First name',
-              name: 'email',
-              placeholder: 'Email',
-              type: 'email',
+              label: 'Name',
+              name: 'name',
+              placeholder: 'name',
+              type: 'text',
             },
             {
               label: 'Email',
@@ -32,8 +34,35 @@ const Waitlist = () => {
             },
           ]}
           button='Join waitlist'
+          btn_loading={loading}
           action={(form) => {
-            toast.success('Succesfully joined waitlist');
+            setLoading(true);
+            const email = form.get('email')?.toString().toLowerCase().trim();
+            const name = form.get('name')?.toString().toLowerCase().trim();
+
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/waitlist`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email : email, name : name}),
+            })
+              .then((res) => {
+                if (res.status === 200) {
+                  toast.success('Succesfully joined the waitlist');
+                } else {
+                  res.text().then((text) => {
+                    if (res.status === 208) {
+                      toast.warning(text);
+                    } else {
+                      toast.error(text);
+                    }
+                  });
+                }
+              })
+              .finally(() => {
+                setLoading(false);
+              });
           }}
           policies
         />

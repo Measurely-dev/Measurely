@@ -202,6 +202,7 @@ func (s *Service) IsConnected(w http.ResponseWriter, r *http.Request) {
 func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Email string `json:"email"`
+		Name  string `json:"name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -209,12 +210,35 @@ func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := s.db.CreateWaitlistEntry(request.Email)
+	request.Email = strings.ToLower(strings.TrimSpace(request.Email))
+	request.Name = strings.ToLower(strings.TrimSpace(request.Name))
+
+	err := s.db.CreateWaitlistEntry(request.Email, request.Name)
 	if err == nil {
 		measurely.Capture(metricIds["waitlist"], measurely.CapturePayload{
 			Value: 1,
 		})
+	} else {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "Looks like you already joined the waitlist.", http.StatusAlreadyReported)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
 	}
+
+	// Send notification email about the new login
+	go s.email.SendEmail(email.MailFields{
+		To:      request.Email,
+		Subject: "Welcome to Measurely!",
+		Content: fmt.Sprintf(`
+    Hi %s,<br>
+    Thank you for joining the waitlist for Measurely!<br>
+    Thanks for being part of this journey with us. Exciting things are coming, and we can’t wait to share them with you.
+    `, request.Name),
+		Link:        "https://x.com/getmeasurely",
+		ButtonTitle: "Follow us on Twitter",
+	})
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -1382,14 +1406,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Name           string    `json:"name"`
-		ProjectId      uuid.UUID `json:"projectid"`
-		Type           int       `json:"type"`
-		BaseValue      int64     `json:"basevalue"`
-		NamePos        string    `json:"namepos"`
-		NameNeg        string    `json:"nameneg"`
-		ParentMetricId uuid.UUID `json:"parentmetricid"`
-		FilterCategory string    `json:"filtercategory"`
+		Name           string     `json:"name"`
+		ProjectId      uuid.UUID  `json:"projectid"`
+		Type           int        `json:"type"`
+		BaseValue      int64      `json:"basevalue"`
+		NamePos        string     `json:"namepos"`
+		NameNeg        string     `json:"nameneg"`
+		ParentMetricId *uuid.UUID `json:"parentmetricid,omitempty"`
+		FilterCategory string     `json:"filtercategory"`
 	}
 
 	// Try to unmarshal the request body
@@ -1458,6 +1482,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var parentMetricId sql.Null[uuid.UUID]
+	if request.ParentMetricId == nil {
+		parentMetricId.Valid = false
+	} else {
+		parentMetricId.Valid = true
+		parentMetricId.V = *request.ParentMetricId
+	}
+
 	// Create the metric
 	metric, err := s.db.CreateMetric(types.Metric{
 		Name:           request.Name,
@@ -1465,7 +1497,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		Type:           request.Type,
 		NamePos:        request.NamePos,
 		NameNeg:        request.NameNeg,
-		ParentMetricId: sql.Null[uuid.UUID]{Valid: true, V: request.ParentMetricId},
+		ParentMetricId: parentMetricId,
 		FilterCategory: request.FilterCategory,
 	})
 	if err != nil {
