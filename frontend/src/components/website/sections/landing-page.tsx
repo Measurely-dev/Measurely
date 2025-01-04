@@ -11,54 +11,7 @@ export default function LandingSection(props: {
   type: 'default' | 'waitlist';
 }) {
   return (
-    <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[18vh] max-md:pt-[100px]'>
-      <Link
-        href={'/blog/1'}
-        className='group flex cursor-pointer select-none flex-row items-center gap-5 rounded-full border border-accent bg-accent/40 p-1 pr-2 text-sm shadow-inner transition-all duration-200 hover:shadow-transparent max-sm:scale-90'
-      >
-        <div className='rounded-full border bg-background px-4 py-1.5'>
-          Measurely <span className='ml-1 font-mono'>1.0</span>
-        </div>
-        <span className='flex w-[110px] flex-row items-center justify-between gap-2 pr-2 transition-all duration-200 group-hover:pr-1'>
-          Learn more <MoveRight className='size-4' />
-        </span>
-      </Link>
-      <h1 className='mt-5 w-[90%] text-center text-6xl font-semibold leading-[1.15] tracking-normal max-lg:px-0 max-lg:text-5xl max-md:text-5xl max-sm:text-4xl'>
-        <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
-          Measurely
-        </span>{' '}
-        tracks what matters,
-        <br className='max-md:hidden' /> grow with confidence.
-      </h1>
-      {props.type === 'waitlist' ? (
-        <Link href='/register'>
-          <WebButton className='group mt-10 px-3.5 py-2'>
-            <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3'>
-              Join waitlist
-            </div>
-          </WebButton>
-        </Link>
-      ) : (
-        <Link href='/register'>
-          <WebButton className='group mt-10 px-3.5 py-2'>
-            <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3 max-sm:hidden'>
-              Start tracking for free
-            </div>
-            <div className='text-base sm:hidden'>Get started</div>
-          </WebButton>
-        </Link>
-      )}
-
-      <div className='absolute left-[0] top-[0] z-[-10] h-[100%] w-screen bg-accent/40 backdrop-blur-2xl' />
-      <div className='items-bottom justify-bottom relative mx-2 mt-20 flex h-full w-fit max-w-[90%] select-none max-lg:mt-10'>
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.3, ease: 'anticipate' }}
-          className='absolute top-2 z-[-11] h-[80%] w-[100%] animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 max-sm:h-[100%]'
-        />
-      </Head>
+    <>
       <div className='relative flex h-screen min-h-[780px] w-screen flex-col items-center pt-[18vh] max-md:pt-[100px]'>
         <Link
           href={'/blog/1'}
@@ -75,17 +28,28 @@ export default function LandingSection(props: {
           <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
             Measurely
           </span>{' '}
-          makes tracking
-          <br className='max-md:hidden' /> metrics effortless.
+          tracks what matters,
+          <br className='max-md:hidden' /> grow with confidence.
         </h1>
-        <Link href='/register' className='mt-10'>
-          <WebButton className='group px-3.5 py-2'>
-            <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3 max-sm:hidden'>
-              Start tracking for free
-            </div>
-            <div className='text-base sm:hidden'>Get started</div>
-          </WebButton>
-        </Link>
+        {props.type === 'waitlist' ? (
+          <Link href='/register'>
+            <WebButton className='group mt-10 px-3.5 py-2'>
+              <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3'>
+                Join waitlist
+              </div>
+            </WebButton>
+          </Link>
+        ) : (
+          <Link href='/register'>
+            <WebButton className='group mt-10 px-3.5 py-2'>
+              <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3 max-sm:hidden'>
+                Start tracking for free
+              </div>
+              <div className='text-base sm:hidden'>Get started</div>
+            </WebButton>
+          </Link>
+        )}
+
         <div className='absolute left-[0] top-[0] z-[-10] h-[100%] w-screen bg-accent/40 backdrop-blur-2xl' />
         <div className='items-bottom justify-bottom relative mx-2 mt-20 flex h-full w-fit max-w-[90%] select-none max-lg:mt-10'>
           <motion.div
