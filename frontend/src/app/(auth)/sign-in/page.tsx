@@ -25,6 +25,11 @@ export default function SignIn() {
         toast.success(params.get('success') as string);
       });
     }
+    if (params.get('warning') !== null) {
+      setTimeout(() => {
+        toast.warning(params.get('warning') as string);
+      });
+    }
   }, [params]);
 
   useEffect(() => {

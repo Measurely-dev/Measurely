@@ -459,39 +459,43 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			//
 			//    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
 			// go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
+      
+				http.Redirect(w, r, GetOrigin()+"/sign-in?warning=Be the first to know when Measurely is ready by joining the waitlist.", http.StatusFound)
+				return
+
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=invalid user identifier", http.StatusFound)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Invalid user identifier", http.StatusFound)
 				return
 			}
 
 			user, err = s.db.GetUserById(parsedId)
 			if err != nil {
 				log.Println("Error fetching user:", err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=user not found", http.StatusFound)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusFound)
 				return
 			}
 		}
 
 		// Create provider link in DB
-		provider, err = s.db.CreateProvider(types.UserProvider{
-			UserId:         user.Id,
-			Type:           chosenProvider.Type,
-			ProviderUserId: providerUser.Id,
-		})
-		if err != nil {
-			log.Println("Error creating provider link:", err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			return
-		}
+		// provider, err = s.db.CreateProvider(types.UserProvider{
+		// 	UserId:         user.Id,
+		// 	Type:           chosenProvider.Type,
+		// 	ProviderUserId: providerUser.Id,
+		// })
+		// if err != nil {
+		// 	log.Println("Error creating provider link:", err)
+		// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+		// 	return
+		// }
 	}
 
 	if gerr == nil {
 		user, err = s.db.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println("Error fetching user:", err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=Internal error", http.StatusFound)
 			return
 		}
 	}
@@ -499,7 +503,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	cookie, err := CreateCookie(&user, w)
 	if err != nil {
 		log.Println("Error creating cookie:", err)
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=Internal error", http.StatusFound)
 		return
 	}
 

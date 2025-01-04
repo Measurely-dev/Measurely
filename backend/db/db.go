@@ -231,7 +231,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount)
 	return new_metric, err
 }
 

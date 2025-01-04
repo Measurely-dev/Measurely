@@ -11,6 +11,7 @@ export interface Metric {
   projectid: string;
   name: string;
   type: MetricType;
+  eventcount : number;
   totalpos: number;
   totalneg: number;
   namepos: string;
@@ -27,8 +28,10 @@ export interface MetricEvent {
   date: Date;
   valuepos: number;
   valueneg: number;
+  eventcount : number;
   relativetotalpos: number;
   relativetotalneg: number;
+  relativeeventcount : number;
 }
 
 export interface User {
@@ -59,6 +62,7 @@ export interface Plan {
 export enum MetricType {
   Base,
   Dual,
+  Average
 }
 
 export enum Provider {
