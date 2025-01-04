@@ -76,6 +76,7 @@ func (h *Handler) setup_api() {
 	authRouter.Delete("/account", h.service.DeleteAccount)
 	authRouter.Post("/disconnect/{provider}", h.service.DisconnectProvider)
 	authRouter.Get("/user", h.service.GetUser)
+  authRouter.Post("/user-image", h.service.UploadUserImage)
 
 	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
 	authRouter.Patch("/password", h.service.UpdatePassword)

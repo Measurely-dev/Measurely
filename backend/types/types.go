@@ -18,6 +18,12 @@ const (
 	MULTI_METRIC
 )
 
+const (
+  TEAM_VIEW = iota
+  TEAM_DEV
+  TEAM_ADMIN
+)
+
 type key int
 
 const TOKEN key = iota
@@ -106,4 +112,11 @@ type Plan struct {
 	RequestLimit          int    `json:"requestlimit"`
 	MonthlyEventLimit     int64  `json:"monthlyeventlimit"`
 	Range                 int    `json:"range"`
+}
+
+type TeamRelation struct {
+	Id        uuid.UUID `json:"id"`
+	UserId    uuid.UUID `json:"userid"`
+	ProjectId uuid.UUID `json:"projectid"`
+	Role      int       `json:"rol"`
 }
