@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 
 export default function PricingCardsSection(props: {
   isAuthentificated: string | null;
+  type: 'waitlist' | 'default';
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
@@ -108,7 +109,7 @@ export default function PricingCardsSection(props: {
                   : 'Continue with ' + plan.name
               }
               loading={loading && selectedPlan === plan.identifier}
-              disabled={loading}
+              disabled={props.type === 'waitlist' ? true : loading}
               onSelect={() => {
                 subscribe(plan.identifier);
               }}
@@ -125,6 +126,7 @@ export default function PricingCardsSection(props: {
         reccurence='forever'
         target='large organizations'
         list={enterpriseList}
+        disabled={props.type === 'waitlist' ? true : false}
         button='Talk to sales'
       />
     </>

@@ -111,6 +111,11 @@ func (d *DB) Close() error {
 	return d.Conn.Close()
 }
 
+func (db *DB) CreateWaitlistEntry(email string, name string) error {
+	_, err := db.Conn.Exec("INSERT into waitlists (email, name) VALUES ($1, $2)", email, name)
+	return err
+}
+
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
 	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, stripecustomerid, currentplan, startcountdate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.StripeCustomerId, user.CurrentPlan, time.Now().UTC()).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image, &new_user.MonthlyEventCount, &new_user.StartCountDate)
@@ -213,7 +218,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
 	return new_metric, err
 }
 
@@ -304,15 +309,23 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	for key, value := range *filters {
 		var filtertotalPos, filtertotalNeg int64
 		var filterId uuid.UUID
+		// err = tx.QueryRowx(`
+		// 	INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
+		// 	VALUES ($1, $2, $3, $4, $5, $6, $7)
+		// 	ON CONFLICT (parentmetricid, name, filtercategory)
+		// 	DO UPDATE
+		// 		SET totalpos = metrics.totalpos + $6,
+		// 			totalneg = metrics.totalneg + $7
+		//     RETURNING id, totalpos, totalneg
+		// `, projectid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+
 		err = tx.QueryRowx(`
-			INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			ON CONFLICT (parentmetricid, name, filtercategory)
-			DO UPDATE 
-				SET totalpos = metrics.totalpos + $6,
-					totalneg = metrics.totalneg + $7
+			UPDATE metrics 
+			SET totalpos = metrics.totalpos + $1,
+					totalneg = metrics.totalneg + $2
+      WHERE parentmetricid = $3 AND filtercategory = $4 AND name = $5 
       RETURNING id, totalpos, totalneg
-		`, projectid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+		`, toAdd, toRemove, metricid, key, value).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0

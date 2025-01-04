@@ -8,8 +8,8 @@ export default function Home() {
 
   return (
     <WebContainer>
-      <Landing />
-      <BentoUiSection isAuthentificated={is_authenticated} />
+      <Landing type='default' />
+      <BentoUiSection type='default' isAuthentificated={is_authenticated} />
     </WebContainer>
   );
 }

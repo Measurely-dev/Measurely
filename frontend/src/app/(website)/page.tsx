@@ -45,8 +45,8 @@ export default function Home({
 
   return (
     <WebContainer>
-      <Landing />
-      <BentoUiSection isAuthentificated={is_authenticated} />
+      <Landing type='waitlist' />
+      <BentoUiSection type='waitlist' isAuthentificated={is_authenticated} />
     </WebContainer>
   );
 }

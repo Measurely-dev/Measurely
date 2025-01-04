@@ -199,6 +199,51 @@ func (s *Service) IsConnected(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Email string `json:"email"`
+		Name  string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	request.Email = strings.ToLower(strings.TrimSpace(request.Email))
+	request.Name = strings.ToLower(strings.TrimSpace(request.Name))
+
+	err := s.db.CreateWaitlistEntry(request.Email, request.Name)
+	if err == nil {
+		measurely.Capture(metricIds["waitlist"], measurely.CapturePayload{
+			Value: 1,
+		})
+	} else {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "Looks like you already joined the waitlist.", http.StatusAlreadyReported)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
+    return
+	}
+
+	// Send notification email about the new login
+	go s.email.SendEmail(email.MailFields{
+		To:      request.Email,
+		Subject: "Welcome to Measurely!",
+		Content: fmt.Sprintf(`
+    Hi %s,<br>
+    Thank you for joining the waitlist for Measurely!<br>
+    Thanks for being part of this journey with us. Exciting things are coming, and we can’t wait to share them with you.
+    `, request.Name),
+		Link:        "https://x.com/getmeasurely",
+		ButtonTitle: "Follow us on Twitter",
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Email    string `json:"email"`
@@ -338,38 +383,39 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	provider, gerr := s.db.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
 	if gerr == sql.ErrNoRows {
 		if action == "auth" {
+			// TODO : uncomment this code when the waitlist is done
+
 			// Handle user creation logic
-			stripeParams := &stripe.CustomerParams{
-				Email: stripe.String(providerUser.Email),
-			}
+			// stripeParams := &stripe.CustomerParams{
+			// 	Email: stripe.String(providerUser.Email),
+			// }
+			//
+			// c, err := customer.New(stripeParams)
+			// if err != nil {
+			// 	log.Println("Stripe error:", err)
+			// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+			// 	return
+			// }
 
-			c, err := customer.New(stripeParams)
-			if err != nil {
-				log.Println("Stripe error:", err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-				return
-			}
-
-			user, err = s.db.CreateUser(types.User{
-				Email:            strings.ToLower(providerUser.Email),
-				Password:         "",
-				FirstName:        providerUser.Name,
-				LastName:         "",
-				StripeCustomerId: c.ID,
-				CurrentPlan:      "starter",
-			})
-			if err != nil {
-				if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-					http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
-				} else {
-					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-				}
-				return
-			}
-
-      go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
-			go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
-
+			// user, err = s.db.CreateUser(types.User{
+			// 	Email:            strings.ToLower(providerUser.Email),
+			// 	Password:         "",
+			// 	FirstName:        providerUser.Name,
+			// 	LastName:         "",
+			// 	StripeCustomerId: c.ID,
+			// 	CurrentPlan:      "starter",
+			// })
+			// if err != nil {
+			// 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			// 		http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
+			// 	} else {
+			// 		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+			// 	}
+			// 	return
+			// }
+			//
+			//    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
+			// go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
@@ -568,7 +614,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-  go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
 	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
@@ -824,7 +870,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-  go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": user.CurrentPlan}})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -903,7 +949,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": user.CurrentPlan}})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
@@ -1361,12 +1407,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Name      string    `json:"name"`
-		ProjectId uuid.UUID `json:"projectid"`
-		Type      int       `json:"type"`
-		BaseValue int64     `json:"basevalue"`
-		NamePos   string    `json:"namepos"`
-		NameNeg   string    `json:"nameneg"`
+		Name           string     `json:"name"`
+		ProjectId      uuid.UUID  `json:"projectid"`
+		Type           int        `json:"type"`
+		BaseValue      int64      `json:"basevalue"`
+		NamePos        string     `json:"namepos"`
+		NameNeg        string     `json:"nameneg"`
+		ParentMetricId *uuid.UUID `json:"parentmetricid,omitempty"`
+		FilterCategory string     `json:"filtercategory"`
 	}
 
 	// Try to unmarshal the request body
@@ -1378,6 +1426,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	request.Name = strings.TrimSpace(request.Name)
 	request.NamePos = strings.TrimSpace(request.NamePos)
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
+	request.FilterCategory = strings.TrimSpace(strings.ToLower(request.FilterCategory))
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, request.Name)
 	if reerr != nil {
@@ -1434,14 +1483,23 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var parentMetricId sql.Null[uuid.UUID]
+	if request.ParentMetricId == nil {
+		parentMetricId.Valid = false
+	} else {
+		parentMetricId.Valid = true
+		parentMetricId.V = *request.ParentMetricId
+	}
+
 	// Create the metric
 	metric, err := s.db.CreateMetric(types.Metric{
-		Name:      request.Name,
-		ProjectId: request.ProjectId,
-		Type:      request.Type,
-		NamePos:   request.NamePos,
-		NameNeg:   request.NameNeg,
-		Created:   time.Now().UTC(),
+		Name:           request.Name,
+		ProjectId:      request.ProjectId,
+		Type:           request.Type,
+		NamePos:        request.NamePos,
+		NameNeg:        request.NameNeg,
+		ParentMetricId: parentMetricId,
+		FilterCategory: request.FilterCategory,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {

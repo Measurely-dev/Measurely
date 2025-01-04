@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 export default function SubscriptionUiSection(props: {
   isAuthentificated: string | null;
+  type: 'waitlist' | 'default';
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
@@ -80,7 +81,7 @@ export default function SubscriptionUiSection(props: {
                   : 'Continue with ' + plan.name
               }
               loading={loading && selectedPlan === plan.identifier}
-              disabled={loading}
+              disabled={props.type === 'waitlist' ? true : loading}
               onSelect={() => {
                 subscribe(plan.identifier);
               }}
