@@ -15,6 +15,7 @@ import { Accordion, Content, Tab, Trigger } from '@/components/ui/accordion';
 import { FAQQuestions } from '@/components/global/faq-questions';
 export default function BentoUiSection(props: {
   isAuthentificated: string | null;
+  type: 'default' | 'waitlist';
 }) {
   const [window_width, set_window_width] = useState(0);
 
@@ -69,7 +70,7 @@ export default function BentoUiSection(props: {
           description='Measurely tracks single (basic) and dual metrics. Basic metrics monitor growth, while dual metrics compare positive and negative influences on a key metric.'
           img={Image2}
         />
-        <SubscriptionUiSection isAuthentificated={props.isAuthentificated} />
+        <SubscriptionUiSection type={props.type} isAuthentificated={props.isAuthentificated} />
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
@@ -116,7 +117,7 @@ export default function BentoUiSection(props: {
             </div>
           </div>
         </div>
-        <WebFooterHeader className='mt-[170px]' />
+        <WebFooterHeader className='mt-[170px]' type='waitlist' />
       </ContentContainer>
     </div>
   );

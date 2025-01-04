@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import WebButton from './button';
 
-export default function WebFooterHeader(props: { className?: string }) {
+export default function WebFooterHeader(props: {
+  className?: string;
+  type: 'waitlist' | 'default';
+}) {
   return (
     <div
       className={`flex flex-col items-center gap-[30px] text-center ${props.className}`}
@@ -14,11 +17,19 @@ export default function WebFooterHeader(props: { className?: string }) {
         Join the teams who trust Measurely for real-time
         <br /> insights and seamless integration.
       </div>
-      <Link href='/register'>
-        <WebButton className='scale-[1.20] max-md:scale-100 mt-2'>
-          Get started
-        </WebButton>
-      </Link>
+      {props.type === 'waitlist' ? (
+        <Link href={'/waitlist'}>
+          <WebButton className='mt-2 scale-[1.20] max-md:scale-100'>
+            Join waitlist
+          </WebButton>
+        </Link>
+      ) : (
+        <Link href={'/register'}>
+          <WebButton className='mt-2 scale-[1.20] max-md:scale-100'>
+            Get started
+          </WebButton>
+        </Link>
+      )}
     </div>
   );
 }

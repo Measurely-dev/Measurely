@@ -20,7 +20,7 @@ export default function Pricing() {
   return (
     <WebContainer className='w-full max-w-full'>
       <ContentContainer type='page' className='w-[90%] max-w-[90%]'>
-        <PricingCardsSection isAuthentificated={is_authentificated} />
+        <PricingCardsSection type='waitlist' isAuthentificated={is_authentificated} />
         <div className='mt-[145px] rounded-3xl bg-accent p-5 py-7 pt-12'>
           <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />
           <div className='mt-[70px] flex w-full items-start justify-center'>
@@ -41,7 +41,7 @@ export default function Pricing() {
             </div>
           </div>
         </div>
-        <WebFooterHeader className='mt-[170px]' />
+        <WebFooterHeader type='waitlist' className='mt-[170px]' />
       </ContentContainer>
     </WebContainer>
   );

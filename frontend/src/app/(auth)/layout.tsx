@@ -10,7 +10,7 @@ export default function RootLayout({
       <Suspense>
         <div className='min-h-screen w-screen'>{children}</div>
       </Suspense>
-      <Footer bg='secondary' border={false} />
+      <Footer bg='secondary' type='waitlist' border={false} />
     </div>
   );
 }
