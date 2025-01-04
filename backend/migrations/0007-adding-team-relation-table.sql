@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS TeamRelation (
   UNIQUE (UserId, ProjectId)
   FOREIGN KEY (UserId) REFERENCES Users(Id)
   FOREIGN KEY (ProjectId)REFERENCES Projects(Id)
-)
+);
 
 CREATE INDEX IF NOT EXISTS idx_teamrelation_userid ON TeamRelation(UserId);  
 CREATE INDEX IF NOT EXISTS idx_teamrelation_projectid ON TeamRelation(ProjectId);  

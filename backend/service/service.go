@@ -155,6 +155,49 @@ func (s *Service) SetupBasicPlans() {
 	s.GetPlan("pro")
 }
 
+func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the session cookie
+		cookie, err := r.Cookie("measurely-session")
+		if err == http.ErrNoCookie {
+			http.Error(w, "Unauthorized: Missing session cookie", http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			http.Error(w, "Internal server error: Unable to read cookie", http.StatusInternalServerError)
+			return
+		}
+
+		// Verify the token in the cookie
+		token, err := VerifyToken(cookie.Value)
+		if err != nil {
+			http.Error(w, "Unauthorized: Invalid token - "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		// Store token in the request context
+		ctx := context.WithValue(r.Context(), types.TOKEN, token)
+
+		// Check if the session cookie is about to expire
+		if cookie.Expires.Sub(time.Now().UTC()) <= 12*time.Hour {
+			// If so, refresh the cookie
+			newCookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
+			if err != nil {
+				http.Error(w, "Internal error: Failed to create a new session cookie", http.StatusInternalServerError)
+				return
+			}
+
+			// Set the refreshed cookie
+			http.SetCookie(w, &newCookie)
+
+			// Disable cache for this response
+			SetupCacheControl(w, 0)
+		}
+
+		// Continue the request chain
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (s *Service) CleanUp() {
 	s.db.Close()
 }
@@ -225,7 +268,7 @@ func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		}
-    return
+		return
 	}
 
 	// Send notification email about the new login
@@ -1687,141 +1730,3 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
 	w.WriteHeader(http.StatusOK)
 }
-
-func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get the session cookie
-		cookie, err := r.Cookie("measurely-session")
-		if err == http.ErrNoCookie {
-			http.Error(w, "Unauthorized: Missing session cookie", http.StatusUnauthorized)
-			return
-		} else if err != nil {
-			http.Error(w, "Internal server error: Unable to read cookie", http.StatusInternalServerError)
-			return
-		}
-
-		// Verify the token in the cookie
-		token, err := VerifyToken(cookie.Value)
-		if err != nil {
-			http.Error(w, "Unauthorized: Invalid token - "+err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		// Store token in the request context
-		ctx := context.WithValue(r.Context(), types.TOKEN, token)
-
-		// Check if the session cookie is about to expire
-		if cookie.Expires.Sub(time.Now().UTC()) <= 12*time.Hour {
-			// If so, refresh the cookie
-			newCookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
-			if err != nil {
-				http.Error(w, "Internal error: Failed to create a new session cookie", http.StatusInternalServerError)
-				return
-			}
-
-			// Set the refreshed cookie
-			http.SetCookie(w, &newCookie)
-
-			// Disable cache for this response
-			SetupCacheControl(w, 0)
-		}
-
-		// Continue the request chain
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-// TODO: update this function
-// func (s *Service) UpdatePlans(w http.ResponseWriter, r *http.Request) {
-// 	secret := os.Getenv("UPGRADE_SECRET")
-//
-// 	var request UpdatePlanRequest
-//
-// 	// Try to unmarshal the request body
-// 	jerr := json.NewDecoder(r.Body).Decode(&request)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	if request.Secret != secret {
-// 		http.Error(w, "Invalid request", http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	key := fmt.Sprintf("plan:%s", request.Name)
-//
-// 	// Get the plan
-// 	_, exists := s.GetPlan(request.Name)
-// 	if !exists {
-// 		request.Plan.Identifier = request.Name
-// 		if err := s.db.CreatePlan(request.Plan); err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 	} else {
-// 		if err := s.db.UpdatePlan(request.Name, request.Plan); err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 	}
-//
-// 	bytes, err := json.Marsh(request.Plan)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	w.Write([]byte("Successfully updated the plan."))
-// 	w.WriteHeader(http.StatusOK)
-// }
-
-// func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
-// 	secret := os.Getenv("UPGRADE_SECRET")
-//
-// 	var request GetPlans
-//
-// 	// Try to unmarshal the request body
-// 	jerr := json.NewDecoder(r.Body).Decode(&request)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	if request.Secret != secret {
-// 		http.Error(w, "Invalid Request", http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	keys, err := s.redisClient.Keys(s.redisCtx, "plan:*").Result()
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-//
-// 	rates := make(map[string]types.Plan)
-// 	for _, key := range keys {
-// 		token, err := s.redisClient.Get(s.redisCtx, key).Result()
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-//
-// 		var plan types.Plan
-// 		err = json.Unmarshal([]byte(token), &plan)
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 		rates[strings.TrimPrefix(key, "plan:")] = plan
-// 	}
-//
-// 	bytes, jerr := json.Marshal(rates)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusContinue)
-// 		return
-// 	}
-//
-// 	w.Write(bytes)
-// 	w.Header().Set("Content-Type", "application/json")
-// }
