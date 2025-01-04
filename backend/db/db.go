@@ -27,8 +27,8 @@ func NewPostgres(url string) (*DB, error) {
 		return nil, err
 	}
 	// Set connection pooling parameters
-	db.SetMaxOpenConns(10)                  // Maximum number of open connections
-	db.SetMaxIdleConns(5)                   // Maximum number of idle connections
+	db.SetMaxOpenConns(200)                  // Maximum number of open connections
+	db.SetMaxIdleConns(100)                   // Maximum number of idle connections
 	db.SetConnMaxLifetime(30 * time.Minute) // Maximum connection lifetime
 
 	err = migrate(db)
