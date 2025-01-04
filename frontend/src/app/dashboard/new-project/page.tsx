@@ -142,7 +142,7 @@ export default function NewProject() {
           </form>
         </ContentContainer>
       </WebContainer>
-      <Footer border bg='secondary' isHome />
+      <Footer type='waitlist' border bg='secondary' isHome />
     </div>
   );
 }

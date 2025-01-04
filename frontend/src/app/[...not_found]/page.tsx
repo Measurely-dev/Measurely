@@ -23,7 +23,7 @@ export default function NotFound() {
           </div>
         </ContentContainer>
       </WebContainer>
-      <Footer bg='default' border={false} />
+      <Footer type='waitlist' bg='default' border={false} />
     </div>
   );
 }

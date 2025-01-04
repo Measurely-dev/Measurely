@@ -97,7 +97,7 @@ export default function NewMetric() {
           )}
         </ContentContainer>
       </WebContainer>
-      <Footer border bg='secondary' isHome />
+      <Footer type='waitlist' border bg='secondary' isHome />
     </div>
   );
 }

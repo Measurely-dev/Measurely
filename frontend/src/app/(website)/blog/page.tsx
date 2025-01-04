@@ -31,7 +31,7 @@ export default async function BlogIndexPage() {
             <BlogCard {...blog} slug={blog.slug} key={blog.slug} />
           ))}
         </div>
-        <WebFooterHeader className='mt-[170px]' />
+        <WebFooterHeader type='waitlist' className='mt-[170px]' />
       </ContentContainer>
     </WebContainer>
   );
