@@ -96,6 +96,7 @@ export default function DashboardHomePage() {
         ]}
       />
       <Toolbar />
+      <Blocks />
     </DashboardContentContainer>
   );
 }
@@ -158,7 +159,7 @@ function UpgradeCard() {
 
 function Toolbar() {
   return (
-    <div className='mt-5 flex w-full items-center justify-between rounded-s-[12px] rounded-e-3xl bg-accent p-1 pl-4'>
+    <div className='mt-5 flex w-full items-center justify-between rounded-e-3xl rounded-s-[12px] bg-accent p-1 pl-4'>
       <div className='font-medium'>Blocks</div>
       <div className='flex items-center gap-2'>
         <Button className='rounded-2xl rounded-s-[12px]'>
@@ -168,4 +169,8 @@ function Toolbar() {
       </div>
     </div>
   );
+}
+
+function Blocks() {
+  return <div></div>;
 }
