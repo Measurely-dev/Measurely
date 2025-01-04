@@ -243,7 +243,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reject zero values
-	if request.Value == 0 {
+	if request.Value == 0 && metricCache.metric_type != types.AVERAGE_METRIC {
 		http.Error(w, "Metric value cannot be zero", http.StatusBadRequest)
 		return
 	}

@@ -15,13 +15,13 @@ const (
 const (
 	BASE_METRIC = iota
 	DUAL_METRIC
-	MULTI_METRIC
+	AVERAGE_METRIC
 )
 
 const (
-  TEAM_VIEW = iota
-  TEAM_DEV
-  TEAM_ADMIN
+	TEAM_VIEW = iota
+	TEAM_DEV
+	TEAM_ADMIN
 )
 
 type key int
@@ -67,6 +67,7 @@ type Metric struct {
 	ParentMetricId sql.Null[uuid.UUID] `json:"parentmetricid"`
 	Name           string              `json:"name"`
 	Type           int                 `json:"type"`
+	EventCount     int64               `json:"eventcount"`
 	TotalPos       int64               `json:"totalpos"`
 	TotalNeg       int64               `json:"totalneg"`
 	NamePos        string              `json:"namepos"`
@@ -76,13 +77,15 @@ type Metric struct {
 }
 
 type MetricEvent struct {
-	Id               uuid.UUID `json:"id"`
-	MetricId         uuid.UUID `json:"metricid"`
-	Date             time.Time `json:"date"`
-	ValuePos         int       `json:"valuepos"`
-	ValueNeg         int       `json:"valueneg"`
-	RelativeTotalPos int64     `json:"relativetotalpos"`
-	RelativeTotalNeg int64     `json:"relativetotalneg"`
+	Id                 uuid.UUID `json:"id"`
+	MetricId           uuid.UUID `json:"metricid"`
+	Date               time.Time `json:"date"`
+	EventCount         int       `json:"eventcount"`
+	ValuePos           int       `json:"valuepos"`
+	ValueNeg           int       `json:"valueneg"`
+	RelativeEventCount int64     `json:"relativeeventcount"`
+	RelativeTotalPos   int64     `json:"relativetotalpos"`
+	RelativeTotalNeg   int64     `json:"relativetotalneg"`
 }
 
 type AccountRecovery struct {

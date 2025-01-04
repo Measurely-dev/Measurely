@@ -240,13 +240,13 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	}
 
 	// Update metric totals (totalpos, totalneg)
-	var totalPos, totalNeg int64
+	var totalPos, totalNeg, eventCount int64
 	var projectid uuid.UUID
 	var metricType int
 	err = tx.QueryRowx(
-		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type",
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2, eventcount = eventcount + 1 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type, eventcount",
 		toAdd, toRemove, metricid,
-	).Scan(&totalPos, &totalNeg, &projectid, &metricType)
+	).Scan(&totalPos, &totalNeg, &projectid, &metricType, &eventCount)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
@@ -277,24 +277,27 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 	// Prepare the MetricEvent for the main metric
 	event := types.MetricEvent{
-		RelativeTotalPos: totalPos,
-		RelativeTotalNeg: totalNeg,
-		MetricId:         metricid,
-		ValuePos:         toAdd,
-		ValueNeg:         toRemove,
-		Date:             date,
+		RelativeTotalPos:   totalPos,
+		RelativeTotalNeg:   totalNeg,
+		RelativeEventCount: eventCount,
+		MetricId:           metricid,
+		ValuePos:           toAdd,
+		ValueNeg:           toRemove,
+		Date:               date,
 	}
 
 	// Insert or update the MetricEvent in metricevents table for the main metric
 	_, err = tx.NamedExec(
-		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
-        VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
+		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date) 
+    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :relativeeventcount, :date)
         ON CONFLICT (metricid, date)
         DO UPDATE SET 
         valuepos = metricevents.valuepos + EXCLUDED.valuepos,
         valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+        eventcount = metricevents.eventcount + 1,
         relativetotalpos = EXCLUDED.relativetotalpos,
-        relativetotalneg = EXCLUDED.relativetotalneg
+        relativetotalneg = EXCLUDED.relativetotalneg,
+        relativeeventcount = EXCLUDED.relativeeventcount
        `,
 		event,
 	)
@@ -307,7 +310,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 	// Bulk insert or update filter metrics
 	for key, value := range *filters {
-		var filtertotalPos, filtertotalNeg int64
+		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
 		// err = tx.QueryRowx(`
 		// 	INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
@@ -322,10 +325,10 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		err = tx.QueryRowx(`
 			UPDATE metrics 
 			SET totalpos = metrics.totalpos + $1,
-					totalneg = metrics.totalneg + $2
+					totalneg = metrics.totalneg + $2,
       WHERE parentmetricid = $3 AND filtercategory = $4 AND name = $5 
-      RETURNING id, totalpos, totalneg
-		`, toAdd, toRemove, metricid, key, value).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+      RETURNING id, totalpos, totalneg, eventcount
+		`, toAdd, toRemove, metricid, key, value).Scan(&filterId, &filtertotalPos, &filtertotalNeg, &filtereventCount)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
@@ -334,6 +337,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		filterEvent := types.MetricEvent{
 			RelativeTotalPos: filtertotalPos,
 			RelativeTotalNeg: filtertotalNeg,
+      RelativeEventCount: filtereventCount,
 			MetricId:         filterId,
 			ValuePos:         toAdd,
 			ValueNeg:         toRemove,
@@ -342,15 +346,17 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 		// Insert or update MetricEvent for the filter
 		_, err = tx.NamedExec(
-			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
-			VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
-			ON CONFLICT (metricid, date)
-			DO UPDATE SET 
-			valuepos = metricevents.valuepos + EXCLUDED.valuepos,
-			valueneg = metricevents.valueneg + EXCLUDED.valueneg,
-			relativetotalpos = EXCLUDED.relativetotalpos,
-			relativetotalneg = EXCLUDED.relativetotalneg
-			`,
+			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date) 
+    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :relativeeventcount, :date)
+        ON CONFLICT (metricid, date)
+        DO UPDATE SET 
+        valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+        valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+        eventcount = metricevents.eventcount + 1,
+        relativetotalpos = EXCLUDED.relativetotalpos,
+        relativetotalneg = EXCLUDED.relativetotalneg,
+        relativeeventcount = EXCLUDED.relativeeventcount
+       `,
 			filterEvent,
 		)
 		if err != nil {
@@ -391,7 +397,7 @@ func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount)
 		if err != nil {
 			return nil, err
 		}
@@ -463,7 +469,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date, &event.RelativeEventCount, &event.EventCount)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
