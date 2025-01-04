@@ -5,7 +5,6 @@ import WebButton from '../button';
 import Image from 'next/image';
 import Preview from '../../../../public/preview.png';
 import { MoveRight } from 'lucide-react';
-import Head from 'next/head';
 
 export default function LandingSection(props: {
   type: 'default' | 'waitlist';
