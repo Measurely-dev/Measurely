@@ -1730,3 +1730,71 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
 	w.WriteHeader(http.StatusOK)
 }
+
+func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	_, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+}
+
+func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		MemberId  uuid.UUID `json:"memberid"`
+		ProjectId uuid.UUID `json:"projectid"`
+		Role      int       `json:"role"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Role != types.TEAM_VIEW && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
+		http.Error(w, "Invalid team member role", http.StatusBadRequest)
+		return
+	}
+
+	_, err := s.db.GetUserById(request.MemberId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	_, err = s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "You are not the owner of this project", http.StatusUnauthorized)
+		} else {
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	err = s.db.CreateTeamRelation(types.TeamRelation{
+		UserId:    request.MemberId,
+		ProjectId: request.ProjectId,
+		Role:      request.Role,
+	})
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "The User is already a member of this team", http.StatusAlreadyReported)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
