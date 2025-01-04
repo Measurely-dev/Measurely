@@ -468,13 +468,20 @@ function Chart(props: {
           };
         }
 
-        const { relativetotalpos, relativetotalneg, pos, neg } =
+        const { relativetotalpos, relativetotalneg, pos, neg, results } =
           await fetchNextEvent(metric.projectid, metric.id, end);
 
-        return {
-          pos: relativetotalpos - pos,
-          neg: relativetotalneg - neg,
-        };
+        if (results === 0) {
+          return {
+            pos: metric.totalpos,
+            neg: metric.totalneg,
+          };
+        } else {
+          return {
+            pos: relativetotalpos - pos,
+            neg: relativetotalneg - neg,
+          };
+        }
       }
 
       return { pos, neg };
@@ -818,7 +825,11 @@ function Chart(props: {
                     `${Intl.NumberFormat('us').format(number).toString()}`
                   }
                   yAxisLabel='Total'
-                  onValueChange={props.metric?.type === MetricType.Dual ? () => {} : undefined}
+                  onValueChange={
+                    props.metric?.type === MetricType.Dual
+                      ? () => { }
+                      : undefined
+                  }
                 />
               </>
             )}
@@ -867,7 +878,6 @@ function Filters(props: {
         finalFilters[category] = updatedFilters.sort(
           (a, b) => b.summary - a.summary,
         );
-
       }),
     );
 
