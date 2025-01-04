@@ -27,8 +27,8 @@ func NewPostgres(url string) (*DB, error) {
 		return nil, err
 	}
 	// Set connection pooling parameters
-	db.SetMaxOpenConns(200)                  // Maximum number of open connections
-	db.SetMaxIdleConns(100)                   // Maximum number of idle connections
+	db.SetMaxOpenConns(200)                 // Maximum number of open connections
+	db.SetMaxIdleConns(100)                 // Maximum number of idle connections
 	db.SetConnMaxLifetime(30 * time.Minute) // Maximum connection lifetime
 
 	err = migrate(db)
@@ -178,6 +178,19 @@ func (db *DB) UpdateUserPlan(id uuid.UUID, plan string) error {
 func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 	_, err := db.Conn.Exec("UPDATE users SET image = $1 WHERE id = $2", image, id)
 	return err
+}
+
+func (db *DB) SearchUsers(search string) ([]types.User, error) {
+	var users []types.User
+
+  query := `
+		SELECT * FROM users 
+		WHERE email ILIKE $1
+		OR (firstname ILIKE $1 AND lastname ILIKE $1)
+	`
+
+	err := db.Conn.Select(users, query, search)
+  return users, err
 }
 
 func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {

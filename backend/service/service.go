@@ -1737,6 +1737,32 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
+
+  var request struct {
+    Search string `json:"search"`
+  }
+
+  if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+
+  request.Search = strings.ToLower(strings.TrimSpace(request.Search))
+
+  users, err := s.db.SearchUsers(request.Search)
+  if err != nil && err != sql.ErrNoRows {
+    http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+    return
+  }
+
+  body, err := json.Marshal(users)
+  if err != nil {
+    http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(body)
 }
 
 func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
