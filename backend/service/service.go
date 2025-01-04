@@ -225,6 +225,7 @@ func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		}
+    return
 	}
 
 	// Send notification email about the new login
