@@ -49,6 +49,7 @@ func (h *Handler) setup_api() {
 
 	//// ROUTES THAT ARE ONLY AVAILABLE TO THE APPLICATION DOMAIN, PRIVATE CORS
 	privateRouter.Use(privateCors)
+	privateRouter.Post("/waitlist", h.service.JoinWaitlist)
 	privateRouter.Post("/email-valid", h.service.EmailValid)
 	privateRouter.Post("/login", h.service.Login)
 	privateRouter.Get("/oauth/{provider}", h.service.Oauth)
