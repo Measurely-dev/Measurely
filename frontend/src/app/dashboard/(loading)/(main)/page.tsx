@@ -13,6 +13,7 @@ import {
   ReactNode,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { Sortable, SortableItem } from '@/components/ui/sortable';
@@ -23,7 +24,6 @@ import { useContext } from 'react';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import PlansDialog from '@/components/dashboard/plans-dialog';
 import MetricStats from '@/components/dashboard/metric-stats';
-import { useRouter } from 'next/navigation';
 import { MetricType } from '@/types';
 import { closestCorners } from '@dnd-kit/core';
 import {
@@ -31,6 +31,7 @@ import {
   DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -44,15 +45,29 @@ import {
   DonutChartData,
 } from '@/components/global/block-fake-data';
 import { DonutChart } from '@/components/ui/donut-chart';
-// import { BarList } from '@/components/ui/bar-list';
 import { ComboChart } from '@/components/ui/combo-chart';
 import { BarChart } from '@/components/ui/bar-chart';
 import { BarList } from '@/components/ui/bar-list';
+import {
+  DialogStack,
+  DialogStackBody,
+  DialogStackClose,
+  DialogStackContent,
+  DialogStackDescription,
+  DialogStackFooter,
+  DialogStackNext,
+  DialogStackOverlay,
+  DialogStackPrevious,
+  DialogStackTitle,
+  DialogStackTrigger,
+} from '@/components/ui/dialog-stack';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { FancyBox } from '@/components/ui/fancy-box';
 
 export default function DashboardHomePage() {
-  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const [activeMetric, setActiveMetric] = useState(0);
-  const router = useRouter();
 
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
@@ -259,7 +274,7 @@ function Blocks() {
 }
 
 function BlocksDialog(props: { children: ReactNode }) {
-  const [value, setValue] = useState<number>(1);
+  const [value, setValue] = useState<number>(0);
 
   const blockType = [
     {
@@ -319,7 +334,7 @@ function BlocksDialog(props: { children: ReactNode }) {
               lineSeries={{
                 categories: ['Inverters'],
                 showYAxis: false,
-                colors: ['red'],
+                colors: ['amber'],
               }}
             />
           ),
@@ -378,30 +393,22 @@ function BlocksDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='h-[80vh] max-h-[600px] w-[95%] max-w-[700px] p-0 max-sm:w-[100%]'>
-        <DialogHeader className='px-5 pt-5 max-sm:text-start'>
+      <DialogContent className='flex h-[80vh] max-h-[650px] w-[95%] max-w-[700px] flex-col gap-0 p-0 max-sm:w-[100%]'>
+        <DialogHeader className='px-5 py-5 max-sm:text-start'>
           <DialogTitle>Select Block</DialogTitle>
           <DialogDescription>
             Custom components to showcase or compare metric data on your
             overview page.
           </DialogDescription>
-          <DialogClose className='absolute right-5 top-3 max-sm:hidden'>
-            <Button
-              type='button'
-              size={'icon'}
-              variant='secondary'
-              className='rounded-[12px]'
-            >
-              <X />
-            </Button>
-          </DialogClose>
         </DialogHeader>
-        <div className='flex flex-col gap-5 overflow-y-auto border-t px-5 pb-10'>
+        <div className='flex flex-col gap-5 overflow-y-auto border-t px-5 pb-5 pt-3'>
           {blockType.map((blockSection, i) => (
             <div key={i}>
-              <div className='font-medium text-base capitalize text-primary mt-5 mb-2'>{blockSection.category}</div>
+              <div className='mb-2 mt-2 text-base font-medium capitalize text-primary'>
+                {blockSection.category}
+              </div>
               <div
-                className={`grid grid-cols-1 gap-5 ${blockSection.category === 'Compact Blocks' ? 'grid-cols-2' : 'grid-cols-1'}`}
+                className={`grid grid-cols-1 gap-5 ${blockSection.category === 'Compact Blocks' ? 'grid-cols-2 max-sm:grid-cols-1' : 'grid-cols-1'}`}
               >
                 {blockSection.blocks.map((blockItem, j) => (
                   <BlockItem
@@ -418,6 +425,21 @@ function BlocksDialog(props: { children: ReactNode }) {
             </div>
           ))}
         </div>
+        <DialogFooter className='border-t p-5'>
+          <DialogClose asChild onClick={() => setValue(0)}>
+            <Button className='rounded-[12px]' variant={'secondary'}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <BlocksDialogStack>
+            <Button
+              className='rounded-[12px] max-md:mb-2 max-md:w-full'
+              disabled={value === 0 ? true : false}
+            >
+              Next
+            </Button>
+          </BlocksDialogStack>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -435,11 +457,11 @@ function BlockItem(props: {
     <div
       className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
         props.state === props.value
-          ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
+          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
           : 'cursor-pointer hover:bg-accent/50'
       }`}
       onClick={() => {
-        props.setState(props.value);
+        props.setState(props.state !== props.value ? props.value : 0);
       }}
     >
       <div className='text-sm font-medium'>{props.name}</div>
@@ -454,5 +476,75 @@ function BlockItem(props: {
         </div>
       )}
     </div>
+  );
+}
+
+function BlocksDialogStack(props: { children: ReactNode }) {
+  const [inputValue, setInputValue] = useState<any>('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <DialogStack>
+      <DialogStackTrigger asChild>{props.children}</DialogStackTrigger>
+      <DialogStackOverlay className='rounded-2xl bg-black/20 ring ring-purple-500/70' />
+      <DialogStackBody className='h-full'>
+        <DialogStackContent>
+          <DialogHeader>
+            <DialogStackTitle>Choose block name</DialogStackTitle>
+            <DialogStackDescription>
+              The block name will be used to identify the data visualization and
+              help you organize your metrics.
+            </DialogStackDescription>
+          </DialogHeader>
+          <div className='my-4'>
+            <div className='flex flex-col gap-2'>
+              <Label>Block name</Label>
+              <Input
+                ref={inputRef}
+                placeholder='Name...'
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target)}
+              />
+            </div>
+          </div>
+          <DialogStackFooter>
+            <DialogStackClose asChild>
+              <Button className='rounded-[12px]' variant={'secondary'}>
+                Cancel
+              </Button>
+            </DialogStackClose>
+            <DialogStackNext asChild>
+              <Button className='rounded-[12px]'>Next</Button>
+            </DialogStackNext>
+          </DialogStackFooter>
+        </DialogStackContent>
+
+        <DialogStackContent>
+          <DialogHeader>
+            <DialogStackTitle>Select metrics</DialogStackTitle>
+            <DialogStackDescription>
+              You can select multiple metrics or a single one, to compare or
+              track various data points.
+            </DialogStackDescription>
+          </DialogHeader>
+          <div className='my-4 mb-0'>
+            <div className='flex flex-col gap-2'>
+              <Label>Select metrics</Label>
+              <FancyBox />
+            </div>
+          </div>
+          <DialogStackFooter>
+            <DialogStackPrevious asChild>
+              <Button className='rounded-[12px]' variant={'secondary'}>
+                Previous
+              </Button>
+            </DialogStackPrevious>
+            <DialogStackNext asChild>
+              <Button className='rounded-[12px]'>Create block</Button>
+            </DialogStackNext>
+          </DialogStackFooter>
+        </DialogStackContent>
+      </DialogStackBody>
+    </DialogStack>
   );
 }
