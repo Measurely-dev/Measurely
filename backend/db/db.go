@@ -183,14 +183,14 @@ func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 func (db *DB) SearchUsers(search string) ([]types.User, error) {
 	var users []types.User
 
-  query := `
+	query := `
 		SELECT * FROM users 
 		WHERE email ILIKE $1
 		OR (firstname ILIKE $1 AND lastname ILIKE $1)
 	`
 
 	err := db.Conn.Select(users, query, search)
-  return users, err
+	return users, err
 }
 
 func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {
@@ -521,9 +521,28 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 	return events, nil
 }
 
-func (db *DB) GetProject(id uuid.UUID, userid uuid.UUID) (types.Project, error) {
+func (db *DB) GetProject(id, userid uuid.UUID) (types.Project, error) {
 	var project types.Project
-	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE id = $1 AND userid = $2", id, userid)
+
+	query := `
+		SELECT 
+			p.*,
+			CASE
+				WHEN p.userid = $2 THEN 0
+				ELSE tr.role
+			END AS userrole
+		FROM 
+			projects p
+		LEFT JOIN 
+			TeamRelation tr 
+		ON 
+			p.id = tr.projectid AND tr.userid = $2
+		WHERE 
+			p.id = $1
+			AND (p.userid = $2 OR tr.userid = $2)
+	`
+
+	err := db.Conn.Get(&project, query, id, userid)
 	return project, err
 }
 
@@ -545,19 +564,28 @@ func (db *DB) GetProjectByApi(key string) (types.Project, error) {
 }
 
 func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
-	rows, err := db.Conn.Query("SELECT * FROM projects WHERE userid = $1", userid)
-	if err != nil {
-		return []types.Project{}, err
-	}
-	defer rows.Close()
 	var projects []types.Project
-	for rows.Next() {
-		var app types.Project
-		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Image)
-		if err != nil {
-			return []types.Project{}, err
-		}
-		projects = append(projects, app)
+
+	query := `
+		SELECT 
+			p.*,
+			CASE
+				WHEN p.userid = $1 THEN 0
+				ELSE tr.role
+			END AS user_role
+		FROM 
+			projects p
+		LEFT JOIN 
+			TeamRelation tr 
+		ON 
+			p.id = tr.projectid AND tr.userid = $1
+		WHERE 
+			p.user_id = $1 OR tr.userid = $1
+	`
+
+	err := db.Conn.Select(&projects, query, userid)
+	if err != nil {
+		return nil, err
 	}
 
 	return projects, nil
@@ -674,3 +702,52 @@ func (db *DB) CreateTeamRelation(relation types.TeamRelation) error {
 	_, err := db.Conn.Exec("INSERT INTO teamrelation (userid, projectid, role) VALUES ($1, $2, $3)", relation.UserId, relation.ProjectId, relation.Role)
 	return err
 }
+
+func (db *DB) GetTeamRelation(id, projectid uuid.UUID) (types.TeamRelation, error) {
+	var relation types.TeamRelation
+	err := db.Conn.Get(&relation, "SELECT * FROM teamrelation WHERE userid = $1 AND projectid = $2", id, projectid)
+	return relation, err
+}
+
+func (db *DB) DeleteTeamRelation(id, projectid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM teamrelation WHERE userid = $1 AND projectid = $2", id, projectid)
+	return err
+}
+
+func (db *DB) UpdateUserRole(id, projectid uuid.UUID, newrole int) error {
+	_, err := db.Conn.Exec("UPDATE teamrealtion SET role = $1 WHERE userid = $2 AND projectid = $3", newrole, id, projectid)
+	return err
+}
+
+func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
+	var users []types.User
+
+	query := `
+		SELECT 
+			u.*,
+			CASE
+				WHEN p.userid = u.id THEN 0
+				ELSE tr.role
+			END AS userrole
+		FROM 
+			users u
+		LEFT JOIN 
+			TeamRelation tr 
+		ON 
+			u.id = tr.userid AND tr.projectid = $1
+		LEFT JOIN 
+			projects p
+		ON 
+			p.id = $1
+		WHERE 
+			p.userid = u.id OR tr.projectid = $1
+	`
+
+	err := db.Conn.Select(&users, query, projectid)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+

@@ -1738,31 +1738,35 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  var request struct {
-    Search string `json:"search"`
-  }
+	var request struct {
+		Search string `json:"search"`
+	}
 
-  if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-    http.Error(w, err.Error(), http.StatusBadRequest)
-    return
-  }
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-  request.Search = strings.ToLower(strings.TrimSpace(request.Search))
+	request.Search = strings.ToLower(strings.TrimSpace(request.Search))
 
-  users, err := s.db.SearchUsers(request.Search)
-  if err != nil && err != sql.ErrNoRows {
-    http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
-    return
-  }
+	users, err := s.db.SearchUsers(request.Search)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		return
+	}
 
-  body, err := json.Marshal(users)
-  if err != nil {
-    http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
-    return
-  }
+	for i := range users {
+		users[i].Password = ""
+	}
 
-  w.Header().Set("Content-Type", "application/json")
-  w.Write(body)
+	body, err := json.Marshal(users)
+	if err != nil {
+		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }
 
 func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
@@ -1798,13 +1802,18 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "You are not the owner of this project", http.StatusUnauthorized)
+			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the role necessary to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1823,4 +1832,167 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		MemberId  uuid.UUID `json:"memberid"`
+		ProjectId uuid.UUID `json:"projectid"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole == types.TEAM_OWNER && request.MemberId == token.Id {
+		http.Error(w, "You cannot remove yourself from your own project.", http.StatusConflict)
+		return
+	}
+
+	team_relation, err := s.db.GetTeamRelation(request.MemberId, request.ProjectId)
+	if err != nil && project.UserRole != types.TEAM_OWNER {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Team member was not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if token.Id == request.MemberId || project.UserRole == types.TEAM_OWNER || team_relation.Role == types.TEAM_ADMIN {
+		// can delete
+		s.db.DeleteTeamRelation(request.MemberId, request.ProjectId)
+	} else {
+		http.Error(w, "You do not have the role necessary to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		MemberId  uuid.UUID `json:"memberid"`
+		ProjectId uuid.UUID `json:"projectid"`
+		NewRole   int       `json:"NewRole"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.NewRole != types.TEAM_ADMIN && request.NewRole != types.TEAM_DEV && request.NewRole != types.TEAM_VIEW {
+		http.Error(w, "Invalide role", http.StatusBadRequest)
+		return
+	}
+
+	if request.MemberId == token.Id {
+		http.Error(w, "You cannot update your own role.", http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	team_relation, err := s.db.GetTeamRelation(request.MemberId, request.ProjectId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Invalid request", http.StatusBadGateway)
+		} else {
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if team_relation.Role == project.UserRole {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.UpdateUserRole(request.MemberId, request.ProjectId, request.NewRole)
+	if err != nil {
+		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	appid, err := uuid.Parse(chi.URLParam(r, "appid"))
+	if err != nil {
+		http.Error(w, "Invalid app id", http.StatusBadRequest)
+		return
+	}
+
+	_, err = s.db.GetProject(appid, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	users, err := s.db.GetUsersByProjectId(appid)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	for i := range users {
+		users[i].Password = ""
+	}
+
+	body, err := json.Marshal(users)
+	if err != nil {
+		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }
