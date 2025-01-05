@@ -603,13 +603,13 @@ func (db *DB) CreateProject(project types.Project) (types.Project, error) {
 	return new_project, err
 }
 
-func (db *DB) UpdateProjectApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
-	_, err := db.Conn.Exec("UPDATE projects SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
+func (db *DB) UpdateProjectApiKey(id uuid.UUID, apikey string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET apikey = $1 WHERE id = $2", apikey, id)
 	return err
 }
 
-func (db DB) UpdateProjectName(id uuid.UUID, userid uuid.UUID, newname string) error {
-	_, err := db.Conn.Exec("UPDATE projects SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
+func (db DB) UpdateProjectName(id uuid.UUID, newname string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET name = $1 WHERE id = $2", newname, id)
 	return err
 }
 

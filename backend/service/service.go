@@ -1277,6 +1277,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+  newApp.UserRole = types.TEAM_OWNER
 	bytes, jerr := json.Marshal(newApp)
 	if jerr != nil {
 		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
@@ -1308,10 +1309,15 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch the project from the database
-	_, err := s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Project does not exist.", http.StatusNotFound)
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
 		return
 	}
 
@@ -1343,7 +1349,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the project with the new API key
-	if err := s.db.UpdateProjectApiKey(request.ProjectId, token.Id, apiKey); err != nil {
+	if err := s.db.UpdateProjectApiKey(request.ProjectId, apiKey); err != nil {
 		log.Println("Error updating project API key:", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1402,7 +1408,23 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 
 	request.NewName = strings.TrimSpace(request.NewName)
 
-	if err := s.db.UpdateProjectName(request.ProjectId, token.Id, request.NewName); err != nil {
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	if err := s.db.UpdateProjectName(request.ProjectId, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
@@ -1430,6 +1452,12 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error fetching projects:", err)
 		http.Error(w, "Failed to retrieve projects", http.StatusInternalServerError)
 		return
+	}
+
+	for i, project := range projects {
+		if project.UserRole == types.TEAM_VIEW {
+			projects[i].ApiKey = ""
+		}
 	}
 
 	bytes, err := json.Marshal(projects)
@@ -1492,10 +1520,18 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the project
-	_, err := s.db.GetProject(request.ProjectId, token.Id)
-	if err != nil {
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1606,10 +1642,15 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the project
-	app, err := s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1628,7 +1669,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 
 	// Remove the metric from the cache
 	s.cache.metrics[0].Delete(request.MetricId)
-	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
+	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
 	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: -1})
@@ -1704,13 +1745,18 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
 	// Get the project
-	app, err := s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	} else if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1727,7 +1773,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
+	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
 	w.WriteHeader(http.StatusOK)
 }
 

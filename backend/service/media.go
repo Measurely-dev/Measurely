@@ -45,6 +45,11 @@ func (s *Service) UploadProjectImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
 	// Parse the multipart form data, limiting the size of the upload
 	if err := r.ParseMultipartForm(MAX_SIZE); err != nil {
 		http.Error(w, "Unable to parse form", http.StatusBadRequest)
