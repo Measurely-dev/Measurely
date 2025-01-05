@@ -45,7 +45,7 @@ export default function Actions(props: {
         );
       case 'waitlist':
         return (
-          <div className='flex flex-row gap-2 max-md:w-full'>
+          <div className='flex flex-row gap-2 max-md:flex-col'>
             <Link href='/sign-in'>
               <Button
                 variant='outline'

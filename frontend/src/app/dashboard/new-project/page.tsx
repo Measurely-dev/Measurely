@@ -76,9 +76,9 @@ export default function NewProject() {
         }
 
         json.metrics = await loadMetrics(json.id);
+        setActiveProject(projects.length);
+        localStorage.setItem('activeProject', (projects.length).toString());
         setProjects((apps) => [...apps, json]);
-        setActiveProject(projects.length - 1);
-        localStorage.setItem('activeProject', (projects.length - 1).toString());
         router.push('/dashboard');
       });
   }
