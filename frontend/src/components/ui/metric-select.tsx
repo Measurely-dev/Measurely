@@ -21,12 +21,15 @@ import {
 import { ProjectsContext } from '@/dash-context';
 import { Metric } from '@/types';
 
-export function MetricSelect() {
+export function MetricSelect(props: {
+  setIsSelected: (state: boolean) => void;
+}) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>('');
   const [selectedMetrics, setSelectedMetrics] = React.useState<Metric[]>([]);
   const { projects, activeProject } = React.useContext(ProjectsContext);
+  props.setIsSelected(selectedMetrics.length === 0 ? false : true);
 
   const toggleMetric = (metric: Metric) => {
     setSelectedMetrics((currentMetrics) =>

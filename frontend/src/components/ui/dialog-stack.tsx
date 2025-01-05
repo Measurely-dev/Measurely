@@ -140,8 +140,12 @@ export const DialogStackOverlay = ({
     return null;
   }
 
+  const handleOverlayClick = () => {
+    context.setIsOpen(false);
+    context.setActiveIndex(0);
+  };
+
   return (
-    // biome-ignore lint/nursery/noStaticElementInteractions: "This is a clickable overlay"
     <div
       className={cn(
         'fixed inset-0 z-50 bg-black/80',
@@ -149,7 +153,7 @@ export const DialogStackOverlay = ({
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
       )}
-      onClick={() => context.setIsOpen(false)}
+      onClick={handleOverlayClick}
       {...props}
     />
   );
@@ -257,7 +261,7 @@ export const DialogStackContent = ({
       {...props}
     >
       {distanceFromActive ? (
-        <div className='size-full absolute top-0 left-0 rounded-2xl bg-background' />
+        <div className='absolute left-0 top-0 size-full rounded-2xl bg-background' />
       ) : (
         <></>
       )}
@@ -433,7 +437,8 @@ export const DialogStackClose = ({
 
   const handleClose = (event: React.MouseEvent<HTMLButtonElement>) => {
     context.setIsOpen(false);
-    onClick?.(event); // Pass the event to the provided onClick handler if it exists
+    context.setActiveIndex(0);
+    onClick?.(event);
   };
 
   if (asChild && children) {

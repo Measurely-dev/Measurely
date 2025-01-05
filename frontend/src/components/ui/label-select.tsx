@@ -47,6 +47,7 @@ import {
 import { DialogClose } from '@radix-ui/react-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 type LabelType = Record<'value' | 'label' | 'color', string>;
 
@@ -96,26 +97,31 @@ export function LabelSelect(props: {
   props.setIsSelected(selectedValues.length === 0 ? false : true);
 
   const createLabel = (name: string) => {
+    const isValid = /^[a-zA-Z0-9\s-_]+$/.test(name);
+
+    if (!isValid) {
+      toast.error('Please choose a valid label.');
+      return;
+    }
+
     const newLabel = {
       value: name.toLowerCase(),
       label: name,
       color: '#000',
     };
+
     setLabels((prev) => [...prev, newLabel]);
     setInputValue('');
-    setSelectedValues((prev) => (prev.length < 2 ? [...prev, newLabel] : prev));
+    setSelectedValues([newLabel]);
   };
 
   const toggleLabel = (label: LabelType) => {
     setSelectedValues((current) => {
       const isSelected = current.some((item) => item.value === label.value);
       if (isSelected) {
-        return current.filter((item) => item.value !== label.value);
+        return [];
       }
-      if (current.length < 2) {
-        return [...current, label];
-      }
-      return current;
+      return [label];
     });
     inputRef?.current?.focus();
   };
@@ -282,24 +288,24 @@ const CommandItemCreate = ({
   labels: LabelType[];
   onSelect: () => void;
 }) => {
+  const trimmedInputValue = inputValue.trim();
   const hasNoLabel = !labels
     .map(({ value }) => value)
-    .includes(`${inputValue.toLowerCase()}`);
+    .includes(trimmedInputValue.toLowerCase());
 
-  const render = inputValue !== '' && hasNoLabel;
+  const render = trimmedInputValue !== '' && hasNoLabel;
 
   if (!render) return null;
 
-  // BUG: whenever a space is appended, the Create-Button will not be shown.
   return (
     <CommandItem
-      key={`${inputValue}`}
-      value={`${inputValue}`}
+      key={trimmedInputValue}
+      value={trimmedInputValue}
       className='text-xs text-muted-foreground'
       onSelect={onSelect}
     >
       <div className={cn('mr-2 h-4 w-4')} />
-      Create new label &quot;{inputValue}&quot;
+      Create new label &quot;{trimmedInputValue}&quot;
     </CommandItem>
   );
 };

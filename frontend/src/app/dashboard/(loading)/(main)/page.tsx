@@ -65,6 +65,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { MetricSelect } from '@/components/ui/metric-select';
 import { LabelSelect } from '@/components/ui/label-select';
+import { Command, CommandInput } from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
@@ -273,178 +279,178 @@ function Blocks() {
     </div>
   );
 }
+const blockType = [
+  {
+    category: 'Wide Blocks',
+    blocks: [
+      {
+        name: 'Area Chart',
+        value: 1,
+        description:
+          'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
+        chart: (
+          <AreaChart
+            className='h-40'
+            data={AreaChartData}
+            colors={['violet', 'blue']}
+            index='date'
+            categories={['SolarPanels', 'Inverters']}
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+            showYAxis={false}
+          />
+        ),
+      },
+      {
+        name: 'Bar Chart',
+        value: 2,
+        description:
+          'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
+        chart: (
+          <BarChart
+            className='h-40'
+            data={BarChartData}
+            colors={['violet', 'blue']}
+            index='date'
+            categories={['SolarPanels', 'Inverters']}
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+            showYAxis={false}
+          />
+        ),
+      },
+      {
+        name: 'Combo Chart',
+        value: 3,
+        description:
+          'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
+        chart: (
+          <ComboChart
+            className='h-40'
+            data={ComboChartData}
+            index='date'
+            enableBiaxial={true}
+            barSeries={{
+              categories: ['SolarPanels'],
+              showYAxis: false,
+            }}
+            lineSeries={{
+              categories: ['Inverters'],
+              showYAxis: false,
+              colors: ['fuchsia'],
+            }}
+          />
+        ),
+      },
+      {
+        name: 'Bar List',
+        value: 4,
+        description:
+          'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
+        chart: <BarList data={BarListData} />,
+      },
+    ],
+  },
+  {
+    category: 'Compact Blocks',
+    blocks: [
+      {
+        name: 'Donut Chart',
+        value: 6,
+        description:
+          'A variation of the pie chart with a central hole, useful for emphasizing data segments.',
+        chart: (
+          <DonutChart
+            className='h-40'
+            data={DonutChartData}
+            category='name'
+            value='amount'
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+          />
+        ),
+      },
+      {
+        name: 'Pie Chart',
+        value: 5,
+        description:
+          'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
+        chart: (
+          <DonutChart
+            className='h-40'
+            data={DonutChartData}
+            category='name'
+            value='amount'
+            variant='pie'
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+          />
+        ),
+      },
+    ],
+  },
+];
 
 function BlocksDialog(props: { children: ReactNode }) {
   const [value, setValue] = useState<number>(0);
-
-  const blockType = [
-    {
-      category: 'Wide Blocks',
-      blocks: [
-        {
-          name: 'Area Chart',
-          value: 1,
-          description:
-            'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
-          chart: (
-            <AreaChart
-              className='h-40'
-              data={AreaChartData}
-              colors={['violet', 'blue']}
-              index='date'
-              categories={['SolarPanels', 'Inverters']}
-              valueFormatter={(number: number) =>
-                `$${Intl.NumberFormat('us').format(number).toString()}`
-              }
-              showYAxis={false}
-            />
-          ),
-        },
-        {
-          name: 'Bar Chart',
-          value: 2,
-          description:
-            'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
-          chart: (
-            <BarChart
-              className='h-40'
-              data={BarChartData}
-              colors={['violet', 'blue']}
-              index='date'
-              categories={['SolarPanels', 'Inverters']}
-              valueFormatter={(number: number) =>
-                `$${Intl.NumberFormat('us').format(number).toString()}`
-              }
-              showYAxis={false}
-            />
-          ),
-        },
-        {
-          name: 'Combo Chart',
-          value: 3,
-          description:
-            'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
-          chart: (
-            <ComboChart
-              className='h-40'
-              data={ComboChartData}
-              index='date'
-              enableBiaxial={true}
-              barSeries={{
-                categories: ['SolarPanels'],
-                showYAxis: false,
-              }}
-              lineSeries={{
-                categories: ['Inverters'],
-                showYAxis: false,
-                colors: ['fuchsia'],
-              }}
-            />
-          ),
-        },
-        {
-          name: 'Bar List',
-          value: 4,
-          description:
-            'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
-          chart: <BarList data={BarListData} />,
-        },
-      ],
-    },
-    {
-      category: 'Compact Blocks',
-      blocks: [
-        {
-          name: 'Donut Chart',
-          value: 6,
-          description:
-            'A variation of the pie chart with a central hole, useful for emphasizing data segments.',
-          chart: (
-            <DonutChart
-              className='h-40'
-              data={DonutChartData}
-              category='name'
-              value='amount'
-              valueFormatter={(number: number) =>
-                `$${Intl.NumberFormat('us').format(number).toString()}`
-              }
-            />
-          ),
-        },
-        {
-          name: 'Pie Chart View',
-          value: 5,
-          description:
-            'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
-          chart: (
-            <DonutChart
-              className='h-40'
-              data={DonutChartData}
-              category='name'
-              value='amount'
-              variant='pie'
-              valueFormatter={(number: number) =>
-                `$${Intl.NumberFormat('us').format(number).toString()}`
-              }
-            />
-          ),
-        },
-      ],
-    },
-  ];
-
   return (
-    <Dialog>
-      <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='flex h-[80vh] max-h-[650px] w-[95%] max-w-[700px] flex-col gap-0 p-0 max-sm:w-[100%]'>
-        <DialogHeader className='px-5 py-5 max-sm:text-start'>
-          <DialogTitle>Select Block</DialogTitle>
-          <DialogDescription>
-            Custom components to showcase or compare metric data on your
-            overview page.
-          </DialogDescription>
-        </DialogHeader>
-        <div className='flex flex-col gap-5 overflow-y-auto border-t px-5 pb-5 pt-3'>
-          {blockType.map((blockSection, i) => (
-            <div key={i}>
-              <div className='mb-2 mt-2 text-base font-medium capitalize text-primary'>
-                {blockSection.category}
+    <DialogStack>
+      <Dialog>
+        <DialogTrigger asChild>{props.children}</DialogTrigger>
+        <DialogContent className='flex h-[80vh] max-h-[650px] w-[95%] max-w-[700px] flex-col gap-0 p-0 max-sm:w-[100%]'>
+          <DialogHeader className='px-5 py-5 max-sm:text-start'>
+            <DialogTitle>Select Block</DialogTitle>
+            <DialogDescription>
+              Custom components to showcase or compare metric data on your
+              overview page.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='flex flex-col gap-5 overflow-y-auto border-t px-5 pb-5 pt-3'>
+            {blockType.map((blockSection, i) => (
+              <div key={i}>
+                <div className='mb-2 mt-2 text-base font-medium capitalize text-primary'>
+                  {blockSection.category}
+                </div>
+                <div
+                  className={`grid grid-cols-1 gap-5 ${blockSection.category === 'Compact Blocks' ? 'grid-cols-2 max-sm:grid-cols-1' : 'grid-cols-1'}`}
+                >
+                  {blockSection.blocks.map((blockItem, j) => (
+                    <BlockItem
+                      key={j}
+                      description={blockItem.description}
+                      name={blockItem.name}
+                      value={blockItem.value}
+                      state={value}
+                      setState={setValue}
+                      chart={blockItem.chart}
+                    />
+                  ))}
+                </div>
               </div>
-              <div
-                className={`grid grid-cols-1 gap-5 ${blockSection.category === 'Compact Blocks' ? 'grid-cols-2 max-sm:grid-cols-1' : 'grid-cols-1'}`}
+            ))}
+          </div>
+          <DialogFooter className='border-t p-5'>
+            <DialogClose asChild onClick={() => setValue(0)}>
+              <Button className='rounded-[12px]' variant={'secondary'}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <BlocksDialogStack value={value}>
+              <Button
+                className='rounded-[12px] max-md:mb-2 max-md:w-full'
+                disabled={value === 0 ? true : false}
               >
-                {blockSection.blocks.map((blockItem, j) => (
-                  <BlockItem
-                    key={j}
-                    description={blockItem.description}
-                    name={blockItem.name}
-                    value={blockItem.value}
-                    state={value}
-                    setState={setValue}
-                    chart={blockItem.chart}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <DialogFooter className='border-t p-5'>
-          <DialogClose asChild onClick={() => setValue(0)}>
-            <Button className='rounded-[12px]' variant={'secondary'}>
-              Cancel
-            </Button>
-          </DialogClose>
-          <BlocksDialogStack>
-            <Button
-              className='rounded-[12px] max-md:mb-2 max-md:w-full'
-              disabled={value === 0 ? true : false}
-            >
-              Next
-            </Button>
-          </BlocksDialogStack>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+                Next
+              </Button>
+            </BlocksDialogStack>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </DialogStack>
   );
 }
 
@@ -481,15 +487,87 @@ function BlockItem(props: {
     </div>
   );
 }
+const findBlockByValue = (value: number) => {
+  for (const category of blockType) {
+    const block = category.blocks.find((b) => b.value === value);
+    if (block) return block;
+  }
+  return null;
+};
 
-function BlocksDialogStack(props: { children: ReactNode }) {
-  const [isSelected, setIsSelected] = useState<boolean>(false);
-
+function BlocksDialogStack(props: { children: ReactNode; value: number }) {
+  const blockSelected = findBlockByValue(props.value);
+  const [isLabelSelected, setIsLabelSelected] = useState<boolean>(false);
+  const [isMetricSelected, setIsMetricSelected] = useState<boolean>(false);
+  const [nameInputValue, setNameInputValue] = useState<string>('');
   return (
-    <DialogStack>
+    <>
+      <DialogStackOverlay className='-left-2 top-0 z-50 rounded-2xl bg-black/20 ring ring-purple-500/70' />
       <DialogStackTrigger asChild>{props.children}</DialogStackTrigger>
-      <DialogStackOverlay className='rounded-2xl bg-black/20 ring ring-purple-500/70' />
       <DialogStackBody className='h-full'>
+        <DialogStackContent>
+          <DialogHeader>
+            <DialogStackTitle>
+              Create a new{' '}
+              <span className='text-purple-500'>{blockSelected?.name}</span>{' '}
+              block
+            </DialogStackTitle>
+            <DialogStackDescription>
+              {blockSelected?.description}
+            </DialogStackDescription>
+          </DialogHeader>
+          <DialogStackFooter className='mt-5'>
+            <DialogStackClose asChild>
+              <Button className='rounded-[12px]' variant={'secondary'}>
+                Cancel
+              </Button>
+            </DialogStackClose>
+            <DialogStackNext asChild>
+              <Button className='rounded-[12px]'>Next</Button>
+            </DialogStackNext>
+          </DialogStackFooter>
+        </DialogStackContent>
+
+        <DialogStackContent>
+          <DialogHeader>
+            <DialogStackTitle>Choose Block Name</DialogStackTitle>
+            <DialogStackDescription>
+              Choose a descriptive and concise name that reflects the data the
+              block will display.
+            </DialogStackDescription>
+          </DialogHeader>
+          <div className='my-4 mb-0 flex flex-col gap-2'>
+            <Popover open={true}>
+              <PopoverContent asChild>
+                <div className='hidden' />
+              </PopoverContent>
+            </Popover>
+            <Label>Choose block name</Label>
+            <Input
+              placeholder='Block name...'
+              className='z-50 h-11 rounded-[12px]'
+              value={nameInputValue}
+              onChange={(e) => setNameInputValue(e.target.value)}
+              maxLength={25}
+            />
+          </div>
+          <DialogStackFooter className='mt-5'>
+            <DialogStackPrevious asChild>
+              <Button className='rounded-[12px]' variant={'secondary'}>
+                Previous
+              </Button>
+            </DialogStackPrevious>
+            <DialogStackNext asChild>
+              <Button
+                className='rounded-[12px]'
+                disabled={nameInputValue ? false : true}
+              >
+                Next
+              </Button>
+            </DialogStackNext>
+          </DialogStackFooter>
+        </DialogStackContent>
+
         <DialogStackContent>
           <DialogHeader>
             <DialogStackTitle>Select block label</DialogStackTitle>
@@ -501,17 +579,17 @@ function BlocksDialogStack(props: { children: ReactNode }) {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Block label</Label>
-              <LabelSelect setIsSelected={setIsSelected} />
+              <LabelSelect setIsSelected={setIsLabelSelected} />
             </div>
           </div>
           <DialogStackFooter>
-            <DialogStackClose asChild>
+            <DialogStackPrevious asChild>
               <Button className='rounded-[12px]' variant={'secondary'}>
-                Cancel
+                Previous
               </Button>
-            </DialogStackClose>
+            </DialogStackPrevious>
             <DialogStackNext asChild>
-              <Button className='rounded-[12px]' disabled={!isSelected}>
+              <Button className='rounded-[12px]' disabled={!isLabelSelected}>
                 Next
               </Button>
             </DialogStackNext>
@@ -529,7 +607,7 @@ function BlocksDialogStack(props: { children: ReactNode }) {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Select metrics</Label>
-              <MetricSelect />
+              <MetricSelect setIsSelected={setIsMetricSelected} />
             </div>
           </div>
           <DialogStackFooter>
@@ -539,11 +617,13 @@ function BlocksDialogStack(props: { children: ReactNode }) {
               </Button>
             </DialogStackPrevious>
             <DialogStackNext asChild>
-              <Button className='rounded-[12px]'>Create block</Button>
+              <Button className='rounded-[12px]' disabled={!isMetricSelected}>
+                Create block
+              </Button>
             </DialogStackNext>
           </DialogStackFooter>
         </DialogStackContent>
       </DialogStackBody>
-    </DialogStack>
+    </>
   );
 }
