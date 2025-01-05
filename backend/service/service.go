@@ -459,39 +459,43 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			//
 			//    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
 			// go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
+      
+				http.Redirect(w, r, GetOrigin()+"/sign-in?warning=Be the first to know when Measurely is ready by joining the waitlist.", http.StatusFound)
+				return
+
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=invalid user identifier", http.StatusFound)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Invalid user identifier", http.StatusFound)
 				return
 			}
 
 			user, err = s.db.GetUserById(parsedId)
 			if err != nil {
 				log.Println("Error fetching user:", err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=user not found", http.StatusFound)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusFound)
 				return
 			}
 		}
 
 		// Create provider link in DB
-		provider, err = s.db.CreateProvider(types.UserProvider{
-			UserId:         user.Id,
-			Type:           chosenProvider.Type,
-			ProviderUserId: providerUser.Id,
-		})
-		if err != nil {
-			log.Println("Error creating provider link:", err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			return
-		}
+		// provider, err = s.db.CreateProvider(types.UserProvider{
+		// 	UserId:         user.Id,
+		// 	Type:           chosenProvider.Type,
+		// 	ProviderUserId: providerUser.Id,
+		// })
+		// if err != nil {
+		// 	log.Println("Error creating provider link:", err)
+		// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+		// 	return
+		// }
 	}
 
 	if gerr == nil {
 		user, err = s.db.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println("Error fetching user:", err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=Internal error", http.StatusFound)
 			return
 		}
 	}
@@ -499,7 +503,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	cookie, err := CreateCookie(&user, w)
 	if err != nil {
 		log.Println("Error creating cookie:", err)
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=Internal error", http.StatusFound)
 		return
 	}
 
@@ -1728,5 +1732,99 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	_, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+  var request struct {
+    Search string `json:"search"`
+  }
+
+  if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+
+  request.Search = strings.ToLower(strings.TrimSpace(request.Search))
+
+  users, err := s.db.SearchUsers(request.Search)
+  if err != nil && err != sql.ErrNoRows {
+    http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+    return
+  }
+
+  body, err := json.Marshal(users)
+  if err != nil {
+    http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(body)
+}
+
+func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		MemberId  uuid.UUID `json:"memberid"`
+		ProjectId uuid.UUID `json:"projectid"`
+		Role      int       `json:"role"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Role != types.TEAM_VIEW && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
+		http.Error(w, "Invalid team member role", http.StatusBadRequest)
+		return
+	}
+
+	_, err := s.db.GetUserById(request.MemberId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	_, err = s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "You are not the owner of this project", http.StatusUnauthorized)
+		} else {
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	err = s.db.CreateTeamRelation(types.TeamRelation{
+		UserId:    request.MemberId,
+		ProjectId: request.ProjectId,
+		Role:      request.Role,
+	})
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "The User is already a member of this team", http.StatusAlreadyReported)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
 }

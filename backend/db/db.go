@@ -27,8 +27,8 @@ func NewPostgres(url string) (*DB, error) {
 		return nil, err
 	}
 	// Set connection pooling parameters
-	db.SetMaxOpenConns(10)                  // Maximum number of open connections
-	db.SetMaxIdleConns(5)                   // Maximum number of idle connections
+	db.SetMaxOpenConns(200)                 // Maximum number of open connections
+	db.SetMaxIdleConns(100)                 // Maximum number of idle connections
 	db.SetConnMaxLifetime(30 * time.Minute) // Maximum connection lifetime
 
 	err = migrate(db)
@@ -180,6 +180,19 @@ func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 	return err
 }
 
+func (db *DB) SearchUsers(search string) ([]types.User, error) {
+	var users []types.User
+
+  query := `
+		SELECT * FROM users 
+		WHERE email ILIKE $1
+		OR (firstname ILIKE $1 AND lastname ILIKE $1)
+	`
+
+	err := db.Conn.Select(users, query, search)
+  return users, err
+}
+
 func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {
 	var new_provider types.UserProvider
 	err := db.Conn.QueryRow("INSERT INTO providers (userid, type, provideruserid) VALUES ($1, $2, $3) RETURNING *", provider.UserId, provider.Type, provider.ProviderUserId).Scan(&new_provider.Id, &new_provider.UserId, &new_provider.Type, &new_provider.ProviderUserId)
@@ -218,7 +231,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount)
 	return new_metric, err
 }
 
@@ -335,13 +348,13 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		}
 
 		filterEvent := types.MetricEvent{
-			RelativeTotalPos: filtertotalPos,
-			RelativeTotalNeg: filtertotalNeg,
-      RelativeEventCount: filtereventCount,
-			MetricId:         filterId,
-			ValuePos:         toAdd,
-			ValueNeg:         toRemove,
-			Date:             date,
+			RelativeTotalPos:   filtertotalPos,
+			RelativeTotalNeg:   filtertotalNeg,
+			RelativeEventCount: filtereventCount,
+			MetricId:           filterId,
+			ValuePos:           toAdd,
+			ValueNeg:           toRemove,
+			Date:               date,
 		}
 
 		// Insert or update MetricEvent for the filter
@@ -654,5 +667,10 @@ func (db *DB) CreatePlan(plan types.Plan) error {
 
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
 	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, project = $3, metricperprojectlimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.ProjectLimit, new_plan.MetricPerProjectLimit, new_plan.Range, new_plan.RequestLimit, identifier)
+	return err
+}
+
+func (db *DB) CreateTeamRelation(relation types.TeamRelation) error {
+	_, err := db.Conn.Exec("INSERT INTO teamrelation (userid, projectid, role) VALUES ($1, $2, $3)", relation.UserId, relation.ProjectId, relation.Role)
 	return err
 }
