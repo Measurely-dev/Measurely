@@ -319,26 +319,14 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-	// Collect filter metrics that need to be inserted or updated
-
-	// Bulk insert or update filter metrics
+  // update filter metrics
 	for key, value := range *filters {
 		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
-		// err = tx.QueryRowx(`
-		// 	INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
-		// 	VALUES ($1, $2, $3, $4, $5, $6, $7)
-		// 	ON CONFLICT (parentmetricid, name, filtercategory)
-		// 	DO UPDATE
-		// 		SET totalpos = metrics.totalpos + $6,
-		// 			totalneg = metrics.totalneg + $7
-		//     RETURNING id, totalpos, totalneg
-		// `, projectid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
-
 		err = tx.QueryRowx(`
 			UPDATE metrics 
 			SET totalpos = metrics.totalpos + $1,
-					totalneg = metrics.totalneg + $2,
+					totalneg = metrics.totalneg + $2 
       WHERE parentmetricid = $3 AND filtercategory = $4 AND name = $5 
       RETURNING id, totalpos, totalneg, eventcount
 		`, toAdd, toRemove, metricid, key, value).Scan(&filterId, &filtertotalPos, &filtertotalNeg, &filtereventCount)
@@ -572,7 +560,7 @@ func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
 			CASE
 				WHEN p.userid = $1 THEN 0
 				ELSE tr.role
-			END AS user_role
+			END AS userrole
 		FROM 
 			projects p
 		LEFT JOIN 
@@ -580,7 +568,7 @@ func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
 		ON 
 			p.id = tr.projectid AND tr.userid = $1
 		WHERE 
-			p.user_id = $1 OR tr.userid = $1
+			p.userid = $1 OR tr.userid = $1
 	`
 
 	err := db.Conn.Select(&projects, query, userid)
@@ -750,4 +738,3 @@ func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
 
 	return users, nil
 }
-
