@@ -19,9 +19,10 @@ const (
 )
 
 const (
-	TEAM_VIEW = iota
-	TEAM_DEV
+	TEAM_OWNER = iota
 	TEAM_ADMIN
+	TEAM_DEV
+	TEAM_VIEW
 )
 
 type key int
@@ -43,6 +44,7 @@ type User struct {
 	Image             string
 	MonthlyEventCount int64
 	StartCountDate    time.Time
+	UserRole          int `db:"userrole"`
 }
 
 type UserProvider struct {
@@ -53,11 +55,12 @@ type UserProvider struct {
 }
 
 type Project struct {
-	Id     uuid.UUID `json:"id"`
-	ApiKey string    `json:"apikey"`
-	UserId uuid.UUID `json:"userid"`
-	Name   string    `json:"name"`
-	Image  string    `json:"image"`
+	Id       uuid.UUID `db:"id" json:"id"`
+	ApiKey   string    `db:"apikey" json:"apikey"`
+	UserId   uuid.UUID `db:"userid" json:"userid"`
+	UserRole int       `db:"userrole" json:"userrole"`
+	Name     string    `db:"name" json:"name"`
+	Image    string    `db:"image" json:"image"`
 }
 
 type Metric struct {
