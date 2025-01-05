@@ -21,7 +21,7 @@ import {
 import { ProjectsContext } from '@/dash-context';
 import { Metric } from '@/types';
 
-export function FancyBox() {
+export function MetricSelect() {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>('');

@@ -63,7 +63,8 @@ import {
 } from '@/components/ui/dialog-stack';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { FancyBox } from '@/components/ui/fancy-box';
+import { MetricSelect } from '@/components/ui/metric-select';
+import { LabelSelect } from '@/components/ui/label-select';
 
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
@@ -289,6 +290,7 @@ function BlocksDialog(props: { children: ReactNode }) {
             <AreaChart
               className='h-40'
               data={AreaChartData}
+              colors={['violet', 'blue']}
               index='date'
               categories={['SolarPanels', 'Inverters']}
               valueFormatter={(number: number) =>
@@ -307,6 +309,7 @@ function BlocksDialog(props: { children: ReactNode }) {
             <BarChart
               className='h-40'
               data={BarChartData}
+              colors={['violet', 'blue']}
               index='date'
               categories={['SolarPanels', 'Inverters']}
               valueFormatter={(number: number) =>
@@ -334,7 +337,7 @@ function BlocksDialog(props: { children: ReactNode }) {
               lineSeries={{
                 categories: ['Inverters'],
                 showYAxis: false,
-                colors: ['amber'],
+                colors: ['fuchsia'],
               }}
             />
           ),
@@ -480,8 +483,7 @@ function BlockItem(props: {
 }
 
 function BlocksDialogStack(props: { children: ReactNode }) {
-  const [inputValue, setInputValue] = useState<any>('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isSelected, setIsSelected] = useState<boolean>(false);
 
   return (
     <DialogStack>
@@ -490,21 +492,16 @@ function BlocksDialogStack(props: { children: ReactNode }) {
       <DialogStackBody className='h-full'>
         <DialogStackContent>
           <DialogHeader>
-            <DialogStackTitle>Choose block name</DialogStackTitle>
+            <DialogStackTitle>Select block label</DialogStackTitle>
             <DialogStackDescription>
-              The block name will be used to identify the data visualization and
-              help you organize your metrics.
+              The block label will be used to identify the data visualization
+              and help you organize your metrics.
             </DialogStackDescription>
           </DialogHeader>
-          <div className='my-4'>
+          <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
-              <Label>Block name</Label>
-              <Input
-                ref={inputRef}
-                placeholder='Name...'
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target)}
-              />
+              <Label>Block label</Label>
+              <LabelSelect setIsSelected={setIsSelected} />
             </div>
           </div>
           <DialogStackFooter>
@@ -514,7 +511,9 @@ function BlocksDialogStack(props: { children: ReactNode }) {
               </Button>
             </DialogStackClose>
             <DialogStackNext asChild>
-              <Button className='rounded-[12px]'>Next</Button>
+              <Button className='rounded-[12px]' disabled={!isSelected}>
+                Next
+              </Button>
             </DialogStackNext>
           </DialogStackFooter>
         </DialogStackContent>
@@ -530,7 +529,7 @@ function BlocksDialogStack(props: { children: ReactNode }) {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Select metrics</Label>
-              <FancyBox />
+              <MetricSelect />
             </div>
           </div>
           <DialogStackFooter>

@@ -250,13 +250,13 @@ export const DialogStackContent = ({
         zIndex: 50 - Math.abs(context.activeIndex - (index ?? 0)),
         position: distanceFromActive ? 'absolute' : 'relative',
         opacity: distanceFromActive > 0 ? 1 : 1, // Set opacity to 1 for all content
-        height: distanceFromActive > 0 ? '100%' : '',
+        height: distanceFromActive ? '100%' : '',
         cursor:
           context.clickable && context.activeIndex > index ? 'pointer' : 'auto',
       }}
       {...props}
     >
-      {distanceFromActive > 0 ? (
+      {distanceFromActive ? (
         <div className='size-full absolute top-0 left-0 rounded-2xl bg-background' />
       ) : (
         <></>
