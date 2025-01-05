@@ -70,7 +70,6 @@ import {
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import { toNamespacedPath } from 'path';
 import {
   Dispatch,
   ReactNode,
