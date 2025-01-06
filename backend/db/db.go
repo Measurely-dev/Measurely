@@ -319,7 +319,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-  // update filter metrics
+	// update filter metrics
 	for key, value := range *filters {
 		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
@@ -388,6 +388,41 @@ func (db *DB) UpdateMetric(id uuid.UUID, projectid uuid.UUID, name string, namep
 
 func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE projectid = $1", projectid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	metricsMap := make(map[uuid.UUID]map[string][]types.Metric)
+	var metrics []types.Metric
+
+	for rows.Next() {
+		var metric types.Metric
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount, &metric.IntegrationApiKey, &metric.LastEventTimestamp)
+		if err != nil {
+			return nil, err
+		}
+
+		if metric.ParentMetricId.Valid {
+			if metricsMap[metric.ParentMetricId.V] == nil {
+				metricsMap[metric.ParentMetricId.V] = make(map[string][]types.Metric)
+			}
+			metricsMap[metric.ParentMetricId.V][metric.FilterCategory] = append(metricsMap[metric.ParentMetricId.V][metric.FilterCategory], metric)
+		} else {
+			metrics = append(metrics, metric)
+		}
+
+	}
+
+	for i, metric := range metrics {
+		metrics[i].Filters = metricsMap[metric.Id]
+	}
+
+	return metrics, nil
+}
+
+func (db *DB) GetAllIntegrationMetrics() ([]types.Metric, error) {
+	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE integrationapikey IS NOT NULL AND parentmetricid IS NULL")
 	if err != nil {
 		return nil, err
 	}
