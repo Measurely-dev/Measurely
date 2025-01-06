@@ -16,8 +16,18 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Sortable, SortableItem } from '@/components/ui/sortable';
-import { Plus, Rocket, Sparkle, X } from 'lucide-react';
+import {
+  Sortable,
+  SortableDragHandle,
+  SortableItem,
+} from '@/components/ui/sortable';
+import {
+  GripVertical,
+  MoreVertical,
+  Plus,
+  Rocket,
+  Sparkle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useContext } from 'react';
@@ -65,12 +75,22 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { MetricSelect } from '@/components/ui/metric-select';
 import { LabelSelect } from '@/components/ui/label-select';
-import { Command, CommandInput } from '@/components/ui/command';
+import { Popover, PopoverContent } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
@@ -116,7 +136,7 @@ export default function DashboardHomePage() {
       </Breadcrumb>
       <UpgradeCard />
       <MetricStats
-        className='p-5'
+        className='rounded-b-[12px] p-5'
         stats={[
           {
             title: 'Metric used',
@@ -156,7 +176,7 @@ function UpgradeCard() {
     switch (user?.plan.identifier) {
       case 'starter':
         return (
-          <Card className='mt-5 rounded-3xl rounded-b-none border-none bg-black'>
+          <Card className='mt-5 rounded-[12px] rounded-b-none border-none bg-black'>
             <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
               <div className='flex flex-col max-md:w-full'>
                 <div className='flex flex-row items-center gap-3'>
@@ -208,7 +228,7 @@ function UpgradeCard() {
 
 function Toolbar() {
   return (
-    <div className='mt-0 flex w-full items-center justify-between rounded-[12px] rounded-t-none border-t bg-accent p-5 py-2'>
+    <div className='mt-5 flex w-full items-center justify-between rounded-[12px] bg-accent p-5 py-2'>
       <div className='font-medium'>Blocks</div>
       <div className='flex items-center gap-2'>
         <BlocksDialog>
@@ -221,64 +241,329 @@ function Toolbar() {
     </div>
   );
 }
+type ChartTypes =
+  | 'bar-chart'
+  | 'area-chart'
+  | 'bar-list'
+  | 'combo-chart'
+  | 'donut-chart'
+  | 'pie-chart';
 
-const dataConfig = {
-  speicalTricks: [
+interface BlockProps {
+  id: number;
+  name: string;
+  colSpan: number;
+  type: ChartTypes;
+  label: string;
+  color: string;
+}
+const dataConfig: { blocks: BlockProps[] } = {
+  blocks: [
     {
       id: 1,
-      name: 'Indy Backflip',
+      name: 'Amount of solar tech',
       colSpan: 2,
+      type: 'area-chart',
+      label: 'compare',
+      color: '#8b5cf6',
     },
     {
       id: 2,
-      name: 'Pizza Guy',
-      colSpan: 1,
+      name: 'Population index',
+      colSpan: 2,
+      type: 'bar-chart',
+      label: 'overview',
+      color: '#E91E63',
     },
     {
       id: 3,
-      name: '360 Varial McTwist',
-      colSpan: 1,
+      name: 'Most viewed pages',
+      colSpan: 2,
+      type: 'bar-list',
+      label: 'profit',
+      color: '#3b82f6',
     },
     {
       id: 4,
-      name: 'Kickflip Backflip',
+      name: 'Pigeon population',
       colSpan: 2,
+      type: 'combo-chart',
+      label: 'fast growing',
+      color: '#06b6d4',
+    },
+    {
+      id: 5,
+      name: 'Money spent',
+      colSpan: 1,
+      type: 'donut-chart',
+      label: 'startup',
+      color: '#eab308',
+    },
+    {
+      id: 6,
+      name: 'Money saved',
+      colSpan: 1,
+      type: 'pie-chart',
+      label: 'insight',
+      color: '#eab308',
     },
   ],
 };
+
+const cardStyle = (color: string) => ({
+  borderColor: `${color}26`,
+  backgroundColor: `${color}0D`,
+  color,
+});
+
+const buttonStyle = (color: string, isHovered: boolean, isOpen?: boolean) => ({
+  borderColor: isHovered || isOpen ? `${color}80` : `${color}26`,
+  backgroundColor: isHovered || isOpen ? `${color}0D` : `${color}00`,
+  color,
+  transition: 'background-color 0.3s, border-color 0.3s',
+});
+
+const valueFormatter = (number: number) => {
+  return Intl.NumberFormat('us').format(number).toString();
+};
+
 function Blocks() {
-  const [specialTricks, setSpecialTricks] = useState(dataConfig.speicalTricks);
+  const [blockData, setBlockData] = useState<BlockProps[]>(dataConfig.blocks);
+
   return (
     <div className='mt-5 pb-20'>
       <Sortable
         orientation='mixed'
         collisionDetection={closestCorners}
-        value={specialTricks}
-        onValueChange={setSpecialTricks}
+        value={blockData}
+        onValueChange={setBlockData}
         overlay={<div className='size-full rounded-[12px] bg-primary/10' />}
       >
         <div className='grid grid-cols-2 gap-4'>
-          {specialTricks.map((item) => (
-            <SortableItem key={item.id} value={item.id} asTrigger asChild>
-              <Card
-                className='flex h-[40vh] w-full items-center justify-center rounded-[12px] bg-accent hover:bg-accent/80'
-                style={
-                  item.colSpan === 2
-                    ? { gridColumn: 'span 2 / span 2' }
-                    : { gridColumn: 'span 1 / span 1' }
-                }
-              >
-                <CardHeader className='items-center'>
-                  <CardTitle>{item.name}</CardTitle>
-                </CardHeader>
-              </Card>
-            </SortableItem>
+          {blockData.map((item) => (
+            <Block
+              id={item.id}
+              colSpan={item.colSpan}
+              name={item.name}
+              type={item.type}
+              color={item.color}
+              label={item.label}
+            />
           ))}
         </div>
       </Sortable>
     </div>
   );
 }
+
+function Block(props: BlockProps) {
+  return (
+    <SortableItem key={props.id} value={props.id} asChild>
+      <Card
+        className='flex w-full flex-col rounded-[12px] bg-accent hover:bg-accent/80'
+        style={{
+          ...cardStyle(props.color),
+          gridColumn:
+            props.colSpan === 2 ? 'span 2 / span 2' : 'span 1 / span 1',
+        }}
+      >
+        <BlockContent
+          chartType={props.type}
+          name={props.name}
+          color={props.color}
+          label={props.label}
+        />
+      </Card>
+    </SortableItem>
+  );
+}
+function BlockContent(props: {
+  chartType: ChartTypes;
+  name: string;
+  color: string;
+  label: string;
+}) {
+  const [isHoveredMore, setIsHoveredMore] = useState(false);
+  const [isHoveredDrag, setIsHoveredDrag] = useState(false);
+  const [isOpen, setIsOpen] = useState(isHoveredMore);
+  const Charts = () => {
+    switch (props.chartType) {
+      case 'area-chart':
+        return (
+          <AreaChart
+            data={AreaChartData}
+            className='h-full'
+            colors={['violet', 'blue']}
+            index='date'
+            categories={['SolarPanels', 'Inverters']}
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+            yAxisLabel='Total'
+          />
+        );
+      case 'bar-chart':
+        return (
+          <BarChart
+            data={BarChartData}
+            className='h-full'
+            colors={['violet', 'blue']}
+            index='date'
+            categories={['SolarPanels', 'Inverters']}
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+            yAxisLabel='Total'
+          />
+        );
+      case 'combo-chart':
+        return (
+          <ComboChart
+            data={ComboChartData}
+            className='h-full'
+            index='date'
+            enableBiaxial={true}
+            barSeries={{
+              categories: ['SolarPanels'],
+              showYAxis: true,
+            }}
+            lineSeries={{
+              categories: ['Inverters'],
+              showYAxis: true,
+              colors: ['fuchsia'],
+            }}
+          />
+        );
+      case 'bar-list':
+        return <BarList data={BarListData} className='h-full' />;
+      case 'donut-chart':
+        return (
+          <DonutChart
+            data={DonutChartData}
+            className='h-full'
+            category='name'
+            value='amount'
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+          />
+        );
+      case 'pie-chart':
+        return (
+          <DonutChart
+            data={DonutChartData}
+            className='h-full'
+            category='name'
+            value='amount'
+            variant='pie'
+            valueFormatter={(number: number) =>
+              `$${Intl.NumberFormat('us').format(number).toString()}`
+            }
+          />
+        );
+    }
+  };
+  return (
+    <>
+      <CardHeader className='px-3 py-2'>
+        <div className='flex w-full items-center gap-2 p-0'>
+          <SortableDragHandle
+            variant={'ghost'}
+            size={'icon'}
+            className='roudned-[12px]'
+            style={buttonStyle(props.color, isHoveredDrag)}
+            onMouseEnter={() => setIsHoveredDrag(true)}
+            onMouseLeave={() => setIsHoveredDrag(false)}
+          >
+            <GripVertical className='size-5' />
+          </SortableDragHandle>
+          <Badge
+            variant='outline'
+            className='truncate capitalize'
+            style={cardStyle(props.color)}
+          >
+            {props.label}
+          </Badge>
+          <BlockOptions setIsOpen={setIsOpen}>
+            <Button
+              size={'icon'}
+              variant={'ghost'}
+              style={buttonStyle(props.color, isHoveredMore, isOpen)}
+              onMouseEnter={() => setIsHoveredMore(true)}
+              onMouseLeave={() => setIsHoveredMore(false)}
+              className='roudned-[12px] ml-auto'
+            >
+              <MoreVertical className='size-5 p-0' />
+            </Button>
+          </BlockOptions>
+        </div>
+      </CardHeader>
+      <div
+        className='mb-5 flex h-[90px] w-full flex-row items-center justify-between gap-5 border-y pl-6'
+        style={{ borderColor: `${props.color}33` }}
+      >
+        <CardTitle className='!m-0 !p-0 text-xl'>{props.name}</CardTitle>
+        <div className='flex h-full'>
+          {[
+            { name: 'SolarPanels', value: 21267 },
+            { name: 'Inverters', value: 21267 },
+          ].map((item, i) => {
+            return (
+              <div
+                key={i}
+                className={`group flex-col gap-0.5 items-start relative flex h-full select-none justify-center border-l px-5 font-mono text-2xl font-bold`}
+                style={{ borderColor: `${props.color}33` }}
+              >
+                <div className='absolute top-0 left-0 size-full bg-current opacity-0 group-hover:opacity-10' />
+                <div className='text-xs font-normal font-sans'>
+                  {item.name}
+                </div>
+                {valueFormatter(item.value)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <CardContent
+        className={`h-[30vh] ${props.chartType === 'bar-list' ? 'h-fit' : 'flex items-center justify-center'} ${props.chartType === 'donut-chart' ? 'h-[30vh] w-full p-0' : props.chartType === 'pie-chart' ? 'h-[30vh] w-full p-0' : ''}`}
+      >
+        {Charts()}
+      </CardContent>
+    </>
+  );
+}
+function BlockOptions(props: {
+  children: ReactNode;
+  setIsOpen: (state: boolean) => void;
+}) {
+  return (
+    <DropdownMenu onOpenChange={(e) => props.setIsOpen(e)}>
+      <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
+      <DropdownMenuContent className='mr-8 w-56 rounded-[12px] shadow-md'>
+        <DropdownMenuLabel>Block Options</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem>Rename</DropdownMenuItem>
+          <DropdownMenuItem>Edit Label</DropdownMenuItem>
+          <DropdownMenuItem>Edit Metric(s)</DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem>Duplicate</DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem className='hover:!text-destructive'>
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+// -----------------------------------------------------------------------------------------------------------
+
+// DIALOG BLOCK
 const blockType = [
   {
     category: 'Wide Blocks',
