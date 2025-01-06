@@ -60,9 +60,7 @@ CREATE TABLE IF NOT EXISTS Metrics (
     NamePos VARCHAR(50) NOT NULL DEFAULT '',
     NameNeg VARCHAR(50) NOT NULL DEFAULT '',
     Created TIMESTAMP NOT NULL DEFAULT timezone('UTC', CURRENT_TIMESTAMP),
-    UNIQUE(ParentMetricId, Name, FilterCategory),
-    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE,
-    FOREIGN KEY (ParentMetricId) REFERENCES Metrics(Id) ON DELETE CASCADE
+    FOREIGN KEY (AppId) REFERENCES Applications(Id) ON DELETE CASCADE
 );
 
 -- Create Metric events table
