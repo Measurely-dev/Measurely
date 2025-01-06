@@ -666,9 +666,9 @@ function Chart(props: {
   return (
     <>
       <CardHeader className='mt-10 p-0'>
-        <CardTitle>Overview</CardTitle>
+        <CardTitle>{props.type === "overview" ? "Overview" : "Trend"}</CardTitle>
         <CardDescription>
-          Chart displaying an overview of this metric.
+          {props.type === "overview" ? "Chart displaying an overview of this metric." : "Chart displaying the trend of this metric"}
         </CardDescription>
       </CardHeader>
       <div className='mb-5 overflow-x-auto'>
