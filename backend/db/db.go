@@ -729,6 +729,7 @@ func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
 			p.id = $1
 		WHERE 
 			p.userid = u.id OR tr.projectid = $1
+    LIMIT 5
 	`
 
 	err := db.Conn.Select(&users, query, projectid)
