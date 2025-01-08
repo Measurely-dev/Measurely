@@ -270,6 +270,21 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
       isDragging,
     } = useSortable({ id: value });
 
+    const normalizedTransform = transform
+      ? {
+          x: transform.x,
+          y: transform.y,
+        }
+      : null;
+
+    const style: React.CSSProperties = {
+      opacity: isDragging ? 0.5 : 1,
+      transform: normalizedTransform
+        ? `translate(${normalizedTransform.x}px, ${normalizedTransform.y}px)`
+        : undefined,
+      transition,
+    };
+
     const context = React.useMemo<SortableItemContextProps>(
       () => ({
         attributes,
@@ -278,11 +293,6 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
       }),
       [attributes, listeners, isDragging],
     );
-    const style: React.CSSProperties = {
-      opacity: isDragging ? 0.5 : 1,
-      transform: CSS.Translate.toString(transform),
-      transition,
-    };
 
     const Comp = asChild ? Slot : 'div';
 

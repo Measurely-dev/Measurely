@@ -13,7 +13,6 @@ import {
   ReactNode,
   SetStateAction,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -83,14 +82,20 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { rectSortingStrategy } from '@dnd-kit/sortable';
+import Header from '@/components/dashboard/header';
 
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
@@ -135,8 +140,21 @@ export default function DashboardHomePage() {
         </BreadcrumbList>
       </Breadcrumb>
       <UpgradeCard />
+      <Header
+        className='mt-5'
+        title='Blocks'
+        description='Visual blocks for showcasing metric data and insights on your overview.'
+        titleClassName='!text-2xl font-semibold'
+      >
+        <BlocksDialog>
+          <Button className='rounded-[12px]'>
+            <Plus className='mr-2 size-4' />
+            Create new block
+          </Button>
+        </BlocksDialog>
+      </Header>
       <MetricStats
-        className='rounded-b-[12px] p-5'
+        className='rounded-[12px] mt-5 p-5'
         stats={[
           {
             title: 'Metric used',
@@ -164,7 +182,6 @@ export default function DashboardHomePage() {
           },
         ]}
       />
-      <Toolbar />
       <Blocks />
     </DashboardContentContainer>
   );
@@ -176,7 +193,7 @@ function UpgradeCard() {
     switch (user?.plan.identifier) {
       case 'starter':
         return (
-          <Card className='mt-5 rounded-[12px] rounded-b-none border-none bg-black'>
+          <Card className='mt-5 rounded-[12px] border-none bg-black'>
             <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
               <div className='flex flex-col max-md:w-full'>
                 <div className='flex flex-row items-center gap-3'>
@@ -226,21 +243,6 @@ function UpgradeCard() {
   return render();
 }
 
-function Toolbar() {
-  return (
-    <div className='mt-5 flex w-full items-center justify-between rounded-[12px] bg-accent p-5 py-2'>
-      <div className='font-medium'>Blocks</div>
-      <div className='flex items-center gap-2'>
-        <BlocksDialog>
-          <Button className='rounded-[12px]'>
-            <Plus className='mr-2 size-4' />
-            Create new block
-          </Button>
-        </BlocksDialog>
-      </div>
-    </div>
-  );
-}
 type ChartTypes =
   | 'bar-chart'
   | 'area-chart'
@@ -333,9 +335,9 @@ function Blocks() {
   return (
     <div className='mt-5 pb-20'>
       <Sortable
-        orientation='mixed'
-        collisionDetection={closestCorners}
+        orientation='vertical'
         value={blockData}
+        strategy={rectSortingStrategy}
         onValueChange={setBlockData}
         overlay={<div className='size-full rounded-[12px] bg-primary/10' />}
       >
@@ -502,27 +504,48 @@ function BlockContent(props: {
         className='mb-5 flex h-[90px] w-full flex-row items-center justify-between gap-5 border-y pl-6'
         style={{ borderColor: `${props.color}33` }}
       >
-        <CardTitle className='!m-0 !p-0 text-xl'>{props.name}</CardTitle>
-        <div className='flex h-full'>
-          {[
-            { name: 'SolarPanels', value: 21267 },
-            { name: 'Inverters', value: 21267 },
-          ].map((item, i) => {
-            return (
-              <div
-                key={i}
-                className={`group flex-col gap-0.5 items-start relative flex h-full select-none justify-center border-l px-5 font-mono text-2xl font-bold`}
-                style={{ borderColor: `${props.color}33` }}
-              >
-                <div className='absolute top-0 left-0 size-full bg-current opacity-0 group-hover:opacity-10' />
-                <div className='text-xs font-normal font-sans'>
-                  {item.name}
-                </div>
-                {valueFormatter(item.value)}
-              </div>
-            );
-          })}
+        <div className='flex flex-row items-center gap-4'>
+          <CardTitle className='!m-0 !p-0 text-xl'>{props.name}</CardTitle>
+          <Select defaultValue='7'>
+            <SelectTrigger
+              className='w-[140px] border'
+              style={cardStyle(props.color)}
+            >
+              <SelectValue placeholder='Select a range' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value='7'>Last 7 days</SelectItem>
+                <SelectItem value='15'>Last 15 days</SelectItem>
+                <SelectItem value='30'>Last 30 days</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
+        {props.chartType === 'bar-list' ? (
+          <div className='flex h-full'>
+            {[
+              { name: 'SolarPanels', value: 21267 },
+              { name: 'Inverters', value: 56023 },
+            ].map((item, i) => {
+              return (
+                <div
+                  key={i}
+                  className={`group relative flex h-full select-none flex-col items-start justify-center gap-0.5 border-l px-5 font-mono text-2xl font-bold`}
+                  style={{ borderColor: `${props.color}33` }}
+                >
+                  <div className='absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10' />
+                  <div className='font-sans text-xs font-normal'>
+                    {item.name}
+                  </div>
+                  {valueFormatter(item.value)}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
       <CardContent
         className={`h-[30vh] ${props.chartType === 'bar-list' ? 'h-fit' : 'flex items-center justify-center'} ${props.chartType === 'donut-chart' ? 'h-[30vh] w-full p-0' : props.chartType === 'pie-chart' ? 'h-[30vh] w-full p-0' : ''}`}
@@ -629,6 +652,11 @@ const blockType = [
           />
         ),
       },
+    ],
+  },
+  {
+    category: 'Compact Blocks',
+    blocks: [
       {
         name: 'Bar List',
         value: 4,
@@ -636,11 +664,6 @@ const blockType = [
           'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
         chart: <BarList data={BarListData} />,
       },
-    ],
-  },
-  {
-    category: 'Compact Blocks',
-    blocks: [
       {
         name: 'Donut Chart',
         value: 6,
