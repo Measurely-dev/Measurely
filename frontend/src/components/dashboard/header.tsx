@@ -8,7 +8,7 @@ export default function Header(props: {
 }) {
   return (
     <div
-      className={`flex w-full items-center justify-between gap-12 ${props.className}`}
+      className={`flex w-full gap-12 max-sm:flex-col max-sm:gap-5 sm:items-center sm:justify-between ${props.className}`}
     >
       <div className='flex flex-col gap-[5px]'>
         <div className={`text-2xl font-medium ${props.titleClassName}`}>

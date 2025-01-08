@@ -118,14 +118,14 @@ import {
   PolarGrid,
   Radar,
   RadarChart,
-  Label,
+  Label as RechartLabel,
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
-
+import { Label } from '@/components/ui/label';
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
   const [activeMetric, setActiveMetric] = useState(0);
-
+  const [groupInput, setGroupInput] = useState('');
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -171,11 +171,49 @@ export default function DashboardHomePage() {
         description='Visual blocks for showcasing metric data and insights on your overview.'
         titleClassName='!text-2xl font-semibold'
       >
-        <div className='flex gap-2'>
-          <Button variant={'secondary'} className='rounded-[12px]'>
-            <Group className='mr-2 size-4' />
-            Add group
-          </Button>
+        <div className='flex gap-2 max-sm:grid max-sm:grid-cols-2'>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant={'secondary'} className='rounded-[12px]'>
+                <Group className='mr-2 size-4' />
+                Create group
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogStackTitle>Choose group name</DialogStackTitle>
+                <DialogStackDescription>
+                  Choose a descriptive and concise name that reflects the data
+                  the group will hold.
+                </DialogStackDescription>
+              </DialogHeader>
+              <div className='flex flex-col gap-2'>
+                <Label>Group name</Label>
+                <Input
+                  placeholder='Group name...'
+                  className='h-11 rounded-[12px]'
+                  value={groupInput}
+                  onChange={(e) => setGroupInput(e.target.value)}
+                  maxLength={25}
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose>
+                  <Button className='rounded-[12px]' variant={'secondary'}>
+                    Cancel
+                  </Button>
+                </DialogClose>
+
+                <Button
+                  className='rounded-[12px]'
+                  disabled={groupInput === '' ? true : false}
+                >
+                  Create
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <BlocksDialog type='wide'>
             <Button className='rounded-[12px]'>
               <PackagePlus className='mr-2 size-4' />
@@ -383,10 +421,9 @@ function Blocks() {
 function Block(props: BlockProps) {
   return (
     <SortableItem key={props.id} value={props.id} asChild>
-      <Card
-        className={`flex w-full flex-col rounded-[12px] border-none bg-accent ${props.blockType === 'group' ? '!bg-accent/50' : ''} ${props.blockType === 'nested' ? 'rounded[10px]' : ''}`}
+      <div
+        className={`overflow-x-auto`}
         style={{
-          ...cardStyle(props.color),
           gridColumn:
             props.colSpan === 2
               ? 'span 2 / span 2'
@@ -395,8 +432,13 @@ function Block(props: BlockProps) {
                 : 'span 1 / span 1',
         }}
       >
-        <BlockContent {...props} />
-      </Card>
+        <Card
+          className={`flex w-full min-w-[900px] flex-col rounded-[12px] border-none bg-accent ${props.blockType === 'group' ? 'min-w-[1000px] !bg-accent/50' : ''} ${props.blockType === 'nested' ? 'rounded[10px] min-w-[280px]' : ''}`}
+          style={cardStyle(props.color)}
+        >
+          <BlockContent {...props} />
+        </Card>
+      </div>
     </SortableItem>
   );
 }
@@ -510,7 +552,7 @@ function BlockContent(props: BlockProps) {
                 innerRadius={60}
                 strokeWidth={5}
               >
-                <Label
+                <RechartLabel
                   content={({ viewBox }) => {
                     if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                       return (
@@ -579,7 +621,7 @@ function BlockContent(props: BlockProps) {
           onValueChange={setNestedBlocks}
           overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
         >
-          <div className='grid grid-cols-3 gap-4 p-3'>
+          <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
             {nestedBlocks.map((nestedBlock) => (
               <Block key={nestedBlock.id} {...nestedBlock} />
             ))}
@@ -590,7 +632,7 @@ function BlockContent(props: BlockProps) {
                     title='Add new block'
                     description='Add a new block to this group.'
                     icons={[PlusCircle, Plus, PlusSquare]}
-                    className='flex !size-full max-h-none flex-col items-center justify-center bg-transparent'
+                    className='flex !size-full max-h-none min-w-[320px] flex-col items-center justify-center bg-transparent'
                   />
                 </div>
               </BlocksDialog>
@@ -602,7 +644,7 @@ function BlockContent(props: BlockProps) {
 
     return (
       <CardContent
-        className={`min-h-[240px] ${props.type !== 'bar-list' ? 'flex h-[30vh] items-center justify-center' : ''} ${props.blockType === 'nested' ? 'mt-5 h-[35vh]' : ''}`}
+        className={`h-[30vh] min-h-[240px] ${props.type !== 'bar-list' ? 'flex items-center justify-center' : ''} ${props.blockType === 'nested' ? 'mt-5 h-[35vh]' : ''}`}
       >
         {Charts()}
       </CardContent>
@@ -716,7 +758,7 @@ function BlockContent(props: BlockProps) {
 
       {props.blockType === 'nested' ? (
         <CardHeader className='items-center pb-0'>
-          <CardTitle>Pie Chart - Donut with Text</CardTitle>
+          <CardTitle>{props.name}</CardTitle>
           <CardDescription>January - June 2024</CardDescription>
         </CardHeader>
       ) : undefined}
@@ -725,7 +767,7 @@ function BlockContent(props: BlockProps) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${props.blockType === 'nested' ? 'items-center' : 'items-start'}`}
+          className={`flex-col gap-2 text-sm ${props.blockType === 'nested' ? 'items-center text-center' : 'items-start'}`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -859,7 +901,6 @@ const blockWideType: BlockShowcaseType[] = [
   },
 ];
 
-// Optionally define the same type for blockCompactTypes if needed
 const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Pie Chart',
@@ -879,7 +920,7 @@ const blockCompactType: BlockShowcaseType[] = [
             innerRadius={60}
             strokeWidth={5}
           >
-            <Label
+            <RechartLabel
               content={({ viewBox }) => {
                 if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                   return (
@@ -943,7 +984,9 @@ function BlocksDialog(props: {
   return (
     <DialogStack>
       <Dialog>
-        <DialogTrigger asChild>{props.children}</DialogTrigger>
+        <DialogTrigger asChild className='max-sm:w-full'>
+          {props.children}
+        </DialogTrigger>
         <DialogContent className='flex h-[80vh] max-h-[650px] w-[95%] max-w-[700px] flex-col gap-0 p-0 max-sm:w-[100%]'>
           <DialogHeader className='px-5 py-5 max-sm:text-start'>
             <DialogTitle>Select Block</DialogTitle>
@@ -968,7 +1011,7 @@ function BlocksDialog(props: {
                 ))}
               </div>
             ) : (
-              <div className='grid grid-cols-2 gap-5'>
+              <div className='grid grid-cols-2 gap-5 max-sm:grid-cols-1'>
                 {blockCompactType.map((block, i) => (
                   <BlockItem
                     key={i}
@@ -991,7 +1034,7 @@ function BlocksDialog(props: {
             </DialogClose>
             <BlocksDialogStack value={value}>
               <Button
-                className='rounded-[12px] max-md:mb-2 max-md:w-full'
+                className='w-fit rounded-[12px] max-md:mb-2'
                 disabled={value === 0 ? true : false}
               >
                 Next
