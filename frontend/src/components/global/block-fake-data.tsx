@@ -13,15 +13,22 @@ export const AreaChartData = [
   { date: 'Dec 23', SolarPanels: 3239, Inverters: 3736 },
 ];
 
-export const DonutChartData = [
-  { name: 'SolarCells', amount: 4890 },
-  { name: 'Glass', amount: 2103 },
-  { name: 'JunctionBox', amount: 2050 },
-  { name: 'Adhesive', amount: 1300 },
-  { name: 'BackSheet', amount: 1100 },
-  { name: 'Frame', amount: 700 },
-  { name: 'Encapsulant', amount: 200 },
+export const RadarChartData = [
+  { month: 'January', desktop: 186 },
+  { month: 'February', desktop: 285 },
+  { month: 'March', desktop: 237 },
+  { month: 'April', desktop: 203 },
+  { month: 'May', desktop: 209 },
+  { month: 'June', desktop: 264 },
 ];
+
+export const PieChartData = [
+  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
+  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
+  { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
+  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
+  { browser: "other", visitors: 190, fill: "var(--color-other)" },
+]
 
 export const BarListData = [
   { name: '/home', value: 843 },

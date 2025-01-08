@@ -261,7 +261,7 @@ export const DialogStackContent = ({
       {...props}
     >
       {distanceFromActive ? (
-        <div className='absolute left-0 top-0 size-full rounded-2xl bg-background' />
+        <div className='absolute bottom-0 left-0 size-full rounded-2xl bg-background' />
       ) : (
         <></>
       )}
