@@ -27,8 +27,8 @@ export default function LandingSection(props: {
           <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
             Measurely
           </span>{' '}
-          tracks what matters,
-          <br className='max-md:hidden' /> grow with confidence.
+          All Your Metrics
+          <br className='max-md:hidden' /> in One Place.
         </h1>
         {props.type === 'waitlist' ? (
           <Link href='/register'>
