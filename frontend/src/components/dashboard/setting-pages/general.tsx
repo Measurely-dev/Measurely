@@ -341,8 +341,7 @@ export default function SettingGeneralPage() {
                         .length ?? 0)) === 0 ? (
                     <Button
                       variant={'ghost'}
-                      size={'sm'}
-                      className='rounded-md'
+                      className='rounded-[10px]'
                       onClick={() => {
                         router.push(
                           `${process.env.NEXT_PUBLIC_API_URL}/oauth/${provider.name.toLowerCase()}?state=connect.${user?.id}`,
@@ -366,8 +365,7 @@ export default function SettingGeneralPage() {
                     >
                       <Button
                         variant={'ghost'}
-                        size={'sm'}
-                        className='rounded-md'
+                        className='rounded-[10px]'
                       >
                         Disconnect
                       </Button>
@@ -393,8 +391,7 @@ export default function SettingGeneralPage() {
           <div className='flex flex-col gap-4'>
             <Button
               variant={'destructiveOutline'}
-              size={'sm'}
-              className='rounded-md'
+              className='rounded-[10px]'
               onClick={DeleteAccount}
             >
               Delete account

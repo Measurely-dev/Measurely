@@ -24,7 +24,7 @@ const SettingCard = (props: {
   return (
     <form className='flex flex-col' onSubmit={props.action}>
       <Card
-        className={`relative overflow-hidden rounded-lg ${props.danger ? 'border-red-500/40' : ''}`}
+        className={`relative overflow-hidden rounded-[12px] ${props.danger ? 'border-red-500/40' : ''}`}
       >
         {props.disabled ? (
           <div className='absolute left-0 top-0 z-10 flex h-full w-full flex-col items-center justify-center gap-4 bg-accent/20 backdrop-blur-lg'>
@@ -48,7 +48,7 @@ const SettingCard = (props: {
         {props.btn !== undefined ? (
           <CardFooter className='border-t p-5 pt-4'>
             <Button
-              className='w-full rounded-md'
+              className='w-full rounded-[10px]'
               type='submit'
               loading={props.btn_loading}
               disabled={props.btn_loading || props.btn_disabled}
