@@ -11,6 +11,8 @@ import { Info, UserRoundX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { providers } from '@/providers';
 import { useConfirm } from '@omit/react-confirm-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ImageIcon } from '@radix-ui/react-icons';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
@@ -177,18 +179,32 @@ export default function SettingGeneralPage() {
         }
         action={handleFirstLastNameSubmit}
         content={
-          <div className='flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4'>
-            <Label className='flex w-full flex-col gap-2'>
-              First Name
-              <Input
-                placeholder='John'
-                name='first_name'
-                type='text'
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value.trimStart())}
-              />
-            </Label>
-
+          <div className='flex w-full flex-row items-center gap-2 max-md:flex-col max-md:gap-4'>
+            <div className='flex w-full flex-row items-center gap-2'>
+              <Avatar className='relative mr-4 size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-accent'>
+                <Label className='relative h-full w-full cursor-pointer'>
+                  <AvatarImage className='rounded-full' alt='Project image' />
+                  <AvatarFallback className='h-full w-full !rounded-full'>
+                    <ImageIcon className='size-5 text-secondary' />
+                  </AvatarFallback>
+                  <Input
+                    type='file'
+                    accept='.jpg, .jpeg, .png, .webp .svg'
+                    className='absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0'
+                  />
+                </Label>
+              </Avatar>
+              <Label className='flex w-full flex-col gap-2'>
+                First Name
+                <Input
+                  placeholder='John'
+                  name='first_name'
+                  type='text'
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value.trimStart())}
+                />
+              </Label>
+            </div>
             <Label className='flex w-full flex-col gap-2'>
               Last name
               <Input
