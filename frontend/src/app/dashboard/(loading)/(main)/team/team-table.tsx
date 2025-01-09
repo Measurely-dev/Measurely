@@ -18,7 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { MoreHorizontal, Search, FileQuestion } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Search,
+  FileQuestion,
+  ArrowBigDown,
+  ArrowBigUp,
+} from 'lucide-react';
 import {
   Dispatch,
   ReactNode,
@@ -333,13 +339,46 @@ function MemberOption({
     }
   };
 
-  async function switchRole(props: { role: Role; name: string }) {
+  async function switchRole(props: { role: Role; person: Person }) {
+    const isUpgrade =
+      ['Admin', 'Developer', 'Guest'].indexOf(props.role) <
+      ['Admin', 'Developer', 'Guest'].indexOf(props.person.role);
+
     const isConfirmed = await confirm({
-      title: `Switch ${props.name} role to ${props.role}`,
-      description: `Are you sure you want to change ${props.name}'s role to ${props.role}? This action will affect their permissions and access levels.`,
-      confirmText: 'Yes, switch',
+      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${props.person.name}'s role to ${props.role}`,
+      icon: isUpgrade ? (
+        <ArrowBigUp className='size-6 fill-green-500 text-green-500' />
+      ) : (
+        <ArrowBigDown className='size-6 fill-destructive text-destructive' />
+      ),
+      description: `Are you sure you want to ${
+        isUpgrade ? 'upgrade' : 'downgrade'
+      } ${props.person.name}'s role to ${props.role}? This action will ${
+        isUpgrade
+          ? 'grant additional permissions'
+          : 'limit their access and permissions'
+      }.`,
+      confirmText: `Yes, ${isUpgrade ? 'upgrade' : 'downgrade'}`,
       cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+      },
+      confirmButton: {
+        className: isUpgrade
+          ? 'bg-green-500 hover:bg-green-600 text-white'
+          : 'bg-red-500 hover:bg-red-600 text-white',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-1',
+      },
     });
+
+    if (isConfirmed) {
+      toast.success(
+        `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${props.person.name}'s role to ${props.role}`,
+      );
+    }
   }
 
   return (
@@ -365,7 +404,7 @@ function MemberOption({
                   <DropdownMenuItem
                     disabled={person.role === 'Admin'}
                     onClick={() =>
-                      switchRole({ role: 'Admin', name: person.name })
+                      switchRole({ role: 'Admin', person: person })
                     }
                   >
                     <span
@@ -377,7 +416,7 @@ function MemberOption({
                   <DropdownMenuItem
                     disabled={person.role === 'Developer'}
                     onClick={() =>
-                      switchRole({ role: 'Developer', name: person.name })
+                      switchRole({ role: 'Developer', person: person })
                     }
                   >
                     <span
@@ -389,7 +428,7 @@ function MemberOption({
                   <DropdownMenuItem
                     disabled={person.role === 'Guest'}
                     onClick={() =>
-                      switchRole({ role: 'Guest', name: person.name })
+                      switchRole({ role: 'Guest', person: person })
                     }
                   >
                     <span
