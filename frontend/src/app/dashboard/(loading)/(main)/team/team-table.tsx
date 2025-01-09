@@ -363,15 +363,19 @@ function MemberOption({
       cancelButton: {
         size: 'default',
         variant: 'outline',
+        className: 'rounded-[12px]'
       },
       confirmButton: {
         className: isUpgrade
-          ? 'bg-green-500 hover:bg-green-600 text-white'
-          : 'bg-red-500 hover:bg-red-600 text-white',
+          ? 'bg-green-500 hover:bg-green-600 text-white rounded-[12px]'
+          : 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
       },
       alertDialogTitle: {
         className: 'flex items-center gap-1',
       },
+      alertDialogContent: {
+        className: '!rounded-[16px]'
+      }
     });
 
     if (isConfirmed) {
@@ -394,14 +398,15 @@ function MemberOption({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger
                 className={
-                  role === 'Guest' || role === 'Developer' ? 'hidden' : ''
+                 `rounded-[10px] ${role === 'Guest' || role === 'Developer' ? 'hidden' : ''}`
                 }
               >
                 Change role
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent className='rounded-[12px]'>
                   <DropdownMenuItem
+                    className='rounded-[10px]'
                     disabled={person.role === 'Admin'}
                     onClick={() =>
                       switchRole({ role: 'Admin', person: person })
@@ -414,6 +419,7 @@ function MemberOption({
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    className='rounded-[10px]'
                     disabled={person.role === 'Developer'}
                     onClick={() =>
                       switchRole({ role: 'Developer', person: person })
@@ -426,6 +432,7 @@ function MemberOption({
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    className='rounded-[10px]'
                     disabled={person.role === 'Guest'}
                     onClick={() =>
                       switchRole({ role: 'Guest', person: person })
@@ -442,7 +449,7 @@ function MemberOption({
             </DropdownMenuSub>
           )}
 
-          <DropdownMenuItem onClick={handleCopyEmail}>
+          <DropdownMenuItem onClick={handleCopyEmail} className='rounded-[10px]'>
             Copy email
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -452,7 +459,7 @@ function MemberOption({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className='hover:!text-destructive'>
+              <DropdownMenuItem className='hover:!text-destructive rounded-[10px]'>
                 Remove member
               </DropdownMenuItem>
             </DropdownMenuGroup>
