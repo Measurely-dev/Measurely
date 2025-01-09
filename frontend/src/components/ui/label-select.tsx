@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Check, ChevronsUpDown, Edit, Edit2, Trash } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn, getContrastYIQ } from '@/lib/utils';
 import {
   Accordion,
   AccordionContent,
@@ -48,6 +48,7 @@ import { DialogClose } from '@radix-ui/react-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { ColorDropdown } from '@/app/dashboard/(loading)/(main)/page';
 
 type LabelType = Record<'value' | 'label' | 'color', string>;
 
@@ -78,13 +79,6 @@ const LABELS = [
     color: '#eab308',
   },
 ] satisfies LabelType[];
-
-const badgeStyle = (color: string) => ({
-  borderColor: `${color}20`,
-  backgroundColor: `${color}30`,
-  color,
-});
-
 export function LabelSelect(props: {
   setIsSelected: (state: boolean) => void;
 }) {
@@ -93,8 +87,11 @@ export function LabelSelect(props: {
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>('');
-  const [selectedValues, setSelectedValues] = React.useState<LabelType[]>([]); // Updated to an array
+  const [selectedValues, setSelectedValues] = React.useState<LabelType[]>([]);
   props.setIsSelected(selectedValues.length === 0 ? false : true);
+  const [selectedColor, setSelectedColor] = React.useState<string | undefined>(
+    '',
+  );
 
   const createLabel = (name: string) => {
     const isValid = /^[a-zA-Z0-9\s-_]+$/.test(name);
@@ -103,16 +100,18 @@ export function LabelSelect(props: {
       toast.error('Please choose a valid label.');
       return;
     }
+    const defaultColor = '#000';
 
     const newLabel = {
       value: name.toLowerCase(),
       label: name,
-      color: '#000',
+      color: selectedColor || defaultColor,
     };
 
     setLabels((prev) => [...prev, newLabel]);
     setInputValue('');
     setSelectedValues([newLabel]);
+    setSelectedColor(newLabel.color);
   };
 
   const toggleLabel = (label: LabelType) => {
@@ -121,6 +120,7 @@ export function LabelSelect(props: {
       if (isSelected) {
         return [];
       }
+      setSelectedColor(label.color);
       return [label];
     });
     inputRef?.current?.focus();
@@ -133,6 +133,7 @@ export function LabelSelect(props: {
     setSelectedValues((current) =>
       current.map((l) => (l.value === label.value ? newLabel : l)),
     );
+    setSelectedColor(newLabel.color);
   };
 
   const deleteLabel = (label: LabelType) => {
@@ -140,12 +141,16 @@ export function LabelSelect(props: {
     setSelectedValues((current) =>
       current.filter((l) => l.value !== label.value),
     );
+    if (selectedValues.length === 1) {
+      setSelectedColor('');
+    }
   };
 
   const onComboboxOpenChange = (value: boolean) => {
-    inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+    inputRef.current?.blur();
     setOpenCombobox(value);
   };
+
   return (
     <div className='max-w-full'>
       <Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
@@ -156,7 +161,7 @@ export function LabelSelect(props: {
             aria-expanded={openCombobox}
             className='h-11 w-full justify-between rounded-[12px] text-foreground'
           >
-            <span className='flex items-center justify-center gap-2 truncate'>
+            <span className='flex items-center'>
               {selectedValues.length === 0
                 ? 'Select label(s)'
                 : selectedValues.map((selected) => (
@@ -257,10 +262,12 @@ export function LabelSelect(props: {
                     const newLabel = {
                       value: target.name.value.toLowerCase(),
                       label: target.name.value,
-                      color: target.color.value,
+                      color: selectedColor || '#000',
                     };
                     updateLabel(label, newLabel);
                   }}
+                  selectedColor={selectedColor}
+                  setSelectedColor={setSelectedColor}
                   {...label}
                 />
               );
@@ -316,15 +323,19 @@ const DialogListItem = ({
   color,
   onSubmit,
   onDelete,
+  selectedColor,
+  setSelectedColor,
 }: LabelType & {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onDelete: () => void;
+  selectedColor: string | undefined;
+  setSelectedColor: React.Dispatch<React.SetStateAction<string | undefined>>;
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [accordionValue, setAccordionValue] = React.useState<string>('');
   const [inputValue, setInputValue] = React.useState<string>(label);
-  const [colorValue, setColorValue] = React.useState<string>(color);
-  const disabled = label === inputValue && color === colorValue;
+
+  const disabled = label === inputValue && color === selectedColor;
 
   React.useEffect(() => {
     if (accordionValue !== '') {
@@ -369,14 +380,10 @@ const DialogListItem = ({
               />
             </div>
             <div className='flex w-fit gap-1'>
-              <Input
-                id='color'
-                type='color'
-                value={colorValue}
-                onChange={(e) => setColorValue(e.target.value)}
-                className='size-8 min-h-8 min-w-8 overflow-hidden rounded-xl border-none p-1 ring-0'
+              <ColorDropdown
+                selectedColor={selectedColor}
+                setSelectedColor={setSelectedColor}
               />
-              {/* REMINDER: size="xs" */}
               <Button
                 type='submit'
                 className='rounded-[12px]'
@@ -387,7 +394,6 @@ const DialogListItem = ({
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  {/* REMINDER: size="xs" */}
                   <Button
                     variant='destructive'
                     size={'icon'}
@@ -435,3 +441,9 @@ const DialogListItem = ({
     </Accordion>
   );
 };
+
+const badgeStyle = (color: string) => ({
+  backgroundColor: `${color}1A`,
+  borderColor: `${color}33`,
+  color: color,
+});
