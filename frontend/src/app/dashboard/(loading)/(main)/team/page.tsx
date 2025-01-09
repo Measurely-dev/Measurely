@@ -14,27 +14,97 @@ import TeamInvite from './team-invite';
 
 export type Role = 'Owner' | 'Admin' | 'Guest' | 'Developer';
 export type TeamTableProps = {
-  people: { name: string; email: string; role: Role }[];
+  people: {
+    name: string;
+    email: string;
+    role: Role;
+    pfp: string;
+  }[];
 };
-
-const people: { name: string; email: string; role: Role }[] = [
-  { name: 'Zakary Fofana', email: 'zakaryfofana@gmail.com', role: 'Owner' },
-  { name: 'John Doe', email: 'johndoe@gmail.com', role: 'Admin' },
-  { name: 'Jane Smith', email: 'janesmith@gmail.com', role: 'Guest' },
-  { name: 'Alice Johnson', email: 'alicejohnson@gmail.com', role: 'Guest' },
-  { name: 'Bob Brown', email: 'bobbrown@gmail.com', role: 'Admin' },
-  { name: 'Charlie Lee', email: 'charlielee@gmail.com', role: 'Developer' },
-  { name: 'Diana Wong', email: 'dianawong@gmail.com', role: 'Guest' },
-  { name: 'Edward Zhang', email: 'edwardzhang@gmail.com', role: 'Guest' },
-  { name: 'Fiona Davis', email: 'fionadavis@gmail.com', role: 'Developer' },
-  { name: 'George Harris', email: 'georgeharris@gmail.com', role: 'Developer' },
-  { name: 'Hannah Kim', email: 'hannahkim@gmail.com', role: 'Guest' },
-  { name: 'Ivy Patel', email: 'ivypatel@gmail.com', role: 'Guest' },
-  { name: 'Lily Evans', email: 'lilyevans@gmail.com', role: 'Developer' },
+export type Person = TeamTableProps['people'][number];
+const people: TeamTableProps['people'] = [
+  {
+    name: 'Zakary Fofana',
+    email: 'zakaryfofana@gmail.com',
+    role: 'Owner',
+    pfp: 'https://github.com/zxk-afz.png',
+  },
+  {
+    name: 'John Doe',
+    email: 'johndoe@gmail.com',
+    role: 'Admin',
+    pfp: 'https://github.com/yasthegoat.png',
+  },
+  {
+    name: 'Jane Smith',
+    email: 'janesmith@gmail.com',
+    role: 'Guest',
+    pfp: 'https://github.com/octocat.png',
+  },
+  {
+    name: 'Alice Johnson',
+    email: 'alicejohnson@gmail.com',
+    role: 'Guest',
+    pfp: 'https://github.com/defunkt.png',
+  },
+  {
+    name: 'Bob Brown',
+    email: 'bobbrown@gmail.com',
+    role: 'Admin',
+    pfp: 'https://github.com/torvalds.png',
+  },
+  {
+    name: 'Charlie Lee',
+    email: 'charlielee@gmail.com',
+    role: 'Developer',
+    pfp: 'https://github.com/mojombo.png',
+  },
+  {
+    name: 'Diana Wong',
+    email: 'dianawong@gmail.com',
+    role: 'Guest',
+    pfp: 'https://github.com/sindresorhus.png',
+  },
+  {
+    name: 'Edward Zhang',
+    email: 'edwardzhang@gmail.com',
+    role: 'Guest',
+    pfp: 'https://github.com/johndoe.png',
+  },
+  {
+    name: 'Fiona Davis',
+    email: 'fionadavis@gmail.com',
+    role: 'Developer',
+    pfp: 'https://github.com/tj.png',
+  },
+  {
+    name: 'George Harris',
+    email: 'georgeharris@gmail.com',
+    role: 'Developer',
+    pfp: 'https://github.com/addyosmani.png',
+  },
+  {
+    name: 'Hannah Kim',
+    email: 'hannahkim@gmail.com',
+    role: 'Guest',
+    pfp: 'https://github.com/gaearon.png',
+  },
+  {
+    name: 'Ivy Patel',
+    email: 'ivypatel@gmail.com',
+    role: 'Guest',
+    pfp: 'https://github.com/mdo.png',
+  },
+  {
+    name: 'Lily Evans',
+    email: 'lilyevans@gmail.com',
+    role: 'Developer',
+    pfp: 'https://github.com/rauchg.png',
+  },
 ];
 
 export default function TeamPage() {
-  const [role, setRole] = useState<Role>('Developer');
+  const [role, setRole] = useState<Role>('Owner');
   const email = 'zakaryfofana@gmail.com';
 
   useEffect(() => {

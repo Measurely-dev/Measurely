@@ -39,7 +39,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Role, TeamTableProps } from './page';
+import { Person, Role, TeamTableProps } from './page';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +55,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const TeamTable = ({
   people,
@@ -199,13 +200,7 @@ const badgeClasses: { [key in Role]: string } = {
   Guest:
     'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
 };
-const Item = ({
-  person,
-  role,
-}: {
-  person: { name: string; email: string; role: Role };
-  role: Role;
-}) => {
+const Item = ({ person, role }: { person: Person; role: Role }) => {
   const [openDialog, setOpenDialog] = useState(false);
 
   return (
@@ -213,7 +208,12 @@ const Item = ({
       <TableRow>
         <TableCell className='font-medium' colSpan={2}>
           <div className='flex flex-row items-center gap-[10px] truncate text-[15px]'>
-            <div className='size-8 rounded-full bg-accent p-2' />
+            <Avatar className='size-9'>
+              <AvatarImage src={person.pfp} alt={`@${person.name}`} />
+              <AvatarFallback>
+                {person.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div className='w-full truncate'>{person.name}</div>
           </div>
         </TableCell>
@@ -297,7 +297,7 @@ function MemberOption({
   role,
 }: {
   children: ReactNode;
-  person: { name: string; email: string; role: Role };
+  person: Person;
   role: Role;
 }) {
   const confirm = useConfirm();
