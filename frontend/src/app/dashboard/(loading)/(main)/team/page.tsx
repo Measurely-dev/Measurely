@@ -8,15 +8,35 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import WebChip from '@/components/website/chip';
-import { Users } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import Measurely from 'measurely-js';
+import { useEffect, useState } from 'react';
+import { TeamTable } from './team-table';
+import TeamInvite from './team-invite';
+
+export type Role = 'Owner' | 'Admin' | 'Guest' | 'Developer';
+export type TeamTableProps = {
+  people: { name: string; email: string; role: Role }[];
+};
+
+const people: { name: string; email: string; role: Role }[] = [
+  { name: 'Zakary Fofana', email: 'zakaryfofana@gmail.com', role: 'Owner' },
+  { name: 'John Doe', email: 'johndoe@gmail.com', role: 'Admin' },
+  { name: 'Jane Smith', email: 'janesmith@gmail.com', role: 'Guest' },
+  { name: 'Alice Johnson', email: 'alicejohnson@gmail.com', role: 'Guest' },
+  { name: 'Bob Brown', email: 'bobbrown@gmail.com', role: 'Admin' },
+  { name: 'Charlie Lee', email: 'charlielee@gmail.com', role: 'Developer' },
+  { name: 'Diana Wong', email: 'dianawong@gmail.com', role: 'Guest' },
+  { name: 'Edward Zhang', email: 'edwardzhang@gmail.com', role: 'Guest' },
+  { name: 'Fiona Davis', email: 'fionadavis@gmail.com', role: 'Developer' },
+  { name: 'George Harris', email: 'georgeharris@gmail.com', role: 'Developer' },
+  { name: 'Hannah Kim', email: 'hannahkim@gmail.com', role: 'Guest' },
+  { name: 'Ivy Patel', email: 'ivypatel@gmail.com', role: 'Guest' },
+  { name: 'Lily Evans', email: 'lilyevans@gmail.com', role: 'Developer' },
+];
 
 export default function TeamPage() {
-  const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<Role>('Developer');
+  const email = 'zakaryfofana@gmail.com';
+
   useEffect(() => {
     document.title = 'Team | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -27,9 +47,23 @@ export default function TeamPage() {
       );
     }
   }, []);
+
+  const modifiedPeople = people.map((person) => ({
+    ...person,
+    name: person.email === email ? 'You' : person.name,
+  }));
+
+  const sortedPeople = modifiedPeople.sort((a, b) => {
+    if (a.email === email) return -1;
+    if (b.email === email) return 1;
+
+    const roleOrder: Role[] = ['Owner', 'Admin', 'Developer', 'Guest'];
+    return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
+  });
+
   return (
-    <DashboardContentContainer className='mt-0 flex h-[calc(100vh-15px-50px)] w-full pb-10 pt-[15px]'>
-      <Breadcrumb>
+    <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
+      <Breadcrumb className='mb-5'>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink className='pointer-events-none'>
@@ -42,56 +76,9 @@ export default function TeamPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className='mx-auto mt-24 flex h-fit w-fit flex-col items-center justify-center gap-4'>
-        <WebChip color='default'>Coming soon</WebChip>
-        <div className='mb-4 flex aspect-[16/7] w-[100%] items-center justify-center rounded-xl border'>
-          <Users className='size-[50%] p-0 text-black' />
-        </div>
-        <div className='flex flex-col gap-3 text-center'>
-          <div className='text-lg font-semibold'>Team</div>
-          <div className='max-w-[400px] text-sm text-secondary'>
-            Collaborate with others by adding team members to your workspace.
-            Stay tuned for this upcoming feature!
-          </div>
-          <form
-            onSubmit={(e: FormEvent<HTMLFormElement>) => {
-              e.preventDefault();
-
-              if (process.env.NEXT_PUBLIC_ENV !== 'production') {
-                return;
-              }
-
-              const requested =
-                window.localStorage.getItem('request-team-feature') === 'true'
-                  ? true
-                  : false;
-              if (requested) {
-                toast.success('Thank you for your feedback');
-                return;
-              }
-
-              setLoading(true);
-              Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
-              Measurely.capture('275b1ffa-e304-4476-8e88-312b3d0a0dc6', {
-                value: 1,
-                filters: {},
-              }).finally(() => {
-                setLoading(false);
-                window.localStorage.setItem('request-team-feature', 'true');
-                toast.success('Thank you for your feedback');
-              });
-            }}
-          >
-            <Button
-              className='mx-auto mb-10 mt-4 w-fit rounded-xl'
-              type='submit'
-              loading={loading}
-              disabled={loading}
-            >
-              Request feature
-            </Button>
-          </form>
-        </div>
+      <TeamInvite loading={false} disable={role === 'Guest'} />
+      <div className='mt-5 h-full'>
+        <TeamTable people={sortedPeople} email={email} role={role} />
       </div>
     </DashboardContentContainer>
   );
