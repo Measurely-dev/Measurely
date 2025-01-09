@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 import { roleToString } from '@/utils';
 import { UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function TeamInvite(props: {
@@ -25,11 +26,51 @@ export default function TeamInvite(props: {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState(UserRole.Guest);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
 
-  function sendEmail() {
+  function inviteUser(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setInviteLoading(true);
-    setTimeout(() => setInviteLoading(false), 500);
-    toast.success('Invite sent');
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/member`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        memberemail: email,
+        projectid: projects[activeProject].id,
+        role: selectedRole,
+      }),
+    })
+      .then((resp) => {
+        if (resp.ok) {
+          toast.success('The user has been successfully added to the project');
+          return resp.json();
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        if (data !== null && data !== undefined) {
+          setProjects(
+            projects.map((proj, i) =>
+              i === activeProject
+                ? Object.assign({}, proj, {
+                  members: [...(projects[activeProject].members ?? []), data],
+                })
+                : proj,
+            ),
+          );
+        }
+      })
+      .finally(() => {
+        setInviteLoading(false);
+      });
   }
 
   return (
@@ -41,76 +82,78 @@ export default function TeamInvite(props: {
           </div>
         </div>
         <Separator className='my-5' />
-        <div className='flex w-full flex-col'>
-          <div className='flex w-full flex-row gap-5 max-sm:flex-col'>
-            <div className='flex w-full flex-col gap-3'>
-              <Label>Email</Label>
-              <Input
-                placeholder='jane@exemple.com'
-                disabled={props.disable}
-                type='email'
-                className='h-11 w-full rounded-[12px]'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className='flex flex-col gap-3'>
-              <Label htmlFor='type'>Role</Label>
-              <Select
-                defaultValue={UserRole.Guest.toString()}
-                disabled={props.disable}
-              >
-                <SelectTrigger
-                  id='type'
-                  className='h-11 w-[300px] max-w-[300px] rounded-[12px] bg-background max-sm:w-full max-sm:max-w-none'
+        <form onSubmit={inviteUser}>
+          <div className='flex w-full flex-col'>
+            <div className='flex w-full flex-row gap-5 max-sm:flex-col'>
+              <div className='flex w-full flex-col gap-3'>
+                <Label>Email</Label>
+                <Input
+                  placeholder='jane@exemple.com'
+                  disabled={props.disable}
+                  type='email'
+                  className='h-11 w-full rounded-[12px]'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className='flex flex-col gap-3'>
+                <Label htmlFor='type'>Role</Label>
+                <Select
+                  defaultValue={UserRole.Guest.toString()}
+                  disabled={props.disable}
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
-                    (role) => {
-                      return (
-                        <SelectItem
-                          value={role.toString()}
-                          onClick={() => setSelectedRole(role)}
-                        >
-                          {roleToString(role)}
-                        </SelectItem>
-                      );
-                    },
-                  )}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger
+                    id='type'
+                    className='h-11 w-[300px] max-w-[300px] rounded-[12px] bg-background max-sm:w-full max-sm:max-w-none'
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
+                      (role) => {
+                        return (
+                          <SelectItem
+                            value={role.toString()}
+                            onClick={() => setSelectedRole(role)}
+                          >
+                            {roleToString(role)}
+                          </SelectItem>
+                        );
+                      },
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          {props.loading ? (
-            <>
-              <Skeleton className='mt-4 flex h-9 w-fit items-center px-3 !text-transparent'>
-                <UserPlus className='mr-2 size-5' />
-                Add member
-              </Skeleton>
-            </>
-          ) : (
-            <Button
-              variant='ghost'
-              className='mt-4 w-fit rounded-[12px] !bg-background text-secondary'
-              disabled={
-                props.disable || email === '' || inviteLoading ? true : false
-              }
-              onClick={sendEmail}
-              loading={inviteLoading}
-            >
-              {inviteLoading ? (
-                'Add member'
-              ) : (
-                <>
-                  <UserPlus className='mr-2 size-4' />
+            {props.loading ? (
+              <>
+                <Skeleton className='mt-4 flex h-9 w-fit items-center px-3 !text-transparent'>
+                  <UserPlus className='mr-2 size-5' />
                   Add member
-                </>
-              )}
-            </Button>
-          )}
-        </div>
+                </Skeleton>
+              </>
+            ) : (
+              <Button
+                variant='ghost'
+                className='mt-4 w-fit rounded-[12px] !bg-background text-secondary'
+                disabled={
+                  props.disable || email === '' || inviteLoading ? true : false
+                }
+                loading={inviteLoading}
+                type='submit'
+              >
+                {inviteLoading ? (
+                  'Add member'
+                ) : (
+                  <>
+                    <UserPlus className='mr-2 size-4' />
+                    Add member
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </form>
       </CardContent>
     </Card>
   );

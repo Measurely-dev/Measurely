@@ -1822,9 +1822,9 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
-		Role      int       `json:"role"`
+		MemberEmail string    `json:"memberemail"`
+		ProjectId   uuid.UUID `json:"projectid"`
+		Role        int       `json:"role"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1837,10 +1837,10 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := s.db.GetUserById(request.MemberId)
+	member, err := s.db.GetUserByEmail(request.MemberEmail)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "User not found", http.StatusNotFound)
+			http.Error(w, "The user was found", http.StatusNotFound)
 		} else {
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
@@ -1863,20 +1863,41 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.db.CreateTeamRelation(types.TeamRelation{
-		UserId:    request.MemberId,
+		UserId:    member.Id,
 		ProjectId: request.ProjectId,
 		Role:      request.Role,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			http.Error(w, "The User is already a member of this team", http.StatusAlreadyReported)
+			http.Error(w, "The user is already a member of this team", http.StatusAlreadyReported)
 		} else {
 			log.Println(err)
 			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		}
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	member.CurrentPlan = ""
+	member.Password = ""
+	member.MonthlyEventCount = 0
+	member.StartCountDate = time.Now().UTC()
+	member.StripeCustomerId = ""
+
+	body, err := json.Marshal(member)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else {
+		w.Header().Set("Content-Type", "authorization/json")
+		w.Write(body)
+	}
+
+	go s.email.SendEmail(email.MailFields{
+		To:          member.Email,
+		Subject:     fmt.Sprintf("You have been added to %s as a team member", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
 }
 
 func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
@@ -1922,7 +1943,6 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if token.Id == request.MemberId || project.UserRole == types.TEAM_OWNER || team_relation.Role == types.TEAM_ADMIN {
-		// can delete
 		s.db.DeleteTeamRelation(request.MemberId, request.ProjectId)
 	} else {
 		http.Error(w, "You do not have the role necessary to perform this action.", http.StatusUnauthorized)
@@ -1930,6 +1950,16 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	user, _ := s.db.GetUserById(team_relation.Id)
+
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     fmt.Sprintf("You have been removed from the project %s", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
 }
 
 func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
@@ -1997,6 +2027,16 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	user, _ := s.db.GetUserById(team_relation.Id)
+
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     fmt.Sprintf("Your role has been changed in the project %s", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
 }
 
 func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
