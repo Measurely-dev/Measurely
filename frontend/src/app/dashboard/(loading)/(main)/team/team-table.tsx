@@ -1,3 +1,4 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -19,7 +19,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { MoreHorizontal, Search, FileQuestion } from 'lucide-react';
-import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   Select,
@@ -92,8 +98,12 @@ export const TeamTable = ({
     currentPage * itemsPerPage,
   );
 
-  const totalPages = Math.ceil(sortedPeople.length / itemsPerPage);
-
+  const totalPages = Math.max(Math.ceil(sortedPeople.length / itemsPerPage), 1);
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
   return (
     <>
       <div className='flex flex-row items-center gap-4'>
@@ -131,10 +141,22 @@ export const TeamTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedPeople.map((person, index) => (
-                <Item key={index} person={person} role={role} />
-              ))}
+              {paginatedPeople.length > 0 ? (
+                paginatedPeople.map((person, index) => (
+                  <Item key={index} person={person} role={role} />
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className='text-center text-muted-foreground'
+                  >
+                    No results on this page. Adjust your search or filter.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
+
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={6}>Total</TableCell>
