@@ -1,5 +1,5 @@
 import React, { createContext, Dispatch } from 'react';
-import { Project, User } from './types';
+import { Project, User, UserRole } from './types';
 
 export const defaultUser: User = {
   firstname: '',
@@ -15,6 +15,7 @@ export const defaultUser: User = {
     identifier: '',
     monthlyeventlimit: 0,
   },
+  userrole: UserRole.Owner,
   eventcount: 0,
   providers: [],
 };
@@ -37,15 +38,15 @@ export interface ProjectsContextType {
 
 export const UserContext = createContext<UserContextType>({
   user: defaultUser,
-  setUser: () => {},
+  setUser: () => { },
   userLoading: true,
-  setUserLoading: () => {},
+  setUserLoading: () => { },
 });
 export const ProjectsContext = createContext<ProjectsContextType>({
   projects: [],
-  setProjects: () => {},
+  setProjects: () => { },
   activeProject: -1,
-  setActiveProject: () => {},
+  setActiveProject: () => { },
   projectsLoading: true,
-  setProjectsLoading: () => {},
+  setProjectsLoading: () => { },
 });

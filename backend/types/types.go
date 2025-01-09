@@ -34,17 +34,17 @@ type Token struct {
 	Email string    `json:"email"`
 }
 type User struct {
-	Id                uuid.UUID
-	Email             string
-	FirstName         string
-	LastName          string
+	Id                uuid.UUID `json:"id"`
+	Email             string    `json:"email"`
+	FirstName         string    `json:"firstname"`
+	LastName          string    `json:"lastname"`
 	Password          string
 	StripeCustomerId  string
 	CurrentPlan       string
-	Image             string
+	Image             string `json:"image"`
 	MonthlyEventCount int64
 	StartCountDate    time.Time
-	UserRole          int `db:"userrole"`
+	UserRole          int `db:"userrole" json:"userrole"`
 }
 
 type UserProvider struct {

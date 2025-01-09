@@ -8,104 +8,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { TeamTable } from './team-table';
 import TeamInvite from './team-invite';
-
-export type Role = 'Owner' | 'Admin' | 'Guest' | 'Developer';
-export type TeamTableProps = {
-  people: {
-    name: string;
-    email: string;
-    role: Role;
-    pfp: string;
-  }[];
-};
-export type Person = TeamTableProps['people'][number];
-const people: TeamTableProps['people'] = [
-  {
-    name: 'Zakary Fofana',
-    email: 'zakaryfofana@gmail.com',
-    role: 'Owner',
-    pfp: 'https://github.com/zxk-afz.png',
-  },
-  {
-    name: 'John Doe',
-    email: 'johndoe@gmail.com',
-    role: 'Admin',
-    pfp: 'https://github.com/yasthegoat.png',
-  },
-  {
-    name: 'Jane Smith',
-    email: 'janesmith@gmail.com',
-    role: 'Guest',
-    pfp: 'https://github.com/octocat.png',
-  },
-  {
-    name: 'Alice Johnson',
-    email: 'alicejohnson@gmail.com',
-    role: 'Guest',
-    pfp: 'https://github.com/defunkt.png',
-  },
-  {
-    name: 'Bob Brown',
-    email: 'bobbrown@gmail.com',
-    role: 'Admin',
-    pfp: 'https://github.com/torvalds.png',
-  },
-  {
-    name: 'Charlie Lee',
-    email: 'charlielee@gmail.com',
-    role: 'Developer',
-    pfp: 'https://github.com/mojombo.png',
-  },
-  {
-    name: 'Diana Wong',
-    email: 'dianawong@gmail.com',
-    role: 'Guest',
-    pfp: 'https://github.com/sindresorhus.png',
-  },
-  {
-    name: 'Edward Zhang',
-    email: 'edwardzhang@gmail.com',
-    role: 'Guest',
-    pfp: 'https://github.com/johndoe.png',
-  },
-  {
-    name: 'Fiona Davis',
-    email: 'fionadavis@gmail.com',
-    role: 'Developer',
-    pfp: 'https://github.com/tj.png',
-  },
-  {
-    name: 'George Harris',
-    email: 'georgeharris@gmail.com',
-    role: 'Developer',
-    pfp: 'https://github.com/addyosmani.png',
-  },
-  {
-    name: 'Hannah Kim',
-    email: 'hannahkim@gmail.com',
-    role: 'Guest',
-    pfp: 'https://github.com/gaearon.png',
-  },
-  {
-    name: 'Ivy Patel',
-    email: 'ivypatel@gmail.com',
-    role: 'Guest',
-    pfp: 'https://github.com/mdo.png',
-  },
-  {
-    name: 'Lily Evans',
-    email: 'lilyevans@gmail.com',
-    role: 'Developer',
-    pfp: 'https://github.com/rauchg.png',
-  },
-];
+import { ProjectsContext } from '@/dash-context';
+import { UserRole } from '@/types';
+import { toast } from 'sonner';
 
 export default function TeamPage() {
-  const [role, setRole] = useState<Role>('Owner');
-  const email = 'zakaryfofana@gmail.com';
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
 
   useEffect(() => {
     document.title = 'Team | Measurely';
@@ -116,20 +27,33 @@ export default function TeamPage() {
         'Collaborate with your team on Measurely. Manage roles, share insights, and work together to track and analyze metrics effectively.',
       );
     }
+
+    const loadTeam = async () => {
+      if (projects[activeProject]) {
+        if (projects[activeProject].members === null) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/members/${projects[activeProject].id}`,
+            { method: 'GET', credentials: 'include' },
+          );
+
+          if (response.ok) {
+            const body = await response.json();
+            setProjects(
+              projects.map((proj, i) =>
+                i === activeProject
+                  ? Object.assign({}, proj, { members: body })
+                  : proj,
+              ),
+            );
+          } else {
+            toast.error('Failed to load the team member list');
+          }
+        }
+      }
+    };
+
+    loadTeam();
   }, []);
-
-  const modifiedPeople = people.map((person) => ({
-    ...person,
-    name: person.email === email ? 'You' : person.name,
-  }));
-
-  const sortedPeople = modifiedPeople.sort((a, b) => {
-    if (a.email === email) return -1;
-    if (b.email === email) return 1;
-
-    const roleOrder: Role[] = ['Owner', 'Admin', 'Developer', 'Guest'];
-    return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
-  });
 
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
@@ -146,9 +70,16 @@ export default function TeamPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <TeamInvite loading={false} disable={role === 'Guest'} />
+      <TeamInvite
+        loading={false}
+        disable={projects[activeProject].userrole === UserRole.Guest}
+      />
       <div className='mt-5 h-full'>
-        <TeamTable people={sortedPeople} email={email} role={role} />
+        {projects[activeProject].members === null ? (
+          <>LOADING...</>
+        ) : (
+          <TeamTable members={projects[activeProject].members} />
+        )}
       </div>
     </DashboardContentContainer>
   );

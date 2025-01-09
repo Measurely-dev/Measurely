@@ -426,43 +426,42 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	provider, gerr := s.db.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
 	if gerr == sql.ErrNoRows {
 		if action == "auth" {
-			// TODO : uncomment this code when the waitlist is done
+			if os.Getenv("ENV") != "production" {
+				stripeParams := &stripe.CustomerParams{
+					Email: stripe.String(providerUser.Email),
+				}
 
-			// Handle user creation logic
-			// stripeParams := &stripe.CustomerParams{
-			// 	Email: stripe.String(providerUser.Email),
-			// }
-			//
-			// c, err := customer.New(stripeParams)
-			// if err != nil {
-			// 	log.Println("Stripe error:", err)
-			// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			// 	return
-			// }
+				c, err := customer.New(stripeParams)
+				if err != nil {
+					log.Println("Stripe error:", err)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+					return
+				}
 
-			// user, err = s.db.CreateUser(types.User{
-			// 	Email:            strings.ToLower(providerUser.Email),
-			// 	Password:         "",
-			// 	FirstName:        providerUser.Name,
-			// 	LastName:         "",
-			// 	StripeCustomerId: c.ID,
-			// 	CurrentPlan:      "starter",
-			// })
-			// if err != nil {
-			// 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			// 		http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
-			// 	} else {
-			// 		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			// 	}
-			// 	return
-			// }
-			//
-			//    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
-			// go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
-      
+				user, err = s.db.CreateUser(types.User{
+					Email:            strings.ToLower(providerUser.Email),
+					Password:         "",
+					FirstName:        strings.ToLower(strings.TrimSpace(providerUser.Name)),
+					LastName:         "",
+					StripeCustomerId: c.ID,
+					CurrentPlan:      "starter",
+				})
+				if err != nil {
+					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+						http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
+					} else {
+						http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+					}
+					return
+				}
+
+				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+				go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
+
+			} else {
 				http.Redirect(w, r, GetOrigin()+"/sign-in?warning=Be the first to know when Measurely is ready by joining the waitlist.", http.StatusFound)
 				return
-
+			}
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
@@ -478,17 +477,18 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Create provider link in DB
-		// provider, err = s.db.CreateProvider(types.UserProvider{
-		// 	UserId:         user.Id,
-		// 	Type:           chosenProvider.Type,
-		// 	ProviderUserId: providerUser.Id,
-		// })
-		// if err != nil {
-		// 	log.Println("Error creating provider link:", err)
-		// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-		// 	return
-		// }
+		if os.Getenv("ENV") != "production" {
+			provider, err = s.db.CreateProvider(types.UserProvider{
+				UserId:         user.Id,
+				Type:           chosenProvider.Type,
+				ProviderUserId: providerUser.Id,
+			})
+			if err != nil {
+				log.Println("Error creating provider link:", err)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+				return
+			}
+		}
 	}
 
 	if gerr == nil {
@@ -1281,7 +1281,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  newApp.UserRole = types.TEAM_OWNER
+	newApp.UserRole = types.TEAM_OWNER
 	bytes, jerr := json.Marshal(newApp)
 	if jerr != nil {
 		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
@@ -1788,18 +1788,9 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request struct {
-		Search string `json:"search"`
-	}
+	search := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("search")))
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	request.Search = strings.ToLower(strings.TrimSpace(request.Search))
-
-	users, err := s.db.SearchUsers(request.Search)
+	users, err := s.db.SearchUsers(search)
 	if err != nil && err != sql.ErrNoRows {
 		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		return
@@ -1807,6 +1798,10 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		users[i].Password = ""
+		users[i].StripeCustomerId = ""
+		users[i].MonthlyEventCount = 0
+		users[i].StartCountDate = time.Now().UTC()
+		users[i].CurrentPlan = ""
 	}
 
 	body, err := json.Marshal(users)
@@ -2011,13 +2006,13 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, err := uuid.Parse(chi.URLParam(r, "appid"))
+	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
 	if err != nil {
 		http.Error(w, "Invalid app id", http.StatusBadRequest)
 		return
 	}
 
-	_, err = s.db.GetProject(appid, token.Id)
+	_, err = s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
@@ -2027,7 +2022,7 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := s.db.GetUsersByProjectId(appid)
+	users, err := s.db.GetUsersByProjectId(projectid)
 	if err != nil && err != sql.ErrNoRows {
 		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		return
@@ -2035,6 +2030,10 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		users[i].Password = ""
+		users[i].StripeCustomerId = ""
+		users[i].MonthlyEventCount = 0
+		users[i].StartCountDate = time.Now().UTC()
+		users[i].CurrentPlan = ""
 	}
 
 	body, err := json.Marshal(users)

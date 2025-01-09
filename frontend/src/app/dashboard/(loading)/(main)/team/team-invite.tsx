@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UserRole } from '@/types';
+import { roleToString } from '@/utils';
 import { UserPlus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -22,7 +24,8 @@ export default function TeamInvite(props: {
 }) {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('observer');
+  const [selectedRole, setSelectedRole] = useState(UserRole.Guest);
+
   function sendEmail() {
     setInviteLoading(true);
     setTimeout(() => setInviteLoading(false), 500);
@@ -53,7 +56,10 @@ export default function TeamInvite(props: {
             </div>
             <div className='flex flex-col gap-3'>
               <Label htmlFor='type'>Role</Label>
-              <Select defaultValue='observer' disabled={props.disable}>
+              <Select
+                defaultValue={UserRole.Guest.toString()}
+                disabled={props.disable}
+              >
                 <SelectTrigger
                   id='type'
                   className='h-11 w-[300px] max-w-[300px] rounded-[12px] bg-background max-sm:w-full max-sm:max-w-none'
@@ -61,18 +67,18 @@ export default function TeamInvite(props: {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='admin' onClick={() => setRole('admin')}>
-                    Admin
-                  </SelectItem>
-                  <SelectItem value='developer' onClick={() => setRole('developer')}>
-                    Developer
-                  </SelectItem>
-                  <SelectItem
-                    value='observer'
-                    onClick={() => setRole('observer')}
-                  >
-                    Observer
-                  </SelectItem>
+                  {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
+                    (role) => {
+                      return (
+                        <SelectItem
+                          value={role.toString()}
+                          onClick={() => setSelectedRole(role)}
+                        >
+                          {roleToString(role)}
+                        </SelectItem>
+                      );
+                    },
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import SettingCard from '../setting-card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { FormEvent, useContext, useState } from 'react';
+import { act, FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dash-context';
 import DisconnectProviderDialog from '../disconnect-provider-dialog';
 import { Info, UserRoundX } from 'lucide-react';
@@ -13,6 +13,7 @@ import { providers } from '@/providers';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ImageIcon } from '@radix-ui/react-icons';
+import { MAXFILESIZE } from '@/utils';
 
 export default function SettingGeneralPage() {
   const { user, setUser } = useContext(UserContext);
@@ -28,37 +29,77 @@ export default function SettingGeneralPage() {
   const router = useRouter();
   const confirm = useConfirm();
 
-  const handleFirstLastNameSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const [file, setFile] = useState<any>(null);
+  const [reader, setReader] = useState<any>(null);
+
+  const handleFirstLastNameSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (file !== null) {
+      if (file.size > MAXFILESIZE) {
+        toast.error('The image is too large, MAX 500KB');
+        return;
+      }
+    }
+
     if (firstName === '') {
-      toast.error('The firstname field must be filled');
+      toast.error('The first name field must be filled');
       return;
     }
+
     setLoadingProfile(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ first_name: firstName, last_name: lastName }),
-    })
-      .then((resp) => {
-        if (resp.status === 200) {
-          toast.success('Successfully updated first name and/or last name.');
-          setUser(
-            Object.assign({}, user, {
-              firstname: firstName,
-              lastname: lastName,
-            }),
-          );
-        } else {
-          resp.text().then((text) => toast.error(text));
-        }
-      })
-      .finally(() => {
-        setLoadingProfile(false);
+    const updated = {
+      firstname: user.firstname,
+      lastname: user.lastname,
+      image: user.image,
+    };
+
+    if (
+      firstName.toLowerCase() !== user.firstname ||
+      lastName.toLowerCase() !== user.lastname
+    ) {
+      const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: firstName.toLowerCase(),
+          last_name: lastName.toLowerCase(),
+        }),
       });
+
+      if (response1.ok) {
+        toast.success('Successfully updated first name and/or last name.');
+        updated['firstname'] = firstName.toLowerCase();
+        updated['lastname'] = lastName.toLowerCase();
+      }
+    }
+
+    if (file !== null) {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response2 = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/user-image`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        },
+      );
+
+      if (response2.ok) {
+        toast.success('Successfully updated your image.');
+        const body = await response2.json();
+        updated['image'] = body.url;
+        setFile(null);
+        setReader(null);
+      }
+    }
+
+    setUser(Object.assign({}, user, updated));
+    setLoadingProfile(false);
   };
 
   const handleEmailSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -175,7 +216,9 @@ export default function SettingGeneralPage() {
         btn_loading={loadingProfile}
         btn_disabled={
           firstName === '' ||
-          (firstName === user.firstname && lastName === user.lastname)
+          (firstName === user.firstname &&
+            lastName === user.lastname &&
+            file === null)
         }
         action={handleFirstLastNameSubmit}
         content={
@@ -183,7 +226,11 @@ export default function SettingGeneralPage() {
             <div className='flex w-full flex-row items-center gap-2'>
               <Avatar className='relative mr-4 size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-accent'>
                 <Label className='relative h-full w-full cursor-pointer'>
-                  <AvatarImage className='rounded-full' alt='Project image' />
+                  <AvatarImage
+                    className='rounded-full'
+                    alt='Project image'
+                    src={reader === null ? user.image : reader}
+                  />
                   <AvatarFallback className='h-full w-full !rounded-full'>
                     <ImageIcon className='size-5 text-secondary' />
                   </AvatarFallback>
@@ -191,6 +238,22 @@ export default function SettingGeneralPage() {
                     type='file'
                     accept='.jpg, .jpeg, .png, .webp .svg'
                     className='absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0'
+                    onChange={(event) => {
+                      const selectedFile = event.target.files?.[0];
+
+                      if (!selectedFile) {
+                        return;
+                      }
+
+                      const r = new FileReader();
+
+                      r.onload = (e) => {
+                        setReader(e.target?.result);
+                      };
+
+                      r.readAsDataURL(selectedFile);
+                      setFile(event.target.files?.[0]);
+                    }}
                   />
                 </Label>
               </Avatar>
@@ -313,7 +376,7 @@ export default function SettingGeneralPage() {
         description='A list of providers linked or not to this account.'
         btn_loading={false}
         btn_disabled={false}
-        action={() => {}}
+        action={() => { }}
         content={
           <div className='flex flex-col gap-4'>
             {providers.map((provider: any) => {
@@ -338,7 +401,7 @@ export default function SettingGeneralPage() {
                   {(user.providers === null
                     ? 0
                     : (user?.providers.filter((p) => p.type === provider.type)
-                        .length ?? 0)) === 0 ? (
+                      .length ?? 0)) === 0 ? (
                     <Button
                       variant={'ghost'}
                       className='rounded-[10px]'
@@ -363,10 +426,7 @@ export default function SettingGeneralPage() {
                           : (user.providers.length ?? 0)
                       }
                     >
-                      <Button
-                        variant={'ghost'}
-                        className='rounded-[10px]'
-                      >
+                      <Button variant={'ghost'} className='rounded-[10px]'>
                         Disconnect
                       </Button>
                     </DisconnectProviderDialog>

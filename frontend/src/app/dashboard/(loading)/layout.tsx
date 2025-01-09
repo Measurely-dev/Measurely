@@ -98,6 +98,7 @@ export default function DashboardContentLayout({
             } else {
               json[i].metrics = null;
             }
+            json[i].members = null;
           }
 
           setProjects(json);

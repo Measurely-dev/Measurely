@@ -29,7 +29,9 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -51,7 +53,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Person, Role, TeamTableProps } from './page';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,43 +69,57 @@ import {
 import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User, UserRole } from '@/types';
+import { UserContext } from '@/dash-context';
+import { formatFullName, roleToString } from '@/utils';
 
-export const TeamTable = ({
-  people,
-  email,
-  role,
-}: TeamTableProps & { email: string; role: Role }) => {
+export const TeamTable = (props: { members: User[] }) => {
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'All' | Role>('All');
+  const [roleFilter, setRoleFilter] = useState<UserRole | 'All'>('All');
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { user } = useContext(UserContext);
 
   const itemsPerPage = 10;
 
-  const filteredPeople = people.filter((person) => {
-    const matchesSearch =
-      person.name.toLowerCase().includes(search.toLowerCase()) ||
-      person.email.toLowerCase().includes(search.toLowerCase()) ||
-      person.role.toLowerCase().includes(search.toLowerCase());
+  const filteredMembers = useMemo(() => {
+    if (!props.members) return [];
+    const filtered =
+      props.members.filter((member) => {
+        const matchesSearch =
+          (
+            member.firstname.toLowerCase() +
+            ' ' +
+            member.lastname.toLowerCase()
+          ).includes(search.toLowerCase()) ||
+          member.email.toLowerCase().includes(search.toLowerCase()) ||
+          roleToString(member.userrole).includes(search.toLowerCase());
 
-    const matchesRole = roleFilter === 'All' || person.role === roleFilter;
+        const matchesRole =
+          roleFilter === 'All' || member.userrole === roleFilter;
 
-    return matchesSearch && matchesRole;
-  });
+        return matchesSearch && matchesRole;
+      }) ?? [];
 
-  const sortedPeople = filteredPeople.sort((a, b) => {
-    if (a.email === email) return -1;
-    if (b.email === email) return 1;
+    return filtered.sort((a, b) => {
+      if (a.email === user.email) return -1;
+      if (b.email === user.email) return 1;
 
-    const roleOrder: Role[] = ['Owner', 'Admin', 'Developer', 'Guest'];
-    return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
-  });
+      return a.userrole - b.userrole;
+    });
+  }, [search, props.members]);
 
-  const paginatedPeople = sortedPeople.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const paginatedMembers = useMemo(() => {
+    return filteredMembers.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage,
+    );
+  }, [filteredMembers]);
 
-  const totalPages = Math.max(Math.ceil(sortedPeople.length / itemsPerPage), 1);
+  const totalPages = useMemo(() => {
+    return Math.max(Math.ceil(filteredMembers.length / itemsPerPage), 1);
+  }, [filteredMembers]);
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
@@ -124,7 +139,7 @@ export const TeamTable = ({
         </div>
         <FiltersComponent filter={roleFilter} setFilter={setRoleFilter} />
       </div>
-      {filteredPeople.length === 0 ? (
+      {filteredMembers.length === 0 ? (
         <EmptyState
           title='No Results Found'
           description='Try adjusting your search filters.'
@@ -147,9 +162,9 @@ export const TeamTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedPeople.length > 0 ? (
-                paginatedPeople.map((person, index) => (
-                  <Item key={index} person={person} role={role} />
+              {paginatedMembers.length > 0 ? (
+                paginatedMembers.map((member, index) => (
+                  <Item key={index} member={member} />
                 ))
               ) : (
                 <TableRow>
@@ -167,7 +182,7 @@ export const TeamTable = ({
               <TableRow>
                 <TableCell colSpan={6}>Total</TableCell>
                 <TableCell className='text-right'>
-                  {paginatedPeople.length}
+                  {paginatedMembers.length}
                 </TableCell>
               </TableRow>
             </TableFooter>
@@ -218,50 +233,58 @@ export const TeamTable = ({
     </>
   );
 };
-const badgeClasses: { [key in Role]: string } = {
-  Owner:
-    'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+const badgeClasses: { [key: string]: string } = {
   Admin:
+    'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+  Owner:
     'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
   Developer:
     'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
   Guest:
     'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
 };
-const Item = ({ person, role }: { person: Person; role: Role }) => {
+const Item = (props: { member: User }) => {
   const [openDialog, setOpenDialog] = useState(false);
-
+  const { user } = useContext(UserContext);
   return (
     <>
       <TableRow>
         <TableCell className='font-medium' colSpan={2}>
           <div className='flex flex-row items-center gap-[10px] truncate text-[15px]'>
             <Avatar className='size-9'>
-              <AvatarImage src={person.pfp} alt={`@${person.name}`} />
+              <AvatarImage
+                src={props.member.image}
+                alt={`@${formatFullName(props.member.firstname, props.member.lastname)}`}
+              />
               <AvatarFallback>
-                {person.name.charAt(0).toUpperCase()}
+                {props.member.firstname.charAt(0).toUpperCase()}
+                {props.member.lastname.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className='w-full truncate'>{person.name}</div>
+            <div className='w-full truncate'>
+              {user.id === props.member.id
+                ? 'You'
+                : formatFullName(props.member.firstname, props.member.lastname)}
+            </div>
           </div>
         </TableCell>
         <TableCell colSpan={3}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px] text-secondary'>
-            {person.email}
+            {props.member.email}
           </div>
         </TableCell>
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
             <span
-              className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[person.role]}`}
+              className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.userrole)]}`}
             >
-              {person.role}
+              {roleToString(props.member.userrole)}
             </span>
           </div>
         </TableCell>
         <TableCell>
           <div className='flex w-full justify-end'>
-            <MemberOption person={person} role={role}>
+            <MemberOption member={props.member}>
               <Button
                 variant={'ghost'}
                 size={'icon'}
@@ -293,13 +316,19 @@ const Item = ({ person, role }: { person: Person; role: Role }) => {
 };
 
 function FiltersComponent(props: {
-  filter: 'All' | Role;
-  setFilter: Dispatch<SetStateAction<'All' | Role>>;
+  filter: 'All' | UserRole;
+  setFilter: Dispatch<SetStateAction<'All' | UserRole>>;
 }) {
   return (
     <Select
-      value={props.filter}
-      onValueChange={(value: string) => props.setFilter(value as 'All' | Role)}
+      value={props.filter === 'All' ? 'All' : props.filter.toString()}
+      onValueChange={(value: string) => {
+        if (value !== 'All') {
+          props.setFilter(parseInt(value));
+        } else {
+          props.setFilter(value);
+        }
+      }}
     >
       <SelectTrigger className='w-[220px] min-w-[220px] bg-accent max-md:w-full'>
         <SelectValue placeholder='Select role' />
@@ -309,10 +338,10 @@ function FiltersComponent(props: {
           <SelectLabel>Sort by role</SelectLabel>
           <SelectSeparator />
           <SelectItem value='All'>All roles</SelectItem>
-          <SelectItem value='Owner'>Owner</SelectItem>
-          <SelectItem value='Admin'>Admin</SelectItem>
-          <SelectItem value='Developer'>Developer</SelectItem>
-          <SelectItem value='Guest'>Guest</SelectItem>
+          <SelectItem value='0'>Owner</SelectItem>
+          <SelectItem value='1'>Admin</SelectItem>
+          <SelectItem value='2'>Developer</SelectItem>
+          <SelectItem value='3'>Guest</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
@@ -321,49 +350,44 @@ function FiltersComponent(props: {
 
 function MemberOption({
   children,
-  person,
-  role,
+  member,
 }: {
   children: ReactNode;
-  person: Person;
-  role: Role;
+  member: User;
 }) {
+  const { user } = useContext(UserContext);
   const confirm = useConfirm();
   const handleCopyEmail = async () => {
     try {
-      await navigator.clipboard.writeText(person.email);
-      toast.success(person.email + ' copied to clipboard');
+      await navigator.clipboard.writeText(member.email);
+      toast.success(member.email + ' copied to clipboard');
     } catch (err) {
       console.error('Failed to copy email: ', err);
       toast.error('Failed to copy email');
     }
   };
 
-  async function switchRole(props: { role: Role; person: Person }) {
-    const isUpgrade =
-      ['Admin', 'Developer', 'Guest'].indexOf(props.role) <
-      ['Admin', 'Developer', 'Guest'].indexOf(props.person.role);
+  async function switchRole(props: { member: User; newRole: UserRole }) {
+    const isUpgrade = props.newRole < props.member.userrole;
 
     const isConfirmed = await confirm({
-      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${props.person.name}'s role to ${props.role}`,
+      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${formatFullName(props.member.firstname, props.member.lastname)}'s role to ${roleToString(props.newRole)}`,
       icon: isUpgrade ? (
         <ArrowBigUp className='size-6 fill-green-500 text-green-500' />
       ) : (
         <ArrowBigDown className='size-6 fill-destructive text-destructive' />
       ),
-      description: `Are you sure you want to ${
-        isUpgrade ? 'upgrade' : 'downgrade'
-      } ${props.person.name}'s role to ${props.role}? This action will ${
-        isUpgrade
+      description: `Are you sure you want to ${isUpgrade ? 'upgrade' : 'downgrade'
+        } ${formatFullName(props.member.firstname, props.member.lastname)}'s role to ${roleToString(props.newRole)}? This action will ${isUpgrade
           ? 'grant additional permissions'
           : 'limit their access and permissions'
-      }.`,
+        }.`,
       confirmText: `Yes, ${isUpgrade ? 'upgrade' : 'downgrade'}`,
       cancelText: 'Cancel',
       cancelButton: {
         size: 'default',
         variant: 'outline',
-        className: 'rounded-[12px]'
+        className: 'rounded-[12px]',
       },
       confirmButton: {
         className: isUpgrade
@@ -374,13 +398,13 @@ function MemberOption({
         className: 'flex items-center gap-1',
       },
       alertDialogContent: {
-        className: '!rounded-[16px]'
-      }
+        className: '!rounded-[16px]',
+      },
     });
 
     if (isConfirmed) {
       toast.success(
-        `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${props.person.name}'s role to ${props.role}`,
+        `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${props.member.firstname + ' ' + props.member.lastname}'s role to ${roleToString(props.newRole)}`,
       );
     }
   }
@@ -389,77 +413,63 @@ function MemberOption({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className='mr-8 w-56 rounded-[12px] shadow-md'>
-        <DropdownMenuLabel>{person.name}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {formatFullName(member.firstname, member.lastname)}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {person.name === 'You' ? (
+          {member.id === user.id ? (
             <></>
           ) : (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger
-                className={
-                 `rounded-[10px] ${role === 'Guest' || role === 'Developer' ? 'hidden' : ''}`
-                }
+                className={`rounded-[10px] ${member.userrole === UserRole.Guest || member.userrole === UserRole.Developer ? 'hidden' : ''}`}
               >
                 Change role
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent className='rounded-[12px]'>
-                  <DropdownMenuItem
-                    className='rounded-[10px]'
-                    disabled={person.role === 'Admin'}
-                    onClick={() =>
-                      switchRole({ role: 'Admin', person: person })
-                    }
-                  >
-                    <span
-                      className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses['Admin']}`}
-                    >
-                      Admin
-                    </span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className='rounded-[10px]'
-                    disabled={person.role === 'Developer'}
-                    onClick={() =>
-                      switchRole({ role: 'Developer', person: person })
-                    }
-                  >
-                    <span
-                      className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses['Developer']}`}
-                    >
-                      Developer
-                    </span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className='rounded-[10px]'
-                    disabled={person.role === 'Guest'}
-                    onClick={() =>
-                      switchRole({ role: 'Guest', person: person })
-                    }
-                  >
-                    <span
-                      className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses['Guest']}`}
-                    >
-                      Guest
-                    </span>
-                  </DropdownMenuItem>
+                  {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
+                    (role) => {
+                      return (
+                        <DropdownMenuItem
+                          className='rounded-[10px]'
+                          disabled={member.userrole === role}
+                          onClick={() =>
+                            switchRole({
+                              newRole: role,
+                              member: member,
+                            })
+                          }
+                        >
+                          <span
+                            className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(role)]}`}
+                          >
+                            {roleToString(role)}
+                          </span>
+                        </DropdownMenuItem>
+                      );
+                    },
+                  )}
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
           )}
 
-          <DropdownMenuItem onClick={handleCopyEmail} className='rounded-[10px]'>
+          <DropdownMenuItem
+            onClick={handleCopyEmail}
+            className='rounded-[10px]'
+          >
             Copy email
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        {role === 'Guest' ||
-        role === 'Developer' ||
-        person.name === 'You' ? undefined : (
+        {member.userrole === UserRole.Guest ||
+          member.userrole === UserRole.Developer ||
+          member.id === user.id ? undefined : (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className='hover:!text-destructive rounded-[10px]'>
+              <DropdownMenuItem className='rounded-[10px] hover:!text-destructive'>
                 Remove member
               </DropdownMenuItem>
             </DropdownMenuGroup>
