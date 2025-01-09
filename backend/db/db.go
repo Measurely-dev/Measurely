@@ -703,7 +703,7 @@ func (db *DB) DeleteTeamRelation(id, projectid uuid.UUID) error {
 }
 
 func (db *DB) UpdateUserRole(id, projectid uuid.UUID, newrole int) error {
-	_, err := db.Conn.Exec("UPDATE teamrealtion SET role = $1 WHERE userid = $2 AND projectid = $3", newrole, id, projectid)
+	_, err := db.Conn.Exec("UPDATE teamrelation SET role = $1 WHERE userid = $2 AND projectid = $3", newrole, id, projectid)
 	return err
 }
 

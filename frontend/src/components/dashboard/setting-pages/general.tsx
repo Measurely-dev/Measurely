@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import SettingCard from '../setting-card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { act, FormEvent, useContext, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import { UserContext } from '@/dash-context';
 import DisconnectProviderDialog from '../disconnect-provider-dialog';
 import { Info, UserRoundX } from 'lucide-react';

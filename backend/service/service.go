@@ -1459,7 +1459,7 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, project := range projects {
-		if project.UserRole == types.TEAM_VIEW {
+		if project.UserRole == types.TEAM_GUEST {
 			projects[i].ApiKey = ""
 		}
 	}
@@ -1832,7 +1832,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Role != types.TEAM_VIEW && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
+	if request.Role != types.TEAM_GUEST && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
 		http.Error(w, "Invalid team member role", http.StatusBadRequest)
 		return
 	}
@@ -1842,6 +1842,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "The user was found", http.StatusNotFound)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
 		return
@@ -1852,6 +1853,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
 		return
@@ -1882,6 +1884,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	member.MonthlyEventCount = 0
 	member.StartCountDate = time.Now().UTC()
 	member.StripeCustomerId = ""
+	member.UserRole = request.Role
 
 	body, err := json.Marshal(member)
 	if err != nil {
@@ -1980,8 +1983,8 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.NewRole != types.TEAM_ADMIN && request.NewRole != types.TEAM_DEV && request.NewRole != types.TEAM_VIEW {
-		http.Error(w, "Invalide role", http.StatusBadRequest)
+	if request.NewRole != types.TEAM_ADMIN && request.NewRole != types.TEAM_DEV && request.NewRole != types.TEAM_GUEST {
+		http.Error(w, "Invalid role", http.StatusBadRequest)
 		return
 	}
 
@@ -1995,6 +1998,7 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		}
 		return
@@ -2010,6 +2014,7 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Invalid request", http.StatusBadGateway)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		}
 		return
@@ -2022,6 +2027,7 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 
 	err = s.db.UpdateUserRole(request.MemberId, request.ProjectId, request.NewRole)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		return
 	}

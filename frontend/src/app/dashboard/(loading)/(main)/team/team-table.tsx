@@ -24,6 +24,7 @@ import {
   FileQuestion,
   ArrowBigDown,
   ArrowBigUp,
+  Trash,
 } from 'lucide-react';
 import {
   Dispatch,
@@ -70,7 +71,7 @@ import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, UserRole } from '@/types';
-import { UserContext } from '@/dash-context';
+import { ProjectsContext, UserContext } from '@/dash-context';
 import { formatFullName, roleToString } from '@/utils';
 
 export const TeamTable = (props: { members: User[] }) => {
@@ -93,7 +94,7 @@ export const TeamTable = (props: { members: User[] }) => {
             member.lastname.toLowerCase()
           ).includes(search.toLowerCase()) ||
           member.email.toLowerCase().includes(search.toLowerCase()) ||
-          roleToString(member.userrole).includes(search.toLowerCase());
+          roleToString(member.userrole).toLowerCase().includes(search.toLowerCase());
 
         const matchesRole =
           roleFilter === 'All' || member.userrole === roleFilter;
@@ -107,7 +108,7 @@ export const TeamTable = (props: { members: User[] }) => {
 
       return a.userrole - b.userrole;
     });
-  }, [search, props.members]);
+  }, [search, props.members, roleFilter]);
 
   const paginatedMembers = useMemo(() => {
     return filteredMembers.slice(
@@ -356,6 +357,7 @@ function MemberOption({
   member: User;
 }) {
   const { user } = useContext(UserContext);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const handleCopyEmail = async () => {
     try {
@@ -367,18 +369,18 @@ function MemberOption({
     }
   };
 
-  async function switchRole(props: { member: User; newRole: UserRole }) {
-    const isUpgrade = props.newRole < props.member.userrole;
+  async function switchRole(member: User, newRole: UserRole) {
+    const isUpgrade = newRole < member.userrole;
 
     const isConfirmed = await confirm({
-      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${formatFullName(props.member.firstname, props.member.lastname)}'s role to ${roleToString(props.newRole)}`,
+      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}`,
       icon: isUpgrade ? (
         <ArrowBigUp className='size-6 fill-green-500 text-green-500' />
       ) : (
         <ArrowBigDown className='size-6 fill-destructive text-destructive' />
       ),
       description: `Are you sure you want to ${isUpgrade ? 'upgrade' : 'downgrade'
-        } ${formatFullName(props.member.firstname, props.member.lastname)}'s role to ${roleToString(props.newRole)}? This action will ${isUpgrade
+        } ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}? This action will ${isUpgrade
           ? 'grant additional permissions'
           : 'limit their access and permissions'
         }.`,
@@ -403,9 +405,102 @@ function MemberOption({
     });
 
     if (isConfirmed) {
-      toast.success(
-        `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${props.member.firstname + ' ' + props.member.lastname}'s role to ${roleToString(props.newRole)}`,
-      );
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/role`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'authorization/json',
+        },
+        body: JSON.stringify({
+          memberid: member.id,
+          projectid: projects[activeProject].id,
+          newrole: newRole,
+        }),
+      }).then((resp) => {
+        if (resp.ok) {
+          toast.success(
+            `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}`,
+          );
+
+          setProjects(
+            projects.map((proj, i) =>
+              i === activeProject
+                ? Object.assign({}, proj, {
+                  members: (proj.members ?? []).map((m) =>
+                    m.id === member.id
+                      ? Object.assign({}, m, { userrole: newRole })
+                      : m,
+                  ),
+                })
+                : proj,
+            ),
+          );
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+      });
+    }
+  }
+
+  async function deleteMember(member: User) {
+    const isConfirmed = await confirm({
+      title: `Remove ${formatFullName(member.firstname, member.lastname)} from the project`,
+      icon: <Trash className='size-6 fill-destructive text-destructive' />,
+      description: `Are you sure you want to remove ${formatFullName(member.firstname, member.lastname)} from the project? This action will permanently remove the user's access to the project.`,
+      confirmText: `Yes`,
+      cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+        className: 'rounded-[12px]',
+      },
+      confirmButton: {
+        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-1',
+      },
+      alertDialogContent: {
+        className: '!rounded-[16px]',
+      },
+    });
+
+    if (isConfirmed) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/member`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'authorization/json',
+        },
+        body: JSON.stringify({
+          memberid: member.id,
+          projectid: projects[activeProject].id,
+        }),
+      }).then((resp) => {
+        if (resp.ok) {
+          toast.success(
+            `Successfully removed ${formatFullName(member.firstname, member.lastname)} from the project`,
+          );
+
+          setProjects(
+            projects.map((proj, i) =>
+              i === activeProject
+                ? Object.assign({}, proj, {
+                  members: (proj.members ?? []).filter(
+                    (m) => m.id !== member.id,
+                  ),
+                })
+                : proj,
+            ),
+          );
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+      });
     }
   }
 
@@ -418,13 +513,13 @@ function MemberOption({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {member.id === user.id ? (
+          {member.id === user.id ||
+            (projects[activeProject].userrole !== UserRole.Admin &&
+              projects[activeProject].userrole !== UserRole.Owner) ? (
             <></>
           ) : (
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger
-                className={`rounded-[10px] ${member.userrole === UserRole.Guest || member.userrole === UserRole.Developer ? 'hidden' : ''}`}
-              >
+              <DropdownMenuSubTrigger className={`rounded-[10px]`}>
                 Change role
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
@@ -435,12 +530,7 @@ function MemberOption({
                         <DropdownMenuItem
                           className='rounded-[10px]'
                           disabled={member.userrole === role}
-                          onClick={() =>
-                            switchRole({
-                              newRole: role,
-                              member: member,
-                            })
-                          }
+                          onClick={() => switchRole(member, role)}
                         >
                           <span
                             className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(role)]}`}
@@ -463,18 +553,25 @@ function MemberOption({
             Copy email
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        {member.userrole === UserRole.Guest ||
-          member.userrole === UserRole.Developer ||
-          member.id === user.id ? undefined : (
+        {projects[activeProject].userrole === UserRole.Admin ||
+          (projects[activeProject].userrole === UserRole.Owner &&
+            member.id !== user.id) ||
+          (projects[activeProject].userrole !== UserRole.Owner &&
+            member.id === user.id) ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className='rounded-[10px] hover:!text-destructive'>
+              <DropdownMenuItem
+                className='rounded-[10px] hover:!text-destructive'
+                onClick={() => {
+                  deleteMember(member);
+                }}
+              >
                 Remove member
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </>
-        )}
+        ) : undefined}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -22,7 +22,7 @@ const (
 	TEAM_OWNER = iota
 	TEAM_ADMIN
 	TEAM_DEV
-	TEAM_VIEW
+	TEAM_GUEST
 )
 
 type key int

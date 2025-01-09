@@ -55,7 +55,6 @@ export default function TeamInvite(props: {
         }
       })
       .then((data) => {
-        console.log(data);
         if (data !== null && data !== undefined) {
           setProjects(
             projects.map((proj, i) =>
