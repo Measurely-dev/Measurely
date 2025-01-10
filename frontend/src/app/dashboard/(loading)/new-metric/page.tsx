@@ -15,9 +15,15 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
-import { MetricType } from '@/types';
+import { MetricType, UserRole } from '@/types';
 import { useRouter } from 'next/navigation';
-import { Dispatch, SetStateAction, useContext, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 import { ProjectsContext } from '@/dash-context';
 
@@ -32,6 +38,8 @@ const forbidden = [
 export default function NewMetric() {
   const [step, setStep] = useState(1);
   const [value, setValue] = useState<MetricType>(MetricType.Base);
+  const router = useRouter()
+  const {projects, activeProject} = useContext(ProjectsContext)
 
   const metricTypes = [
     {
@@ -64,6 +72,15 @@ export default function NewMetric() {
         return <DualStep setStep={setStep} />;
     }
   };
+
+  useEffect(() => {
+    if (
+      projects[activeProject].userrole !== UserRole.Admin &&
+      projects[activeProject].userrole !== UserRole.Owner
+    ) {
+      router.push('/dashboard');
+    }
+  }, []);
 
   return (
     <div className='flex flex-col'>

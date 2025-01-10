@@ -27,7 +27,9 @@ export default function TeamPage() {
         'Collaborate with your team on Measurely. Manage roles, share insights, and work together to track and analyze metrics effectively.',
       );
     }
+  }, []);
 
+  useEffect(() => {
     const loadTeam = async () => {
       if (projects[activeProject]) {
         if (projects[activeProject].members === null) {
@@ -53,8 +55,7 @@ export default function TeamPage() {
     };
 
     loadTeam();
-  }, []);
-
+  }, [activeProject]);
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb className='mb-5'>

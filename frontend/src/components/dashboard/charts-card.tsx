@@ -184,7 +184,7 @@ export function ChartsCard() {
           {
             title: 'Team members',
             description: 'Coming soon',
-            value: 'N/A',
+            value: undefined,
           },
         ]}
       />

@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
-import { Metric, MetricType } from '@/types';
+import { Metric, MetricType, UserRole } from '@/types';
 import {
   calculateTrend,
   fetchNextEvent,
@@ -346,7 +346,10 @@ export default function DashboardMetricPage() {
                     <div className='flex flex-col gap-1'>
                       <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
                         {metric?.type === MetricType.Average ? (
-                          <>{posDaily - negDaily >= 0 ? '+' : '-'}{valueFormatter(posDaily - negDaily)}%</>
+                          <>
+                            {posDaily - negDaily >= 0 ? '+' : '-'}
+                            {valueFormatter(posDaily - negDaily)}%
+                          </>
                         ) : (
                           <>+{valueFormatter(posDaily)}</>
                         )}
@@ -365,12 +368,19 @@ export default function DashboardMetricPage() {
                   navigator.clipboard.writeText(metric ? metric.id : '');
                   toast.success('Succefully copied metric ID');
                 }}
+                disabled={projects[activeProject].userrole === UserRole.Guest}
               >
                 <Copy className='size-4' />
               </Button>
               <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
                 <DialogTrigger asChild>
-                  <Button className='rounded-[12px] max-sm:w-full'>
+                  <Button
+                    className='rounded-[12px] max-sm:w-full'
+                    disabled={
+                      projects[activeProject].userrole === UserRole.Guest ||
+                      projects[activeProject].userrole === UserRole.Developer
+                    }
+                  >
                     <Edit className='mr-2 size-4' />
                     Edit
                   </Button>
@@ -578,24 +588,35 @@ function Chart(props: {
           totalneg += data[i]['-'] ?? 0;
         }
 
-        eventcount += (data[i]["Event Count"] ?? 0)
+        eventcount += data[i]['Event Count'] ?? 0;
       }
 
       if (metric.type === MetricType.Average) {
         let latestDatapoint = undefined;
         for (let i = data.length - 1; i >= 0; i--) {
-          if (data[i]["Positive Trend"] !== undefined && data[i]["Negative Trend"] !== undefined) {
-            latestDatapoint = data[i]
-            break
+          if (
+            data[i]['Positive Trend'] !== undefined &&
+            data[i]['Negative Trend'] !== undefined
+          ) {
+            latestDatapoint = data[i];
+            break;
           }
         }
 
         if (latestDatapoint !== undefined) {
-          let lastAverage = (latestDatapoint["Positive Trend"] - latestDatapoint["Negative Trend"]) / latestDatapoint["Event Trend"]
-          if (latestDatapoint["Event Trend"] === 0) lastAverage = 0
+          let lastAverage =
+            (latestDatapoint['Positive Trend'] -
+              latestDatapoint['Negative Trend']) /
+            latestDatapoint['Event Trend'];
+          if (latestDatapoint['Event Trend'] === 0) lastAverage = 0;
 
-          let firstAverage = ((latestDatapoint["Positive Trend"] - totalpos) - (latestDatapoint["Negative Trend"] - totalneg)) / (latestDatapoint["Event Trend"] - eventcount)
-          if ((latestDatapoint["Event Trend"] - eventcount) === 0) firstAverage = 0;
+          let firstAverage =
+            (latestDatapoint['Positive Trend'] -
+              totalpos -
+              (latestDatapoint['Negative Trend'] - totalneg)) /
+            (latestDatapoint['Event Trend'] - eventcount);
+          if (latestDatapoint['Event Trend'] - eventcount === 0)
+            firstAverage = 0;
 
           const diff = lastAverage - firstAverage;
 
@@ -608,7 +629,6 @@ function Chart(props: {
           } else if (firstAverage !== 0) {
             averagepercentdiff = (diff / firstAverage) * 100;
           }
-
         }
       }
 
@@ -666,9 +686,13 @@ function Chart(props: {
   return (
     <>
       <CardHeader className='mt-10 p-0'>
-        <CardTitle>{props.type === "overview" ? "Overview" : "Trend"}</CardTitle>
+        <CardTitle>
+          {props.type === 'overview' ? 'Overview' : 'Trend'}
+        </CardTitle>
         <CardDescription>
-          {props.type === "overview" ? "Chart displaying an overview of this metric." : "Chart displaying the trend of this metric"}
+          {props.type === 'overview'
+            ? 'Chart displaying an overview of this metric.'
+            : 'Chart displaying the trend of this metric'}
         </CardDescription>
       </CardHeader>
       <div className='mb-5 overflow-x-auto'>

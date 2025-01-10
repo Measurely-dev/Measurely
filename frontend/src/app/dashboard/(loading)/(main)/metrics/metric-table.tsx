@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProjectsContext, UserContext } from '@/dash-context';
-import { Metric, MetricType } from '@/types';
+import { Metric, MetricType, UserRole } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
@@ -160,7 +160,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { projects, setProjects } = useContext(ProjectsContext);
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [average, setAverage] = useState<number>(0);
@@ -320,6 +320,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
                 variant={'ghost'}
                 size={'icon'}
                 className='size-fit py-2 pl-2 hover:bg-transparent'
+                disabled={projects[activeProject].userrole === UserRole.Guest}
               >
                 <MoreHorizontal className='size-5' />
               </Button>

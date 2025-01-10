@@ -29,7 +29,7 @@ export default function TeamInvite(props: {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
 
   function inviteUser(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
     setInviteLoading(true);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/member`, {
@@ -45,12 +45,16 @@ export default function TeamInvite(props: {
       }),
     })
       .then((resp) => {
-        if (resp.ok) {
+        if (resp.status === 200) {
           toast.success('The user has been successfully added to the project');
           return resp.json();
         } else {
           resp.text().then((text) => {
-            toast.error(text);
+            if (resp.status === 208) {
+              toast.warning(text);
+            } else {
+              toast.error(text);
+            }
           });
         }
       })

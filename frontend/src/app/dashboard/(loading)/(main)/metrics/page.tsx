@@ -34,6 +34,7 @@ import { BoxIcon, CurlyBraces, Link2Icon, Loader } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRouter } from 'next/navigation';
 import { ProjectsContext } from '@/dash-context';
+import { UserRole } from '@/types';
 
 export default function DashboardMetrics() {
   const { projects, activeProject } = useContext(ProjectsContext);
@@ -78,7 +79,13 @@ export default function DashboardMetrics() {
               <SearchComponent search={search} setSearch={setSearch} />
               <FiltersComponent filter={filter} setFilter={setFilter} />
               <Link href={'/dashboard/new-metric'}>
-                <Button className='h-full gap-[8px] rounded-[12px] max-md:w-full'>
+                <Button
+                  className='h-full gap-[8px] rounded-[12px] max-md:w-full'
+                  disabled={
+                    projects[activeProject].userrole !== UserRole.Admin &&
+                    projects[activeProject].userrole !== UserRole.Owner
+                  }
+                >
                   <Plus className='size-[16px]' />
                   Add metric
                 </Button>
@@ -90,10 +97,15 @@ export default function DashboardMetrics() {
                 title='No Metric Created'
                 description='You can create a new metric to start tracking values.'
                 icons={[CurlyBraces, BoxIcon, Link2Icon]}
-                action={{
-                  label: 'Create metric',
-                  onClick: () => router.push('/dashboard/new-metric'),
-                }}
+                action={
+                  projects[activeProject].userrole === UserRole.Owner ||
+                    projects[activeProject].userrole === UserRole.Admin
+                    ? {
+                      label: 'Create metric',
+                      onClick: () => router.push('/dashboard/new-metric'),
+                    }
+                    : undefined
+                }
               />
             ) : (
               <MetricTable search={search} filter={filter} />

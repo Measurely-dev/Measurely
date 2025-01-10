@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ProjectsContext, UserContext } from '@/dash-context';
+import { UserRole } from '@/types';
 import { loadMetrics } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -24,8 +25,13 @@ export default function ProjectsChip() {
     return projects.length > user.plan.projectlimit;
   }, [projects]);
 
-  const handleAppSelect = async (index: number) => {
-    if (projectsLimitReached && index > user.plan.projectlimit - 1) {
+  const handleAppSelect = async (id: string) => {
+    const index = projects.findIndex((proj) => proj.id === id);
+    if (
+      projectsLimitReached &&
+      index > user.plan.projectlimit - 1 &&
+      index < ownedProjects.length
+    ) {
       toast.error(
         'You have exceeded your plan limits. Please upgrade to unlock your projects',
       );
@@ -48,6 +54,14 @@ export default function ProjectsChip() {
     setOpen(false);
   };
 
+  const ownedProjects = useMemo(() => {
+    return projects.filter((proj) => proj.userrole === UserRole.Owner);
+  }, [projects]);
+
+  const joinedProjects = useMemo(() => {
+    return projects.filter((proj) => proj.userrole !== UserRole.Owner);
+  }, [projects]);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -55,9 +69,8 @@ export default function ProjectsChip() {
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${
-            open ? 'bg-accent' : ''
-          }`}
+          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${open ? 'bg-accent' : ''
+            }`}
         >
           <Avatar className='size-6 border bg-accent'>
             <AvatarImage src={projects[activeProject].image} />
@@ -76,17 +89,19 @@ export default function ProjectsChip() {
         side='bottom'
         align='start'
       >
-        {projects.map((app, i) => {
-          const isBlocked = projectsLimitReached && i > user.plan.projectlimit - 1;
+        {ownedProjects.map((app, i) => {
+          const isBlocked =
+            projectsLimitReached &&
+            i > user.plan.projectlimit - 1 &&
+            i < ownedProjects.length;
 
           return (
             <div
-              key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${
-                isBlocked ? 'cursor-not-allowed opacity-50' : ''
-              }`}
+              key={app.id}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${isBlocked ? 'cursor-not-allowed opacity-50' : ''
+                }`}
               onClick={() => {
-                handleAppSelect(i);
+                handleAppSelect(app.id);
               }}
             >
               <div className='flex flex-row items-center justify-center gap-2'>
@@ -99,7 +114,31 @@ export default function ProjectsChip() {
                 <div className='text-[14px] font-medium'>{app.name}</div>
               </div>
               <CheckIcon
-                className={`size-4 ${activeProject === i ? '' : 'hidden'}`}
+                className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
+              />
+            </div>
+          );
+        })}
+        {joinedProjects.map((app, _) => {
+          return (
+            <div
+              key={app.id}
+              className={`'' flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75`}
+              onClick={() => {
+                handleAppSelect(app.id);
+              }}
+            >
+              <div className='flex flex-row items-center justify-center gap-2'>
+                <Avatar className='size-6 border bg-accent'>
+                  <AvatarImage src={app.image} />
+                  <AvatarFallback>
+                    {app.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className='text-[14px] font-medium'>{app.name}</div>
+              </div>
+              <CheckIcon
+                className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
               />
             </div>
           );
