@@ -16,15 +16,17 @@ export default async function RootLayout({
         isHome={
           is_authenticated === 'true' || pathname === '/home' ? true : false
         }
-        type={
-          is_authenticated === 'true' || pathname === '/home'
-            ? 'logged'
-            : 'default'
-        }
+        // type={
+        //   is_authenticated === 'true' || pathname === '/home'
+        //     ? 'logged'
+        //     : 'default'
+        // }
+        type='waitlist'
       />
       <div className='min-h-screen w-screen'>{children}</div>
       <Footer
         border={false}
+        type='waitlist'
         isHome={
           is_authenticated === 'true' || pathname === '/home' ? true : false
         }

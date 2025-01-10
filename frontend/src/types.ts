@@ -3,7 +3,9 @@ export interface Project {
   apikey: string;
   name: string;
   image: string;
+  userrole: UserRole;
   metrics: null | Metric[];
+  members: null | User[];
 }
 
 export interface Metric {
@@ -11,6 +13,7 @@ export interface Metric {
   projectid: string;
   name: string;
   type: MetricType;
+  eventcount: number;
   totalpos: number;
   totalneg: number;
   namepos: string;
@@ -27,8 +30,10 @@ export interface MetricEvent {
   date: Date;
   valuepos: number;
   valueneg: number;
+  eventcount: number;
   relativetotalpos: number;
   relativetotalneg: number;
+  relativeeventcount: number;
 }
 
 export interface User {
@@ -39,6 +44,7 @@ export interface User {
   email: string;
   plan: Plan;
   providers: UserProvider[];
+  userrole: UserRole;
   eventcount: number;
 }
 
@@ -59,9 +65,17 @@ export interface Plan {
 export enum MetricType {
   Base,
   Dual,
+  Average,
 }
 
 export enum Provider {
   GITHUB,
   GOOGLE,
+}
+
+export enum UserRole {
+  Owner,
+  Admin,
+  Developer,
+  Guest,
 }

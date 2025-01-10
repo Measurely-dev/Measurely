@@ -15,32 +15,48 @@ import WebContainer from '@/components/website/container';
 import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
-import { MetricType } from '@/types';
+import { MetricType, UserRole } from '@/types';
 import { useRouter } from 'next/navigation';
-import { Dispatch, SetStateAction, useContext, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 import { ProjectsContext } from '@/dash-context';
 
+const forbidden = [
+  'average',
+  'average trend',
+  'positive trend',
+  'negative trend',
+  'event count',
+];
+
 export default function NewMetric() {
   const [step, setStep] = useState(1);
-  const [value, setValue] = useState<number>(0);
+  const [value, setValue] = useState<MetricType>(MetricType.Base);
+  const router = useRouter()
+  const {projects, activeProject} = useContext(ProjectsContext)
 
   const metricTypes = [
     {
-      name: 'Basic metric',
+      name: 'Basic Metric',
       value: MetricType.Base,
       description:
         'Tracks a single, always-positive variable, perfect for monitoring growth, like total active users or daily logins.',
     },
     {
-      name: 'Dual Variable Metric',
+      name: 'Dual Variables Metric',
       value: MetricType.Dual,
       description:
         'This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.',
     },
     {
-      name: 'Average metric (Coming soon)',
-      value: 2,
+      name: 'Average Metric',
+      value: MetricType.Average,
       description:
         'An average metric tracks the average value of data over time, like session durations, revealing trends and typical performance.',
     },
@@ -49,11 +65,22 @@ export default function NewMetric() {
   const renderStep = () => {
     switch (value) {
       case MetricType.Base:
-        return <BasicStep setStep={setStep} />;
+        return <BasicAverageStep setStep={setStep} type={value} />;
+      case MetricType.Average:
+        return <BasicAverageStep setStep={setStep} type={value} />;
       case MetricType.Dual:
         return <DualStep setStep={setStep} />;
     }
   };
+
+  useEffect(() => {
+    if (
+      projects[activeProject].userrole !== UserRole.Admin &&
+      projects[activeProject].userrole !== UserRole.Owner
+    ) {
+      router.push('/dashboard');
+    }
+  }, []);
 
   return (
     <div className='flex flex-col'>
@@ -97,7 +124,7 @@ export default function NewMetric() {
           )}
         </ContentContainer>
       </WebContainer>
-      <Footer border bg='secondary' isHome />
+      <Footer type='waitlist' border bg='secondary' isHome />
     </div>
   );
 }
@@ -111,15 +138,11 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.value === 2 ? 'cursor-not-allowed !bg-accent' : ''} ${
-        props.state === props.value
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
           ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
           : 'cursor-pointer hover:bg-accent/50'
-      }`}
+        }`}
       onClick={() => {
-        if (props.value === 2) {
-          return;
-        }
         props.setState(props.value);
       }}
     >
@@ -131,7 +154,10 @@ function Metric(props: {
   );
 }
 
-function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
+function BasicAverageStep(props: {
+  setStep: Dispatch<SetStateAction<number>>;
+  type: MetricType.Base | MetricType.Average;
+}) {
   const [name, setName] = useState('');
   const [baseValue, setBaseValue] = useState<number | string>(0);
   const [loading, setLoading] = useState(false);
@@ -141,10 +167,13 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   return (
     <div className='mx-auto flex flex-col gap-6'>
       <div className='flex flex-col gap-[5px]'>
-        <div className='text-xl font-medium'>Basic metric</div>
+        <div className='text-xl font-medium'>
+          {props.type === MetricType.Base ? 'Basic metric' : 'Average Metric'}
+        </div>
         <div className='text-sm text-secondary'>
-          Track a single value for straightforward metrics, ideal for simple
-          counts or totals.
+          {props.type === MetricType.Base
+            ? 'Track a single value for straightforward metrics, ideal for simple counts or totals.'
+            : 'Analyze trends with average metrics, perfect for monitoring performance over time.'}
         </div>
         <form
           onSubmit={(e) => {
@@ -156,11 +185,7 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               return;
             }
 
-            if (
-              name.toLowerCase() === 'total' ||
-              name.toLowerCase() === 'positive trend' ||
-              name.toLowerCase() === 'negative trend'
-            ) {
+            if (forbidden.includes(name.toLowerCase())) {
               toast.error(
                 'The variable names you have chosen are used internally, please choose something else.',
               );
@@ -178,9 +203,9 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 name: name,
                 projectid: projects[activeProject].id,
                 basevalue: baseValue,
-                type: MetricType.Base,
-                namepos: '',
-                nameneg: '',
+                type: props.type,
+                namepos: 'added',
+                nameneg: 'removed',
               }),
             })
               .then((res) => {
@@ -201,17 +226,17 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                   projects.map((v, i) =>
                     i === activeProject
                       ? Object.assign({}, v, {
-                          metrics: [
-                            ...(projects[activeProject].metrics ?? []),
-                            json,
-                          ],
-                        })
+                        metrics: [
+                          ...(projects[activeProject].metrics ?? []),
+                          json,
+                        ],
+                      })
                       : v,
                   ),
                 );
 
                 toast.success('Metric was succesfully created');
-                router.push('/dashboard/metrics');
+                router.push(`/dashboard/metrics/${name}`);
               });
           }}
         >
@@ -220,7 +245,11 @@ function BasicStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               <div className='flex w-full flex-col gap-3'>
                 <Label>Metric name</Label>
                 <Input
-                  placeholder='New users, Deleted projects, Suspended accounts'
+                  placeholder={
+                    props.type === MetricType.Base
+                      ? `New users, Deleted projects, Suspended accounts`
+                      : 'Session duration, Ratings, Load time'
+                  }
                   type='text'
                   maxLength={30}
                   className='h-11 rounded-[12px]'
@@ -312,12 +341,8 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
           }
 
           if (
-            namePos.toLowerCase() === 'total' ||
-            nameNeg.toLowerCase() === 'total' ||
-            namePos.toLowerCase() === 'positive trend' ||
-            nameNeg.toLowerCase() === 'positive trend' ||
-            namePos.toLowerCase() === 'negative trend' ||
-            nameNeg.toLowerCase() === 'negative trend'
+            forbidden.includes(namePos.toLowerCase()) ||
+            forbidden.includes(nameNeg.toLowerCase())
           ) {
             toast.error(
               'The variable names you have chosen are used internally, please choose something else.',
@@ -364,17 +389,17 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 projects.map((v, i) =>
                   i === activeProject
                     ? Object.assign({}, v, {
-                        metrics: [
-                          ...(projects[activeProject].metrics ?? []),
-                          json,
-                        ],
-                      })
+                      metrics: [
+                        ...(projects[activeProject].metrics ?? []),
+                        json,
+                      ],
+                    })
                     : v,
                 ),
               );
 
               toast.success('Metric was succesfully created');
-              router.push('/dashboard/metrics');
+              router.push(`/dashboard/metrics/${name}`);
             });
         }}
       >

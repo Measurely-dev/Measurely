@@ -97,12 +97,16 @@ export function ChartsCard() {
     const metricData = metricList?.[activeMetric] ?? null;
     if (!metricData) return;
 
-    const { relativetotalpos, relativetotalneg, results } =
-      await fetchEventVariation(metricData.projectid ?? '', metricData.id ?? '');
+    const { relativetotalpos, relativetotalneg, relativeeventcount, results } =
+      await fetchEventVariation(
+        metricData.projectid ?? '',
+        metricData.id ?? '',
+      );
 
     if (
       (metricData.totalpos !== relativetotalpos ||
-        metricData.totalneg !== relativetotalneg) &&
+        metricData.totalneg !== relativetotalneg ||
+        metricData.eventcount !== relativeeventcount) &&
       results !== 0
     ) {
       setProjects(
@@ -114,6 +118,7 @@ export function ChartsCard() {
                   ? Object.assign({}, m, {
                     totalpos: relativetotalpos,
                     totalneg: relativetotalneg,
+                    eventcount: relativeeventcount,
                   })
                   : m,
               ),
@@ -179,7 +184,7 @@ export function ChartsCard() {
           {
             title: 'Team members',
             description: 'Coming soon',
-            value: 'N/A',
+            value: undefined,
           },
         ]}
       />
@@ -216,6 +221,10 @@ export function ChartsCard() {
                             metric,
                             metric?.totalpos ?? 0,
                             metric?.totalneg ?? 0,
+                            metric.eventcount === 0
+                              ? 0
+                              : (metric.totalpos - metric.totalneg) /
+                              metric.eventcount,
                           )}
                           index='date'
                           color='blue'
@@ -262,10 +271,28 @@ function Header(props: {
     <CardHeader className='flex flex-row justify-between max-sm:flex-col max-sm:gap-3'>
       <div className='flex flex-col gap-1'>
         <CardTitle>
-          {valueFormatter(
-            props.metrics[props.activeMetric].totalpos -
-            props.metrics[props.activeMetric].totalneg,
-          )}{' '}
+          {props.metrics[props.activeMetric].type === MetricType.Average ? (
+            <>
+              {props.metrics[props.activeMetric].eventcount === 0 ? (
+                '0'
+              ) : (
+                <>
+                  {valueFormatter(
+                    (props.metrics[props.activeMetric].totalpos -
+                      props.metrics[props.activeMetric].totalneg) /
+                    props.metrics[props.activeMetric].eventcount,
+                  )}
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {valueFormatter(
+                props.metrics[props.activeMetric].totalpos -
+                props.metrics[props.activeMetric].totalneg,
+              )}
+            </>
+          )}
           {props.metrics[props.activeMetric]?.name}
         </CardTitle>
         <CardDescription>Trend of this month</CardDescription>

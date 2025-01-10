@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://www.measurely.dev
+
+# Sitemaps
+Sitemap: https://www.measurely.dev/sitemap.xml

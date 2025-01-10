@@ -13,6 +13,7 @@ import { DrawerMenu } from './drawer-menu';
 import LogoSvg from '@/components/global/logo-svg';
 import { Separator } from '@/components/ui/separator';
 import ProjectsChip from './projects';
+import { UserRole } from '@/types';
 
 export default function DashboardTopbar() {
   const { user } = useContext(UserContext);
@@ -28,21 +29,29 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ProjectsChip />
           <div className='max-sm:hidden'>
-            <ApiDialog projectid={projects[activeProject]?.id ?? ''}>
-              <Button
-                size={'sm'}
-                variant={'secondary'}
-                className='h-6 gap-1.5 rounded-full'
-              >
-                <Code className='size-4' />
-                Api key
-              </Button>
-            </ApiDialog>
+            {projects[activeProject].userrole !== UserRole.Guest && (
+              <ApiDialog projectid={projects[activeProject]?.id ?? ''}>
+                <Button
+                  size={'sm'}
+                  variant={'secondary'}
+                  className='h-6 gap-1.5 rounded-full'
+                >
+                  <Code className='size-4' />
+                  Api key
+                </Button>
+              </ApiDialog>
+            )}
           </div>
         </div>
         <div className='flex flex-row gap-[12px] max-md:hidden'>
           <Link href={'/dashboard/new-metric'}>
-            <Button className='h-[35px] gap-[8px] rounded-[12px]'>
+            <Button
+              className='h-[35px] gap-[8px] rounded-[12px]'
+              disabled={
+                projects[activeProject].userrole !== UserRole.Admin &&
+                projects[activeProject].userrole !== UserRole.Owner
+              }
+            >
               <Plus className='size-[16px]' />
               Create metric
             </Button>

@@ -1,8 +1,38 @@
 import { toast } from 'sonner';
-import { Metric, MetricType } from './types';
+import { Metric, MetricType, UserRole } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 20000;
+
+export function roleToString(role: UserRole): string {
+  switch (role) {
+    case UserRole.Owner:
+      return 'Owner';
+    case UserRole.Admin:
+      return 'Admin';
+    case UserRole.Developer:
+      return 'Developer';
+    case UserRole.Guest:
+      return 'Guest';
+    default:
+      return '';
+  }
+}
+
+export function formatFullName(firstname: string, lastname: string) {
+  firstname =
+    firstname.length > 1
+      ? firstname[0].toUpperCase() + firstname.slice(1)
+      : firstname.toUpperCase();
+  lastname =
+    lastname.length > 1
+      ? lastname[0].toUpperCase() + lastname.slice(1)
+      : lastname.toUpperCase();
+
+  return firstname + ' ' + lastname;
+}
+
+
 
 export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(
@@ -115,7 +145,7 @@ export const fetchChartData = async (
       date: eventDate,
     };
     if (eventDate <= now) {
-      data[metric.type === MetricType.Base ? metric.name : metric.namepos] = 0;
+      data[metric.type !== MetricType.Dual ? metric.name : metric.namepos] = 0;
       if (metric.type === MetricType.Dual) {
         data[metric.nameneg] = 0;
       }
@@ -192,13 +222,39 @@ export const fetchChartData = async (
             }
 
             if (matches) {
-              tmpData[j][
-                metric.type === MetricType.Base ? metric.name : metric.namepos
-              ] += json[i].valuepos;
-              tmpData[j][metric.nameneg] += json[i].valueneg;
+              if (metric.type === MetricType.Average) {
+                const current_average = tmpData[j][metric.name] ?? 0;
+                const current_eventcount = tmpData[j]['Event Count'] ?? 0;
+
+                tmpData[j]['Event Count'] =
+                  current_eventcount + json[i].eventcount;
+
+                tmpData[j][metric.name] =
+                  (current_average * current_eventcount +
+                    (json[i].valuepos - json[i].valueneg)) /
+                  tmpData[j]['Event Count'];
+                if (tmpData[j]['+'] === undefined) tmpData[j]['+'] = 0;
+                if (tmpData[j]['-'] === undefined) tmpData[j]['-'] = 0;
+                tmpData[j]['+'] += json[i].valuepos;
+                tmpData[j]['-'] += json[i].valueneg;
+              } else {
+                tmpData[j][
+                  metric.type === MetricType.Base ? metric.name : metric.namepos
+                ] += json[i].valuepos;
+                tmpData[j][metric.nameneg] += json[i].valueneg;
+              }
 
               tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
               tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
+              tmpData[j]['Event Trend'] = json[i].relativeeventcount;
+
+              if (json[i].relativeeventcount === 0) {
+                tmpData[j]['Average Trend'] = 0;
+              } else {
+                tmpData[j]['Average Trend'] =
+                  (json[i].relativetotalpos - json[i].relativetotalneg) /
+                  json[i].relativeeventcount;
+              }
             }
           }
         }
@@ -251,8 +307,10 @@ export const fetchNextEvent = async (
 ): Promise<{
   pos: number;
   neg: number;
+  eventcount: number;
   relativetotalpos: number;
   relativetotalneg: number;
+  relativeeventcount: number;
   results: number;
 }> => {
   const from = start === undefined ? new Date() : new Date(start);
@@ -278,27 +336,41 @@ export const fetchNextEvent = async (
       if (json.length > 0) {
         let pos = 0;
         let neg = 0;
+        let eventcount = 0;
         let relativetotalpos = 0;
         let relativetotalneg = 0;
+        let relativeeventcount = 0;
         let results = 0;
         for (let i = 0; i < json.length; i++) {
           relativetotalpos = json[i].relativetotalpos;
           relativetotalneg = json[i].relativetotalneg;
+          relativeeventcount = json[i].relativeeventcount;
 
           pos += json[i].valuepos;
           neg += json[i].valueneg;
+          eventcount += json[i].eventcount;
 
           results += 1;
         }
-        return { pos, neg, relativetotalpos, relativetotalneg, results };
+        return {
+          pos,
+          neg,
+          eventcount,
+          relativetotalpos,
+          relativetotalneg,
+          relativeeventcount,
+          results,
+        };
       }
     }
   }
   return {
     pos: 0,
     neg: 0,
+    eventcount: 0,
     relativetotalpos: 0,
     relativetotalneg: 0,
+    relativeeventcount: 0,
     results: 0,
   };
 };
@@ -313,6 +385,8 @@ export const fetchEventVariation = async (
   neg: number;
   relativetotalpos: number;
   relativetotalneg: number;
+  relativeeventcount: number;
+  averagepercentdiff: number;
   results: number;
 }> => {
   const start = startDate === undefined ? new Date() : startDate;
@@ -342,8 +416,10 @@ export const fetchEventVariation = async (
     if (json != null) {
       let pos = 0;
       let neg = 0;
+      let averagepercentdiff = 0;
       let relativetotalpos = 0;
       let relativetotalneg = 0;
+      let relativeeventcount = 0;
 
       if (json.length > 1) {
         pos =
@@ -354,11 +430,63 @@ export const fetchEventVariation = async (
           (json[0].relativetotalneg - json[0].valueneg);
         relativetotalpos = json[1].relativetotalpos;
         relativetotalneg = json[1].relativetotalneg;
+        relativeeventcount = json[1].relativeeventcount;
+
+        let lastAverage =
+          (json[1].relativetotalpos - json[1].relativetotalneg) /
+          json[1].relativeeventcount;
+        let firstAverage =
+          (json[0].relativetotalpos -
+            json[0].valuepos -
+            (json[0].relativetotalneg - json[0].valueneg)) /
+          json[0].relativeeventcount;
+
+        if (json[1].relativeeventcount === 0) lastAverage = 0;
+        if (json[0].relativeeventcount === 0) firstAverage = 0;
+
+        const diff = lastAverage - firstAverage;
+
+        if (diff !== 0 && firstAverage === 0) {
+          if (diff < 0) {
+            averagepercentdiff = -100;
+          } else {
+            averagepercentdiff = 100;
+          }
+        } else if (firstAverage !== 0) {
+          averagepercentdiff = (diff / firstAverage) * 100;
+        }
       } else if (json.length > 0) {
         pos = json[0].valuepos;
         neg = json[0].valueneg;
         relativetotalpos = json[0].relativetotalpos;
         relativetotalneg = json[0].relativetotalneg;
+        relativeeventcount = json[0].relativeeventcount;
+
+        let lastAverage =
+          (json[0].relativetotalpos - json[0].relativetotalneg) /
+          json[0].relativeeventcount;
+        let firstAverage =
+          (json[0].relativetotalpos -
+            json[0].valuepos -
+            (json[0].relativetotalneg - json[0].valueneg)) /
+          json[0].relativeeventcount;
+
+        if (json[0].relativeeventcount === 0) {
+          lastAverage = 0;
+          firstAverage = 0;
+        }
+
+        const diff = lastAverage - firstAverage;
+
+        if (diff !== 0 && firstAverage === 0) {
+          if (diff < 0) {
+            averagepercentdiff = -100;
+          } else {
+            averagepercentdiff = 100;
+          }
+        } else if (firstAverage !== 0) {
+          averagepercentdiff = (diff / firstAverage) * 100;
+        }
       }
 
       return {
@@ -366,6 +494,8 @@ export const fetchEventVariation = async (
         neg,
         relativetotalpos,
         relativetotalneg,
+        relativeeventcount,
+        averagepercentdiff,
         results: json.length,
       };
     }
@@ -375,6 +505,8 @@ export const fetchEventVariation = async (
     neg: 0,
     relativetotalpos: 0,
     relativetotalneg: 0,
+    relativeeventcount: 0,
+    averagepercentdiff: 0,
     results: 0,
   };
 };
@@ -384,37 +516,57 @@ export const calculateTrend = (
   metric: Metric | null | undefined,
   totalpos: number,
   totalneg: number,
+  average: number,
 ): any[] => {
   if (!metric) return data;
   const trend = data.map((obj) => ({ ...obj }));
   for (let i = trend.length - 1; i >= 0; i--) {
     if (
       trend[i]['Positive Trend'] !== undefined &&
-      trend[i]['Negative Trend'] !== undefined
+      trend[i]['Negative Trend'] !== undefined &&
+      trend[i]['Event Trend'] !== undefined &&
+      trend[i]['Average Trend'] !== undefined
     ) {
       totalpos =
         trend[i]['Positive Trend'] -
         trend[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
+        metric.type !== MetricType.Dual ? metric.name : metric.namepos
         ];
       totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
-      trend[i][metric.name] =
-        trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
-    } else {
-      if (
-        trend[i][
-        metric.type === MetricType.Base ? metric.name : metric.namepos
-        ] !== undefined
-      ) {
-        trend[i]['Positive Trend'] = totalpos;
-        trend[i][metric.name] = totalpos;
+
+      if (metric.type === MetricType.Average) {
+        trend[i][metric.name] = trend[i]['Average Trend'];
+      } else {
+        trend[i][metric.name] =
+          trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
       }
-      if (trend[i][metric.nameneg] !== undefined) {
-        trend[i]['Negative Trend'] = totalneg;
-        trend[i][metric.name] -= totalneg;
+
+      const eventcount = trend[i]['Event Trend'] - trend[i]['Event Count'];
+      if (eventcount === 0) {
+        average = 0;
+      } else {
+        average = (totalpos - totalneg) / eventcount;
+      }
+    } else {
+      if (metric.type === MetricType.Average) {
+        if (trend[i][metric.name] !== undefined) {
+          trend[i][metric.name] = average;
+        }
+      } else {
+        if (
+          trend[i][
+          metric.type !== MetricType.Dual ? metric.name : metric.namepos
+          ] !== undefined
+        ) {
+          trend[i][metric.name] = totalpos;
+        }
+        if (trend[i][metric.nameneg] !== undefined) {
+          trend[i][metric.name] -= totalneg;
+        }
       }
     }
   }
+
   return trend;
 };
 

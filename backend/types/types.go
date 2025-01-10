@@ -15,7 +15,14 @@ const (
 const (
 	BASE_METRIC = iota
 	DUAL_METRIC
-	MULTI_METRIC
+	AVERAGE_METRIC
+)
+
+const (
+	TEAM_OWNER = iota
+	TEAM_ADMIN
+	TEAM_DEV
+	TEAM_GUEST
 )
 
 type key int
@@ -27,16 +34,17 @@ type Token struct {
 	Email string    `json:"email"`
 }
 type User struct {
-	Id                uuid.UUID
-	Email             string
-	FirstName         string
-	LastName          string
+	Id                uuid.UUID `json:"id"`
+	Email             string    `json:"email"`
+	FirstName         string    `json:"firstname"`
+	LastName          string    `json:"lastname"`
 	Password          string
 	StripeCustomerId  string
 	CurrentPlan       string
-	Image             string
+	Image             string `json:"image"`
 	MonthlyEventCount int64
 	StartCountDate    time.Time
+	UserRole          int `db:"userrole" json:"userrole"`
 }
 
 type UserProvider struct {
@@ -47,11 +55,12 @@ type UserProvider struct {
 }
 
 type Project struct {
-	Id     uuid.UUID `json:"id"`
-	ApiKey string    `json:"apikey"`
-	UserId uuid.UUID `json:"userid"`
-	Name   string    `json:"name"`
-	Image  string    `json:"image"`
+	Id       uuid.UUID `db:"id" json:"id"`
+	ApiKey   string    `db:"apikey" json:"apikey"`
+	UserId   uuid.UUID `db:"userid" json:"userid"`
+	UserRole int       `db:"userrole" json:"userrole"`
+	Name     string    `db:"name" json:"name"`
+	Image    string    `db:"image" json:"image"`
 }
 
 type Metric struct {
@@ -61,6 +70,7 @@ type Metric struct {
 	ParentMetricId sql.Null[uuid.UUID] `json:"parentmetricid"`
 	Name           string              `json:"name"`
 	Type           int                 `json:"type"`
+	EventCount     int64               `json:"eventcount"`
 	TotalPos       int64               `json:"totalpos"`
 	TotalNeg       int64               `json:"totalneg"`
 	NamePos        string              `json:"namepos"`
@@ -70,13 +80,15 @@ type Metric struct {
 }
 
 type MetricEvent struct {
-	Id               uuid.UUID `json:"id"`
-	MetricId         uuid.UUID `json:"metricid"`
-	Date             time.Time `json:"date"`
-	ValuePos         int       `json:"valuepos"`
-	ValueNeg         int       `json:"valueneg"`
-	RelativeTotalPos int64     `json:"relativetotalpos"`
-	RelativeTotalNeg int64     `json:"relativetotalneg"`
+	Id                 uuid.UUID `json:"id"`
+	MetricId           uuid.UUID `json:"metricid"`
+	Date               time.Time `json:"date"`
+	EventCount         int       `json:"eventcount"`
+	ValuePos           int       `json:"valuepos"`
+	ValueNeg           int       `json:"valueneg"`
+	RelativeEventCount int64     `json:"relativeeventcount"`
+	RelativeTotalPos   int64     `json:"relativetotalpos"`
+	RelativeTotalNeg   int64     `json:"relativetotalneg"`
 }
 
 type AccountRecovery struct {
@@ -106,4 +118,11 @@ type Plan struct {
 	RequestLimit          int    `json:"requestlimit"`
 	MonthlyEventLimit     int64  `json:"monthlyeventlimit"`
 	Range                 int    `json:"range"`
+}
+
+type TeamRelation struct {
+	Id        uuid.UUID `json:"id"`
+	UserId    uuid.UUID `json:"userid"`
+	ProjectId uuid.UUID `json:"projectid"`
+	Role      int       `json:"rol"`
 }

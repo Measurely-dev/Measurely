@@ -10,10 +10,14 @@ export default async function middleware(request: NextRequest) {
   requestHeaders.set('is-authenticated', logged ? 'true' : 'false');
   requestHeaders.set('x-request-pathname', url);
 
+  if (url === '/register/') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   if (logged) {
     if (url === '/') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
-    } 
+    }
     if (url.includes('sign-in') || url.includes('register')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }

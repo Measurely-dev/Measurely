@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
-import { Metric, MetricType } from '@/types';
+import { Metric, MetricType, UserRole } from '@/types';
 import {
   calculateTrend,
   fetchNextEvent,
@@ -210,16 +210,40 @@ export default function DashboardMetricPage() {
 
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
+  const [average, setAverage] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchEventVariation(metric.projectid, metric.id);
-    setPosDaily(pos);
-    setNegDaily(neg);
+    const {
+      pos,
+      neg,
+      relativetotalpos,
+      relativetotalneg,
+      relativeeventcount,
+      averagepercentdiff,
+      results,
+    } = await fetchEventVariation(metric.projectid, metric.id);
+
+    if (metric.type === MetricType.Average) {
+      if (relativeeventcount === 0) {
+        setAverage(0);
+      } else {
+        setAverage((relativetotalpos - relativetotalneg) / relativeeventcount);
+      }
+
+      if (averagepercentdiff >= 0) {
+        setPosDaily(averagepercentdiff);
+      } else {
+        setNegDaily(-averagepercentdiff);
+      }
+    } else {
+      setPosDaily(pos);
+      setNegDaily(neg);
+    }
 
     if (
       (metric.totalpos !== relativetotalpos ||
-        metric.totalneg !== relativetotalneg) &&
+        metric.totalneg !== relativetotalneg ||
+        metric.eventcount !== relativeeventcount) &&
       results !== 0
     ) {
       setProjects(
@@ -231,6 +255,7 @@ export default function DashboardMetricPage() {
                   ? Object.assign({}, m, {
                     totalpos: relativetotalpos,
                     totalneg: relativetotalneg,
+                    eventcount: relativeeventcount,
                   })
                   : m,
               ),
@@ -269,6 +294,15 @@ export default function DashboardMetricPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const index = projects[activeProject].metrics?.findIndex(
+      (g) => g.name === metricName,
+    );
+    if (index === -1) {
+      router.push('/dashboard/metrics');
+    }
+  }, [activeProject]);
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
@@ -296,8 +330,14 @@ export default function DashboardMetricPage() {
                 {metric?.name ?? 'Unknown'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
-                {valueFormatter(
-                  (metric?.totalpos ?? 0) - (metric?.totalneg ?? 0),
+                {metric?.type === MetricType.Average ? (
+                  <>{valueFormatter(average)}</>
+                ) : (
+                  <>
+                    {valueFormatter(
+                      (metric?.totalpos ?? 0) - (metric?.totalneg ?? 0),
+                    )}
+                  </>
                 )}
                 {metric?.type === MetricType.Dual ? (
                   <>
@@ -314,7 +354,14 @@ export default function DashboardMetricPage() {
                   <>
                     <div className='flex flex-col gap-1'>
                       <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                        +{valueFormatter(posDaily)}
+                        {metric?.type === MetricType.Average ? (
+                          <>
+                            {posDaily - negDaily >= 0 ? '+' : '-'}
+                            {valueFormatter(posDaily - negDaily)}%
+                          </>
+                        ) : (
+                          <>+{valueFormatter(posDaily)}</>
+                        )}
                       </div>
                     </div>
                   </>
@@ -330,12 +377,19 @@ export default function DashboardMetricPage() {
                   navigator.clipboard.writeText(metric ? metric.id : '');
                   toast.success('Succefully copied metric ID');
                 }}
+                disabled={projects[activeProject].userrole === UserRole.Guest}
               >
                 <Copy className='size-4' />
               </Button>
               <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
                 <DialogTrigger asChild>
-                  <Button className='rounded-[12px] max-sm:w-full'>
+                  <Button
+                    className='rounded-[12px] max-sm:w-full'
+                    disabled={
+                      projects[activeProject].userrole === UserRole.Guest ||
+                      projects[activeProject].userrole === UserRole.Developer
+                    }
+                  >
                     <Edit className='mr-2 size-4' />
                     Edit
                   </Button>
@@ -390,7 +444,9 @@ function Chart(props: {
   const [rangeSummary, setRangeSummary] = useState<{
     pos: number;
     neg: number;
-  }>({ pos: 0, neg: 0 });
+    average: number;
+    averagepercentdiff: number;
+  }>({ pos: 0, neg: 0, average: 0, averagepercentdiff: 0 });
 
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
@@ -405,10 +461,13 @@ function Chart(props: {
         props.type,
       );
 
-      const { pos, neg } = await loadRangeSummary(data, activeFilter);
-      setRangeSummary({ pos, neg });
+      const { pos, neg, average, averagepercentdiff } = await loadRangeSummary(
+        data,
+        activeFilter,
+      );
+      setRangeSummary({ pos, neg, average, averagepercentdiff });
       if (props.type === 'trend') {
-        data = calculateTrend(data, activeFilter, pos, neg);
+        data = calculateTrend(data, activeFilter, pos, neg, average);
       }
     } else {
       data = await fetchChartData(
@@ -419,10 +478,13 @@ function Chart(props: {
         props.type,
       );
 
-      const { pos, neg } = await loadRangeSummary(data, props.metric);
-      setRangeSummary({ pos, neg });
+      const { pos, neg, average, averagepercentdiff } = await loadRangeSummary(
+        data,
+        props.metric,
+      );
+      setRangeSummary({ pos, neg, average, averagepercentdiff });
       if (props.type === 'trend') {
-        data = calculateTrend(data, props.metric, pos, neg);
+        data = calculateTrend(data, props.metric, pos, neg, average);
       }
     }
 
@@ -435,25 +497,34 @@ function Chart(props: {
   const loadRangeSummary = async (
     data: any[],
     metric: Metric,
-  ): Promise<{ pos: number; neg: number }> => {
+  ): Promise<{
+    pos: number;
+    neg: number;
+    average: number;
+    averagepercentdiff: number;
+  }> => {
     if (props.type === 'trend') {
       let pos = 0;
       let neg = 0;
+      let average = 0;
       let found = false;
       for (let i = data.length - 1; i >= 0; i--) {
         if (
           data[i]['Positive Trend'] !== undefined &&
-          data[i]['Negative Trend'] !== undefined
+          data[i]['Negative Trend'] !== undefined &&
+          data[i]['Average Trend']
         ) {
           found = true;
           pos = data[i]['Positive Trend'];
           neg = data[i]['Negative Trend'];
+          average = data[i]['Average Trend'];
           break;
         }
       }
 
       if (!found) {
-        if (date?.from === undefined) return { pos: 0, neg: 0 };
+        if (date?.from === undefined)
+          return { pos: 0, neg: 0, average: 0, averagepercentdiff: 0 };
         const end = new Date(date.from);
         end.setDate(end.getDate() + 1);
         end.setHours(0);
@@ -465,32 +536,117 @@ function Chart(props: {
           return {
             pos: metric.totalpos,
             neg: metric.totalneg,
+            average:
+              metric.eventcount === 0
+                ? 0
+                : (metric.totalpos - metric.totalneg) / metric.eventcount,
+            averagepercentdiff: 0,
           };
         }
 
-        const { relativetotalpos, relativetotalneg, pos, neg } =
-          await fetchNextEvent(metric.projectid, metric.id, end);
+        const {
+          relativetotalpos,
+          relativetotalneg,
+          relativeeventcount,
+          pos,
+          neg,
+          eventcount,
+          results,
+        } = await fetchNextEvent(metric.projectid, metric.id, end);
 
-        return {
-          pos: relativetotalpos - pos,
-          neg: relativetotalneg - neg,
-        };
+        if (results === 0) {
+          return {
+            pos: metric.totalpos,
+            neg: metric.totalneg,
+            average:
+              metric.eventcount === 0
+                ? 0
+                : (metric.totalpos - metric.totalneg) / metric.eventcount,
+            averagepercentdiff: 0,
+          };
+        } else {
+          const previousEventCount = relativeeventcount - eventcount;
+          return {
+            pos: relativetotalpos - pos,
+            neg: relativetotalneg - neg,
+            average:
+              previousEventCount === 0
+                ? 0
+                : (relativetotalpos - pos - (relativetotalneg - neg)) /
+                previousEventCount,
+            averagepercentdiff: 0,
+          };
+        }
       }
 
-      return { pos, neg };
+      return { pos, neg, average, averagepercentdiff: 0 };
     } else {
       let totalpos = 0;
       let totalneg = 0;
+      let eventcount = 0;
+      let averagepercentdiff = 0;
 
       for (let i = 0; i < data.length; i++) {
         if (metric.type === MetricType.Base) {
           totalpos += data[i][metric.name] ?? 0;
-        } else {
+        } else if (metric.type === MetricType.Dual) {
           totalpos += data[i][metric.namepos ?? ''] ?? 0;
           totalneg += data[i][metric.nameneg ?? ''] ?? 0;
+        } else if (metric.type === MetricType.Average) {
+          totalpos += data[i]['+'] ?? 0;
+          totalneg += data[i]['-'] ?? 0;
+        }
+
+        eventcount += data[i]['Event Count'] ?? 0;
+      }
+
+      if (metric.type === MetricType.Average) {
+        let latestDatapoint = undefined;
+        for (let i = data.length - 1; i >= 0; i--) {
+          if (
+            data[i]['Positive Trend'] !== undefined &&
+            data[i]['Negative Trend'] !== undefined
+          ) {
+            latestDatapoint = data[i];
+            break;
+          }
+        }
+
+        if (latestDatapoint !== undefined) {
+          let lastAverage =
+            (latestDatapoint['Positive Trend'] -
+              latestDatapoint['Negative Trend']) /
+            latestDatapoint['Event Trend'];
+          if (latestDatapoint['Event Trend'] === 0) lastAverage = 0;
+
+          let firstAverage =
+            (latestDatapoint['Positive Trend'] -
+              totalpos -
+              (latestDatapoint['Negative Trend'] - totalneg)) /
+            (latestDatapoint['Event Trend'] - eventcount);
+          if (latestDatapoint['Event Trend'] - eventcount === 0)
+            firstAverage = 0;
+
+          const diff = lastAverage - firstAverage;
+
+          if (diff !== 0 && firstAverage === 0) {
+            if (diff < 0) {
+              averagepercentdiff = -100;
+            } else {
+              averagepercentdiff = 100;
+            }
+          } else if (firstAverage !== 0) {
+            averagepercentdiff = (diff / firstAverage) * 100;
+          }
         }
       }
-      return { pos: totalpos, neg: totalneg };
+
+      return {
+        pos: totalpos,
+        neg: totalneg,
+        average: 0,
+        averagepercentdiff: averagepercentdiff,
+      };
     }
   };
 
@@ -539,9 +695,13 @@ function Chart(props: {
   return (
     <>
       <CardHeader className='mt-10 p-0'>
-        <CardTitle>Overview</CardTitle>
+        <CardTitle>
+          {props.type === 'overview' ? 'Overview' : 'Trend'}
+        </CardTitle>
         <CardDescription>
-          Chart displaying an overview of this metric.
+          {props.type === 'overview'
+            ? 'Chart displaying an overview of this metric.'
+            : 'Chart displaying the trend of this metric'}
         </CardDescription>
       </CardHeader>
       <div className='mb-5 overflow-x-auto'>
@@ -749,11 +909,27 @@ function Chart(props: {
                   {range === 365 ? `Summary of ${year}` : 'Summary'}
                 </div>
                 <div className='text-xl font-medium'>
-                  {rangeSummary.pos - rangeSummary.neg > 0 &&
-                    props.type === 'overview'
-                    ? '+'
-                    : ''}
-                  {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
+                  {props.metric?.type === MetricType.Average ? (
+                    <>
+                      {rangeSummary.averagepercentdiff > 0 &&
+                        props.type === 'overview'
+                        ? '+'
+                        : ''}
+                      {props.type === 'overview' ? (
+                        <>{valueFormatter(rangeSummary.averagepercentdiff)}%</>
+                      ) : (
+                        <>{valueFormatter(rangeSummary.average)}</>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {rangeSummary.pos - rangeSummary.neg > 0 &&
+                        props.type === 'overview'
+                        ? '+'
+                        : ''}
+                      {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
+                    </>
+                  )}
                 </div>
               </div>
               <Filters
@@ -803,7 +979,7 @@ function Chart(props: {
                       : [chartColor]
                   }
                   categories={
-                    props.metric?.type === MetricType.Base
+                    props.metric?.type !== MetricType.Dual
                       ? [
                         activeFilter !== null
                           ? activeFilter.name
@@ -818,7 +994,11 @@ function Chart(props: {
                     `${Intl.NumberFormat('us').format(number).toString()}`
                   }
                   yAxisLabel='Total'
-                  onValueChange={props.metric?.type === MetricType.Dual ? () => {} : undefined}
+                  onValueChange={
+                    props.metric?.type === MetricType.Dual
+                      ? () => { }
+                      : undefined
+                  }
                 />
               </>
             )}
@@ -867,7 +1047,6 @@ function Filters(props: {
         finalFilters[category] = updatedFilters.sort(
           (a, b) => b.summary - a.summary,
         );
-
       }),
     );
 
@@ -1445,9 +1624,7 @@ const customTooltip = ({ label, payload }: TooltipProps) => {
                   className='size-1.5 rounded-full'
                   style={{ backgroundColor: item.color }}
                 />
-
-                {item.category.charAt(0).toUpperCase() +
-                  item.category.slice(1).toLowerCase()}
+                {item.category}
               </span>
               <div className='flex items-center space-x-1'>
                 <span className='font-medium text-gray-900'>

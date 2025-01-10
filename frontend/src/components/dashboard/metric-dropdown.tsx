@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Metric, Project } from '@/types';
+import { Metric, Project, UserRole } from '@/types';
 import { useContext } from 'react';
 import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
@@ -20,7 +20,7 @@ export default function MetricDropdown(props: {
   isOpen: boolean | false;
   setIsOpen: (state: any) => void;
 }) {
-  const { setProjects, projects } = useContext(ProjectsContext);
+  const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const DeleteMetric = async () => {
     const isConfirmed = await confirm({
@@ -68,8 +68,8 @@ export default function MetricDropdown(props: {
             projects?.map((v: Project) =>
               v.id === props.metric.projectid
                 ? Object.assign({}, v, {
-                    metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
-                  })
+                  metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
+                })
                 : v,
             ),
           );
@@ -83,36 +83,46 @@ export default function MetricDropdown(props: {
     <>
       <DropdownMenu
         open={props.isOpen}
-        onOpenChange={(e) => props.setIsOpen(e)}
+        onOpenChange={(e) => {
+          if (projects[activeProject].userrole !== UserRole.Guest) {
+            props.setIsOpen(e);
+          }
+        }}
       >
         <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
         <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-          <DialogTrigger asChild>
-            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-              Edit
-            </DropdownMenuItem>
-          </DialogTrigger>
-          <>
-            <DropdownMenuItem
-              onClick={(e) => {
-                navigator.clipboard.writeText(props.metric.id);
-                toast.success('Succefully copied metric ID');
-                e.stopPropagation();
-              }}
-            >
-              Copy ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
+          {projects[activeProject].userrole === UserRole.Owner ||
+            (projects[activeProject].userrole === UserRole.Admin && (
+              <DialogTrigger asChild>
+                <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                  Edit
+                </DropdownMenuItem>
+              </DialogTrigger>
+            ))}
           <DropdownMenuItem
             onClick={(e) => {
+              navigator.clipboard.writeText(props.metric.id);
+              toast.success('Succefully copied metric ID');
               e.stopPropagation();
-              DeleteMetric();
             }}
-            className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
           >
-            Delete
+            Copy ID
           </DropdownMenuItem>
+          {projects[activeProject].userrole === UserRole.Owner ||
+            (projects[activeProject].userrole === UserRole.Admin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    DeleteMetric();
+                  }}
+                  className={`bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20`}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </>
+            ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

@@ -27,8 +27,8 @@ func NewPostgres(url string) (*DB, error) {
 		return nil, err
 	}
 	// Set connection pooling parameters
-	db.SetMaxOpenConns(10)                  // Maximum number of open connections
-	db.SetMaxIdleConns(5)                   // Maximum number of idle connections
+	db.SetMaxOpenConns(200)                 // Maximum number of open connections
+	db.SetMaxIdleConns(100)                 // Maximum number of idle connections
 	db.SetConnMaxLifetime(30 * time.Minute) // Maximum connection lifetime
 
 	err = migrate(db)
@@ -111,6 +111,11 @@ func (d *DB) Close() error {
 	return d.Conn.Close()
 }
 
+func (db *DB) CreateWaitlistEntry(email string, name string) error {
+	_, err := db.Conn.Exec("INSERT into waitlists (email, name) VALUES ($1, $2)", email, name)
+	return err
+}
+
 func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
 	err := db.Conn.QueryRow("INSERT INTO users (email,  firstname, lastname, password, stripecustomerid, currentplan, startcountdate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", user.Email, user.FirstName, user.LastName, user.Password, user.StripeCustomerId, user.CurrentPlan, time.Now().UTC()).Scan(&new_user.Id, &new_user.Email, &new_user.FirstName, &new_user.LastName, &new_user.Password, &new_user.StripeCustomerId, &new_user.CurrentPlan, &new_user.Image, &new_user.MonthlyEventCount, &new_user.StartCountDate)
@@ -175,6 +180,19 @@ func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 	return err
 }
 
+func (db *DB) SearchUsers(search string) ([]types.User, error) {
+	var users []types.User
+
+	query := `
+		SELECT * FROM users 
+		WHERE email ILIKE $1
+		OR (firstname ILIKE $1 AND lastname ILIKE $1)
+	`
+
+	err := db.Conn.Select(users, query, search)
+	return users, err
+}
+
 func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {
 	var new_provider types.UserProvider
 	err := db.Conn.QueryRow("INSERT INTO providers (userid, type, provideruserid) VALUES ($1, $2, $3) RETURNING *", provider.UserId, provider.Type, provider.ProviderUserId).Scan(&new_provider.Id, &new_provider.UserId, &new_provider.Type, &new_provider.ProviderUserId)
@@ -213,7 +231,7 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg) VALUES ($1, $2, $3, $4, $5) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId)
+	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount)
 	return new_metric, err
 }
 
@@ -235,13 +253,13 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	}
 
 	// Update metric totals (totalpos, totalneg)
-	var totalPos, totalNeg int64
+	var totalPos, totalNeg, eventCount int64
 	var projectid uuid.UUID
 	var metricType int
 	err = tx.QueryRowx(
-		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type",
+		"UPDATE metrics SET totalpos = totalpos + $1, totalneg = totalneg + $2, eventcount = eventcount + 1 WHERE id = $3 RETURNING totalpos, totalneg, projectid, type, eventcount",
 		toAdd, toRemove, metricid,
-	).Scan(&totalPos, &totalNeg, &projectid, &metricType)
+	).Scan(&totalPos, &totalNeg, &projectid, &metricType, &eventCount)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
@@ -272,24 +290,27 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 	// Prepare the MetricEvent for the main metric
 	event := types.MetricEvent{
-		RelativeTotalPos: totalPos,
-		RelativeTotalNeg: totalNeg,
-		MetricId:         metricid,
-		ValuePos:         toAdd,
-		ValueNeg:         toRemove,
-		Date:             date,
+		RelativeTotalPos:   totalPos,
+		RelativeTotalNeg:   totalNeg,
+		RelativeEventCount: eventCount,
+		MetricId:           metricid,
+		ValuePos:           toAdd,
+		ValueNeg:           toRemove,
+		Date:               date,
 	}
 
 	// Insert or update the MetricEvent in metricevents table for the main metric
 	_, err = tx.NamedExec(
-		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
-        VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
+		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date) 
+    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :relativeeventcount, :date)
         ON CONFLICT (metricid, date)
         DO UPDATE SET 
         valuepos = metricevents.valuepos + EXCLUDED.valuepos,
         valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+        eventcount = metricevents.eventcount + 1,
         relativetotalpos = EXCLUDED.relativetotalpos,
-        relativetotalneg = EXCLUDED.relativetotalneg
+        relativetotalneg = EXCLUDED.relativetotalneg,
+        relativeeventcount = EXCLUDED.relativeeventcount
        `,
 		event,
 	)
@@ -298,46 +319,45 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-	// Collect filter metrics that need to be inserted or updated
-
-	// Bulk insert or update filter metrics
+  // update filter metrics
 	for key, value := range *filters {
-		var filtertotalPos, filtertotalNeg int64
+		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
 		err = tx.QueryRowx(`
-			INSERT INTO metrics (projectid, parentmetricid, name, filtercategory, type, totalpos, totalneg)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			ON CONFLICT (parentmetricid, name, filtercategory)
-			DO UPDATE 
-				SET totalpos = metrics.totalpos + $6,
-					totalneg = metrics.totalneg + $7
-      RETURNING id, totalpos, totalneg
-		`, projectid, metricid, value, key, metricType, toAdd, toRemove).Scan(&filterId, &filtertotalPos, &filtertotalNeg)
+			UPDATE metrics 
+			SET totalpos = metrics.totalpos + $1,
+					totalneg = metrics.totalneg + $2 
+      WHERE parentmetricid = $3 AND filtercategory = $4 AND name = $5 
+      RETURNING id, totalpos, totalneg, eventcount
+		`, toAdd, toRemove, metricid, key, value).Scan(&filterId, &filtertotalPos, &filtertotalNeg, &filtereventCount)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
 		}
 
 		filterEvent := types.MetricEvent{
-			RelativeTotalPos: filtertotalPos,
-			RelativeTotalNeg: filtertotalNeg,
-			MetricId:         filterId,
-			ValuePos:         toAdd,
-			ValueNeg:         toRemove,
-			Date:             date,
+			RelativeTotalPos:   filtertotalPos,
+			RelativeTotalNeg:   filtertotalNeg,
+			RelativeEventCount: filtereventCount,
+			MetricId:           filterId,
+			ValuePos:           toAdd,
+			ValueNeg:           toRemove,
+			Date:               date,
 		}
 
 		// Insert or update MetricEvent for the filter
 		_, err = tx.NamedExec(
-			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, date) 
-			VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :date)
-			ON CONFLICT (metricid, date)
-			DO UPDATE SET 
-			valuepos = metricevents.valuepos + EXCLUDED.valuepos,
-			valueneg = metricevents.valueneg + EXCLUDED.valueneg,
-			relativetotalpos = EXCLUDED.relativetotalpos,
-			relativetotalneg = EXCLUDED.relativetotalneg
-			`,
+			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date) 
+    VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :relativeeventcount, :date)
+        ON CONFLICT (metricid, date)
+        DO UPDATE SET 
+        valuepos = metricevents.valuepos + EXCLUDED.valuepos,
+        valueneg = metricevents.valueneg + EXCLUDED.valueneg,
+        eventcount = metricevents.eventcount + 1,
+        relativetotalpos = EXCLUDED.relativetotalpos,
+        relativetotalneg = EXCLUDED.relativetotalneg,
+        relativeeventcount = EXCLUDED.relativeeventcount
+       `,
 			filterEvent,
 		)
 		if err != nil {
@@ -378,7 +398,7 @@ func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount)
 		if err != nil {
 			return nil, err
 		}
@@ -450,7 +470,7 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date)
+		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date, &event.RelativeEventCount, &event.EventCount)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
@@ -489,9 +509,28 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 	return events, nil
 }
 
-func (db *DB) GetProject(id uuid.UUID, userid uuid.UUID) (types.Project, error) {
+func (db *DB) GetProject(id, userid uuid.UUID) (types.Project, error) {
 	var project types.Project
-	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE id = $1 AND userid = $2", id, userid)
+
+	query := `
+		SELECT 
+			p.*,
+			CASE
+				WHEN p.userid = $2 THEN 0
+				ELSE tr.role
+			END AS userrole
+		FROM 
+			projects p
+		LEFT JOIN 
+			TeamRelation tr 
+		ON 
+			p.id = tr.projectid AND tr.userid = $2
+		WHERE 
+			p.id = $1
+			AND (p.userid = $2 OR tr.userid = $2)
+	`
+
+	err := db.Conn.Get(&project, query, id, userid)
 	return project, err
 }
 
@@ -513,19 +552,28 @@ func (db *DB) GetProjectByApi(key string) (types.Project, error) {
 }
 
 func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
-	rows, err := db.Conn.Query("SELECT * FROM projects WHERE userid = $1", userid)
-	if err != nil {
-		return []types.Project{}, err
-	}
-	defer rows.Close()
 	var projects []types.Project
-	for rows.Next() {
-		var app types.Project
-		err := rows.Scan(&app.Id, &app.ApiKey, &app.UserId, &app.Name, &app.Image)
-		if err != nil {
-			return []types.Project{}, err
-		}
-		projects = append(projects, app)
+
+	query := `
+		SELECT 
+			p.*,
+			CASE
+				WHEN p.userid = $1 THEN 0
+				ELSE tr.role
+			END AS userrole
+		FROM 
+			projects p
+		LEFT JOIN 
+			TeamRelation tr 
+		ON 
+			p.id = tr.projectid AND tr.userid = $1
+		WHERE 
+			p.userid = $1 OR tr.userid = $1
+	`
+
+	err := db.Conn.Select(&projects, query, userid)
+	if err != nil {
+		return nil, err
 	}
 
 	return projects, nil
@@ -543,13 +591,13 @@ func (db *DB) CreateProject(project types.Project) (types.Project, error) {
 	return new_project, err
 }
 
-func (db *DB) UpdateProjectApiKey(id uuid.UUID, userid uuid.UUID, apikey string) error {
-	_, err := db.Conn.Exec("UPDATE projects SET apikey = $1 WHERE id = $2 AND userid = $3", apikey, id, userid)
+func (db *DB) UpdateProjectApiKey(id uuid.UUID, apikey string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET apikey = $1 WHERE id = $2", apikey, id)
 	return err
 }
 
-func (db DB) UpdateProjectName(id uuid.UUID, userid uuid.UUID, newname string) error {
-	_, err := db.Conn.Exec("UPDATE projects SET name = $1 WHERE id = $2 AND userid = $3", newname, id, userid)
+func (db DB) UpdateProjectName(id uuid.UUID, newname string) error {
+	_, err := db.Conn.Exec("UPDATE projects SET name = $1 WHERE id = $2", newname, id)
 	return err
 }
 
@@ -636,4 +684,58 @@ func (db *DB) CreatePlan(plan types.Plan) error {
 func (db *DB) UpdatePlan(identifier string, new_plan types.Plan) error {
 	_, err := db.Conn.Exec("UPDATE plans SET name = $1, price = $2, project = $3, metricperprojectlimit = $4, range = $5, requestlimit = $6 WHERE identifier = $7", new_plan.Name, new_plan.Price, new_plan.ProjectLimit, new_plan.MetricPerProjectLimit, new_plan.Range, new_plan.RequestLimit, identifier)
 	return err
+}
+
+func (db *DB) CreateTeamRelation(relation types.TeamRelation) error {
+	_, err := db.Conn.Exec("INSERT INTO teamrelation (userid, projectid, role) VALUES ($1, $2, $3)", relation.UserId, relation.ProjectId, relation.Role)
+	return err
+}
+
+func (db *DB) GetTeamRelation(id, projectid uuid.UUID) (types.TeamRelation, error) {
+	var relation types.TeamRelation
+	err := db.Conn.Get(&relation, "SELECT * FROM teamrelation WHERE userid = $1 AND projectid = $2", id, projectid)
+	return relation, err
+}
+
+func (db *DB) DeleteTeamRelation(id, projectid uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM teamrelation WHERE userid = $1 AND projectid = $2", id, projectid)
+	return err
+}
+
+func (db *DB) UpdateUserRole(id, projectid uuid.UUID, newrole int) error {
+	_, err := db.Conn.Exec("UPDATE teamrelation SET role = $1 WHERE userid = $2 AND projectid = $3", newrole, id, projectid)
+	return err
+}
+
+func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
+	var users []types.User
+
+	query := `
+		SELECT 
+			u.*,
+			CASE
+				WHEN p.userid = u.id THEN 0
+				ELSE tr.role
+			END AS userrole
+		FROM 
+			users u
+		LEFT JOIN 
+			TeamRelation tr 
+		ON 
+			u.id = tr.userid AND tr.projectid = $1
+		LEFT JOIN 
+			projects p
+		ON 
+			p.id = $1
+		WHERE 
+			p.userid = u.id OR tr.projectid = $1
+    LIMIT 5
+	`
+
+	err := db.Conn.Select(&users, query, projectid)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

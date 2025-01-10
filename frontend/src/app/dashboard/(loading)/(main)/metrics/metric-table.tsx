@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProjectsContext, UserContext } from '@/dash-context';
-import { Metric } from '@/types';
+import { Metric, MetricType, UserRole } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
@@ -160,9 +160,10 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { projects, setProjects } = useContext(ProjectsContext);
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [average, setAverage] = useState<number>(0);
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) {
       return '';
@@ -186,13 +187,32 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   };
 
   const load = async () => {
-    const { pos, neg, relativetotalpos, relativetotalneg, results } =
-      await fetchEventVariation(props.metric.projectid, props.metric.id);
-    setDailyUpdate(pos - neg);
+    const {
+      pos,
+      neg,
+      relativetotalpos,
+      relativetotalneg,
+      relativeeventcount,
+      averagepercentdiff,
+      results,
+    } = await fetchEventVariation(props.metric.projectid, props.metric.id);
+
+    if (props.metric.type === MetricType.Average) {
+      setDailyUpdate(averagepercentdiff);
+
+      if (relativeeventcount === 0) {
+        setAverage(0);
+      } else {
+        setAverage((relativetotalpos - relativetotalneg) / relativeeventcount);
+      }
+    } else {
+      setDailyUpdate(pos - neg);
+    }
 
     if (
       (props.metric.totalpos !== relativetotalpos ||
-        props.metric.totalneg !== relativetotalneg) &&
+        props.metric.totalneg !== relativetotalneg ||
+        props.metric.eventcount !== relativeeventcount) &&
       results !== 0
     ) {
       setProjects(
@@ -204,6 +224,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
                   ? Object.assign({}, m, {
                     totalpos: relativetotalpos,
                     totalneg: relativetotalneg,
+                    eventcount: relativeeventcount,
                   })
                   : m,
               ),
@@ -260,7 +281,13 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
         {/* Total value */}
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
-            {valueFormatter(props.metric.totalpos - props.metric.totalneg)}
+            {props.metric.type === MetricType.Average ? (
+              <>{valueFormatter(average)}</>
+            ) : (
+              <>
+                {valueFormatter(props.metric.totalpos - props.metric.totalneg)}
+              </>
+            )}
           </div>
         </TableCell>
         {/* Daily update */}
@@ -273,6 +300,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
             >
               {todayBadgeSign(dailyUpdate)}
               {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate)}
+              {props.metric.type === MetricType.Average ? '%' : ''}
             </Badge>
           </div>
         </TableCell>
@@ -292,6 +320,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
                 variant={'ghost'}
                 size={'icon'}
                 className='size-fit py-2 pl-2 hover:bg-transparent'
+                disabled={projects[activeProject].userrole === UserRole.Guest}
               >
                 <MoreHorizontal className='size-5' />
               </Button>

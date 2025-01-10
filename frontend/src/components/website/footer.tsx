@@ -10,6 +10,7 @@ export default function Footer(props: {
   border: boolean;
   bg?: 'default' | 'secondary';
   isHome?: boolean | false;
+  type: 'default' | 'waitlist';
 }) {
   const pathname = usePathname();
   return (
@@ -70,9 +71,15 @@ export default function Footer(props: {
           </a>
           © 2025 <span className='max-md:hidden'>Measurely-dev</span>
         </div>
-        <Link href={'/register'}>
-          <WebButton>Get started</WebButton>
-        </Link>
+        {props.type === 'waitlist' ? (
+          <Link href={'/waitlist'}>
+            <WebButton>Join waitlist</WebButton>
+          </Link>
+        ) : (
+          <Link href={'/register'}>
+            <WebButton>Get started</WebButton>
+          </Link>
+        )}
       </div>
     </footer>
   );

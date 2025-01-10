@@ -25,6 +25,11 @@ export default function SignIn() {
         toast.success(params.get('success') as string);
       });
     }
+    if (params.get('warning') !== null) {
+      setTimeout(() => {
+        toast.warning(params.get('warning') as string);
+      });
+    }
   }, [params]);
 
   useEffect(() => {
@@ -40,7 +45,7 @@ export default function SignIn() {
   return (
     <WebContainer className='min-h-[800px]'>
       <div className='mb-[150px]'>
-        <AuthNavbar href='/register' button='Create an account' />
+        <AuthNavbar href='/waitlist' button='Join waitlist' />
       </div>
       <ContentContainer>
         <AuthForm

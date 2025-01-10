@@ -49,6 +49,7 @@ func (h *Handler) setup_api() {
 
 	//// ROUTES THAT ARE ONLY AVAILABLE TO THE APPLICATION DOMAIN, PRIVATE CORS
 	privateRouter.Use(privateCors)
+	privateRouter.Post("/waitlist", h.service.JoinWaitlist)
 	privateRouter.Post("/email-valid", h.service.EmailValid)
 	privateRouter.Post("/login", h.service.Login)
 	privateRouter.Get("/oauth/{provider}", h.service.Oauth)
@@ -75,6 +76,7 @@ func (h *Handler) setup_api() {
 	authRouter.Delete("/account", h.service.DeleteAccount)
 	authRouter.Post("/disconnect/{provider}", h.service.DisconnectProvider)
 	authRouter.Get("/user", h.service.GetUser)
+	authRouter.Post("/user-image", h.service.UploadUserImage)
 
 	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
 	authRouter.Patch("/password", h.service.UpdatePassword)
@@ -84,8 +86,14 @@ func (h *Handler) setup_api() {
 	authRouter.Post("/project", h.service.CreateProject)
 	authRouter.Delete("/project", h.service.DeleteProject)
 	authRouter.Patch("/project-name", h.service.UpdateProjectName)
-	authRouter.Post("/project-image/{project}", h.service.UploadProjectImage)
+	authRouter.Post("/project-image/{projectid}", h.service.UploadProjectImage)
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
+
+	authRouter.Get("/members/{projectid}", h.service.GetTeamMembers)
+	authRouter.Patch("/role", h.service.UpdateMemberRole)
+	authRouter.Delete("/member", h.service.RemoveTeamMember)
+	authRouter.Post("/member", h.service.AddTeamMember)
+	authRouter.Get("/members", h.service.SearchUsers)
 
 	authRouter.Get("/metrics", h.service.GetMetrics)
 	authRouter.Get("/events", h.service.GetMetricEvents)

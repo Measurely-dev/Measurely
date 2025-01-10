@@ -155,6 +155,49 @@ func (s *Service) SetupBasicPlans() {
 	s.GetPlan("pro")
 }
 
+func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the session cookie
+		cookie, err := r.Cookie("measurely-session")
+		if err == http.ErrNoCookie {
+			http.Error(w, "Unauthorized: Missing session cookie", http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			http.Error(w, "Internal server error: Unable to read cookie", http.StatusInternalServerError)
+			return
+		}
+
+		// Verify the token in the cookie
+		token, err := VerifyToken(cookie.Value)
+		if err != nil {
+			http.Error(w, "Unauthorized: Invalid token - "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		// Store token in the request context
+		ctx := context.WithValue(r.Context(), types.TOKEN, token)
+
+		// Check if the session cookie is about to expire
+		if cookie.Expires.Sub(time.Now().UTC()) <= 12*time.Hour {
+			// If so, refresh the cookie
+			newCookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
+			if err != nil {
+				http.Error(w, "Internal error: Failed to create a new session cookie", http.StatusInternalServerError)
+				return
+			}
+
+			// Set the refreshed cookie
+			http.SetCookie(w, &newCookie)
+
+			// Disable cache for this response
+			SetupCacheControl(w, 0)
+		}
+
+		// Continue the request chain
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (s *Service) CleanUp() {
 	s.db.Close()
 }
@@ -196,6 +239,51 @@ func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) IsConnected(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Email string `json:"email"`
+		Name  string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	request.Email = strings.ToLower(strings.TrimSpace(request.Email))
+	request.Name = strings.ToLower(strings.TrimSpace(request.Name))
+
+	err := s.db.CreateWaitlistEntry(request.Email, request.Name)
+	if err == nil {
+		measurely.Capture(metricIds["waitlist"], measurely.CapturePayload{
+			Value: 1,
+		})
+	} else {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "Looks like you already joined the waitlist.", http.StatusAlreadyReported)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Send notification email about the new login
+	go s.email.SendEmail(email.MailFields{
+		To:      request.Email,
+		Subject: "Welcome to Measurely!",
+		Content: fmt.Sprintf(`
+    Hi %s,<br>
+    Thank you for joining the waitlist for Measurely!<br>
+    Thanks for being part of this journey with us. Exciting things are coming, and we can’t wait to share them with you.
+    `, request.Name),
+		Link:        "https://x.com/getmeasurely",
+		ButtonTitle: "Follow us on Twitter",
+	})
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -338,63 +426,68 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	provider, gerr := s.db.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
 	if gerr == sql.ErrNoRows {
 		if action == "auth" {
-			// Handle user creation logic
-			stripeParams := &stripe.CustomerParams{
-				Email: stripe.String(providerUser.Email),
-			}
-
-			c, err := customer.New(stripeParams)
-			if err != nil {
-				log.Println("Stripe error:", err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-				return
-			}
-
-			user, err = s.db.CreateUser(types.User{
-				Email:            strings.ToLower(providerUser.Email),
-				Password:         "",
-				FirstName:        providerUser.Name,
-				LastName:         "",
-				StripeCustomerId: c.ID,
-				CurrentPlan:      "starter",
-			})
-			if err != nil {
-				if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-					http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
-				} else {
-					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+			if os.Getenv("ENV") != "production" {
+				stripeParams := &stripe.CustomerParams{
+					Email: stripe.String(providerUser.Email),
 				}
+
+				c, err := customer.New(stripeParams)
+				if err != nil {
+					log.Println("Stripe error:", err)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+					return
+				}
+
+				user, err = s.db.CreateUser(types.User{
+					Email:            strings.ToLower(providerUser.Email),
+					Password:         "",
+					FirstName:        strings.ToLower(strings.TrimSpace(providerUser.Name)),
+					LastName:         "",
+					StripeCustomerId: c.ID,
+					CurrentPlan:      "starter",
+				})
+				if err != nil {
+					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+						http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
+					} else {
+						http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+					}
+					return
+				}
+
+				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+				go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
+
+			} else {
+				http.Redirect(w, r, GetOrigin()+"/sign-in?warning=Be the first to know when Measurely is ready by joining the waitlist.", http.StatusFound)
 				return
 			}
-
-      go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
-			go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
-
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=invalid user identifier", http.StatusFound)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=Invalid user identifier", http.StatusFound)
 				return
 			}
 
 			user, err = s.db.GetUserById(parsedId)
 			if err != nil {
 				log.Println("Error fetching user:", err)
-				http.Redirect(w, r, GetOrigin()+"/sign-in?error=user not found", http.StatusFound)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=User not found", http.StatusFound)
 				return
 			}
 		}
 
-		// Create provider link in DB
-		provider, err = s.db.CreateProvider(types.UserProvider{
-			UserId:         user.Id,
-			Type:           chosenProvider.Type,
-			ProviderUserId: providerUser.Id,
-		})
-		if err != nil {
-			log.Println("Error creating provider link:", err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			return
+		if os.Getenv("ENV") != "production" {
+			provider, err = s.db.CreateProvider(types.UserProvider{
+				UserId:         user.Id,
+				Type:           chosenProvider.Type,
+				ProviderUserId: providerUser.Id,
+			})
+			if err != nil {
+				log.Println("Error creating provider link:", err)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+				return
+			}
 		}
 	}
 
@@ -402,7 +495,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		user, err = s.db.GetUserById(provider.UserId)
 		if err != nil {
 			log.Println("Error fetching user:", err)
-			http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+			http.Redirect(w, r, GetOrigin()+"/sign-in?error=Internal error", http.StatusFound)
 			return
 		}
 	}
@@ -410,7 +503,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	cookie, err := CreateCookie(&user, w)
 	if err != nil {
 		log.Println("Error creating cookie:", err)
-		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+		http.Redirect(w, r, GetOrigin()+"/sign-in?error=Internal error", http.StatusFound)
 		return
 	}
 
@@ -568,7 +661,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-  go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
 	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
@@ -824,7 +917,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-  go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": user.CurrentPlan}})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -903,7 +996,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": user.CurrentPlan}})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
@@ -1188,6 +1281,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newApp.UserRole = types.TEAM_OWNER
 	bytes, jerr := json.Marshal(newApp)
 	if jerr != nil {
 		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
@@ -1219,10 +1313,15 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch the project from the database
-	_, err := s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Project does not exist.", http.StatusNotFound)
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
 		return
 	}
 
@@ -1254,7 +1353,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the project with the new API key
-	if err := s.db.UpdateProjectApiKey(request.ProjectId, token.Id, apiKey); err != nil {
+	if err := s.db.UpdateProjectApiKey(request.ProjectId, apiKey); err != nil {
 		log.Println("Error updating project API key:", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -1313,7 +1412,23 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 
 	request.NewName = strings.TrimSpace(request.NewName)
 
-	if err := s.db.UpdateProjectName(request.ProjectId, token.Id, request.NewName); err != nil {
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	if err := s.db.UpdateProjectName(request.ProjectId, request.NewName); err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
@@ -1343,6 +1458,12 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i, project := range projects {
+		if project.UserRole == types.TEAM_GUEST {
+			projects[i].ApiKey = ""
+		}
+	}
+
 	bytes, err := json.Marshal(projects)
 	if err != nil {
 		http.Error(w, "Failed to marshal projects data: "+err.Error(), http.StatusInternalServerError)
@@ -1361,12 +1482,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Name      string    `json:"name"`
-		ProjectId uuid.UUID `json:"projectid"`
-		Type      int       `json:"type"`
-		BaseValue int64     `json:"basevalue"`
-		NamePos   string    `json:"namepos"`
-		NameNeg   string    `json:"nameneg"`
+		Name           string     `json:"name"`
+		ProjectId      uuid.UUID  `json:"projectid"`
+		Type           int        `json:"type"`
+		BaseValue      int64      `json:"basevalue"`
+		NamePos        string     `json:"namepos"`
+		NameNeg        string     `json:"nameneg"`
+		ParentMetricId *uuid.UUID `json:"parentmetricid,omitempty"`
+		FilterCategory string     `json:"filtercategory"`
 	}
 
 	// Try to unmarshal the request body
@@ -1378,6 +1501,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	request.Name = strings.TrimSpace(request.Name)
 	request.NamePos = strings.TrimSpace(request.NamePos)
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
+	request.FilterCategory = strings.TrimSpace(strings.ToLower(request.FilterCategory))
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, request.Name)
 	if reerr != nil {
@@ -1389,7 +1513,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Type != types.BASE_METRIC && request.Type != types.DUAL_METRIC {
+	if request.Type != types.BASE_METRIC && request.Type != types.DUAL_METRIC && request.Type != types.AVERAGE_METRIC {
 		http.Error(w, "Invalid metric type", http.StatusBadRequest)
 		return
 	}
@@ -1400,10 +1524,18 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the project
-	_, err := s.db.GetProject(request.ProjectId, token.Id)
-	if err != nil {
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1434,14 +1566,23 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var parentMetricId sql.Null[uuid.UUID]
+	if request.ParentMetricId == nil {
+		parentMetricId.Valid = false
+	} else {
+		parentMetricId.Valid = true
+		parentMetricId.V = *request.ParentMetricId
+	}
+
 	// Create the metric
 	metric, err := s.db.CreateMetric(types.Metric{
-		Name:      request.Name,
-		ProjectId: request.ProjectId,
-		Type:      request.Type,
-		NamePos:   request.NamePos,
-		NameNeg:   request.NameNeg,
-		Created:   time.Now().UTC(),
+		Name:           request.Name,
+		ProjectId:      request.ProjectId,
+		Type:           request.Type,
+		NamePos:        request.NamePos,
+		NameNeg:        request.NameNeg,
+		ParentMetricId: parentMetricId,
+		FilterCategory: request.FilterCategory,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1505,10 +1646,15 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the project
-	app, err := s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1527,7 +1673,7 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 
 	// Remove the metric from the cache
 	s.cache.metrics[0].Delete(request.MetricId)
-	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
+	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
 	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: -1})
@@ -1603,13 +1749,18 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
 
 	// Get the project
-	app, err := s.db.GetProject(request.ProjectId, token.Id)
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	} else if err != nil {
 		log.Println("Error fetching project:", err)
 		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -1626,144 +1777,317 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.cache.metrics[1].Delete(app.ApiKey + metric.Name)
+	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get the session cookie
-		cookie, err := r.Cookie("measurely-session")
-		if err == http.ErrNoCookie {
-			http.Error(w, "Unauthorized: Missing session cookie", http.StatusUnauthorized)
-			return
-		} else if err != nil {
-			http.Error(w, "Internal server error: Unable to read cookie", http.StatusInternalServerError)
-			return
+func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	_, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	search := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("search")))
+
+	users, err := s.db.SearchUsers(search)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		return
+	}
+
+	for i := range users {
+		users[i].Password = ""
+		users[i].StripeCustomerId = ""
+		users[i].MonthlyEventCount = 0
+		users[i].StartCountDate = time.Now().UTC()
+		users[i].CurrentPlan = ""
+	}
+
+	body, err := json.Marshal(users)
+	if err != nil {
+		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
+}
+
+func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		MemberEmail string    `json:"memberemail"`
+		ProjectId   uuid.UUID `json:"projectid"`
+		Role        int       `json:"role"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.Role != types.TEAM_GUEST && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
+		http.Error(w, "Invalid team member role", http.StatusBadRequest)
+		return
+	}
+
+	member, err := s.db.GetUserByEmail(request.MemberEmail)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "The user was found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
+		return
+	}
 
-		// Verify the token in the cookie
-		token, err := VerifyToken(cookie.Value)
-		if err != nil {
-			http.Error(w, "Unauthorized: Invalid token - "+err.Error(), http.StatusUnauthorized)
-			return
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
+		return
+	}
 
-		// Store token in the request context
-		ctx := context.WithValue(r.Context(), types.TOKEN, token)
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the role necessary to perform this action.", http.StatusUnauthorized)
+		return
+	}
 
-		// Check if the session cookie is about to expire
-		if cookie.Expires.Sub(time.Now().UTC()) <= 12*time.Hour {
-			// If so, refresh the cookie
-			newCookie, err := CreateCookie(&types.User{Id: token.Id, Email: token.Email}, w)
-			if err != nil {
-				http.Error(w, "Internal error: Failed to create a new session cookie", http.StatusInternalServerError)
-				return
-			}
-
-			// Set the refreshed cookie
-			http.SetCookie(w, &newCookie)
-
-			// Disable cache for this response
-			SetupCacheControl(w, 0)
+	err = s.db.CreateTeamRelation(types.TeamRelation{
+		UserId:    member.Id,
+		ProjectId: request.ProjectId,
+		Role:      request.Role,
+	})
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			http.Error(w, "The user is already a member of this team", http.StatusAlreadyReported)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		}
+		return
+	}
 
-		// Continue the request chain
-		next.ServeHTTP(w, r.WithContext(ctx))
+	member.CurrentPlan = ""
+	member.Password = ""
+	member.MonthlyEventCount = 0
+	member.StartCountDate = time.Now().UTC()
+	member.StripeCustomerId = ""
+	member.UserRole = request.Role
+
+	body, err := json.Marshal(member)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else {
+		w.Header().Set("Content-Type", "authorization/json")
+		w.Write(body)
+	}
+
+	go s.email.SendEmail(email.MailFields{
+		To:          member.Email,
+		Subject:     fmt.Sprintf("You have been added to %s as a team member", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
 	})
 }
 
-// TODO: update this function
-// func (s *Service) UpdatePlans(w http.ResponseWriter, r *http.Request) {
-// 	secret := os.Getenv("UPGRADE_SECRET")
-//
-// 	var request UpdatePlanRequest
-//
-// 	// Try to unmarshal the request body
-// 	jerr := json.NewDecoder(r.Body).Decode(&request)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	if request.Secret != secret {
-// 		http.Error(w, "Invalid request", http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	key := fmt.Sprintf("plan:%s", request.Name)
-//
-// 	// Get the plan
-// 	_, exists := s.GetPlan(request.Name)
-// 	if !exists {
-// 		request.Plan.Identifier = request.Name
-// 		if err := s.db.CreatePlan(request.Plan); err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 	} else {
-// 		if err := s.db.UpdatePlan(request.Name, request.Plan); err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 	}
-//
-// 	bytes, err := json.Marsh(request.Plan)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	w.Write([]byte("Successfully updated the plan."))
-// 	w.WriteHeader(http.StatusOK)
-// }
+func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
 
-// func (s *Service) GetPlans(w http.ResponseWriter, r *http.Request) {
-// 	secret := os.Getenv("UPGRADE_SECRET")
-//
-// 	var request GetPlans
-//
-// 	// Try to unmarshal the request body
-// 	jerr := json.NewDecoder(r.Body).Decode(&request)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	if request.Secret != secret {
-// 		http.Error(w, "Invalid Request", http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	keys, err := s.redisClient.Keys(s.redisCtx, "plan:*").Result()
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-//
-// 	rates := make(map[string]types.Plan)
-// 	for _, key := range keys {
-// 		token, err := s.redisClient.Get(s.redisCtx, key).Result()
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-//
-// 		var plan types.Plan
-// 		err = json.Unmarshal([]byte(token), &plan)
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 		rates[strings.TrimPrefix(key, "plan:")] = plan
-// 	}
-//
-// 	bytes, jerr := json.Marshal(rates)
-// 	if jerr != nil {
-// 		http.Error(w, jerr.Error(), http.StatusContinue)
-// 		return
-// 	}
-//
-// 	w.Write(bytes)
-// 	w.Header().Set("Content-Type", "application/json")
-// }
+	var request struct {
+		MemberId  uuid.UUID `json:"memberid"`
+		ProjectId uuid.UUID `json:"projectid"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole == types.TEAM_OWNER && request.MemberId == token.Id {
+		http.Error(w, "You cannot remove yourself from your own project.", http.StatusConflict)
+		return
+	}
+
+	team_relation, err := s.db.GetTeamRelation(request.MemberId, request.ProjectId)
+	if err != nil && project.UserRole != types.TEAM_OWNER {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Team member was not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if token.Id == request.MemberId || project.UserRole == types.TEAM_OWNER || team_relation.Role == types.TEAM_ADMIN {
+		s.db.DeleteTeamRelation(request.MemberId, request.ProjectId)
+	} else {
+		http.Error(w, "You do not have the role necessary to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	user, _ := s.db.GetUserById(team_relation.Id)
+
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     fmt.Sprintf("You have been removed from the project %s", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
+}
+
+func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		MemberId  uuid.UUID `json:"memberid"`
+		ProjectId uuid.UUID `json:"projectid"`
+		NewRole   int       `json:"NewRole"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if request.NewRole != types.TEAM_ADMIN && request.NewRole != types.TEAM_DEV && request.NewRole != types.TEAM_GUEST {
+		http.Error(w, "Invalid role", http.StatusBadRequest)
+		return
+	}
+
+	if request.MemberId == token.Id {
+		http.Error(w, "You cannot update your own role.", http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	team_relation, err := s.db.GetTeamRelation(request.MemberId, request.ProjectId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Invalid request", http.StatusBadGateway)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if team_relation.Role == project.UserRole {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.UpdateUserRole(request.MemberId, request.ProjectId, request.NewRole)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	user, _ := s.db.GetUserById(team_relation.Id)
+
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     fmt.Sprintf("Your role has been changed in the project %s", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
+}
+
+func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
+	if err != nil {
+		http.Error(w, "Invalid app id", http.StatusBadRequest)
+		return
+	}
+
+	_, err = s.db.GetProject(projectid, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	users, err := s.db.GetUsersByProjectId(projectid)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	for i := range users {
+		users[i].Password = ""
+		users[i].StripeCustomerId = ""
+		users[i].MonthlyEventCount = 0
+		users[i].StartCountDate = time.Now().UTC()
+		users[i].CurrentPlan = ""
+	}
+
+	body, err := json.Marshal(users)
+	if err != nil {
+		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
+}
