@@ -2091,3 +2091,33 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }
+
+func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
+	if err != nil {
+		http.Error(w, "Invalid project Id", http.StatusBadRequest)
+		return
+	}
+
+	blocks, err := s.db.GetBlocks(projectid, token.Id)
+	if err != nil && err != sql.ErrNoRows {
+    log.Println(err)
+		http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		return
+	}
+
+	body, err := json.Marshal(blocks)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
+}

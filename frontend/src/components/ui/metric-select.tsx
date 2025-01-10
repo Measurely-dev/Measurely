@@ -22,17 +22,16 @@ import { ProjectsContext } from '@/dash-context';
 import { Metric } from '@/types';
 
 export function MetricSelect(props: {
-  setIsSelected: (state: boolean) => void;
+  selectedMetrics: Metric[];
+  setSelectedMetrics : React.Dispatch<React.SetStateAction<Metric[]>>
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>('');
-  const [selectedMetrics, setSelectedMetrics] = React.useState<Metric[]>([]);
   const { projects, activeProject } = React.useContext(ProjectsContext);
-  props.setIsSelected(selectedMetrics.length === 0 ? false : true);
 
   const toggleMetric = (metric: Metric) => {
-    setSelectedMetrics((currentMetrics) =>
+    props.setSelectedMetrics((currentMetrics) =>
       !currentMetrics.includes(metric)
         ? [...currentMetrics, metric]
         : currentMetrics.filter((m) => m.id !== metric.id),
@@ -46,7 +45,7 @@ export function MetricSelect(props: {
   };
 
   const clearSelectedMetrics = () => {
-    setSelectedMetrics([]);
+    props.setSelectedMetrics([]);
   };
 
   return (
@@ -60,12 +59,12 @@ export function MetricSelect(props: {
             className='h-11 w-full justify-between rounded-[12px] text-foreground'
           >
             <span className='truncate'>
-              {selectedMetrics.length === 0 && 'Select metric(s)'}
-              {selectedMetrics.length === 1 && selectedMetrics[0].name}
-              {selectedMetrics.length === 2 &&
-                selectedMetrics.map(({ name }) => name).join(', ')}
-              {selectedMetrics.length > 2 &&
-                `${selectedMetrics.length} metrics selected`}
+              {props.selectedMetrics.length === 0 && 'Select metric(s)'}
+              {props.selectedMetrics.length === 1 && props.selectedMetrics[0].name}
+              {props.selectedMetrics.length === 2 &&
+                props.selectedMetrics.map(({ name }) => name).join(', ')}
+              {props.selectedMetrics.length > 2 &&
+                `${props.selectedMetrics.length} metrics selected`}
             </span>
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
@@ -81,7 +80,7 @@ export function MetricSelect(props: {
             <CommandList>
               <CommandGroup className='max-h-[300px] overflow-auto'>
                 {projects[activeProject].metrics?.map((metric) => {
-                  const isActive = selectedMetrics.includes(metric);
+                  const isActive = props.selectedMetrics.includes(metric);
                   return (
                     <CommandItem
                       key={metric.id}
@@ -113,7 +112,7 @@ export function MetricSelect(props: {
         </PopoverContent>
       </Popover>
       <div className='relative mt-3 h-fit overflow-y-auto'>
-        {selectedMetrics.map(({ name, id }) => (
+        {props.selectedMetrics.map(({ name, id }) => (
           <Badge
             key={id}
             variant='outline'

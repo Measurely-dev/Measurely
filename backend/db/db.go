@@ -3,6 +3,7 @@ package db
 import (
 	"Measurely/types"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -319,7 +320,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-  // update filter metrics
+	// update filter metrics
 	for key, value := range *filters {
 		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
@@ -738,4 +739,33 @@ func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
 	}
 
 	return users, nil
+}
+
+func (db *DB) GetBlocks(projectId, userId uuid.UUID) (*types.Blocks, error) {
+	query := `
+        SELECT *
+        FROM Blocks
+        WHERE UserId = $1 AND ProjectId = $2
+    `
+
+	var blocks types.Blocks
+	var layoutJSON, labelsJSON []byte
+
+	// Use sqlx.Get to fetch a single record
+	row := db.Conn.QueryRowx(query, userId, projectId)
+
+	err := row.Scan(&blocks.TeamRelationId, &blocks.UserId, &blocks.ProjectId, &layoutJSON, &labelsJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal JSONB columns
+	if err := json.Unmarshal(layoutJSON, &blocks.Layout); err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(labelsJSON, &blocks.Labels); err != nil {
+		return nil, err
+	}
+
+	return &blocks, nil
 }

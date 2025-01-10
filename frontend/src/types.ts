@@ -6,6 +6,7 @@ export interface Project {
   userrole: UserRole;
   metrics: null | Metric[];
   members: null | User[];
+  blocks: null | Blocks;
 }
 
 export interface Metric {
@@ -62,6 +63,25 @@ export interface Plan {
   monthlyeventlimit: number;
 }
 
+export interface Blocks {
+  userid: string;
+  projectid: string;
+  layout: Block[];
+  labels: string[];
+}
+
+export interface Block {
+  id: number;
+  name: string;
+  colSpan: number;
+  nested?: Block[];
+  metricIds: string[];
+  chartType?: ChartType;
+  type: BlockType;
+  label: string;
+  color: string;
+}
+
 export enum MetricType {
   Base,
   Dual,
@@ -78,4 +98,18 @@ export enum UserRole {
   Admin,
   Developer,
   Guest,
+}
+export enum ChartType {
+  Bar,
+  Area,
+  BarList,
+  Combo,
+  Pie,
+  Radar,
+}
+
+export enum BlockType {
+  Default,
+  Group,
+  Nested,
 }

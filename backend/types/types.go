@@ -126,3 +126,27 @@ type TeamRelation struct {
 	ProjectId uuid.UUID `json:"projectid"`
 	Role      int       `json:"rol"`
 }
+
+type Blocks struct {
+	TeamRelationId sql.Null[uuid.UUID]
+	UserId         uuid.UUID
+	ProjectId      uuid.UUID
+  Layout         []Block `json:"layout"`
+  Labels         []Label `json:"label"`
+}
+
+type Block struct{
+  Id int `json:"id"`
+  Name string `json:"name"`
+  ColSpan int `json:"colSpan"`
+  Nested []Block `json:"nested"`
+  MetricIds []uuid.UUID `json:"metricIds"`
+  Type int `json:"type"`
+  ChartType int `json:"ChartType"`
+  Label string `json:"label"`
+  Color string `json:"color"`
+}
+
+type Label struct{
+  Name string `json:"name"`
+}

@@ -89,6 +89,8 @@ func (h *Handler) setup_api() {
 	authRouter.Post("/project-image/{projectid}", h.service.UploadProjectImage)
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
 
+	authRouter.Get("/blocks/{projectid}", h.service.GetBlocks)
+
 	authRouter.Get("/members/{projectid}", h.service.GetTeamMembers)
 	authRouter.Patch("/role", h.service.UpdateMemberRole)
 	authRouter.Delete("/member", h.service.RemoveTeamMember)

@@ -123,6 +123,10 @@ import {
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { Block, BlockType, ChartType, Metric } from '@/types';
+import { toast } from 'sonner';
+
+
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
   const [activeMetric, setActiveMetric] = useState(0);
@@ -283,104 +287,6 @@ function UpgradeCard() {
   }
   return render();
 }
-type ChartTypes =
-  | 'bar-chart'
-  | 'area-chart'
-  | 'bar-list'
-  | 'combo-chart'
-  | 'pie-chart'
-  | 'radar-chart';
-
-interface ChartBlock {
-  id: number;
-  name: string;
-  colSpan: number;
-  type: ChartTypes;
-  blockType: 'group' | 'default' | 'nested';
-  label: string;
-  color: string;
-}
-
-interface GroupBlock {
-  id: number;
-  name: string;
-  colSpan: number;
-  type: ChartBlock[];
-  blockType: 'group' | 'default' | 'nested';
-  label: 'group';
-  color: string;
-}
-
-type BlockProps = ChartBlock | GroupBlock;
-
-const dataConfig: { blocks: BlockProps[] } = {
-  blocks: [
-    {
-      id: 1,
-      colSpan: 3,
-      name: 'Analytics group',
-      type: [
-        {
-          id: 6,
-          name: 'Nested block 1',
-          colSpan: 1,
-          type: 'radar-chart',
-          label: 'compare',
-          color: '#06b6d4',
-          blockType: 'nested',
-        },
-        {
-          id: 7,
-          name: 'Nested block 2',
-          colSpan: 1,
-          type: 'pie-chart',
-          label: 'fast growing',
-          color: '#E91E63',
-          blockType: 'nested',
-        },
-      ],
-      label: 'group',
-      color: '#000',
-      blockType: 'group',
-    },
-    {
-      id: 2,
-      name: 'Amount of solar tech',
-      colSpan: 3,
-      type: 'area-chart',
-      label: 'compare',
-      color: '#8b5cf6',
-      blockType: 'default',
-    },
-    {
-      id: 3,
-      name: 'Population index',
-      colSpan: 3,
-      type: 'bar-chart',
-      label: 'overview',
-      color: '#E91E63',
-      blockType: 'default',
-    },
-    {
-      id: 4,
-      name: 'Most viewed pages',
-      colSpan: 3,
-      type: 'bar-list',
-      label: 'profit',
-      color: '#3b82f6',
-      blockType: 'default',
-    },
-    {
-      id: 5,
-      name: 'Pigeon population',
-      colSpan: 3,
-      type: 'combo-chart',
-      label: 'fast growing',
-      color: '#06b6d4',
-      blockType: 'default',
-    },
-  ],
-};
 
 const cardStyle = (color: string) => ({
   borderColor: `${color}1A`,
@@ -398,28 +304,77 @@ const valueFormatter = (number: number) =>
   Intl.NumberFormat('us').format(number).toString();
 
 function Blocks() {
-  const [blockData, setBlockData] = useState<BlockProps[]>(dataConfig.blocks);
+  const [blockData, setBlockData] = useState<Block[] | null>(null);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+
+  useEffect(() => {
+    if (projects[activeProject]) {
+      if (projects[activeProject].blocks === null) {
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/blocks/${projects[activeProject].id}`,
+          { method: 'GET', credentials: 'include' },
+        )
+          .then((resp) => {
+            if (resp.ok) {
+              return resp.json();
+            } else {
+              resp.text().then(text => {
+                toast.error(text)
+              })
+            }
+          })
+          .then((data) => {
+            if (data !== null && data !== undefined) {
+              setBlockData(data.layout)
+              setProjects(
+                projects.map((proj, i) =>
+                  i === activeProject
+                    ? Object.assign({}, proj, { blocks: data })
+                    : proj,
+                ),
+              );
+            } else {
+              setBlockData([])
+              setProjects(
+                projects.map((proj, i) =>
+                  i === activeProject
+                    ? Object.assign({}, proj, { blocks: [] })
+                    : proj,
+                ),
+              );
+            }
+          });
+      } else {
+        setBlockData(projects[activeProject].blocks.layout)
+      }
+    }
+  }, [activeProject]);
 
   return (
     <div className='mt-5 pb-20'>
-      <Sortable
-        orientation='vertical'
-        value={blockData}
-        strategy={rectSortingStrategy}
-        onValueChange={setBlockData}
-        overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
-      >
-        <div className='grid grid-cols-3 gap-4'>
-          {blockData.map((block) => (
-            <Block key={block.id} {...block} />
-          ))}
-        </div>
-      </Sortable>
+      {
+        projects[activeProject].blocks === null ?
+          <>LOADING...</>
+          :
+          <Sortable
+            orientation='vertical'
+            value={blockData ?? []}
+            strategy={rectSortingStrategy}
+            onValueChange={setBlockData}
+            overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
+          >
+            <div className='grid grid-cols-3 gap-4'>
+              {blockData?.map((block) => (
+                <IndividualBlock key={block.id} {...block} />
+              ))}
+            </div>
+          </Sortable>
+      }
     </div>
   );
 }
 
-function Block(props: BlockProps) {
+function IndividualBlock(props: Block) {
   return (
     <SortableItem key={props.id} value={props.id} asChild>
       <div
@@ -434,7 +389,7 @@ function Block(props: BlockProps) {
         }}
       >
         <Card
-          className={`flex w-full min-w-[900px] flex-col rounded-[12px] border-none bg-accent ${props.blockType === 'group' ? 'min-w-[1000px] !bg-accent/50' : ''} ${props.blockType === 'nested' ? 'rounded[10px] min-w-[280px]' : ''}`}
+          className={`flex w-full min-w-[900px] flex-col rounded-[12px] border-none bg-accent ${props.type === BlockType.Group ? 'min-w-[1000px] !bg-accent/50' : ''} ${props.type === BlockType.Nested ? 'rounded[10px] min-w-[280px]' : ''}`}
           style={cardStyle(props.color)}
         >
           <BlockContent {...props} />
@@ -476,12 +431,12 @@ const pieChartConfig = {
   },
 } satisfies ChartConfig;
 
-function BlockContent(props: BlockProps) {
+function BlockContent(props: Block) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
-  const [nestedBlocks, setNestedBlocks] = useState<ChartBlock[]>(
-    Array.isArray(props.type) ? props.type : [],
+  const [nestedBlocks, setNestedBlocks] = useState<Block[]>(
+    props.nested ? props.nested : [],
   );
   const totalVisitors = useMemo(() => {
     return PieChartData.reduce((acc, curr) => acc + curr.visitors, 0);
@@ -492,8 +447,8 @@ function BlockContent(props: BlockProps) {
       valueFormatter,
     };
 
-    switch (props.type) {
-      case 'area-chart':
+    switch (props.chartType) {
+      case ChartType.Area:
         return (
           <AreaChart
             data={AreaChartData}
@@ -504,7 +459,7 @@ function BlockContent(props: BlockProps) {
             yAxisLabel='Total'
           />
         );
-      case 'bar-chart':
+      case ChartType.Bar:
         return (
           <BarChart
             data={BarChartData}
@@ -515,7 +470,7 @@ function BlockContent(props: BlockProps) {
             yAxisLabel='Total'
           />
         );
-      case 'combo-chart':
+      case ChartType.Combo:
         return (
           <ComboChart
             data={ComboChartData}
@@ -533,9 +488,9 @@ function BlockContent(props: BlockProps) {
             }}
           />
         );
-      case 'bar-list':
+      case ChartType.BarList:
         return <BarList data={BarListData} {...chartProps} />;
-      case 'pie-chart':
+      case ChartType.Pie:
         return (
           <ChartContainer
             config={pieChartConfig}
@@ -586,7 +541,7 @@ function BlockContent(props: BlockProps) {
             </PieChart>
           </ChartContainer>
         );
-      case 'radar-chart':
+      case ChartType.Radar:
         return (
           <ChartContainer
             config={chartConfig}
@@ -612,8 +567,8 @@ function BlockContent(props: BlockProps) {
     }
   };
 
-  const renderNestedBlocks = () => {
-    if (Array.isArray(props.type)) {
+  const NestedBlocks = () => {
+    if (props.nested !== undefined) {
       return (
         <Sortable
           orientation='horizontal'
@@ -624,7 +579,7 @@ function BlockContent(props: BlockProps) {
         >
           <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
             {nestedBlocks.map((nestedBlock) => (
-              <Block key={nestedBlock.id} {...nestedBlock} />
+              <IndividualBlock key={nestedBlock.id} {...nestedBlock} />
             ))}
             {nestedBlocks.length < 3 ? (
               <BlocksDialog type='compact'>
@@ -645,7 +600,7 @@ function BlockContent(props: BlockProps) {
 
     return (
       <CardContent
-        className={`h-[30vh] min-h-[240px] ${props.type !== 'bar-list' ? 'flex items-center justify-center' : ''} ${props.blockType === 'nested' ? 'mt-5 h-[35vh]' : ''}`}
+        className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
       >
         <Charts />
       </CardContent>
@@ -676,7 +631,7 @@ function BlockContent(props: BlockProps) {
           >
             {props.label}
           </Badge>
-          {props.blockType === 'group' ? (
+          {props.type === BlockType.Group ? (
             <div className='flex flex-row items-center gap-4 text-sm font-medium capitalize'>
               <Separator orientation='vertical' className='ml-2 h-4' />{' '}
               {props.name}
@@ -686,7 +641,7 @@ function BlockContent(props: BlockProps) {
           )}
           <BlockOptions
             setIsOpen={setIsOpen}
-            type={props.blockType === 'group' ? 'group' : 'block'}
+            type={props.type === BlockType.Group ? 'group' : 'block'}
           >
             <Button
               size={'icon'}
@@ -701,7 +656,7 @@ function BlockContent(props: BlockProps) {
           </BlockOptions>
         </div>
       </CardHeader>
-      {props.blockType === 'group' || props.blockType === 'nested' ? (
+      {props.type === BlockType.Group || props.type === BlockType.Nested ? (
         <></>
       ) : (
         <>
@@ -727,9 +682,9 @@ function BlockContent(props: BlockProps) {
                 </SelectContent>
               </Select>
             </div>
-            {props.type !== 'pie-chart' &&
-            props.type !== 'radar-chart' &&
-            props.type !== 'bar-list' ? (
+            {props.chartType !== ChartType.Pie &&
+              props.chartType !== ChartType.Radar &&
+              props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
                 {[
                   { name: 'SolarPanels', value: 21267 },
@@ -757,18 +712,21 @@ function BlockContent(props: BlockProps) {
         </>
       )}
 
-      {props.blockType === 'nested' ? (
+      {props.type === BlockType.Nested ? (
         <CardHeader className='items-center pb-0'>
           <CardTitle>{props.name}</CardTitle>
           <CardDescription>January - June 2024</CardDescription>
         </CardHeader>
       ) : undefined}
-      {renderNestedBlocks()}
-      {props.blockType === 'group' ? (
+      <NestedBlocks />
+      {props.type === BlockType.Group ? (
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${props.blockType === 'nested' ? 'items-center text-center' : 'items-start'}`}
+          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
+            ? 'items-center text-center'
+            : 'items-start'
+            }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -834,7 +792,7 @@ interface BlockShowcaseType {
 const blockWideType: BlockShowcaseType[] = [
   {
     name: 'Area Chart',
-    value: 1,
+    value: ChartType.Area,
     description:
       'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
     chart: (
@@ -853,7 +811,7 @@ const blockWideType: BlockShowcaseType[] = [
   },
   {
     name: 'Bar Chart',
-    value: 2,
+    value: ChartType.Bar,
     description:
       'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
     chart: (
@@ -872,7 +830,7 @@ const blockWideType: BlockShowcaseType[] = [
   },
   {
     name: 'Combo Chart',
-    value: 3,
+    value: ChartType.Combo,
     description:
       'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
     chart: (
@@ -895,7 +853,7 @@ const blockWideType: BlockShowcaseType[] = [
   },
   {
     name: 'Bar List',
-    value: 4,
+    value: ChartType.BarList,
     description:
       'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
     chart: <BarList data={BarListData} />,
@@ -905,7 +863,7 @@ const blockWideType: BlockShowcaseType[] = [
 const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Pie Chart',
-    value: 5,
+    value: ChartType.Pie,
     description:
       'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
     chart: (
@@ -957,7 +915,7 @@ const blockCompactType: BlockShowcaseType[] = [
   },
   {
     name: 'Radar Chart',
-    value: 6,
+    value: ChartType.Radar,
     description:
       'Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.',
     chart: (
@@ -981,7 +939,7 @@ function BlocksDialog(props: {
   children: ReactNode;
   type: 'compact' | 'wide';
 }) {
-  const [value, setValue] = useState<number>(0);
+  const [value, setValue] = useState<number>(-1);
   return (
     <DialogStack>
       <Dialog>
@@ -1033,10 +991,10 @@ function BlocksDialog(props: {
                 Cancel
               </Button>
             </DialogClose>
-            <BlocksDialogStack value={value}>
+            <BlocksDialogStack type={value}>
               <Button
                 className='w-fit rounded-[12px] max-md:mb-2'
-                disabled={value === 0 ? true : false}
+                disabled={value === -1 ? true : false}
               >
                 Next
               </Button>
@@ -1058,11 +1016,10 @@ function BlockItem(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
-        props.state === props.value
-          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
-          : 'cursor-pointer hover:bg-accent/50'
-      }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
+        ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+        : 'cursor-pointer hover:bg-accent/50'
+        }`}
       onClick={() => {
         props.setState(props.state !== props.value ? props.value : 0);
       }}
@@ -1097,11 +1054,13 @@ const findBlockByValue = (value: number) => {
   return null;
 };
 
-function BlocksDialogStack(props: { children: ReactNode; value: number }) {
-  const blockSelected = findBlockByValue(props.value);
-  const [isLabelSelected, setIsLabelSelected] = useState<boolean>(false);
-  const [isMetricSelected, setIsMetricSelected] = useState<boolean>(false);
+function BlocksDialogStack(props: { children: ReactNode; type: number }) {
+  const blockSelected = useMemo(() => findBlockByValue(props.type), [props.type])
   const [nameInputValue, setNameInputValue] = useState<string>('');
+
+  const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
+  const [selectedLabel, setSelectedLabel] = useState<string>("")
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext)
   return (
     <>
       <DialogStackOverlay className='-left-2 top-0 z-50 rounded-2xl bg-black/20 ring ring-purple-500/70' />
@@ -1162,7 +1121,7 @@ function BlocksDialogStack(props: { children: ReactNode; value: number }) {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Block label</Label>
-              <LabelSelect setIsSelected={setIsLabelSelected} />
+              {/* <LabelSelect selectedLabel={selectedLabel} setSelectedLabel={setSelectedLabel} /> */}
             </div>
           </div>
           <DialogStackFooter>
@@ -1172,7 +1131,7 @@ function BlocksDialogStack(props: { children: ReactNode; value: number }) {
               </Button>
             </DialogStackPrevious>
             <DialogStackNext asChild>
-              <Button className='rounded-[12px]' disabled={!isLabelSelected}>
+              <Button className='rounded-[12px]' disabled={false}>
                 Next
               </Button>
             </DialogStackNext>
@@ -1190,7 +1149,7 @@ function BlocksDialogStack(props: { children: ReactNode; value: number }) {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Select metrics</Label>
-              <MetricSelect setIsSelected={setIsMetricSelected} />
+              <MetricSelect selectedMetrics={selectedMetrics} setSelectedMetrics={setSelectedMetrics} />
             </div>
           </div>
           <DialogStackFooter>
@@ -1200,7 +1159,17 @@ function BlocksDialogStack(props: { children: ReactNode; value: number }) {
               </Button>
             </DialogStackPrevious>
             <DialogStackNext asChild>
-              <Button className='rounded-[12px]' disabled={!isMetricSelected}>
+              <Button className='rounded-[12px]' disabled={selectedMetrics.length === 0} onClick={() => {
+                setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
+                  blocks: [...(projects[activeProject].blocks?.layout ?? []), {
+                    id: (projects[activeProject].blocks?.layout.length ?? 0) + 1,
+                    name: nameInputValue,
+                    type: BlockType.Default,
+                    chartType: props.type,
+                    label: "overview",
+                  }],
+                }) : proj))
+              }}>
                 Create block
               </Button>
             </DialogStackNext>
