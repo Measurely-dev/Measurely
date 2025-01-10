@@ -647,7 +647,7 @@ function BlockContent(props: BlockProps) {
       <CardContent
         className={`h-[30vh] min-h-[240px] ${props.type !== 'bar-list' ? 'flex items-center justify-center' : ''} ${props.blockType === 'nested' ? 'mt-5 h-[35vh]' : ''}`}
       >
-        {Charts()}
+        <Charts />
       </CardContent>
     );
   };
