@@ -94,7 +94,9 @@ export const TeamTable = (props: { members: User[] }) => {
             member.lastname.toLowerCase()
           ).includes(search.toLowerCase()) ||
           member.email.toLowerCase().includes(search.toLowerCase()) ||
-          roleToString(member.userrole).toLowerCase().includes(search.toLowerCase());
+          roleToString(member.userrole)
+            .toLowerCase()
+            .includes(search.toLowerCase());
 
         const matchesRole =
           roleFilter === 'All' || member.userrole === roleFilter;
@@ -235,9 +237,9 @@ export const TeamTable = (props: { members: User[] }) => {
   );
 };
 const badgeClasses: { [key: string]: string } = {
-  Admin:
-    'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
   Owner:
+    'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+  Admin:
     'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
   Developer:
     'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
@@ -379,11 +381,13 @@ function MemberOption({
       ) : (
         <ArrowBigDown className='size-6 fill-destructive text-destructive' />
       ),
-      description: `Are you sure you want to ${isUpgrade ? 'upgrade' : 'downgrade'
-        } ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}? This action will ${isUpgrade
+      description: `Are you sure you want to ${
+        isUpgrade ? 'upgrade' : 'downgrade'
+      } ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}? This action will ${
+        isUpgrade
           ? 'grant additional permissions'
           : 'limit their access and permissions'
-        }.`,
+      }.`,
       confirmText: `Yes, ${isUpgrade ? 'upgrade' : 'downgrade'}`,
       cancelText: 'Cancel',
       cancelButton: {
@@ -426,12 +430,12 @@ function MemberOption({
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                  members: (proj.members ?? []).map((m) =>
-                    m.id === member.id
-                      ? Object.assign({}, m, { userrole: newRole })
-                      : m,
-                  ),
-                })
+                    members: (proj.members ?? []).map((m) =>
+                      m.id === member.id
+                        ? Object.assign({}, m, { userrole: newRole })
+                        : m,
+                    ),
+                  })
                 : proj,
             ),
           );
@@ -488,10 +492,10 @@ function MemberOption({
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                  members: (proj.members ?? []).filter(
-                    (m) => m.id !== member.id,
-                  ),
-                })
+                    members: (proj.members ?? []).filter(
+                      (m) => m.id !== member.id,
+                    ),
+                  })
                 : proj,
             ),
           );
@@ -514,8 +518,8 @@ function MemberOption({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {member.id === user.id ||
-            (projects[activeProject].userrole !== UserRole.Admin &&
-              projects[activeProject].userrole !== UserRole.Owner) ? (
+          (projects[activeProject].userrole !== UserRole.Admin &&
+            projects[activeProject].userrole !== UserRole.Owner) ? (
             <></>
           ) : (
             <DropdownMenuSub>
@@ -554,10 +558,10 @@ function MemberOption({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         {projects[activeProject].userrole === UserRole.Admin ||
-          (projects[activeProject].userrole === UserRole.Owner &&
-            member.id !== user.id) ||
-          (projects[activeProject].userrole !== UserRole.Owner &&
-            member.id === user.id) ? (
+        (projects[activeProject].userrole === UserRole.Owner &&
+          member.id !== user.id) ||
+        (projects[activeProject].userrole !== UserRole.Owner &&
+          member.id === user.id) ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
