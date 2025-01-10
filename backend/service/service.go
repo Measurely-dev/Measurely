@@ -256,12 +256,7 @@ func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 	request.Email = strings.ToLower(strings.TrimSpace(request.Email))
 	request.Name = strings.ToLower(strings.TrimSpace(request.Name))
 
-	err := s.db.CreateWaitlistEntry(request.Email, request.Name)
-	if err == nil {
-		measurely.Capture(metricIds["waitlist"], measurely.CapturePayload{
-			Value: 1,
-		})
-	} else {
+	if err := s.db.CreateWaitlistEntry(request.Email, request.Name); err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			http.Error(w, "Looks like you already joined the waitlist.", http.StatusAlreadyReported)
 		} else {
@@ -271,7 +266,8 @@ func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send notification email about the new login
+	w.WriteHeader(http.StatusOK)
+
 	go s.email.SendEmail(email.MailFields{
 		To:      request.Email,
 		Subject: "Welcome to Measurely!",
@@ -284,7 +280,9 @@ func (s *Service) JoinWaitlist(w http.ResponseWriter, r *http.Request) {
 		ButtonTitle: "Follow us on Twitter",
 	})
 
-	w.WriteHeader(http.StatusOK)
+	go measurely.Capture(metricIds["waitlist"], measurely.CapturePayload{
+		Value: 1,
+	})
 }
 
 func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
