@@ -294,6 +294,15 @@ export default function DashboardMetricPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const index = projects[activeProject].metrics?.findIndex(
+      (g) => g.name === metricName,
+    );
+    if (index === -1) {
+      router.push('/dashboard/metrics');
+    }
+  }, [activeProject]);
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
