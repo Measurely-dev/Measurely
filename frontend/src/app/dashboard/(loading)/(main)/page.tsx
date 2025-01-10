@@ -1028,7 +1028,7 @@ function BlockItem(props: {
       <div className='text-xs font-light text-secondary'>
         {props.description}
       </div>
-      {props.value === 4 ? (
+      {props.value === ChartType.BarList ? (
         <BarList className='mt-4' data={BarListData} />
       ) : (
         <div className='pointer-events-none mx-auto mt-4 flex w-full select-none items-center justify-center'>
