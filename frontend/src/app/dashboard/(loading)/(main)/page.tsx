@@ -126,7 +126,6 @@ import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric } from '@/types';
 import { toast } from 'sonner';
 
-
 export default function DashboardHomePage() {
   const { projects, activeProject } = useContext(ProjectsContext);
   const [activeMetric, setActiveMetric] = useState(0);
@@ -318,14 +317,14 @@ function Blocks() {
             if (resp.ok) {
               return resp.json();
             } else {
-              resp.text().then(text => {
-                toast.error(text)
-              })
+              resp.text().then((text) => {
+                toast.error(text);
+              });
             }
           })
           .then((data) => {
             if (data !== null && data !== undefined) {
-              setBlockData(data.layout)
+              setBlockData(data.layout);
               setProjects(
                 projects.map((proj, i) =>
                   i === activeProject
@@ -334,7 +333,7 @@ function Blocks() {
                 ),
               );
             } else {
-              setBlockData([])
+              setBlockData([]);
               setProjects(
                 projects.map((proj, i) =>
                   i === activeProject
@@ -345,31 +344,30 @@ function Blocks() {
             }
           });
       } else {
-        setBlockData(projects[activeProject].blocks.layout)
+        setBlockData(projects[activeProject].blocks.layout);
       }
     }
   }, [activeProject]);
 
   return (
     <div className='mt-5 pb-20'>
-      {
-        projects[activeProject].blocks === null ?
-          <>LOADING...</>
-          :
-          <Sortable
-            orientation='vertical'
-            value={blockData ?? []}
-            strategy={rectSortingStrategy}
-            onValueChange={setBlockData}
-            overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
-          >
-            <div className='grid grid-cols-3 gap-4'>
-              {blockData?.map((block) => (
-                <IndividualBlock key={block.id} {...block} />
-              ))}
-            </div>
-          </Sortable>
-      }
+      {projects[activeProject].blocks === null ? (
+        <>LOADING...</>
+      ) : (
+        <Sortable
+          orientation='vertical'
+          value={blockData ?? []}
+          strategy={rectSortingStrategy}
+          onValueChange={setBlockData}
+          overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
+        >
+          <div className='grid grid-cols-3 gap-4'>
+            {blockData?.map((block) => (
+              <IndividualBlock key={block.id} {...block} />
+            ))}
+          </div>
+        </Sortable>
+      )}
     </div>
   );
 }
@@ -683,8 +681,8 @@ function BlockContent(props: Block) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-              props.chartType !== ChartType.Radar &&
-              props.chartType !== ChartType.BarList ? (
+            props.chartType !== ChartType.Radar &&
+            props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
                 {[
                   { name: 'SolarPanels', value: 21267 },
@@ -723,10 +721,11 @@ function BlockContent(props: Block) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
-            ? 'items-center text-center'
-            : 'items-start'
-            }`}
+          className={`flex-col gap-2 text-sm ${
+            props.type === BlockType.Nested
+              ? 'items-center text-center'
+              : 'items-start'
+          }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -1016,10 +1015,11 @@ function BlockItem(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
-        ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
-        : 'cursor-pointer hover:bg-accent/50'
-        }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
+        props.state === props.value
+          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+          : 'cursor-pointer hover:bg-accent/50'
+      }`}
       onClick={() => {
         props.setState(props.state !== props.value ? props.value : 0);
       }}
@@ -1055,12 +1055,15 @@ const findBlockByValue = (value: number) => {
 };
 
 function BlocksDialogStack(props: { children: ReactNode; type: number }) {
-  const blockSelected = useMemo(() => findBlockByValue(props.type), [props.type])
+  const blockSelected = useMemo(
+    () => findBlockByValue(props.type),
+    [props.type],
+  );
   const [nameInputValue, setNameInputValue] = useState<string>('');
 
   const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string>("")
-  const { projects, activeProject, setProjects } = useContext(ProjectsContext)
+  const [selectedLabel, setSelectedLabel] = useState<string>('');
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   return (
     <>
       <DialogStackOverlay className='-left-2 top-0 z-50 rounded-2xl bg-black/20 ring ring-purple-500/70' />
@@ -1149,7 +1152,10 @@ function BlocksDialogStack(props: { children: ReactNode; type: number }) {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Select metrics</Label>
-              <MetricSelect selectedMetrics={selectedMetrics} setSelectedMetrics={setSelectedMetrics} />
+              <MetricSelect
+                selectedMetrics={selectedMetrics}
+                setSelectedMetrics={setSelectedMetrics}
+              />
             </div>
           </div>
           <DialogStackFooter>
@@ -1158,21 +1164,34 @@ function BlocksDialogStack(props: { children: ReactNode; type: number }) {
                 Previous
               </Button>
             </DialogStackPrevious>
-            <DialogStackNext asChild>
-              <Button className='rounded-[12px]' disabled={selectedMetrics.length === 0} onClick={() => {
-                setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
-                  blocks: [...(projects[activeProject].blocks?.layout ?? []), {
-                    id: (projects[activeProject].blocks?.layout.length ?? 0) + 1,
-                    name: nameInputValue,
-                    type: BlockType.Default,
-                    chartType: props.type,
-                    label: "overview",
-                  }],
-                }) : proj))
-              }}>
-                Create block
-              </Button>
-            </DialogStackNext>
+            <Button
+              className='rounded-[12px]'
+              disabled={selectedMetrics.length === 0}
+              onClick={() => {
+                setProjects(
+                  projects.map((proj, i) =>
+                    i === activeProject
+                      ? Object.assign({}, proj, {
+                          blocks: [
+                            ...(projects[activeProject].blocks?.layout ?? []),
+                            {
+                              id:
+                                (projects[activeProject].blocks?.layout
+                                  .length ?? 0) + 1,
+                              name: nameInputValue,
+                              type: BlockType.Default,
+                              chartType: props.type,
+                              label: 'overview',
+                            },
+                          ],
+                        })
+                      : proj,
+                  ),
+                );
+              }}
+            >
+              Create block
+            </Button>
           </DialogStackFooter>
         </DialogStackContent>
       </DialogStackBody>
