@@ -31,7 +31,7 @@ export default function LandingSection(props: {
           <br className='max-md:hidden' /> in One Place.
         </h1>
         {props.type === 'waitlist' ? (
-          <Link href='/register'>
+          <Link href='/waitlist'>
             <WebButton className='group mt-10 px-3.5 py-2'>
               <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3'>
                 Join waitlist
