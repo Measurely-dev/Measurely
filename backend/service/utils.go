@@ -24,7 +24,7 @@ var metricIds = map[string]string{
 	"signups":   "2efb5cb3-9ed6-40f3-bbb3-2df19faf8ba7",
 	"apps":      "eb585285-4397-4007-a877-07e54aff06c7",
 	"feedbacks": "fc7306fd-0d8c-4e3d-a3f0-e0ce8d961a2d",
-	"waitlis":   "01a0b6a3-b1ec-46ca-b6b8-92a88b62b497",
+	"waitlist":   "01a0b6a3-b1ec-46ca-b6b8-92a88b62b497",
 }
 
 func isEmailValid(e string) bool {
