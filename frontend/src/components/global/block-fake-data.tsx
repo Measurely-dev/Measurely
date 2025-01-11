@@ -31,7 +31,7 @@ export const PieChartData = [
 ]
 
 export const BarListData = [
-  { name: '/homedasdsajkdhasjkdhjdhahdasoo', value: 843 },
+  { name: '/home', value: 843 },
   { name: '/imprint', value: 46 },
   { name: '/cancellation', value: 3 },
   { name: '/blocks', value: 108 },
