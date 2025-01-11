@@ -48,7 +48,6 @@ import { DialogClose } from '@radix-ui/react-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { ColorDropdown } from '@/app/dashboard/(loading)/(main)/page';
 
 type LabelType = Record<'value' | 'label' | 'color', string>;
 
@@ -380,10 +379,6 @@ const DialogListItem = ({
               />
             </div>
             <div className='flex w-fit gap-1'>
-              <ColorDropdown
-                selectedColor={selectedColor}
-                setSelectedColor={setSelectedColor}
-              />
               <Button
                 type='submit'
                 className='rounded-[12px]'

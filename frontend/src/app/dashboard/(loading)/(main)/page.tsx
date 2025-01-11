@@ -97,7 +97,11 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -889,7 +893,7 @@ function BlockOptions(
   },
 ) {
   const confirm = useConfirm();
-
+  const [selectedColor, setSelectedColor] = useState<string | undefined>('');
   async function handleDelete({ type }: { type: BlockType }) {
     const isConfirmed = await confirm({
       title: `Delete ${type === BlockType.Group ? 'Group' : 'Block'}`,
@@ -990,6 +994,12 @@ function BlockOptions(
           >
             Edit Metric(s)
           </DropdownMenuItem>
+          <div className={props.type === BlockType.Group ? 'hidden' : ''}>
+            <ColorDropdown
+              selectedColor={selectedColor}
+              setSelectedColor={setSelectedColor}
+            />
+          </div>
         </DropdownMenuGroup>
         <DropdownMenuSeparator
           className={props.type === BlockType.Group ? 'hidden' : ''}
@@ -1088,7 +1098,6 @@ const blockWideType: BlockShowcaseType[] = [
       />
     ),
   },
-
 ];
 
 const blockCompactType: BlockShowcaseType[] = [
@@ -1509,7 +1518,7 @@ interface ColorDropdownProps {
   setSelectedColor: Dispatch<SetStateAction<string | undefined>>;
 }
 
-export function ColorDropdown({
+function ColorDropdown({
   selectedColor,
   setSelectedColor,
 }: ColorDropdownProps) {
@@ -1559,23 +1568,28 @@ export function ColorDropdown({
   };
 
   return (
-    <Select
-      onValueChange={(value: keyof typeof colors) =>
-        setSelectedColor(colors[value])
-      }
-    >
-      <SelectTrigger
-        className='size-8 h-8 w-8 rounded-full border'
-        style={{
-          backgroundColor: `${selectedColor}66`,
-          borderColor: `${selectedColor}33` || '#ccc',
-        }}
-      />
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Colors</SelectLabel>
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <div className='flex w-full flex-row justify-start items-center gap-2 !p-0'>
+          <div
+            className='size-6 h-6 w-6 max-w-6 rounded-full border'
+            style={{
+              backgroundColor: `${selectedColor}66`,
+              borderColor: `${selectedColor}33` || '#ccc',
+            }}
+          />
+          Change color
+        </div>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent  className='max-h-[300px] overflow-y-auto'>
+          <DropdownMenuLabel>Select a color</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           {Object.entries(colors).map(([key, value]) => (
-            <SelectItem key={key} value={key}>
+            <DropdownMenuItem
+              key={key}
+              onClick={() => setSelectedColor(value)}
+            >
               <div className='flex flex-row items-center gap-2'>
                 <div
                   className='inline-block size-4 rounded-full'
@@ -1586,10 +1600,10 @@ export function ColorDropdown({
                 />
                 <div>{key.charAt(0).toUpperCase() + key.slice(1)}</div>
               </div>
-            </SelectItem>
+            </DropdownMenuItem>
           ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
   );
 }
