@@ -2128,7 +2128,7 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 				TeamRelationId: teamrelationid,
 				UserId:         token.Id,
 				ProjectId:      projectid,
-				Labels:         []types.Label{},
+				Labels:         []string{"overview", "comparaison", "revenue", "profit", "growth"},
 				Layout:         []types.Block{},
 			})
 			if err != nil {
@@ -2158,6 +2158,7 @@ func (s *Service) UpdateBlocksLayout(w http.ResponseWriter, r *http.Request) {
 
   var request struct {
     NewLayout []types.Block `json:"newlayout"`
+    NewLabels []string `json:"newlabels"`
     ProjectId uuid.UUID `json:"projectid"`
   }
 
@@ -2166,7 +2167,7 @@ func (s *Service) UpdateBlocksLayout(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  if err := s.db.UpdateBlocksLayout(request.ProjectId, token.Id, request.NewLayout); err != nil {
+  if err := s.db.UpdateBlocksLayout(request.ProjectId, token.Id, request.NewLayout, request.NewLabels); err != nil {
     if err == sql.ErrNoRows{
       http.Error(w, "Blocks not found", http.StatusNotFound)
     }else {

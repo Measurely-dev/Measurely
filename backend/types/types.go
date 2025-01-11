@@ -131,8 +131,8 @@ type Blocks struct {
 	TeamRelationId sql.Null[uuid.UUID]
 	UserId         uuid.UUID
 	ProjectId      uuid.UUID
-	Layout         []Block `json:"layout"`
-	Labels         []Label `json:"label"`
+	Layout         []Block  `json:"layout"`
+	Labels         []string `json:"labels"`
 }
 
 type Block struct {
@@ -145,8 +145,4 @@ type Block struct {
 	ChartType int         `json:"chartType"`
 	Label     string      `json:"label"`
 	Color     string      `json:"color"`
-}
-
-type Label struct {
-	Name string `json:"name"`
 }

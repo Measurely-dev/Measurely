@@ -806,11 +806,12 @@ func (db *DB) CreateBlocks(blocks types.Blocks) (*types.Blocks, error) {
 	return &newBlocks, nil
 }
 
-func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.Block) error {
+func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.Block, newLabels []string) error {
 	query := `
-		UPDATE Blocks
-		SET Layout = $1
-		WHERE ProjectId = $2 AND UserId = $3
+		UPDATE blocks
+		SET layout = $1,
+        labels = $2
+		WHERE projectid = $3 AND userid = $4
 	`
 
 	layoutJSON, err := json.Marshal(newLayout)
@@ -818,7 +819,12 @@ func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.
 		return err
 	}
 
-	_, err = db.Conn.Exec(query, layoutJSON, projectId, userId)
+	labelsJSON, err := json.Marshal(newLabels)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Conn.Exec(query, layoutJSON, labelsJSON, projectId, userId)
 
 	return err
 }
