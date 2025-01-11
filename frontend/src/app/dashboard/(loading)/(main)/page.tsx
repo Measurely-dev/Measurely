@@ -128,6 +128,7 @@ import { Block, BlockType, ChartType, Metric } from '@/types';
 import { toast } from 'sonner';
 import { generateString } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { generateKey } from 'crypto';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -174,8 +175,8 @@ export default function DashboardHomePage() {
               onClick={() => {
                 projects[activeProject].metrics?.length === 0
                   ? toast.warning(
-                      'Please create one or more metrics before adding a block group.',
-                    )
+                    'Please create one or more metrics before adding a block group.',
+                  )
                   : null;
               }}
             >
@@ -222,25 +223,25 @@ export default function DashboardHomePage() {
                       projects.map((proj, i) =>
                         i === activeProject
                           ? Object.assign({}, proj, {
-                              blocks: Object.assign({}, proj.blocks, {
-                                layout: [
-                                  ...(proj.blocks === null
-                                    ? []
-                                    : proj.blocks.layout),
-                                  {
-                                    id:
-                                      proj.blocks === null
-                                        ? 1
-                                        : proj.blocks.layout.length + 1,
-                                    name: groupInput,
-                                    type: BlockType.Group,
-                                    nested: [],
-                                    label: 'group',
-                                    uniquekey: generateString(10),
-                                  },
-                                ],
-                              }),
-                            })
+                            blocks: Object.assign({}, proj.blocks, {
+                              layout: [
+                                ...(proj.blocks === null
+                                  ? []
+                                  : proj.blocks.layout),
+                                {
+                                  id:
+                                    proj.blocks === null
+                                      ? 1
+                                      : proj.blocks.layout.length + 1,
+                                  name: groupInput,
+                                  type: BlockType.Group,
+                                  nested: [],
+                                  label: 'group',
+                                  uniquekey: generateString(10),
+                                },
+                              ],
+                            }),
+                          })
                           : proj,
                       ),
                     );
@@ -257,8 +258,8 @@ export default function DashboardHomePage() {
             onClick={() => {
               projects[activeProject].metrics?.length === 0
                 ? toast.warning(
-                    'Please create one or more metrics before adding a block.',
-                  )
+                  'Please create one or more metrics before adding a block.',
+                )
                 : null;
             }}
           >
@@ -429,10 +430,10 @@ function Blocks() {
               projects.map((proj, i) =>
                 i === activeProject
                   ? Object.assign({}, proj, {
-                      blocks: Object.assign({}, proj.blocks, {
-                        layout: value,
-                      }),
-                    })
+                    blocks: Object.assign({}, proj.blocks, {
+                      layout: value,
+                    }),
+                  })
                   : proj,
               ),
             );
@@ -509,9 +510,6 @@ function BlockContent(props: Block) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
-  const [nestedBlocks, setNestedBlocks] = useState<Block[]>(
-    props.nested ? props.nested : [],
-  );
   const totalVisitors = useMemo(() => {
     return PieChartData.reduce((acc, curr) => acc + curr.visitors, 0);
   }, []);
@@ -588,8 +586,8 @@ function BlockContent(props: Block) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-            props.chartType !== ChartType.Radar &&
-            props.chartType !== ChartType.BarList ? (
+              props.chartType !== ChartType.Radar &&
+              props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
                 {[
                   { name: 'SolarPanels', value: 21267 },
@@ -628,11 +626,10 @@ function BlockContent(props: Block) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${
-            props.type === BlockType.Nested
-              ? 'items-center text-center'
-              : 'items-start'
-          }`}
+          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
+            ? 'items-center text-center'
+            : 'items-start'
+            }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -780,16 +777,16 @@ function NestedBlocks(props: Block) {
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                    blocks: Object.assign({}, proj.blocks, {
-                      layout: proj.blocks?.layout.map((l) =>
-                        l.uniquekey === props.uniquekey
-                          ? Object.assign({}, l, {
-                              nested: value,
-                            })
-                          : l,
-                      ),
-                    }),
-                  })
+                  blocks: Object.assign({}, proj.blocks, {
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.uniquekey
+                        ? Object.assign({}, l, {
+                          nested: value,
+                        })
+                        : l,
+                    ),
+                  }),
+                })
                 : proj,
             ),
           );
@@ -801,7 +798,7 @@ function NestedBlocks(props: Block) {
             <IndividualBlock key={block.uniquekey} {...block} />
           ))}
           {props.nested.length < 3 ? (
-            <BlocksDialog type='compact'>
+            <BlocksDialog type='compact' groupkey={props.uniquekey}>
               <div className='h-full cursor-pointer select-none'>
                 <EmptyState
                   title='Add new block'
@@ -1024,6 +1021,7 @@ const blockCompactType: BlockShowcaseType[] = [
 function BlocksDialog(props: {
   children: ReactNode;
   type: 'compact' | 'wide';
+  groupkey?: string;
 }) {
   const [value, setValue] = useState<number>(-1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -1083,6 +1081,7 @@ function BlocksDialog(props: {
               setIsDialogStackOpen={setIsDialogStackOpen}
               setIsDialogOpen={setIsDialogOpen}
               type={value}
+              groupKey={props.groupkey}
             >
               <Button
                 className='w-fit rounded-[12px] max-md:mb-2'
@@ -1108,11 +1107,10 @@ function BlockItem(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
-        props.state === props.value
-          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
-          : 'cursor-pointer hover:bg-accent/50'
-      }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
+        ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+        : 'cursor-pointer hover:bg-accent/50'
+        }`}
       onClick={() => {
         props.setState(props.state !== props.value ? props.value : 0);
       }}
@@ -1152,6 +1150,7 @@ function BlocksDialogStack(props: {
   setIsDialogOpen: Dispatch<SetStateAction<boolean>>;
   setIsDialogStackOpen: Dispatch<SetStateAction<boolean>>;
   type: number;
+  groupKey?: string;
 }) {
   const blockSelected = useMemo(
     () => findBlockByValue(props.type),
@@ -1268,35 +1267,64 @@ function BlocksDialogStack(props: {
               onClick={() => {
                 props.setIsDialogOpen(false);
                 props.setIsDialogStackOpen(false);
-                setProjects(
-                  projects.map((proj, i) =>
-                    i === activeProject
-                      ? Object.assign({}, proj, {
+                const project = projects[activeProject]
+                let newBlock: Block = {
+                  id: 0,
+                  uniquekey: generateString(10),
+                  name: nameInputValue,
+                  type: props.groupKey === undefined ? BlockType.Default : BlockType.Nested,
+                  chartType: props.type,
+                  label: 'overview',
+                  metricIds: selectedMetrics.map(metric => metric.id),
+                  color: ""
+                }
+                if (props.groupKey !== undefined) {
+                  const layout = project.blocks?.layout.filter(l => l.uniquekey === props.groupKey) ?? []
+                  if (layout.length === 0) {
+                    toast.error("Block does not exist")
+                    return
+                  }
+                  const length = layout[0].nested ? layout[0].nested.length : 0
+                  if ((length ?? 0) >= 3) {
+                    toast.error("Cannot have more than 3 blocks in a group")
+                    return
+                  }
+
+                  newBlock.id = length
+                  setProjects(
+                    projects.map((proj, i) =>
+                      i === activeProject
+                        ? Object.assign({}, proj, {
                           blocks: Object.assign({}, proj.blocks, {
-                            layout: [
-                              ...(proj.blocks === null
-                                ? []
-                                : proj.blocks.layout),
-                              {
-                                id:
-                                  (proj.blocks === null
-                                    ? 1
-                                    : (proj.blocks.layout.length ?? 0)) + 1,
-                                name: nameInputValue,
-                                type: BlockType.Default,
-                                chartType: props.type,
-                                label: 'overview',
-                                metricIds: selectedMetrics.map(
-                                  (metric) => metric.id,
-                                ),
-                              },
-                            ],
+                            layout: proj.blocks?.layout.map(l => l.uniquekey === props.groupKey ? Object.assign({}, l, {
+                              nested: [...(l.nested ? l.nested : []), newBlock]
+                            }) : l)
                           }),
                         })
-                      : proj,
-                  ),
-                );
-              }}
+                        : proj,
+                    ),
+                  );
+                } else {
+                  newBlock.id = (project.blocks === null ? 1 : project.blocks.layout.length + 1),
+                    setProjects(
+                      projects.map((proj, i) =>
+                        i === activeProject
+                          ? Object.assign({}, proj, {
+                            blocks: Object.assign({}, proj.blocks, {
+                              layout: [
+                                ...(proj.blocks === null
+                                  ? []
+                                  : proj.blocks.layout),
+                                newBlock
+                              ],
+                            }),
+                          })
+                          : proj,
+                      ),
+                    );
+                }
+              }
+              }
             >
               Create block
             </Button>
