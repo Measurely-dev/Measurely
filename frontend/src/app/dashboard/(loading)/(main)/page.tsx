@@ -906,7 +906,7 @@ function BlockOptions(
   const [newName, setNewName] = useState(props.name);
   const [isRenamed, setIsRenamed] = useState(false);
 
-  async function handleDelete({ type }: { type: BlockType }) {
+  async function handleDelete() {
     const isConfirmed = await confirm({
       title: `Delete ${props.type === BlockType.Group ? 'Group' : 'Block'}`,
       icon: <Trash2 className='size-5 text-destructive' />,
@@ -972,7 +972,7 @@ function BlockOptions(
     }
   }
   async function handleRename() {
-    const confirmConfig = getRenameConfig(newName, (disabled, newValue) => {
+    const confirmConfig = getRenameConfig(props.name, (disabled, newValue) => {
       setNewName(newValue);
       confirm.updateConfig((prev) => ({
         ...prev,
@@ -987,11 +987,11 @@ function BlockOptions(
     }
   }
 
-  async function handleDuplicate({ name }: { name: string }) {
+  async function handleDuplicate() {
     const isConfirmed = await confirm({
-      title: `Duplicate ${name}`,
+      title: `Duplicate ${props.name}`,
       icon: <CopyPlus className='size-5 text-black' />,
-      description: `Are you sure you want to duplicate "${name}"? This action will create a copy.`,
+      description: `Are you sure you want to duplicate "${props.name}"? This action will create a copy.`,
       confirmText: 'Yes, duplicate',
       cancelText: 'Cancel',
       cancelButton: {
@@ -1011,12 +1011,54 @@ function BlockOptions(
     });
 
     if (isConfirmed) {
-      toast.success(`"${name}" duplicated successfully.`);
+      toast.success(`"${props.name}" duplicated successfully.`);
     }
   }
 
   useEffect(() => {
     if (isRenamed) {
+      if (props.groupkey !== undefined) {
+        setProjects(
+          projects.map((proj, i) =>
+            i === activeProject
+              ? Object.assign({}, proj, {
+                  blocks: Object.assign({}, proj.blocks, {
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.groupkey
+                        ? Object.assign({}, l, {
+                            nested: l.nested?.map((n) =>
+                              n.uniquekey === props.uniquekey
+                                ? Object.assign({}, n, { name: newName })
+                                : n,
+                            ),
+                          })
+                        : l,
+                    ),
+                  }),
+                })
+              : proj,
+          ),
+        );
+      } else {
+        setProjects(
+          projects.map((proj, i) =>
+            i === activeProject
+              ? Object.assign({}, proj, {
+                  blocks: Object.assign({}, proj.blocks, {
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.uniquekey
+                        ? Object.assign({}, l, {
+                            name: newName,
+                          })
+                        : l,
+                    ),
+                  }),
+                })
+              : proj,
+          ),
+        );
+      }
+
       toast.success(
         `${props.type === BlockType.Group ? 'Group' : 'Block'} renamed successfully to "${newName}".`,
       );
@@ -1062,7 +1104,7 @@ function BlockOptions(
           className={props.type === BlockType.Group ? 'hidden' : ''}
         >
           <DropdownMenuItem
-            onClick={() => handleDuplicate({ name: props.name })}
+            onClick={handleDuplicate}
           >
             Duplicate
           </DropdownMenuItem>
@@ -1070,7 +1112,7 @@ function BlockOptions(
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
-            onClick={() => handleDelete({ type: props.type })}
+            onClick={handleDelete}
             className='hover:!text-destructive'
           >
             Delete
