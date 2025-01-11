@@ -826,15 +826,18 @@ function NestedBlocks(props: Block) {
     </CardContent>
   );
 }
-
 const RenameConfirmContent: FC<{
-  onValueChange: (disabled: boolean) => void;
+  onValueChange: (disabled: boolean, newValue: string) => void;
   initialValue: string;
 }> = ({ onValueChange, initialValue }) => {
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    onValueChange(value.trim() === '' || value === initialValue);
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    onValueChange(value.trim() === '' || value === initialValue, value);
   }, [value, onValueChange, initialValue]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -857,7 +860,7 @@ const RenameConfirmContent: FC<{
 
 const getRenameConfig = (
   initialValue: string,
-  onValueChange: (disabled: boolean) => void,
+  onValueChange: (disabled: boolean, newValue: string) => void,
 ) => ({
   icon: <Edit className='size-4 text-primary' />,
   title: 'Rename Item',
@@ -894,9 +897,9 @@ function BlockOptions(
 ) {
   const confirm = useConfirm();
   const [selectedColor, setSelectedColor] = useState<string | undefined>('');
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext)
-
-  async function handleDelete() {
+  const [newName, setNewName] = useState(props.name);
+  const [isRenamed, setIsRenamed] = useState(false);
+  async function handleDelete({ type }: { type: BlockType }) {
     const isConfirmed = await confirm({
       title: `Delete ${props.type === BlockType.Group ? 'Group' : 'Block'}`,
       icon: <Trash2 className='size-5 text-destructive' />,
@@ -941,9 +944,9 @@ function BlockOptions(
       );
     }
   }
-
-  async function handleRename(initialName: string) {
-    const confirmConfig = getRenameConfig(initialName, (disabled) => {
+  async function handleRename() {
+    const confirmConfig = getRenameConfig(newName, (disabled, newValue) => {
+      setNewName(newValue);
       confirm.updateConfig((prev) => ({
         ...prev,
         confirmButton: { ...prev.confirmButton, disabled },
@@ -953,9 +956,7 @@ function BlockOptions(
     const isConfirmed = await confirm(confirmConfig);
 
     if (isConfirmed) {
-      toast.success(
-        `${props.type === BlockType.Group ? 'Group' : 'Block'} renamed successfully.`,
-      );
+      setIsRenamed(true);
     }
   }
 
@@ -987,6 +988,15 @@ function BlockOptions(
     }
   }
 
+  useEffect(() => {
+    if (isRenamed) {
+      toast.success(
+        `${props.type === BlockType.Group ? 'Group' : 'Block'} renamed successfully to "${newName}".`,
+      );
+      setIsRenamed(false);
+    }
+  }, [isRenamed, newName]);
+
   return (
     <DropdownMenu onOpenChange={(e) => props.setIsOpen(e)}>
       <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
@@ -998,7 +1008,7 @@ function BlockOptions(
         )}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => handleRename(props.name)}>
+          <DropdownMenuItem onClick={() => handleRename()}>
             Rename
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -1586,7 +1596,7 @@ function ColorDropdown({
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
-        <div className='flex w-full flex-row justify-start items-center gap-2 !p-0'>
+        <div className='flex w-full flex-row items-center justify-start gap-2 !p-0'>
           <div
             className='size-6 h-6 w-6 max-w-6 rounded-full border'
             style={{
@@ -1598,14 +1608,11 @@ function ColorDropdown({
         </div>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent  className='max-h-[300px] overflow-y-auto'>
+        <DropdownMenuSubContent className='max-h-[300px] overflow-y-auto'>
           <DropdownMenuLabel>Select a color</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {Object.entries(colors).map(([key, value]) => (
-            <DropdownMenuItem
-              key={key}
-              onClick={() => setSelectedColor(value)}
-            >
+            <DropdownMenuItem key={key} onClick={() => setSelectedColor(value)}>
               <div className='flex flex-row items-center gap-2'>
                 <div
                   className='inline-block size-4 rounded-full'
