@@ -129,7 +129,6 @@ import { generateString } from '@/utils';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
-  const [activeMetric, setActiveMetric] = useState(0);
   const [groupInput, setGroupInput] = useState('');
 
   useEffect(() => {
@@ -143,18 +142,6 @@ export default function DashboardHomePage() {
     }
   }, []);
 
-  useEffect(() => {
-    const new_index =
-      projects[activeProject].metrics === null
-        ? 0
-        : projects[activeProject].metrics.length === 0
-          ? 0
-          : projects[activeProject].metrics.length - 1;
-
-    if (activeMetric > new_index) {
-      setActiveMetric(new_index);
-    }
-  }, [activeProject]);
   return (
     <DashboardContentContainer className='mt-0 flex w-full pt-[15px]'>
       <Breadcrumb>
@@ -199,7 +186,7 @@ export default function DashboardHomePage() {
                   placeholder='Group name...'
                   className='h-11 rounded-[12px]'
                   value={groupInput}
-                  onChange={(e) => setGroupInput(e.target.value)}
+                  onChange={(e) => setGroupInput(e.target.value.trimStart())}
                   maxLength={25}
                 />
               </div>
@@ -225,7 +212,7 @@ export default function DashboardHomePage() {
                   }) : proj))
                 }}
                   className='rounded-[12px]'
-                  disabled={groupInput === '' ? true : false}
+                  disabled={groupInput === ''}
                 >
                   Create
                 </Button>
@@ -366,6 +353,7 @@ function Blocks() {
         })
       }
     }
+    console.log("hy")
   }, [projects, activeProject]);
 
   return (
