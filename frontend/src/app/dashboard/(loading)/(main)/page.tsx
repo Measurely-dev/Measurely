@@ -353,7 +353,6 @@ function Blocks() {
         })
       }
     }
-    console.log("hy")
   }, [projects, activeProject]);
 
   return (
@@ -450,171 +449,6 @@ function BlockContent(props: Block) {
   const totalVisitors = useMemo(() => {
     return PieChartData.reduce((acc, curr) => acc + curr.visitors, 0);
   }, []);
-  const Charts = () => {
-    const chartProps = {
-      className: 'h-full',
-      valueFormatter,
-    };
-
-    switch (props.chartType) {
-      case ChartType.Area:
-        return (
-          <AreaChart
-            data={AreaChartData}
-            {...chartProps}
-            colors={['violet', 'blue']}
-            index='date'
-            categories={['SolarPanels', 'Inverters']}
-            yAxisLabel='Total'
-          />
-        );
-      case ChartType.Bar:
-        return (
-          <BarChart
-            data={BarChartData}
-            {...chartProps}
-            colors={['violet', 'blue']}
-            index='date'
-            categories={['SolarPanels', 'Inverters']}
-            yAxisLabel='Total'
-          />
-        );
-      case ChartType.Combo:
-        return (
-          <ComboChart
-            data={ComboChartData}
-            {...chartProps}
-            index='date'
-            enableBiaxial
-            barSeries={{
-              categories: ['SolarPanels'],
-              showYAxis: true,
-            }}
-            lineSeries={{
-              categories: ['Inverters'],
-              showYAxis: true,
-              colors: ['fuchsia'],
-            }}
-          />
-        );
-      case ChartType.BarList:
-        return <BarList data={BarListData} {...chartProps} />;
-      case ChartType.Pie:
-        return (
-          <ChartContainer
-            config={pieChartConfig}
-            className='mx-auto h-full w-full'
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                data={PieChartData}
-                dataKey='visitors'
-                nameKey='browser'
-                innerRadius={60}
-                strokeWidth={5}
-              >
-                <RechartLabel
-                  content={({ viewBox }) => {
-                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor='middle'
-                          dominantBaseline='middle'
-                        >
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            className='fill-foreground text-3xl font-bold'
-                          >
-                            {totalVisitors.toLocaleString()}
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className='fill-muted-foreground'
-                          >
-                            Visitors
-                          </tspan>
-                        </text>
-                      );
-                    }
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-        );
-      case ChartType.Radar:
-        return (
-          <ChartContainer
-            config={chartConfig}
-            className='mx-auto h-full w-full'
-          >
-            <RadarChart data={RadarChartData}>
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <PolarGrid
-                className='fill-[blue] opacity-20'
-                gridType='polygon'
-              />
-              <PolarAngleAxis dataKey='month' />
-              <Radar
-                dataKey='desktop'
-                fill='var(--color-desktop)'
-                fillOpacity={0.5}
-              />
-            </RadarChart>
-          </ChartContainer>
-        );
-      default:
-        return <div>No chart available for this type.</div>;
-    }
-  };
-
-  const NestedBlocks = () => {
-    if (props.nested !== undefined && props.nested !== null) {
-      return (
-        <Sortable
-          orientation='horizontal'
-          value={nestedBlocks}
-          strategy={rectSortingStrategy}
-          onValueChange={setNestedBlocks}
-          overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
-        >
-          <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
-            {nestedBlocks.map((nestedBlock) => (
-              <IndividualBlock key={nestedBlock.uniquekey} {...nestedBlock} />
-            ))}
-            {nestedBlocks.length < 3 ? (
-              <BlocksDialog type='compact'>
-                <div className='h-full cursor-pointer select-none'>
-                  <EmptyState
-                    title='Add new block'
-                    description='Add a new block to this group.'
-                    icons={[PlusCircle, Plus, PlusSquare]}
-                    className='flex !size-full max-h-none min-w-[320px] flex-col items-center justify-center bg-transparent'
-                  />
-                </div>
-              </BlocksDialog>
-            ) : undefined}
-          </div>
-        </Sortable>
-      );
-    }
-
-    return (
-      <CardContent
-        className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
-      >
-        <Charts />
-      </CardContent>
-    );
-  };
 
   return (
     <>
@@ -727,7 +561,7 @@ function BlockContent(props: Block) {
           <CardDescription>January - June 2024</CardDescription>
         </CardHeader>
       ) : undefined}
-      <NestedBlocks />
+      <NestedBlocks {...props} />
       {props.type === BlockType.Group ? (
         <></>
       ) : (
@@ -748,6 +582,182 @@ function BlockContent(props: Block) {
     </>
   );
 }
+
+
+function Charts(props: { chartType: ChartType | undefined }) {
+  const chartProps = {
+    className: 'h-full',
+    valueFormatter,
+  };
+
+  switch (props.chartType) {
+    case ChartType.Area:
+      return (
+        <AreaChart
+          data={AreaChartData}
+          {...chartProps}
+          colors={['violet', 'blue']}
+          index='date'
+          categories={['SolarPanels', 'Inverters']}
+          yAxisLabel='Total'
+        />
+      );
+    case ChartType.Bar:
+      return (
+        <BarChart
+          data={BarChartData}
+          {...chartProps}
+          colors={['violet', 'blue']}
+          index='date'
+          categories={['SolarPanels', 'Inverters']}
+          yAxisLabel='Total'
+        />
+      );
+    case ChartType.Combo:
+      return (
+        <ComboChart
+          data={ComboChartData}
+          {...chartProps}
+          index='date'
+          enableBiaxial
+          barSeries={{
+            categories: ['SolarPanels'],
+            showYAxis: true,
+          }}
+          lineSeries={{
+            categories: ['Inverters'],
+            showYAxis: true,
+            colors: ['fuchsia'],
+          }}
+        />
+      );
+    case ChartType.BarList:
+      return <BarList data={BarListData} {...chartProps} />;
+    case ChartType.Pie:
+      return (
+        <ChartContainer
+          config={pieChartConfig}
+          className='mx-auto h-full w-full'
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={PieChartData}
+              dataKey='visitors'
+              nameKey='browser'
+              innerRadius={60}
+              strokeWidth={5}
+            >
+              <RechartLabel
+                content={({ viewBox }) => {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor='middle'
+                        dominantBaseline='middle'
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className='fill-foreground text-3xl font-bold'
+                        >
+                          {0}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className='fill-muted-foreground'
+                        >
+                          Visitors
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
+            </Pie>
+          </PieChart>
+        </ChartContainer>
+      );
+    case ChartType.Radar:
+      return (
+        <ChartContainer
+          config={chartConfig}
+          className='mx-auto h-full w-full'
+        >
+          <RadarChart data={RadarChartData}>
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <PolarGrid
+              className='fill-[blue] opacity-20'
+              gridType='polygon'
+            />
+            <PolarAngleAxis dataKey='month' />
+            <Radar
+              dataKey='desktop'
+              fill='var(--color-desktop)'
+              fillOpacity={0.5}
+            />
+          </RadarChart>
+        </ChartContainer>
+      );
+    default:
+      return <div>No chart available for this type.</div>;
+  }
+};
+
+function NestedBlocks(props: Block) {
+  if (props.nested !== undefined && props.nested !== null) {
+    const { projects, setProjects, activeProject } = useContext(ProjectsContext)
+    return (
+      <Sortable
+        orientation='horizontal'
+        value={props.nested}
+        strategy={rectSortingStrategy}
+        onValueChange={(value) => {
+          setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
+            blocks: Object.assign({}, proj.blocks, {
+              layout: proj.blocks?.layout.map((l) => l.uniquekey === props.uniquekey ? Object.assign({}, l, {
+                nested: value
+              }) : l)
+            })
+          }) : proj))
+        }}
+        overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
+      >
+        <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
+          {props.nested.map((block) => (
+            <IndividualBlock key={block.uniquekey} {...block} />
+          ))}
+          {props.nested.length < 3 ? (
+            <BlocksDialog type='compact'>
+              <div className='h-full cursor-pointer select-none'>
+                <EmptyState
+                  title='Add new block'
+                  description='Add a new block to this group.'
+                  icons={[PlusCircle, Plus, PlusSquare]}
+                  className='flex !size-full max-h-none min-w-[320px] flex-col items-center justify-center bg-transparent'
+                />
+              </div>
+            </BlocksDialog>
+          ) : undefined}
+        </div>
+      </Sortable>
+    );
+  }
+
+  return (
+    <CardContent
+      className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
+    >
+      <Charts chartType={props.chartType} />
+    </CardContent>
+  );
+};
 
 function BlockOptions(props: {
   children: ReactNode;

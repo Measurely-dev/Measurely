@@ -16,7 +16,6 @@ export function generateString(length : number) : string {
     return result;
 }
 
-console.log(generateString(5));
 export function roleToString(role: UserRole): string {
   switch (role) {
     case UserRole.Owner:
