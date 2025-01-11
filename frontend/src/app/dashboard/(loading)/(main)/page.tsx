@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import {
   Dispatch,
+  memo,
   ReactNode,
   SetStateAction,
   useEffect,
@@ -130,7 +131,7 @@ import { generateString } from '@/utils';
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [groupInput, setGroupInput] = useState('');
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -165,7 +166,7 @@ export default function DashboardHomePage() {
         titleClassName='!text-2xl font-semibold'
       >
         <div className='flex gap-2 max-sm:grid max-sm:grid-cols-2'>
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant={'secondary'} className='rounded-[12px]'>
                 <Group className='mr-2 size-4' />
@@ -197,20 +198,35 @@ export default function DashboardHomePage() {
                   </Button>
                 </DialogClose>
 
-                <Button onClick={() => {
-                  setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
-                    blocks: Object.assign({}, proj.blocks, {
-                      layout: [...(proj.blocks === null ? [] : proj.blocks.layout), {
-                        id: proj.blocks === null ? 1 : proj.blocks.layout.length + 1,
-                        name: groupInput,
-                        type: BlockType.Group,
-                        nested: [],
-                        label: "group",
-                        uniquekey: generateString(10)
-                      }]
-                    })
-                  }) : proj))
-                }}
+                <Button
+                  onClick={() => {
+                    setProjects(
+                      projects.map((proj, i) =>
+                        i === activeProject
+                          ? Object.assign({}, proj, {
+                              blocks: Object.assign({}, proj.blocks, {
+                                layout: [
+                                  ...(proj.blocks === null
+                                    ? []
+                                    : proj.blocks.layout),
+                                  {
+                                    id:
+                                      proj.blocks === null
+                                        ? 1
+                                        : proj.blocks.layout.length + 1,
+                                    name: groupInput,
+                                    type: BlockType.Group,
+                                    nested: [],
+                                    label: 'group',
+                                    uniquekey: generateString(10),
+                                  },
+                                ],
+                              }),
+                            })
+                          : proj,
+                      ),
+                    );
+                  }}
                   className='rounded-[12px]'
                   disabled={groupInput === ''}
                 >
@@ -344,13 +360,16 @@ function Blocks() {
           });
       } else {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/blocks/layout`, {
-          method: "PATCH", credentials: "include", headers: {
-            "Content-Type": "application/json"
-          }, body: JSON.stringify({
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             newlayout: projects[activeProject].blocks.layout,
-            projectid: projects[activeProject].id
-          })
-        })
+            projectid: projects[activeProject].id,
+          }),
+        });
       }
     }
   }, [projects, activeProject]);
@@ -365,11 +384,17 @@ function Blocks() {
           value={projects[activeProject].blocks.layout}
           strategy={rectSortingStrategy}
           onValueChange={(value) => {
-            setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
-              blocks: Object.assign({}, proj.blocks, {
-                layout: value
-              })
-            }) : proj))
+            setProjects(
+              projects.map((proj, i) =>
+                i === activeProject
+                  ? Object.assign({}, proj, {
+                      blocks: Object.assign({}, proj.blocks, {
+                        layout: value,
+                      }),
+                    })
+                  : proj,
+              ),
+            );
           }}
           overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
         >
@@ -449,6 +474,171 @@ function BlockContent(props: Block) {
   const totalVisitors = useMemo(() => {
     return PieChartData.reduce((acc, curr) => acc + curr.visitors, 0);
   }, []);
+  const Charts = memo(() => {
+    const chartProps = {
+      className: 'h-full',
+      valueFormatter,
+    };
+
+    switch (props.chartType) {
+      case ChartType.Area:
+        return (
+          <AreaChart
+            data={AreaChartData}
+            {...chartProps}
+            colors={['violet', 'blue']}
+            index='date'
+            categories={['SolarPanels', 'Inverters']}
+            yAxisLabel='Total'
+          />
+        );
+      case ChartType.Bar:
+        return (
+          <BarChart
+            data={BarChartData}
+            {...chartProps}
+            colors={['violet', 'blue']}
+            index='date'
+            categories={['SolarPanels', 'Inverters']}
+            yAxisLabel='Total'
+          />
+        );
+      case ChartType.Combo:
+        return (
+          <ComboChart
+            data={ComboChartData}
+            {...chartProps}
+            index='date'
+            enableBiaxial
+            barSeries={{
+              categories: ['SolarPanels'],
+              showYAxis: true,
+            }}
+            lineSeries={{
+              categories: ['Inverters'],
+              showYAxis: true,
+              colors: ['fuchsia'],
+            }}
+          />
+        );
+      case ChartType.BarList:
+        return <BarList data={BarListData} {...chartProps} />;
+      case ChartType.Pie:
+        return (
+          <ChartContainer
+            config={pieChartConfig}
+            className='mx-auto h-full w-full'
+          >
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Pie
+                data={PieChartData}
+                dataKey='visitors'
+                nameKey='browser'
+                innerRadius={60}
+                strokeWidth={5}
+              >
+                <RechartLabel
+                  content={({ viewBox }) => {
+                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor='middle'
+                          dominantBaseline='middle'
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className='fill-foreground text-3xl font-bold'
+                          >
+                            {totalVisitors.toLocaleString()}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className='fill-muted-foreground'
+                          >
+                            Visitors
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        );
+      case ChartType.Radar:
+        return (
+          <ChartContainer
+            config={chartConfig}
+            className='mx-auto h-full w-full'
+          >
+            <RadarChart data={RadarChartData}>
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <PolarGrid
+                className='fill-[blue] opacity-20'
+                gridType='polygon'
+              />
+              <PolarAngleAxis dataKey='month' />
+              <Radar
+                dataKey='desktop'
+                fill='var(--color-desktop)'
+                fillOpacity={0.5}
+              />
+            </RadarChart>
+          </ChartContainer>
+        );
+      default:
+        return <div>No chart available for this type.</div>;
+    }
+  });
+
+  const NestedBlocks = () => {
+    if (props.nested !== undefined && props.nested !== null) {
+      return (
+        <Sortable
+          orientation='horizontal'
+          value={nestedBlocks}
+          strategy={rectSortingStrategy}
+          onValueChange={setNestedBlocks}
+          overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
+        >
+          <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
+            {nestedBlocks.map((nestedBlock) => (
+              <IndividualBlock key={nestedBlock.id} {...nestedBlock} />
+            ))}
+            {nestedBlocks.length < 3 ? (
+              <BlocksDialog type='compact'>
+                <div className='h-full cursor-pointer select-none'>
+                  <EmptyState
+                    title='Add new block'
+                    description='Add a new block to this group.'
+                    icons={[PlusCircle, Plus, PlusSquare]}
+                    className='flex !size-full max-h-none min-w-[320px] flex-col items-center justify-center bg-transparent'
+                  />
+                </div>
+              </BlocksDialog>
+            ) : undefined}
+          </div>
+        </Sortable>
+      );
+    }
+
+    return (
+      <CardContent
+        className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
+      >
+        <Charts />
+      </CardContent>
+    );
+  };
 
   return (
     <>
@@ -462,8 +652,6 @@ function BlockContent(props: Block) {
             size={'icon'}
             className='rounded-[12px]'
             style={buttonStyle(props.color, isHoveredDrag)}
-            onMouseEnter={() => setIsHoveredDrag(true)}
-            onMouseLeave={() => setIsHoveredDrag(false)}
           >
             <GripVertical className='size-5' />
           </SortableDragHandle>
@@ -489,9 +677,7 @@ function BlockContent(props: Block) {
             <Button
               size={'icon'}
               variant={'ghost'}
-              style={buttonStyle(props.color, isHoveredMore, isOpen)}
-              onMouseEnter={() => setIsHoveredMore(true)}
-              onMouseLeave={() => setIsHoveredMore(false)}
+              style={buttonStyle(props.color, isOpen)}
               className='ml-auto rounded-[12px]'
             >
               <MoreVertical className='size-5 p-0' />
@@ -526,8 +712,8 @@ function BlockContent(props: Block) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-              props.chartType !== ChartType.Radar &&
-              props.chartType !== ChartType.BarList ? (
+            props.chartType !== ChartType.Radar &&
+            props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
                 {[
                   { name: 'SolarPanels', value: 21267 },
@@ -561,15 +747,16 @@ function BlockContent(props: Block) {
           <CardDescription>January - June 2024</CardDescription>
         </CardHeader>
       ) : undefined}
-      <NestedBlocks {...props} />
+      <NestedBlocks />
       {props.type === BlockType.Group ? (
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
-            ? 'items-center text-center'
-            : 'items-start'
-            }`}
+          className={`flex-col gap-2 text-sm ${
+            props.type === BlockType.Nested
+              ? 'items-center text-center'
+              : 'items-start'
+          }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -582,7 +769,6 @@ function BlockContent(props: Block) {
     </>
   );
 }
-
 
 function Charts(props: { chartType: ChartType | undefined }) {
   const chartProps = {
@@ -686,16 +872,10 @@ function Charts(props: { chartType: ChartType | undefined }) {
       );
     case ChartType.Radar:
       return (
-        <ChartContainer
-          config={chartConfig}
-          className='mx-auto h-full w-full'
-        >
+        <ChartContainer config={chartConfig} className='mx-auto h-full w-full'>
           <RadarChart data={RadarChartData}>
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <PolarGrid
-              className='fill-[blue] opacity-20'
-              gridType='polygon'
-            />
+            <PolarGrid className='fill-[blue] opacity-20' gridType='polygon' />
             <PolarAngleAxis dataKey='month' />
             <Radar
               dataKey='desktop'
@@ -708,24 +888,35 @@ function Charts(props: { chartType: ChartType | undefined }) {
     default:
       return <div>No chart available for this type.</div>;
   }
-};
+}
 
 function NestedBlocks(props: Block) {
   if (props.nested !== undefined && props.nested !== null) {
-    const { projects, setProjects, activeProject } = useContext(ProjectsContext)
+    const { projects, setProjects, activeProject } =
+      useContext(ProjectsContext);
     return (
       <Sortable
         orientation='horizontal'
         value={props.nested}
         strategy={rectSortingStrategy}
         onValueChange={(value) => {
-          setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
-            blocks: Object.assign({}, proj.blocks, {
-              layout: proj.blocks?.layout.map((l) => l.uniquekey === props.uniquekey ? Object.assign({}, l, {
-                nested: value
-              }) : l)
-            })
-          }) : proj))
+          setProjects(
+            projects.map((proj, i) =>
+              i === activeProject
+                ? Object.assign({}, proj, {
+                    blocks: Object.assign({}, proj.blocks, {
+                      layout: proj.blocks?.layout.map((l) =>
+                        l.uniquekey === props.uniquekey
+                          ? Object.assign({}, l, {
+                              nested: value,
+                            })
+                          : l,
+                      ),
+                    }),
+                  })
+                : proj,
+            ),
+          );
         }}
         overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
       >
@@ -757,7 +948,7 @@ function NestedBlocks(props: Block) {
       <Charts chartType={props.chartType} />
     </CardContent>
   );
-};
+}
 
 function BlockOptions(props: {
   children: ReactNode;
@@ -959,9 +1150,11 @@ function BlocksDialog(props: {
   type: 'compact' | 'wide';
 }) {
   const [value, setValue] = useState<number>(-1);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogStackOpen, setIsDialogStackOpen] = useState(false);
   return (
-    <DialogStack>
-      <Dialog>
+    <DialogStack open={isDialogStackOpen} onOpenChange={setIsDialogStackOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild className='max-sm:w-full'>
           {props.children}
         </DialogTrigger>
@@ -1010,7 +1203,11 @@ function BlocksDialog(props: {
                 Cancel
               </Button>
             </DialogClose>
-            <BlocksDialogStack type={value}>
+            <BlocksDialogStack
+              setIsDialogStackOpen={setIsDialogStackOpen}
+              setIsDialogOpen={setIsDialogOpen}
+              type={value}
+            >
               <Button
                 className='w-fit rounded-[12px] max-md:mb-2'
                 disabled={value === -1 ? true : false}
@@ -1035,10 +1232,11 @@ function BlockItem(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
-        ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
-        : 'cursor-pointer hover:bg-accent/50'
-        }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
+        props.state === props.value
+          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+          : 'cursor-pointer hover:bg-accent/50'
+      }`}
       onClick={() => {
         props.setState(props.state !== props.value ? props.value : 0);
       }}
@@ -1073,7 +1271,12 @@ const findBlockByValue = (value: number) => {
   return null;
 };
 
-function BlocksDialogStack(props: { children: ReactNode; type: number }) {
+function BlocksDialogStack(props: {
+  children: ReactNode;
+  setIsDialogOpen: Dispatch<SetStateAction<boolean>>;
+  setIsDialogStackOpen: Dispatch<SetStateAction<boolean>>;
+  type: number;
+}) {
   const blockSelected = useMemo(
     () => findBlockByValue(props.type),
     [props.type],
@@ -1187,30 +1390,33 @@ function BlocksDialogStack(props: { children: ReactNode; type: number }) {
               className='rounded-[12px]'
               disabled={selectedMetrics.length === 0}
               onClick={() => {
+                props.setIsDialogOpen(false);
+                props.setIsDialogStackOpen(false);
                 setProjects(
                   projects.map((proj, i) =>
                     i === activeProject
                       ? Object.assign({}, proj, {
-                        blocks: Object.assign({}, proj.blocks, {
-                          layout: [
-                            ...(proj.blocks === null
-                              ? []
-                              : proj.blocks.layout),
-                            {
-                              id:
-                                (proj.blocks === null
-                                  ? 1
-                                  : (proj.blocks.layout.length ?? 0)) + 1,
-                              name: nameInputValue,
-                              type: BlockType.Default,
-                              chartType: props.type,
-                              label: 'overview',
-                              metricIds: selectedMetrics.map((metric) => metric.id),
-                              uniquekey: generateString(10)
-                            },
-                          ],
-                        }),
-                      })
+                          blocks: Object.assign({}, proj.blocks, {
+                            layout: [
+                              ...(proj.blocks === null
+                                ? []
+                                : proj.blocks.layout),
+                              {
+                                id:
+                                  (proj.blocks === null
+                                    ? 1
+                                    : (proj.blocks.layout.length ?? 0)) + 1,
+                                name: nameInputValue,
+                                type: BlockType.Default,
+                                chartType: props.type,
+                                label: 'overview',
+                                metricIds: selectedMetrics.map(
+                                  (metric) => metric.id,
+                                ),
+                              },
+                            ],
+                          }),
+                        })
                       : proj,
                   ),
                 );
