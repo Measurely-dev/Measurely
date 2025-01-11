@@ -894,7 +894,6 @@ function BlockOptions(
 ) {
   const confirm = useConfirm();
   const [selectedColor, setSelectedColor] = useState<string | undefined>('');
-  async function handleDelete({ type }: { type: BlockType }) {
   const { projects, setProjects, activeProject } = useContext(ProjectsContext)
 
   async function handleDelete() {
