@@ -125,6 +125,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric } from '@/types';
 import { toast } from 'sonner';
+import { generateString } from '@/utils';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -217,7 +218,8 @@ export default function DashboardHomePage() {
                         name: groupInput,
                         type: BlockType.Group,
                         nested: [],
-                        label: "group"
+                        label: "group",
+                        uniquekey: generateString(10)
                       }]
                     })
                   }) : proj))
@@ -386,7 +388,7 @@ function Blocks() {
         >
           <div className='grid grid-cols-3 gap-4'>
             {projects[activeProject].blocks.layout.map((block) => (
-              <IndividualBlock key={block.id} {...block} />
+              <IndividualBlock key={block.uniquekey} {...block} />
             ))}
           </div>
         </Sortable>
@@ -397,7 +399,7 @@ function Blocks() {
 
 function IndividualBlock(props: Block) {
   return (
-    <SortableItem key={props.id} value={props.id} asChild>
+    <SortableItem value={props.id} asChild>
       <div
         className={`overflow-x-auto`}
         style={{
@@ -598,7 +600,7 @@ function BlockContent(props: Block) {
         >
           <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
             {nestedBlocks.map((nestedBlock) => (
-              <IndividualBlock key={nestedBlock.id} {...nestedBlock} />
+              <IndividualBlock key={nestedBlock.uniquekey} {...nestedBlock} />
             ))}
             {nestedBlocks.length < 3 ? (
               <BlocksDialog type='compact'>
@@ -1205,7 +1207,8 @@ function BlocksDialogStack(props: { children: ReactNode; type: number }) {
                               type: BlockType.Default,
                               chartType: props.type,
                               label: 'overview',
-                              metricIds: selectedMetrics.map((metric) => metric.id)
+                              metricIds: selectedMetrics.map((metric) => metric.id),
+                              uniquekey: generateString(10)
                             },
                           ],
                         }),

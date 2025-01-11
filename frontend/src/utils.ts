@@ -4,6 +4,19 @@ import { Metric, MetricType, UserRole } from './types';
 export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 20000;
 
+const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+export function generateString(length : number) : string {
+    let result = ' ';
+    const charactersLength = characters.length;
+    for ( let i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
+}
+
+console.log(generateString(5));
 export function roleToString(role: UserRole): string {
   switch (role) {
     case UserRole.Owner:

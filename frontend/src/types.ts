@@ -71,6 +71,7 @@ export interface Blocks {
 }
 
 export interface Block {
+  uniquekey : string;
   id: number;
   name: string;
   nested?: Block[];

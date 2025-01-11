@@ -131,21 +131,22 @@ type Blocks struct {
 	TeamRelationId sql.Null[uuid.UUID]
 	UserId         uuid.UUID
 	ProjectId      uuid.UUID
-  Layout         []Block `json:"layout"`
-  Labels         []Label `json:"label"`
+	Layout         []Block `json:"layout"`
+	Labels         []Label `json:"label"`
 }
 
-type Block struct{
-  Id int `json:"id"`
-  Name string `json:"name"`
-  Nested []Block `json:"nested"`
-  MetricIds []uuid.UUID `json:"metricIds"`
-  Type int `json:"type"`
-  ChartType int `json:"chartType"`
-  Label string `json:"label"`
-  Color string `json:"color"`
+type Block struct {
+	UniqueKey string      `json:"uniquekey"`
+	Id        int         `json:"id"`
+	Name      string      `json:"name"`
+	Nested    []Block     `json:"nested"`
+	MetricIds []uuid.UUID `json:"metricIds"`
+	Type      int         `json:"type"`
+	ChartType int         `json:"chartType"`
+	Label     string      `json:"label"`
+	Color     string      `json:"color"`
 }
 
-type Label struct{
-  Name string `json:"name"`
+type Label struct {
+	Name string `json:"name"`
 }
