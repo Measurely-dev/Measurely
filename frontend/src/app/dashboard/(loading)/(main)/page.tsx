@@ -127,6 +127,7 @@ import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric } from '@/types';
 import { toast } from 'sonner';
 import { generateString } from '@/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -200,6 +201,8 @@ export default function DashboardHomePage() {
 
                 <Button
                   onClick={() => {
+                    setIsDialogOpen(false);
+                    setGroupInput('');
                     setProjects(
                       projects.map((proj, i) =>
                         i === activeProject
@@ -377,7 +380,11 @@ function Blocks() {
   return (
     <div className='mt-5 pb-20'>
       {projects[activeProject].blocks === null ? (
-        <>LOADING...</>
+        <div className='flex flex-col gap-5'>
+          <Skeleton className='h-[56vh] w-full rounded-[12px]' />
+          <Skeleton className='h-[56vh] w-full rounded-[12px]' />
+          <Skeleton className='h-[56vh] w-full rounded-[12px]' />
+        </div>
       ) : (
         <Sortable
           orientation='vertical'
