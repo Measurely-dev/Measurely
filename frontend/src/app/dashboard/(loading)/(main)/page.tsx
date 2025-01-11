@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/breadcrumb';
 import {
   Dispatch,
-  memo,
   ReactNode,
   SetStateAction,
   useEffect,
@@ -23,6 +22,8 @@ import {
   SortableItem,
 } from '@/components/ui/sortable';
 import {
+  BlocksIcon,
+  Cuboid,
   GripVertical,
   Group,
   MoreVertical,
@@ -83,7 +84,6 @@ import {
 } from '@/components/ui/dialog-stack';
 import { Input } from '@/components/ui/input';
 import { MetricSelect } from '@/components/ui/metric-select';
-import { LabelSelect } from '@/components/ui/label-select';
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -133,6 +133,8 @@ export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [groupInput, setGroupInput] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { user } = useContext(UserContext);
+
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -168,12 +170,26 @@ export default function DashboardHomePage() {
       >
         <div className='flex gap-2 max-sm:grid max-sm:grid-cols-2'>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant={'secondary'} className='rounded-[12px]'>
-                <Group className='mr-2 size-4' />
-                Create group
-              </Button>
-            </DialogTrigger>
+            <div
+              onClick={() => {
+                projects[activeProject].metrics?.length === 0
+                  ? toast.warning(
+                      'Please create one or more metrics before adding a block group.',
+                    )
+                  : null;
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  disabled={projects[activeProject].metrics?.length === 0}
+                  variant={'secondary'}
+                  className='rounded-[12px]'
+                >
+                  <Group className='mr-2 size-4' />
+                  Create group
+                </Button>
+              </DialogTrigger>
+            </div>
             <DialogContent>
               <DialogHeader>
                 <DialogStackTitle>Choose group name</DialogStackTitle>
@@ -198,7 +214,6 @@ export default function DashboardHomePage() {
                     Cancel
                   </Button>
                 </DialogClose>
-
                 <Button
                   onClick={() => {
                     setIsDialogOpen(false);
@@ -238,13 +253,25 @@ export default function DashboardHomePage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-
-          <BlocksDialog type='wide'>
-            <Button className='rounded-[12px]'>
-              <PackagePlus className='mr-2 size-4' />
-              Create block
-            </Button>
-          </BlocksDialog>
+          <div
+            onClick={() => {
+              projects[activeProject].metrics?.length === 0
+                ? toast.warning(
+                    'Please create one or more metrics before adding a block.',
+                  )
+                : null;
+            }}
+          >
+            <BlocksDialog type='wide'>
+              <Button
+                disabled={projects[activeProject].metrics?.length === 0}
+                className='rounded-[12px]'
+              >
+                <PackagePlus className='mr-2 size-4' />
+                Create block
+              </Button>
+            </BlocksDialog>
+          </div>
         </div>
       </Header>
       <Blocks />
@@ -379,7 +406,14 @@ function Blocks() {
 
   return (
     <div className='mt-5 pb-20'>
-      {projects[activeProject].blocks === null ? (
+      {projects[activeProject].blocks?.layout.length === 0 ? (
+        <EmptyState
+          title='No blocks available'
+          description='You have no blocks available in this project. Create a new block or group to get started.'
+          icons={[Cuboid, Plus, BlocksIcon]}
+          className='flex !size-full max-h-[300px] flex-col items-center justify-center bg-transparent'
+        />
+      ) : projects[activeProject].blocks === null ? (
         <div className='flex flex-col gap-5'>
           <Skeleton className='h-[56vh] w-full rounded-[12px]' />
           <Skeleton className='h-[56vh] w-full rounded-[12px]' />
