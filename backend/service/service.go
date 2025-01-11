@@ -2107,9 +2107,36 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 
 	blocks, err := s.db.GetBlocks(projectid, token.Id)
 	if err != nil && err != sql.ErrNoRows {
-    log.Println(err)
+		log.Println(err)
 		http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		return
+	} else if err == sql.ErrNoRows {
+		project, err := s.db.GetProject(projectid, token.Id)
+		if err == nil {
+			teamrelationid := sql.Null[uuid.UUID]{
+				Valid: false,
+			}
+			if project.UserRole != types.TEAM_OWNER {
+				team_relation, err := s.db.GetTeamRelation(token.Id, projectid)
+				if err == nil {
+					teamrelationid.Valid = true
+					teamrelationid.V = team_relation.Id
+				}
+			}
+
+			blocks, err = s.db.CreateBlocks(types.Blocks{
+				TeamRelationId: teamrelationid,
+				UserId:         token.Id,
+				ProjectId:      projectid,
+				Labels:         []types.Label{},
+				Layout:         []types.Block{},
+			})
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
 	body, err := json.Marshal(blocks)
@@ -2120,4 +2147,34 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
+}
+
+func (s *Service) UpdateBlocksLayout(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+  var request struct {
+    NewLayout []types.Block `json:"newlayout"`
+    ProjectId uuid.UUID `json:"projectid"`
+  }
+
+  if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+
+  if err := s.db.UpdateBlocksLayout(request.ProjectId, token.Id, request.NewLayout); err != nil {
+    if err == sql.ErrNoRows{
+      http.Error(w, "Blocks not found", http.StatusNotFound)
+    }else {
+      log.Println(err)
+      http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+    }
+    return
+  }
+
+  w.WriteHeader(http.StatusOK)
 }

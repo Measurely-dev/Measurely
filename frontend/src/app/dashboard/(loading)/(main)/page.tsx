@@ -127,9 +127,10 @@ import { Block, BlockType, ChartType, Metric } from '@/types';
 import { toast } from 'sonner';
 
 export default function DashboardHomePage() {
-  const { projects, activeProject } = useContext(ProjectsContext);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [activeMetric, setActiveMetric] = useState(0);
   const [groupInput, setGroupInput] = useState('');
+
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -208,7 +209,19 @@ export default function DashboardHomePage() {
                   </Button>
                 </DialogClose>
 
-                <Button
+                <Button onClick={() => {
+                  setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
+                    blocks: Object.assign({}, proj.blocks, {
+                      layout: [...(proj.blocks === null ? [] : proj.blocks.layout), {
+                        id: proj.blocks === null ? 1 : proj.blocks.layout.length + 1,
+                        name: groupInput,
+                        type: BlockType.Group,
+                        nested: [],
+                        label: "group"
+                      }]
+                    })
+                  }) : proj))
+                }}
                   className='rounded-[12px]'
                   disabled={groupInput === '' ? true : false}
                 >
@@ -303,7 +316,6 @@ const valueFormatter = (number: number) =>
   Intl.NumberFormat('us').format(number).toString();
 
 function Blocks() {
-  const [blockData, setBlockData] = useState<Block[] | null>(null);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
 
   useEffect(() => {
@@ -324,7 +336,6 @@ function Blocks() {
           })
           .then((data) => {
             if (data !== null && data !== undefined) {
-              setBlockData(data.layout);
               setProjects(
                 projects.map((proj, i) =>
                   i === activeProject
@@ -333,21 +344,27 @@ function Blocks() {
                 ),
               );
             } else {
-              setBlockData([]);
               setProjects(
                 projects.map((proj, i) =>
                   i === activeProject
-                    ? Object.assign({}, proj, { blocks: [] })
+                    ? Object.assign({}, proj, { blocks: null })
                     : proj,
                 ),
               );
             }
           });
       } else {
-        setBlockData(projects[activeProject].blocks.layout);
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/blocks/layout`, {
+          method: "PATCH", credentials: "include", headers: {
+            "Content-Type": "application/json"
+          }, body: JSON.stringify({
+            newlayout: projects[activeProject].blocks.layout,
+            projectid: projects[activeProject].id
+          })
+        })
       }
     }
-  }, [activeProject]);
+  }, [projects, activeProject]);
 
   return (
     <div className='mt-5 pb-20'>
@@ -356,13 +373,19 @@ function Blocks() {
       ) : (
         <Sortable
           orientation='vertical'
-          value={blockData ?? []}
+          value={projects[activeProject].blocks.layout}
           strategy={rectSortingStrategy}
-          onValueChange={setBlockData}
+          onValueChange={(value) => {
+            setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
+              blocks: Object.assign({}, proj.blocks, {
+                layout: value
+              })
+            }) : proj))
+          }}
           overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
         >
           <div className='grid grid-cols-3 gap-4'>
-            {blockData?.map((block) => (
+            {projects[activeProject].blocks.layout.map((block) => (
               <IndividualBlock key={block.id} {...block} />
             ))}
           </div>
@@ -379,11 +402,9 @@ function IndividualBlock(props: Block) {
         className={`overflow-x-auto`}
         style={{
           gridColumn:
-            props.colSpan === 2
-              ? 'span 2 / span 2'
-              : props.colSpan === 3
-                ? 'span 3 / span 3'
-                : 'span 1 / span 1',
+            props.type !== BlockType.Nested
+              ? 'span 3 / span 3'
+              : 'span 1 / span 1',
         }}
       >
         <Card
@@ -566,7 +587,7 @@ function BlockContent(props: Block) {
   };
 
   const NestedBlocks = () => {
-    if (props.nested !== undefined) {
+    if (props.nested !== undefined && props.nested !== null) {
       return (
         <Sortable
           orientation='horizontal'
@@ -681,8 +702,8 @@ function BlockContent(props: Block) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-            props.chartType !== ChartType.Radar &&
-            props.chartType !== ChartType.BarList ? (
+              props.chartType !== ChartType.Radar &&
+              props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
                 {[
                   { name: 'SolarPanels', value: 21267 },
@@ -721,11 +742,10 @@ function BlockContent(props: Block) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${
-            props.type === BlockType.Nested
-              ? 'items-center text-center'
-              : 'items-start'
-          }`}
+          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
+            ? 'items-center text-center'
+            : 'items-start'
+            }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -1015,11 +1035,10 @@ function BlockItem(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
-        props.state === props.value
-          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
-          : 'cursor-pointer hover:bg-accent/50'
-      }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
+        ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+        : 'cursor-pointer hover:bg-accent/50'
+        }`}
       onClick={() => {
         props.setState(props.state !== props.value ? props.value : 0);
       }}
@@ -1172,19 +1191,25 @@ function BlocksDialogStack(props: { children: ReactNode; type: number }) {
                   projects.map((proj, i) =>
                     i === activeProject
                       ? Object.assign({}, proj, {
-                          blocks: [
-                            ...(projects[activeProject].blocks?.layout ?? []),
+                        blocks: Object.assign({}, proj.blocks, {
+                          layout: [
+                            ...(proj.blocks === null
+                              ? []
+                              : proj.blocks.layout),
                             {
                               id:
-                                (projects[activeProject].blocks?.layout
-                                  .length ?? 0) + 1,
+                                (proj.blocks === null
+                                  ? 1
+                                  : (proj.blocks.layout.length ?? 0)) + 1,
                               name: nameInputValue,
                               type: BlockType.Default,
                               chartType: props.type,
                               label: 'overview',
+                              metricIds: selectedMetrics.map((metric) => metric.id)
                             },
                           ],
-                        })
+                        }),
+                      })
                       : proj,
                   ),
                 );

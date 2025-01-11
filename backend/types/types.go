@@ -138,11 +138,10 @@ type Blocks struct {
 type Block struct{
   Id int `json:"id"`
   Name string `json:"name"`
-  ColSpan int `json:"colSpan"`
   Nested []Block `json:"nested"`
   MetricIds []uuid.UUID `json:"metricIds"`
   Type int `json:"type"`
-  ChartType int `json:"ChartType"`
+  ChartType int `json:"chartType"`
   Label string `json:"label"`
   Color string `json:"color"`
 }

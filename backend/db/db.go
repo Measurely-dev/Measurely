@@ -769,3 +769,56 @@ func (db *DB) GetBlocks(projectId, userId uuid.UUID) (*types.Blocks, error) {
 
 	return &blocks, nil
 }
+
+func (db *DB) CreateBlocks(blocks types.Blocks) (*types.Blocks, error) {
+	query := `
+		INSERT INTO Blocks (TeamRelationId, UserId, ProjectId, Layout, Labels)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING TeamRelationId, UserId, ProjectId, Layout, Labels
+	`
+
+	layoutJSON, err := json.Marshal(blocks.Layout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal layout: %w", err)
+	}
+
+	labelsJSON, err := json.Marshal(blocks.Labels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal labels: %w", err)
+	}
+
+	var newBlocks types.Blocks
+	var returnedLayoutJSON, returnedLabelsJSON []byte
+
+	err = db.Conn.QueryRowx(query, blocks.TeamRelationId, blocks.UserId, blocks.ProjectId, layoutJSON, labelsJSON).
+		Scan(&newBlocks.TeamRelationId, &newBlocks.UserId, &newBlocks.ProjectId, &returnedLayoutJSON, &returnedLabelsJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert blocks: %w", err)
+	}
+
+	if err := json.Unmarshal(returnedLayoutJSON, &newBlocks.Layout); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal returned layout: %w", err)
+	}
+	if err := json.Unmarshal(returnedLabelsJSON, &newBlocks.Labels); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal returned labels: %w", err)
+	}
+
+	return &newBlocks, nil
+}
+
+func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.Block) error {
+	query := `
+		UPDATE Blocks
+		SET Layout = $1
+		WHERE ProjectId = $2 AND UserId = $3
+	`
+
+	layoutJSON, err := json.Marshal(newLayout)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Conn.Exec(query, layoutJSON, projectId, userId)
+
+	return err
+}

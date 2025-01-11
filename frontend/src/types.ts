@@ -73,7 +73,6 @@ export interface Blocks {
 export interface Block {
   id: number;
   name: string;
-  colSpan: number;
   nested?: Block[];
   metricIds: string[];
   chartType?: ChartType;
