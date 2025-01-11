@@ -231,25 +231,25 @@ export default function DashboardHomePage() {
                       projects.map((proj, i) =>
                         i === activeProject
                           ? Object.assign({}, proj, {
-                              blocks: Object.assign({}, proj.blocks, {
-                                layout: [
-                                  ...(proj.blocks === null
-                                    ? []
-                                    : proj.blocks.layout),
-                                  {
-                                    id:
-                                      proj.blocks === null
-                                        ? 1
-                                        : proj.blocks.layout.length + 1,
-                                    name: groupInput,
-                                    type: BlockType.Group,
-                                    nested: [],
-                                    label: 'group',
-                                    uniquekey: generateString(10),
-                                  },
-                                ],
-                              }),
-                            })
+                            blocks: Object.assign({}, proj.blocks, {
+                              layout: [
+                                ...(proj.blocks === null
+                                  ? []
+                                  : proj.blocks.layout),
+                                {
+                                  id:
+                                    proj.blocks === null
+                                      ? 1
+                                      : proj.blocks.layout.length + 1,
+                                  name: groupInput,
+                                  type: BlockType.Group,
+                                  nested: [],
+                                  label: 'group',
+                                  uniquekey: generateString(10),
+                                },
+                              ],
+                            }),
+                          })
                           : proj,
                       ),
                     );
@@ -438,10 +438,10 @@ function Blocks() {
               projects.map((proj, i) =>
                 i === activeProject
                   ? Object.assign({}, proj, {
-                      blocks: Object.assign({}, proj.blocks, {
-                        layout: value,
-                      }),
-                    })
+                    blocks: Object.assign({}, proj.blocks, {
+                      layout: value,
+                    }),
+                  })
                   : proj,
               ),
             );
@@ -459,7 +459,7 @@ function Blocks() {
   );
 }
 
-function IndividualBlock(props: Block) {
+function IndividualBlock(props: Block & { groupkey?: string }) {
   return (
     <SortableItem value={props.id} asChild>
       <div
@@ -514,7 +514,7 @@ const pieChartConfig = {
   },
 } satisfies ChartConfig;
 
-function BlockContent(props: Block) {
+function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
@@ -591,8 +591,8 @@ function BlockContent(props: Block) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-            props.chartType !== ChartType.Radar &&
-            props.chartType !== ChartType.BarList ? (
+              props.chartType !== ChartType.Radar &&
+              props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
                 {[
                   { name: 'SolarPanels', value: 21267 },
@@ -631,11 +631,10 @@ function BlockContent(props: Block) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${
-            props.type === BlockType.Nested
-              ? 'items-center text-center'
-              : 'items-start'
-          }`}
+          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
+            ? 'items-center text-center'
+            : 'items-start'
+            }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -782,16 +781,16 @@ function NestedBlocks(props: Block) {
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                    blocks: Object.assign({}, proj.blocks, {
-                      layout: proj.blocks?.layout.map((l) =>
-                        l.uniquekey === props.uniquekey
-                          ? Object.assign({}, l, {
-                              nested: value,
-                            })
-                          : l,
-                      ),
-                    }),
-                  })
+                  blocks: Object.assign({}, proj.blocks, {
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.uniquekey
+                        ? Object.assign({}, l, {
+                          nested: value,
+                        })
+                        : l,
+                    ),
+                  }),
+                })
                 : proj,
             ),
           );
@@ -800,7 +799,7 @@ function NestedBlocks(props: Block) {
       >
         <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
           {props.nested.map((block) => (
-            <IndividualBlock key={block.uniquekey} {...block} />
+            <IndividualBlock key={block.uniquekey} groupkey={props.uniquekey} {...block} />
           ))}
           {props.nested.length < 3 ? (
             <BlocksDialog type='compact' groupkey={props.uniquekey}>
@@ -890,17 +889,20 @@ function BlockOptions(
   props: Block & {
     children: ReactNode;
     setIsOpen: (state: boolean) => void;
+    groupkey?: string;
   },
 ) {
   const confirm = useConfirm();
   const [selectedColor, setSelectedColor] = useState<string | undefined>('');
   async function handleDelete({ type }: { type: BlockType }) {
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext)
+
+  async function handleDelete() {
     const isConfirmed = await confirm({
-      title: `Delete ${type === BlockType.Group ? 'Group' : 'Block'}`,
+      title: `Delete ${props.type === BlockType.Group ? 'Group' : 'Block'}`,
       icon: <Trash2 className='size-5 text-destructive' />,
-      description: `Are you sure you want to delete this ${
-        type === BlockType.Group ? 'Group' : 'Block'
-      }? This action cannot be undone.`,
+      description: `Are you sure you want to delete this ${props.type === BlockType.Group ? 'Group' : 'Block'
+        }? This action cannot be undone.`,
       confirmText: 'Yes, delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -919,8 +921,24 @@ function BlockOptions(
       },
     });
     if (isConfirmed) {
+      if (props.groupkey !== undefined) {
+        setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
+          blocks: Object.assign({}, proj.blocks, {
+            layout: proj.blocks?.layout.map((l) => l.uniquekey === props.groupkey ? Object.assign({}, l, {
+              nested: l.nested?.filter(n => n.uniquekey !== props.uniquekey)
+            }) : l)
+          })
+        }) : proj))
+
+      } else {
+        setProjects(projects.map((proj, i) => i === activeProject ? Object.assign({}, proj, {
+          blocks: Object.assign({}, proj.blocks, {
+            layout: proj.blocks?.layout.filter((l) => l.uniquekey !== props.uniquekey)
+          })
+        }) : proj))
+      }
       toast.success(
-        `${type === BlockType.Group ? 'Group' : 'Block'} deleted successfully.`,
+        `${props.type === BlockType.Group ? 'Group' : 'Block'} deleted successfully.`,
       );
     }
   }
@@ -1016,7 +1034,7 @@ function BlockOptions(
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
-            onClick={() => handleDelete({ type: props.type })}
+            onClick={handleDelete}
             className='hover:!text-destructive'
           >
             Delete
@@ -1271,11 +1289,10 @@ function BlockItem(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
-        props.state === props.value
-          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
-          : 'cursor-pointer hover:bg-accent/50'
-      }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
+        ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+        : 'cursor-pointer hover:bg-accent/50'
+        }`}
       onClick={() => {
         props.setState(props.state !== props.value ? props.value : 0);
       }}
@@ -1464,19 +1481,19 @@ function BlocksDialogStack(props: {
                     projects.map((proj, i) =>
                       i === activeProject
                         ? Object.assign({}, proj, {
-                            blocks: Object.assign({}, proj.blocks, {
-                              layout: proj.blocks?.layout.map((l) =>
-                                l.uniquekey === props.groupKey
-                                  ? Object.assign({}, l, {
-                                      nested: [
-                                        ...(l.nested ? l.nested : []),
-                                        newBlock,
-                                      ],
-                                    })
-                                  : l,
-                              ),
-                            }),
-                          })
+                          blocks: Object.assign({}, proj.blocks, {
+                            layout: proj.blocks?.layout.map((l) =>
+                              l.uniquekey === props.groupKey
+                                ? Object.assign({}, l, {
+                                  nested: [
+                                    ...(l.nested ? l.nested : []),
+                                    newBlock,
+                                  ],
+                                })
+                                : l,
+                            ),
+                          }),
+                        })
                         : proj,
                     ),
                   );
@@ -1489,15 +1506,15 @@ function BlocksDialogStack(props: {
                     projects.map((proj, i) =>
                       i === activeProject
                         ? Object.assign({}, proj, {
-                            blocks: Object.assign({}, proj.blocks, {
-                              layout: [
-                                ...(proj.blocks === null
-                                  ? []
-                                  : proj.blocks.layout),
-                                newBlock,
-                              ],
-                            }),
-                          })
+                          blocks: Object.assign({}, proj.blocks, {
+                            layout: [
+                              ...(proj.blocks === null
+                                ? []
+                                : proj.blocks.layout),
+                              newBlock,
+                            ],
+                          }),
+                        })
                         : proj,
                     ),
                   );
