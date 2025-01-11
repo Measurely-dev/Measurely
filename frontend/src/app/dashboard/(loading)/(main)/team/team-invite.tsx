@@ -64,8 +64,8 @@ export default function TeamInvite(props: {
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                  members: [...(projects[activeProject].members ?? []), data],
-                })
+                    members: [...(projects[activeProject].members ?? []), data],
+                  })
                 : proj,
             ),
           );
@@ -113,9 +113,10 @@ export default function TeamInvite(props: {
                   </SelectTrigger>
                   <SelectContent>
                     {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
-                      (role) => {
+                      (role, i) => {
                         return (
                           <SelectItem
+                            key={i}
                             value={role.toString()}
                             onClick={() => setSelectedRole(role)}
                           >

@@ -34,8 +34,6 @@ import { BoxIcon, CurlyBraces, Link2Icon, Loader } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRouter } from 'next/navigation';
 import { ProjectsContext } from '@/dash-context';
-import MetricStats from '@/components/dashboard/metric-stats';
-import { MetricType } from '@/types';
 import { UserRole } from '@/types';
 
 export default function DashboardMetrics() {

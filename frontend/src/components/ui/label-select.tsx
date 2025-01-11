@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronsUpDown, Edit, Edit2, Trash } from 'lucide-react';
+import { Check, ChevronsUpDown, Edit, Trash } from 'lucide-react';
 
-import { cn, getContrastYIQ } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import {
   Accordion,
   AccordionContent,

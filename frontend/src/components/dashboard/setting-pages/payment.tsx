@@ -37,7 +37,7 @@ export default function SettingPaymentPage() {
         toast.error(errorText);
       }
     } catch (err) {
-      toast.error('Failed to connect to the billing service.');
+      toast.error('Failed to connect to the billing service.' + err);
     } finally {
       setLoadingBilling(false);
     }
@@ -65,9 +65,10 @@ export default function SettingPaymentPage() {
             title: `Metrics limit`,
             used: MetricLimitStat.metricsLength,
             total: user?.plan.metric_per_project_limit,
-            description: `For '${MetricLimitStat.projectName?.charAt(0).toUpperCase() +
-              MetricLimitStat.projectName.slice(1).toLowerCase() || ''
-              }'`,
+            description: `For '${
+              MetricLimitStat.projectName?.charAt(0).toUpperCase() +
+                MetricLimitStat.projectName.slice(1).toLowerCase() || ''
+            }'`,
           },
           {
             title: 'Projects limit',
@@ -92,10 +93,11 @@ export default function SettingPaymentPage() {
         ]}
       />
       <div
-        className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${user?.plan.identifier === 'starter'
+        className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${
+          user?.plan.identifier === 'starter'
             ? 'bg-accent'
             : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'
-          }`}
+        }`}
       >
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
@@ -112,10 +114,11 @@ export default function SettingPaymentPage() {
         </div>
         <PlansDialog>
           <Button
-            className={`rounded-[10px] max-md:w-full ${user?.plan.identifier === 'starter'
+            className={`rounded-[10px] max-md:w-full ${
+              user?.plan.identifier === 'starter'
                 ? ''
                 : 'bg-background text-primary hover:bg-background hover:text-primary/80'
-              }`}
+            }`}
             variant={
               user?.plan.identifier === 'starter' ? 'default' : 'outline'
             }

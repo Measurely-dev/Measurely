@@ -31,7 +31,6 @@ import {
   verticalListSortingStrategy,
   type SortableContextProps,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { Slot, type SlotProps } from '@radix-ui/react-slot';
 
 import { composeRefs } from '@/lib/compose-refs';

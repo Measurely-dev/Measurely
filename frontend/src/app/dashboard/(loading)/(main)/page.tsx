@@ -9,7 +9,9 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import {
+  ChangeEvent,
   Dispatch,
+  FC,
   ReactNode,
   SetStateAction,
   useEffect,
@@ -23,7 +25,9 @@ import {
 } from '@/components/ui/sortable';
 import {
   BlocksIcon,
+  CopyPlus,
   Cuboid,
+  Edit,
   GripVertical,
   Group,
   MoreVertical,
@@ -33,6 +37,7 @@ import {
   PlusSquare,
   Rocket,
   Sparkle,
+  Trash2,
   TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -128,13 +133,12 @@ import { Block, BlockType, ChartType, Metric } from '@/types';
 import { toast } from 'sonner';
 import { generateString } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateKey } from 'crypto';
+import { useConfirm } from '@omit/react-confirm-dialog';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [groupInput, setGroupInput] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { user } = useContext(UserContext);
 
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
@@ -173,11 +177,11 @@ export default function DashboardHomePage() {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <div
               onClick={() => {
-                projects[activeProject].metrics?.length === 0
-                  ? toast.warning(
+                if (projects[activeProject].metrics?.length === 0) {
+                  toast.warning(
                     'Please create one or more metrics before adding a block group.',
-                  )
-                  : null;
+                  );
+                }
               }}
             >
               <DialogTrigger asChild>
@@ -256,11 +260,11 @@ export default function DashboardHomePage() {
           </Dialog>
           <div
             onClick={() => {
-              projects[activeProject].metrics?.length === 0
-                ? toast.warning(
+              if (projects[activeProject].metrics?.length === 0) {
+                toast.warning(
                   'Please create one or more metrics before adding a block.',
-                )
-                : null;
+                );
+              }
             }}
           >
             <BlocksDialog type='wide'>
@@ -510,10 +514,6 @@ function BlockContent(props: Block) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
-  const totalVisitors = useMemo(() => {
-    return PieChartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
-
   return (
     <>
       <CardHeader
@@ -526,6 +526,8 @@ function BlockContent(props: Block) {
             size={'icon'}
             className='rounded-[12px]'
             style={buttonStyle(props.color, isHoveredDrag)}
+            onMouseEnter={() => setIsHoveredDrag(true)}
+            onMouseLeave={() => setIsHoveredDrag(false)}
           >
             <GripVertical className='size-5' />
           </SortableDragHandle>
@@ -544,15 +546,14 @@ function BlockContent(props: Block) {
           ) : (
             <></>
           )}
-          <BlockOptions
-            setIsOpen={setIsOpen}
-            type={props.type === BlockType.Group ? 'group' : 'block'}
-          >
+          <BlockOptions {...props} setIsOpen={setIsOpen}>
             <Button
               size={'icon'}
               variant={'ghost'}
-              style={buttonStyle(props.color, isOpen)}
+              style={buttonStyle(props.color, isHoveredMore, isOpen)}
               className='ml-auto rounded-[12px]'
+              onMouseEnter={() => setIsHoveredMore(true)}
+              onMouseLeave={() => setIsHoveredMore(false)}
             >
               <MoreVertical className='size-5 p-0' />
             </Button>
@@ -764,9 +765,8 @@ function Charts(props: { chartType: ChartType | undefined }) {
 }
 
 function NestedBlocks(props: Block) {
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   if (props.nested !== undefined && props.nested !== null) {
-    const { projects, setProjects, activeProject } =
-      useContext(ProjectsContext);
     return (
       <Sortable
         orientation='horizontal'
@@ -823,39 +823,191 @@ function NestedBlocks(props: Block) {
   );
 }
 
-function BlockOptions(props: {
-  children: ReactNode;
-  setIsOpen: (state: boolean) => void;
-  type: 'group' | 'block';
-}) {
+const RenameConfirmContent: FC<{
+  onValueChange: (disabled: boolean) => void;
+  initialValue: string;
+}> = ({ onValueChange, initialValue }) => {
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    onValueChange(value.trim() === '' || value === initialValue);
+  }, [value, onValueChange, initialValue]);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
+
+  return (
+    <div className='space-y-2'>
+      <p className='mt-2 text-sm font-medium'>New name</p>
+      <Input
+        value={value}
+        onChange={handleInputChange}
+        placeholder='New name'
+        autoComplete='off'
+        className='h-11 rounded-[12px]'
+      />
+    </div>
+  );
+};
+
+const getRenameConfig = (
+  initialValue: string,
+  onValueChange: (disabled: boolean) => void,
+) => ({
+  icon: <Edit className='size-4 text-primary' />,
+  title: 'Rename Item',
+  alertDialogTitle: {
+    className: 'flex items-center gap-2',
+  },
+  description: 'Provide a new name for the selected item.',
+  contentSlot: (
+    <RenameConfirmContent
+      onValueChange={onValueChange}
+      initialValue={initialValue}
+    />
+  ),
+  confirmText: 'Rename',
+  cancelText: 'Cancel',
+  confirmButton: {
+    variant: 'default' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  cancelButton: {
+    variant: 'outline' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  alertDialogContent: {
+    className: 'max-w-xl !rounded-[16px]',
+  },
+});
+function BlockOptions(
+  props: Block & {
+    children: ReactNode;
+    setIsOpen: (state: boolean) => void;
+  },
+) {
+  const confirm = useConfirm();
+
+  async function handleDelete({ type }: { type: BlockType }) {
+    const isConfirmed = await confirm({
+      title: `Delete ${type === BlockType.Group ? 'Group' : 'Block'}`,
+      icon: <Trash2 className='size-5 text-destructive' />,
+      description: `Are you sure you want to delete this ${
+        type === BlockType.Group ? 'Group' : 'Block'
+      }? This action cannot be undone.`,
+      confirmText: 'Yes, delete',
+      cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+        className: 'rounded-[12px]',
+      },
+      confirmButton: {
+        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-2',
+      },
+      alertDialogContent: {
+        className: '!rounded-[16px]',
+      },
+    });
+    if (isConfirmed) {
+      toast.success(
+        `${type === BlockType.Group ? 'Group' : 'Block'} deleted successfully.`,
+      );
+    }
+  }
+
+  async function handleRename(initialName: string) {
+    const confirmConfig = getRenameConfig(initialName, (disabled) => {
+      confirm.updateConfig((prev) => ({
+        ...prev,
+        confirmButton: { ...prev.confirmButton, disabled },
+      }));
+    });
+
+    const isConfirmed = await confirm(confirmConfig);
+
+    if (isConfirmed) {
+      toast.success(
+        `${props.type === BlockType.Group ? 'Group' : 'Block'} renamed successfully.`,
+      );
+    }
+  }
+
+  async function handleDuplicate({ name }: { name: string }) {
+    const isConfirmed = await confirm({
+      title: `Duplicate ${name}`,
+      icon: <CopyPlus className='size-5 text-black' />,
+      description: `Are you sure you want to duplicate "${name}"? This action will create a copy.`,
+      confirmText: 'Yes, duplicate',
+      cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+        className: 'rounded-[12px]',
+      },
+      confirmButton: {
+        className: 'rounded-[12px]',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-2',
+      },
+      alertDialogContent: {
+        className: '!rounded-[16px]',
+      },
+    });
+
+    if (isConfirmed) {
+      toast.success(`"${name}" duplicated successfully.`);
+    }
+  }
+
   return (
     <DropdownMenu onOpenChange={(e) => props.setIsOpen(e)}>
       <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
       <DropdownMenuContent className='mr-8 w-56 rounded-[12px] shadow-md'>
-        {props.type === 'group' ? (
+        {props.type === BlockType.Group ? (
           <DropdownMenuLabel>Group Options</DropdownMenuLabel>
         ) : (
           <DropdownMenuLabel>Block Options</DropdownMenuLabel>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>Rename</DropdownMenuItem>
-          <DropdownMenuItem className={props.type === 'group' ? 'hidden' : ''}>
+          <DropdownMenuItem onClick={() => handleRename(props.name)}>
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={props.type === BlockType.Group ? 'hidden' : ''}
+          >
             Edit Label
           </DropdownMenuItem>
-          <DropdownMenuItem className={props.type === 'group' ? 'hidden' : ''}>
+          <DropdownMenuItem
+            className={props.type === BlockType.Group ? 'hidden' : ''}
+          >
             Edit Metric(s)
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator
-          className={props.type === 'group' ? 'hidden' : ''}
+          className={props.type === BlockType.Group ? 'hidden' : ''}
         />
-        <DropdownMenuGroup className={props.type === 'group' ? 'hidden' : ''}>
-          <DropdownMenuItem>Duplicate</DropdownMenuItem>
+        <DropdownMenuGroup
+          className={props.type === BlockType.Group ? 'hidden' : ''}
+        >
+          <DropdownMenuItem
+            onClick={() => handleDuplicate({ name: props.name })}
+          >
+            Duplicate
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem className='hover:!text-destructive'>
+          <DropdownMenuItem
+            onClick={() => handleDelete({ type: props.type })}
+            className='hover:!text-destructive'
+          >
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -863,6 +1015,7 @@ function BlockOptions(props: {
     </DropdownMenu>
   );
 }
+
 // -----------------------------------------------------------------------------------------------------------
 interface BlockShowcaseType {
   name: string;
@@ -1159,7 +1312,6 @@ function BlocksDialogStack(props: {
   const [nameInputValue, setNameInputValue] = useState<string>('');
 
   const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string>('');
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   return (
     <>
@@ -1221,7 +1373,6 @@ function BlocksDialogStack(props: {
           <div className='my-4 mb-0'>
             <div className='flex flex-col gap-2'>
               <Label>Block label</Label>
-              {/* <LabelSelect selectedLabel={selectedLabel} setSelectedLabel={setSelectedLabel} /> */}
             </div>
           </div>
           <DialogStackFooter>

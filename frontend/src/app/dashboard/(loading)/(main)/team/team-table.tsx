@@ -529,9 +529,10 @@ function MemberOption({
               <DropdownMenuPortal>
                 <DropdownMenuSubContent className='rounded-[12px]'>
                   {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
-                    (role) => {
+                    (role, i) => {
                       return (
                         <DropdownMenuItem
+                          key={i}
                           className='rounded-[10px]'
                           disabled={member.userrole === role}
                           onClick={() => switchRole(member, role)}
