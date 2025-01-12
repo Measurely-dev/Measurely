@@ -930,7 +930,19 @@ function BlockOptions(
       },
     });
     if (isConfirmed) {
+      let layout = projects[activeProject].blocks?.layout;
       if (props.groupkey !== undefined) {
+        const blockIndex =
+          layout?.findIndex((l) => l.uniquekey === props.groupkey) ?? -1;
+        if (blockIndex === -1) return;
+
+        let nested = layout?.[blockIndex].nested ?? [];
+        nested = nested.filter((n) => n.uniquekey !== props.uniquekey);
+        for (let i = 0; i < nested.length; i++) {
+          nested[i].id = i + 1;
+        }
+        console.log(nested)
+
         setProjects(
           projects.map((proj, i) =>
             i === activeProject
@@ -939,9 +951,7 @@ function BlockOptions(
                   layout: proj.blocks?.layout.map((l) =>
                     l.uniquekey === props.groupkey
                       ? Object.assign({}, l, {
-                        nested: l.nested?.filter(
-                          (n) => n.uniquekey !== props.uniquekey,
-                        ),
+                        nested: nested,
                       })
                       : l,
                   ),
@@ -951,14 +961,17 @@ function BlockOptions(
           ),
         );
       } else {
+        layout = layout?.filter((l) => l.uniquekey !== props.uniquekey) ?? [];
+        for (let i = 0; i < layout.length; i++) {
+          layout[i].id = i + 1;
+        }
+
         setProjects(
           projects.map((proj, i) =>
             i === activeProject
               ? Object.assign({}, proj, {
                 blocks: Object.assign({}, proj.blocks, {
-                  layout: proj.blocks?.layout.filter(
-                    (l) => l.uniquekey !== props.uniquekey,
-                  ),
+                  layout: layout,
                 }),
               })
               : proj,
@@ -1524,7 +1537,7 @@ function BlocksDialogStack(props: {
                     return;
                   }
 
-                  newBlock.id = length;
+                  newBlock.id = length + 1;
                   setProjects(
                     projects.map((proj, i) =>
                       i === activeProject
