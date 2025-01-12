@@ -20,30 +20,25 @@ import type {
   SetStateAction,
 } from 'react';
 
-type DialogStackContextType = {
+interface DialogStackContextType {
   activeIndex: number;
   setActiveIndex: Dispatch<SetStateAction<number>>;
   totalDialogs: number;
-  setTotalDialogs: Dispatch<SetStateAction<number>>;
+  setTotalDialogs: (total: number) => void;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   clickable: boolean;
-};
+  closeDialog: () => void; // Add closeDialog to context type
+  openDialog: () => void; // Add openDialog to context type
+}
 
-const DialogStackContext = createContext<DialogStackContextType>({
-  activeIndex: 0,
-  setActiveIndex: () => {},
-  totalDialogs: 0,
-  setTotalDialogs: () => {},
-  isOpen: false,
-  setIsOpen: () => {},
-  clickable: false,
-});
+export const DialogStackContext = createContext<
+  DialogStackContextType | undefined
+>(undefined);
 
 type DialogStackChildProps = {
   index?: number;
 };
-
 export const DialogStack = ({
   children,
   className,
@@ -59,9 +54,37 @@ export const DialogStack = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(open);
 
+  // Wrap the original setIsOpen to reset index when closing
+  const wrappedSetIsOpen: Dispatch<SetStateAction<boolean>> = (value) => {
+    setIsOpen((prevState) => {
+      const newState = typeof value === 'function' ? value(prevState) : value;
+      if (!newState) {
+        setActiveIndex(0); // Reset index to 0 when closing
+      }
+      return newState;
+    });
+  };
+
+  // Sync state with open prop only if needed (one-time sync on mount)
   useEffect(() => {
-    onOpenChange?.(isOpen);
+    setIsOpen(open);
+  }, [open]);
+
+  // Call onOpenChange only if the state changes
+  useEffect(() => {
+    if (onOpenChange) {
+      onOpenChange(isOpen);
+    }
   }, [isOpen, onOpenChange]);
+
+  const closeDialog = () => {
+    setIsOpen(false); // Close the dialog
+    setActiveIndex(0); // Reset to the first dialog
+  };
+
+  const openDialog = () => {
+    setIsOpen(true); // Open the dialog
+  };
 
   return (
     <DialogStackContext.Provider
@@ -71,8 +94,10 @@ export const DialogStack = ({
         totalDialogs: 0,
         setTotalDialogs: () => {},
         isOpen,
-        setIsOpen,
+        setIsOpen: wrappedSetIsOpen,
         clickable,
+        closeDialog, // Provide closeDialog in context
+        openDialog, // Provide openDialog in context
       }}
     >
       <div className={className} {...props}>
@@ -81,7 +106,6 @@ export const DialogStack = ({
     </DialogStackContext.Provider>
   );
 };
-
 export const DialogStackTrigger = ({
   children,
   className,
@@ -148,7 +172,7 @@ export const DialogStackOverlay = ({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 bg-black/80',
+        'fixed inset-0 z-[100] h-screen w-screen bg-blue-500/80',
         'data-[state=closed]:animate-out data-[state=open]:animate-in',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,

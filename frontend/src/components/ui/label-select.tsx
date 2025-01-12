@@ -77,13 +77,13 @@ export function LabelSelect(props: {
       projects.map((proj, i) =>
         i === activeProject
           ? Object.assign({}, proj, {
-            blocks: Object.assign({}, proj.blocks, {
-              labels: [
-                ...(proj.blocks === null ? [] : proj.blocks?.labels),
-                { name: newLabel, defaultcolor: '' },
-              ],
-            }),
-          })
+              blocks: Object.assign({}, proj.blocks, {
+                labels: [
+                  ...(proj.blocks === null ? [] : proj.blocks?.labels),
+                  { name: newLabel, defaultcolor: '' },
+                ],
+              }),
+            })
           : proj,
       ),
     );
@@ -113,8 +113,8 @@ export function LabelSelect(props: {
         projects.map((proj, i) =>
           i === activeProject
             ? Object.assign({}, proj, {
-              labels: labels,
-            })
+                labels: labels,
+              })
             : proj,
         ),
       );
@@ -127,8 +127,8 @@ export function LabelSelect(props: {
       projects.map((proj, i) =>
         i === activeProject
           ? Object.assign({}, proj, {
-            labels: proj.blocks?.labels.filter((l) => l.name !== label),
-          })
+              labels: proj.blocks?.labels.filter((l) => l.name !== label),
+            })
           : proj,
       ),
     );
@@ -170,7 +170,7 @@ export function LabelSelect(props: {
               ) : (
                 <Badge
                   variant='outline'
-                  className='truncate'
+                  className='truncate capitalize'
                   style={badgeStyle(getColorByLabel(props.selectedLabel))}
                 >
                   {props.selectedLabel}
@@ -205,7 +205,7 @@ export function LabelSelect(props: {
                             : 'opacity-0',
                         )}
                       />
-                      <div className='flex-1'>{label.name}</div>
+                      <div className='flex-1 capitalize'>{label.name}</div>
                       <div
                         className='h-4 w-4 rounded-full'
                         style={{ backgroundColor: label.defaultcolor }}
@@ -251,22 +251,24 @@ export function LabelSelect(props: {
               labels using the input field.
             </DialogDescription>
           </DialogHeader>
-          <div className='-mx-6 flex-1 overflow-scroll px-6 py-2'>
-            {projects[activeProject].blocks?.labels.map((label) => {
-              return (
-                <DialogListItem
-                  key={label.name}
-                  label={label}
-                  onDelete={() => deleteLabel(label.name)}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const target = e.target as typeof e.target &
-                      Record<'name' | 'color', { value: string }>;
-                    updateLabel(label.name, target.name.value.toLowerCase());
-                  }}
-                />
-              );
-            })}
+          <div className='-mx-6 flex-1 overflow-scroll px-6 py-2 capitalize'>
+            <Accordion type='single' collapsible>
+              {projects[activeProject].blocks?.labels.map((label) => {
+                return (
+                  <DialogListItem
+                    key={label.name}
+                    label={label}
+                    onDelete={() => deleteLabel(label.name)}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const target = e.target as typeof e.target &
+                        Record<'name' | 'color', { value: string }>;
+                      updateLabel(label.name, target.name.value.toLowerCase());
+                    }}
+                  />
+                );
+              })}
+            </Accordion>
           </div>
           <DialogFooter>
             <DialogClose asChild>
@@ -331,93 +333,89 @@ const DialogListItem = ({
   }, [accordionValue]);
 
   return (
-    <Accordion
-      key={label.name}
-      type='single'
-      collapsible
-      value={accordionValue}
-      onValueChange={setAccordionValue}
-    >
-      <AccordionItem value={label.name}>
-        <AccordionTrigger>
-          <div className='flex items-center justify-between'>
-            <div>
-              <Badge variant='outline' style={badgeStyle(label.defaultcolor)}>
-                {label.name}
-              </Badge>
-            </div>
+    <AccordionItem value={label.name}>
+      <AccordionTrigger>
+        <div className='flex items-center justify-between'>
+          <div>
+            <Badge
+              variant='outline'
+              className='capitalize'
+              style={badgeStyle(label.defaultcolor)}
+            >
+              {label.name}
+            </Badge>
           </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <form
-            className='flex items-end gap-4 pt-2'
-            onSubmit={(e) => {
-              onSubmit(e);
-              setAccordionValue('');
-            }}
-          >
-            <div className='grid w-full gap-2'>
-              <Label htmlFor='name'>Label name</Label>
-              <Input
-                ref={inputRef}
-                id='name'
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className='h-8 min-h-8'
-              />
-            </div>
-            <div className='flex w-fit gap-1'>
-              <Button
-                type='submit'
-                className='rounded-[12px]'
-                disabled={disabled}
-                size={'sm'}
-              >
-                Save
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant='destructive'
-                    size={'icon'}
-                    className='size-8 min-h-8 min-w-8 rounded-[12px]'
-                  >
-                    <Trash className='size-4' />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      You are about to delete the label{' '}
-                      <Badge variant='outline' className='ml-1'>
-                        {label.name}
-                      </Badge>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel asChild>
-                      <Button
-                        variant={'secondary'}
-                        className='rounded-[12px] border-none'
-                      >
-                        Cancel
-                      </Button>
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className='rounded-[12px]'
-                      onClick={onDelete}
+        </div>
+      </AccordionTrigger>
+      <AccordionContent>
+        <form
+          className='flex items-end pt-2'
+          onSubmit={(e) => {
+            onSubmit(e);
+            setAccordionValue('');
+          }}
+        >
+          <div className='grid w-full gap-2'>
+            <Label htmlFor='name'>Label name</Label>
+            <Input
+              ref={inputRef}
+              id='name'
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              autoComplete='off'
+              className='h-10 min-h-10 rounded-[12px] rounded-e-none'
+            />
+          </div>
+          <div className='flex w-fit gap-0'>
+            <Button
+              type='submit'
+              className='h-10 min-h-10 !rounded-[0px]'
+              disabled={disabled}
+            >
+              Save
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant='destructive'
+                  size={'icon'}
+                  className='size-10 rounded-[12px] !rounded-s-none'
+                >
+                  <Trash className='size-4' />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className='!rounded-[16px]'>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You are about to delete the label{' '}
+                    <Badge variant='outline' className='ml-1 capitalize'>
+                      {label.name}
+                    </Badge>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel asChild>
+                    <Button
+                      variant={'secondary'}
+                      className='rounded-[12px] border-none'
                     >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </form>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+                      Cancel
+                    </Button>
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    className='rounded-[12px] bg-destructive hover:bg-destructive/80'
+                    onClick={onDelete}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </form>
+      </AccordionContent>
+    </AccordionItem>
   );
 };
 
