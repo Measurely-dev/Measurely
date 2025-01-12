@@ -902,7 +902,6 @@ function BlockOptions(
 ) {
   const confirm = useConfirm();
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
-  const [selectedColor, setSelectedColor] = useState<string | undefined>('');
   const [newName, setNewName] = useState(props.name);
   const [isRenamed, setIsRenamed] = useState(false);
 
@@ -941,7 +940,7 @@ function BlockOptions(
         for (let i = 0; i < nested.length; i++) {
           nested[i].id = i + 1;
         }
-        console.log(nested)
+        console.log(nested);
 
         setProjects(
           projects.map((proj, i) =>
@@ -996,6 +995,52 @@ function BlockOptions(
 
     if (isConfirmed) {
       setIsRenamed(true);
+    }
+  }
+
+  function handleColor(newcolor: string) {
+    if (props.groupkey !== undefined) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? Object.assign({}, proj, {
+              blocks: Object.assign({}, proj.blocks, {
+                layout: proj.blocks?.layout.map((l) =>
+                  l.uniquekey === props.groupkey
+                    ? Object.assign({}, l, {
+                      nested: l.nested?.map((n) =>
+                        n.uniquekey === props.uniquekey
+                          ? Object.assign({}, n, {
+                            color: newcolor,
+                          })
+                          : n,
+                      ),
+                    })
+                    : l,
+                ),
+              }),
+            })
+            : proj,
+        ),
+      );
+    } else {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? Object.assign({}, proj, {
+              blocks: Object.assign({}, proj.blocks, {
+                layout: proj.blocks?.layout.map((l) =>
+                  l.uniquekey === props.uniquekey
+                    ? Object.assign({}, l, {
+                      color: newcolor,
+                    })
+                    : l,
+                ),
+              }),
+            })
+            : proj,
+        ),
+      );
     }
   }
 
@@ -1075,10 +1120,7 @@ function BlockOptions(
             Edit Metric(s)
           </DropdownMenuItem>
           <div className={props.type === BlockType.Group ? 'hidden' : ''}>
-            <ColorDropdown
-              selectedColor={selectedColor}
-              setSelectedColor={setSelectedColor}
-            />
+            <ColorDropdown color={props.color} updateColor={handleColor} />
           </div>
         </DropdownMenuGroup>
         <DropdownMenuSeparator
@@ -1591,60 +1633,55 @@ function BlocksDialogStack(props: {
   );
 }
 
-interface ColorDropdownProps {
-  selectedColor: string | undefined;
-  setSelectedColor: Dispatch<SetStateAction<string | undefined>>;
-}
+const colors: Record<
+  | 'pink'
+  | 'blue'
+  | 'purple'
+  | 'lightblue'
+  | 'green'
+  | 'teal'
+  | 'orange'
+  | 'red'
+  | 'yellow'
+  | 'cyan'
+  | 'indigo'
+  | 'lime'
+  | 'coral'
+  | 'skyblue'
+  | 'magenta'
+  | 'lavender'
+  | 'aquamarine'
+  | 'gold'
+  | 'salmon'
+  | 'chartreuse',
+  string
+> = {
+  pink: '#b03060',
+  blue: '#1c3d7c',
+  purple: '#4b0082',
+  lightblue: '#34699a',
+  green: '#2a6e4b',
+  teal: '#005f60',
+  orange: '#b65c22',
+  red: '#8b0000',
+  yellow: '#b8860b',
+  cyan: '#006b6b',
+  indigo: '#2a275f',
+  lime: '#3b5f33',
+  coral: '#a34233',
+  skyblue: '#2d5c86',
+  magenta: '#730073',
+  lavender: '#574b90',
+  aquamarine: '#2e8b57',
+  gold: '#8b7500',
+  salmon: '#803636',
+  chartreuse: '#4b6b3c',
+};
 
-function ColorDropdown({
-  selectedColor,
-  setSelectedColor,
-}: ColorDropdownProps) {
-  const colors: Record<
-    | 'pink'
-    | 'blue'
-    | 'purple'
-    | 'lightblue'
-    | 'green'
-    | 'teal'
-    | 'orange'
-    | 'red'
-    | 'yellow'
-    | 'cyan'
-    | 'indigo'
-    | 'lime'
-    | 'coral'
-    | 'skyblue'
-    | 'magenta'
-    | 'lavender'
-    | 'aquamarine'
-    | 'gold'
-    | 'salmon'
-    | 'chartreuse',
-    string
-  > = {
-    pink: '#b03060',
-    blue: '#1c3d7c',
-    purple: '#4b0082',
-    lightblue: '#34699a',
-    green: '#2a6e4b',
-    teal: '#005f60',
-    orange: '#b65c22',
-    red: '#8b0000',
-    yellow: '#b8860b',
-    cyan: '#006b6b',
-    indigo: '#2a275f',
-    lime: '#3b5f33',
-    coral: '#a34233',
-    skyblue: '#2d5c86',
-    magenta: '#730073',
-    lavender: '#574b90',
-    aquamarine: '#2e8b57',
-    gold: '#8b7500',
-    salmon: '#803636',
-    chartreuse: '#4b6b3c',
-  };
-
+function ColorDropdown(props: {
+  color: string;
+  updateColor: (newcolor: string) => void;
+}) {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
@@ -1652,8 +1689,8 @@ function ColorDropdown({
           <div
             className='size-6 h-6 w-6 max-w-6 rounded-full border'
             style={{
-              backgroundColor: `${selectedColor}66`,
-              borderColor: `${selectedColor}33` || '#ccc',
+              backgroundColor: `${props.color}66`,
+              borderColor: `${props.color}33` || '#ccc',
             }}
           />
           Change color
@@ -1664,7 +1701,10 @@ function ColorDropdown({
           <DropdownMenuLabel>Select a color</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {Object.entries(colors).map(([key, value]) => (
-            <DropdownMenuItem key={key} onClick={() => setSelectedColor(value)}>
+            <DropdownMenuItem
+              key={key}
+              onClick={() => props.updateColor(value)}
+            >
               <div className='flex flex-row items-center gap-2'>
                 <div
                   className='inline-block size-4 rounded-full'
