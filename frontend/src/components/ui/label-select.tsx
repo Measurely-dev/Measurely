@@ -50,36 +50,8 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Dispatch, SetStateAction, useContext } from 'react';
 import { ProjectsContext } from '@/dash-context';
+import { LabelType } from '@/types';
 
-type LabelType = Record<'value' | 'label' | 'color', string>;
-
-// const LABELS = [
-//   {
-//     value: 'compare',
-//     label: 'Compare',
-//     color: '#8b5cf6',
-//   },
-//   {
-//     value: 'overview',
-//     label: 'Overview',
-//     color: '#E91E63',
-//   },
-//   {
-//     value: 'revenue',
-//     label: 'Revenue',
-//     color: '#3b82f6',
-//   },
-//   {
-//     value: 'profit',
-//     label: 'Profit',
-//     color: '#06b6d4',
-//   },
-//   {
-//     value: 'growth',
-//     label: 'Growth',
-//     color: '#eab308',
-//   },
-// ] satisfies LabelType[];
 export function LabelSelect(props: {
   selectedLabel: string;
   setSelectedLabel: Dispatch<SetStateAction<string>>;
@@ -108,7 +80,7 @@ export function LabelSelect(props: {
             blocks: Object.assign({}, proj.blocks, {
               labels: [
                 ...(proj.blocks === null ? [] : proj.blocks?.labels),
-                newLabel,
+                { name: newLabel, defaultcolor: '' },
               ],
             }),
           })
@@ -134,9 +106,9 @@ export function LabelSelect(props: {
       projects[activeProject].blocks === null
         ? []
         : [...projects[activeProject].blocks.labels];
-    const index = labels.indexOf(label);
+    const index = labels.findIndex((l) => l.name === label);
     if (index !== -1) {
-      labels[index] = newLabel;
+      labels[index].name = newLabel;
       setProjects(
         projects.map((proj, i) =>
           i === activeProject
@@ -155,7 +127,7 @@ export function LabelSelect(props: {
       projects.map((proj, i) =>
         i === activeProject
           ? Object.assign({}, proj, {
-            labels: proj.blocks?.labels.filter((l) => l != label),
+            labels: proj.blocks?.labels.filter((l) => l.name !== label),
           })
           : proj,
       ),
@@ -169,6 +141,17 @@ export function LabelSelect(props: {
   const onComboboxOpenChange = (value: boolean) => {
     inputRef.current?.blur();
     setOpenCombobox(value);
+  };
+
+  const getColorByLabel = (label: string): string => {
+    const index =
+      projects[activeProject].blocks?.labels.findIndex(
+        (l) => l.name === label,
+      ) ?? -1;
+    if (index === -1) {
+      return '';
+    }
+    return projects[activeProject].blocks?.labels[index].defaultcolor ?? '';
   };
 
   return (
@@ -185,7 +168,11 @@ export function LabelSelect(props: {
               {props.selectedLabel === '' ? (
                 'Select a label'
               ) : (
-                <Badge variant='outline' className='truncate'>
+                <Badge
+                  variant='outline'
+                  className='truncate'
+                  style={badgeStyle(getColorByLabel(props.selectedLabel))}
+                >
                   {props.selectedLabel}
                 </Badge>
               )}
@@ -206,22 +193,22 @@ export function LabelSelect(props: {
                 {projects[activeProject].blocks?.labels.map((label) => {
                   return (
                     <CommandItem
-                      key={label}
-                      value={label}
-                      onSelect={() => toggleLabel(label)}
+                      key={label.name}
+                      value={label.name}
+                      onSelect={() => toggleLabel(label.name)}
                     >
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          props.selectedLabel === label
+                          props.selectedLabel === label.name
                             ? 'opacity-100'
                             : 'opacity-0',
                         )}
                       />
-                      <div className='flex-1'>{label}</div>
+                      <div className='flex-1'>{label.name}</div>
                       <div
                         className='h-4 w-4 rounded-full'
-                        style={{ backgroundColor: label }}
+                        style={{ backgroundColor: label.defaultcolor }}
                       />
                     </CommandItem>
                   );
@@ -268,14 +255,14 @@ export function LabelSelect(props: {
             {projects[activeProject].blocks?.labels.map((label) => {
               return (
                 <DialogListItem
-                  key={label}
+                  key={label.name}
                   label={label}
-                  onDelete={() => deleteLabel(label)}
+                  onDelete={() => deleteLabel(label.name)}
                   onSubmit={(e) => {
                     e.preventDefault();
                     const target = e.target as typeof e.target &
                       Record<'name' | 'color', { value: string }>;
-                    updateLabel(label, target.name.value.toLowerCase());
+                    updateLabel(label.name, target.name.value.toLowerCase());
                   }}
                 />
               );
@@ -301,11 +288,11 @@ const CommandItemCreate = ({
 }: {
   inputValue: string;
   onSelect: () => void;
-  labels: string[];
+  labels: LabelType[];
 }) => {
   if (
     inputValue.trim() === '' ||
-    labels.includes(inputValue.trim().toLowerCase())
+    labels.findIndex((l) => l.name === inputValue.trim().toLowerCase()) !== -1
   ) {
     return;
   }
@@ -327,15 +314,15 @@ const DialogListItem = ({
   onSubmit,
   onDelete,
 }: {
-  label: string;
+  label: LabelType;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onDelete: () => void;
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [accordionValue, setAccordionValue] = React.useState<string>('');
-  const [inputValue, setInputValue] = React.useState<string>(label);
+  const [inputValue, setInputValue] = React.useState<string>(label.name);
 
-  const disabled = label === inputValue;
+  const disabled = label.name === inputValue;
 
   React.useEffect(() => {
     if (accordionValue !== '') {
@@ -345,17 +332,19 @@ const DialogListItem = ({
 
   return (
     <Accordion
-      key={label}
+      key={label.name}
       type='single'
       collapsible
       value={accordionValue}
       onValueChange={setAccordionValue}
     >
-      <AccordionItem value={label}>
+      <AccordionItem value={label.name}>
         <AccordionTrigger>
           <div className='flex items-center justify-between'>
             <div>
-              <Badge variant='outline'>{label}</Badge>
+              <Badge variant='outline' style={badgeStyle(label.defaultcolor)}>
+                {label.name}
+              </Badge>
             </div>
           </div>
         </AccordionTrigger>
@@ -402,7 +391,7 @@ const DialogListItem = ({
                     <AlertDialogDescription>
                       You are about to delete the label{' '}
                       <Badge variant='outline' className='ml-1'>
-                        {label}
+                        {label.name}
                       </Badge>
                     </AlertDialogDescription>
                   </AlertDialogHeader>

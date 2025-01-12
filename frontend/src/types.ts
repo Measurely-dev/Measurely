@@ -67,11 +67,11 @@ export interface Blocks {
   userid: string;
   projectid: string;
   layout: Block[];
-  labels: string[];
+  labels: LabelType[];
 }
 
 export interface Block {
-  uniquekey : string;
+  uniquekey: string;
   id: number;
   name: string;
   nested?: Block[];
@@ -80,6 +80,11 @@ export interface Block {
   type: BlockType;
   label: string;
   color: string;
+}
+
+export interface LabelType {
+  name: string;
+  defaultcolor: string;
 }
 
 export enum MetricType {

@@ -2124,11 +2124,34 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			DefaultLabels := []types.Label{
+				{
+					Name:         "overview",
+					DefaultColor: "#8b5cf6",
+				},
+				{
+					Name:         "comparaison",
+					DefaultColor: "#E91E63",
+				},
+				{
+					Name:         "revenue",
+					DefaultColor: "#3b82f6",
+				},
+				{
+					Name:         "profit",
+					DefaultColor: "#06b6d4",
+				},
+				{
+					Name:         "growth",
+					DefaultColor: "#eab308",
+				},
+			}
+
 			blocks, err = s.db.CreateBlocks(types.Blocks{
 				TeamRelationId: teamrelationid,
 				UserId:         token.Id,
 				ProjectId:      projectid,
-				Labels:         []string{"overview", "comparaison", "revenue", "profit", "growth"},
+				Labels:         DefaultLabels,
 				Layout:         []types.Block{},
 			})
 			if err != nil {
@@ -2156,26 +2179,26 @@ func (s *Service) UpdateBlocksLayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  var request struct {
-    NewLayout []types.Block `json:"newlayout"`
-    NewLabels []string `json:"newlabels"`
-    ProjectId uuid.UUID `json:"projectid"`
-  }
+	var request struct {
+		NewLayout []types.Block `json:"newlayout"`
+		NewLabels []types.Label `json:"newlabels"`
+		ProjectId uuid.UUID     `json:"projectid"`
+	}
 
-  if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-    http.Error(w, err.Error(), http.StatusBadRequest)
-    return
-  }
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-  if err := s.db.UpdateBlocksLayout(request.ProjectId, token.Id, request.NewLayout, request.NewLabels); err != nil {
-    if err == sql.ErrNoRows{
-      http.Error(w, "Blocks not found", http.StatusNotFound)
-    }else {
-      log.Println(err)
-      http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
-    }
-    return
-  }
+	if err := s.db.UpdateBlocksLayout(request.ProjectId, token.Id, request.NewLayout, request.NewLabels); err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Blocks not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
 
-  w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }

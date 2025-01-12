@@ -108,7 +108,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -1436,7 +1435,7 @@ function BlocksDialogStack(props: {
   const [nameInputValue, setNameInputValue] = useState<string>('');
 
   const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string>('overview');
+  const [selectedLabel, setSelectedLabel] = useState<string>('');
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   return (
     <>
@@ -1551,6 +1550,14 @@ function BlocksDialogStack(props: {
                 props.setIsDialogOpen(false);
                 props.setIsDialogStackOpen(false);
                 const project = projects[activeProject];
+                const labelIndex =
+                  project.blocks?.labels.findIndex(
+                    (l) => l.name === selectedLabel,
+                  ) ?? -1;
+                if (labelIndex === -1) {
+                  return;
+                }
+                const color = project.blocks?.labels[labelIndex].defaultcolor ?? "";
                 const newBlock: Block = {
                   id: 0,
                   uniquekey: generateString(10),
@@ -1562,7 +1569,7 @@ function BlocksDialogStack(props: {
                   chartType: props.type,
                   label: selectedLabel,
                   metricIds: selectedMetrics.map((metric) => metric.id),
-                  color: '',
+                  color: color,
                 };
                 if (props.groupKey !== undefined) {
                   const layout =

@@ -806,7 +806,7 @@ func (db *DB) CreateBlocks(blocks types.Blocks) (*types.Blocks, error) {
 	return &newBlocks, nil
 }
 
-func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.Block, newLabels []string) error {
+func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.Block, newLabels []types.Label) error {
 	query := `
 		UPDATE blocks
 		SET layout = $1,
