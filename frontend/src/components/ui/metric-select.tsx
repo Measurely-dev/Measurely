@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import { Check, ChevronsUpDown, Trash } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,6 +27,8 @@ export function MetricSelect(props: {
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>('');
   const { projects, activeProject } = React.useContext(ProjectsContext);
+
+  const projectMetrics = projects?.[activeProject]?.metrics ?? [];
 
   const toggleMetric = (metric: Metric) => {
     props.setSelectedMetrics((currentMetrics) =>
@@ -79,24 +79,30 @@ export function MetricSelect(props: {
             />
             <CommandList>
               <CommandGroup className='max-h-[300px] overflow-auto'>
-                {projects[activeProject].metrics?.map((metric) => {
-                  const isActive = props.selectedMetrics.includes(metric);
-                  return (
-                    <CommandItem
-                      key={metric.id}
-                      value={metric.name}
-                      onSelect={() => toggleMetric(metric)}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          isActive ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                      <div className='flex-1 capitalize'>{metric.name}</div>
-                    </CommandItem>
-                  );
-                })}
+                {projectMetrics.length > 0 ? (
+                  projectMetrics.map((metric) => {
+                    const isActive = props.selectedMetrics.includes(metric);
+                    return (
+                      <CommandItem
+                        key={metric.id}
+                        value={metric.name}
+                        onSelect={() => toggleMetric(metric)}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            isActive ? 'opacity-100' : 'opacity-0',
+                          )}
+                        />
+                        <div className='flex-1 capitalize'>{metric.name}</div>
+                      </CommandItem>
+                    );
+                  })
+                ) : (
+                  <div className='p-2 text-center text-sm text-muted-foreground'>
+                    No metrics available.
+                  </div>
+                )}
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup>

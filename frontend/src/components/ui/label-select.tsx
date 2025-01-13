@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Check, ChevronsUpDown, Edit, Trash } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import {
   Accordion,
@@ -48,75 +47,77 @@ import { DialogClose } from '@radix-ui/react-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Dispatch, SetStateAction, useContext } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 import { ProjectsContext } from '@/dash-context';
-import { LabelType } from '@/types';
+import { LabelType, Project } from '@/types';
 
 export function LabelSelect(props: {
   selectedLabel: string;
   setSelectedLabel: Dispatch<SetStateAction<string>>;
 }) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [openCombobox, setOpenCombobox] = React.useState(false);
-  const [openDialog, setOpenDialog] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState<string>('');
-
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [openCombobox, setOpenCombobox] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [inputValue, setInputValue] = useState<string>('');
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
 
   const createLabel = (name: string) => {
     const isValid = /^[a-zA-Z0-9\s-_]+$/.test(name);
-
     if (!isValid) {
       toast.error('Please choose a valid label.');
       return;
     }
-
     const newLabel = name.trim().toLowerCase();
-
     setProjects(
       projects.map((proj, i) =>
         i === activeProject
-          ? Object.assign({}, proj, {
-              blocks: Object.assign({}, proj.blocks, {
+          ? {
+              ...proj,
+              blocks: {
+                ...proj.blocks,
                 labels: [
-                  ...(proj.blocks === null ? [] : proj.blocks?.labels),
+                  ...(proj.blocks?.labels || []),
                   { name: newLabel, defaultcolor: '' },
                 ],
-              }),
-            })
+                userid: proj.blocks?.userid || '',
+              },
+            }
           : proj,
-      ),
+      ) as Project[],
     );
-
     setInputValue('');
     props.setSelectedLabel(newLabel);
   };
 
   const toggleLabel = (label: string) => {
-    if (label === props.selectedLabel) {
-      props.setSelectedLabel('');
-    } else {
-      props.setSelectedLabel(label);
-    }
+    props.setSelectedLabel(label === props.selectedLabel ? '' : label);
     inputRef?.current?.focus();
   };
 
   const updateLabel = (label: string, newLabel: string) => {
-    const labels =
-      projects[activeProject].blocks === null
-        ? []
-        : [...projects[activeProject].blocks.labels];
+    const labels = projects[activeProject]?.blocks?.labels || [];
     const index = labels.findIndex((l) => l.name === label);
     if (index !== -1) {
       labels[index].name = newLabel;
       setProjects(
         projects.map((proj, i) =>
           i === activeProject
-            ? Object.assign({}, proj, {
-                labels: labels,
-              })
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  labels,
+                  userid: proj.blocks?.userid || '',
+                },
+              }
             : proj,
-        ),
+        ) as Project[],
       );
       props.setSelectedLabel(label);
     }
@@ -126,37 +127,35 @@ export function LabelSelect(props: {
     setProjects(
       projects.map((proj, i) =>
         i === activeProject
-          ? Object.assign({}, proj, {
-              labels: proj.blocks?.labels.filter((l) => l.name !== label),
-            })
+          ? {
+              ...proj,
+              blocks: {
+                ...proj.blocks,
+                labels: proj.blocks?.labels.filter((l) => l.name !== label),
+                userid: proj.blocks?.userid || '',
+              },
+            }
           : proj,
-      ),
+      ) as Project[],
     );
-
     if (props.selectedLabel === label) {
       props.setSelectedLabel('');
     }
   };
 
-  const onComboboxOpenChange = (value: boolean) => {
-    inputRef.current?.blur();
-    setOpenCombobox(value);
+  const getColorByLabel = (label: string): string => {
+    const labels = projects[activeProject]?.blocks?.labels || [];
+    const index = labels.findIndex((l) => l.name === label);
+    return index !== -1 ? labels[index].defaultcolor || '' : '';
   };
 
-  const getColorByLabel = (label: string): string => {
-    const index =
-      projects[activeProject].blocks?.labels.findIndex(
-        (l) => l.name === label,
-      ) ?? -1;
-    if (index === -1) {
-      return '';
-    }
-    return projects[activeProject].blocks?.labels[index].defaultcolor ?? '';
+  const getAllLabels = (): LabelType[] => {
+    return projects[activeProject]?.blocks?.labels || [];
   };
 
   return (
     <div className='max-w-full'>
-      <Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
+      <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
         <PopoverTrigger asChild>
           <Button
             variant='outline'
@@ -171,7 +170,11 @@ export function LabelSelect(props: {
                 <Badge
                   variant='outline'
                   className='truncate capitalize'
-                  style={badgeStyle(getColorByLabel(props.selectedLabel))}
+                  style={{
+                    backgroundColor: `${getColorByLabel(props.selectedLabel)}1A`,
+                    borderColor: `${getColorByLabel(props.selectedLabel)}33`,
+                    color: getColorByLabel(props.selectedLabel),
+                  }}
                 >
                   {props.selectedLabel}
                 </Badge>
@@ -190,34 +193,40 @@ export function LabelSelect(props: {
             />
             <CommandList>
               <CommandGroup className='max-h-[300px] overflow-auto'>
-                {projects[activeProject].blocks?.labels.map((label) => {
-                  return (
+                {getAllLabels().map((label) => (
+                  <CommandItem
+                    key={label.name}
+                    value={label.name}
+                    onSelect={() => toggleLabel(label.name)}
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        props.selectedLabel === label.name
+                          ? 'opacity-100'
+                          : 'opacity-0',
+                      )}
+                    />
+                    <div className='flex-1 capitalize'>{label.name}</div>
+                    <div
+                      className='h-4 w-4 rounded-full'
+                      style={{ backgroundColor: label.defaultcolor }}
+                    />
+                  </CommandItem>
+                ))}
+                {inputValue.trim() !== '' &&
+                  !getAllLabels().some(
+                    (l) => l.name === inputValue.trim().toLowerCase(),
+                  ) && (
                     <CommandItem
-                      key={label.name}
-                      value={label.name}
-                      onSelect={() => toggleLabel(label.name)}
+                      value={inputValue.trim()}
+                      className='text-xs text-muted-foreground'
+                      onSelect={() => createLabel(inputValue)}
                     >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          props.selectedLabel === label.name
-                            ? 'opacity-100'
-                            : 'opacity-0',
-                        )}
-                      />
-                      <div className='flex-1 capitalize'>{label.name}</div>
-                      <div
-                        className='h-4 w-4 rounded-full'
-                        style={{ backgroundColor: label.defaultcolor }}
-                      />
+                      <div className={cn('mr-2 h-4 w-4')} />
+                      Create new label &quot;{inputValue.trim()}&quot;
                     </CommandItem>
-                  );
-                })}
-                <CommandItemCreate
-                  onSelect={() => createLabel(inputValue)}
-                  {...{ inputValue }}
-                  labels={projects[activeProject].blocks?.labels ?? []}
-                />
+                  )}
               </CommandGroup>
               <CommandSeparator alwaysRender />
               <CommandGroup>
@@ -253,21 +262,100 @@ export function LabelSelect(props: {
           </DialogHeader>
           <div className='-mx-6 flex-1 overflow-scroll px-6 py-2 capitalize'>
             <Accordion type='single' collapsible>
-              {projects[activeProject].blocks?.labels.map((label) => {
-                return (
-                  <DialogListItem
-                    key={label.name}
-                    label={label}
-                    onDelete={() => deleteLabel(label.name)}
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const target = e.target as typeof e.target &
-                        Record<'name' | 'color', { value: string }>;
-                      updateLabel(label.name, target.name.value.toLowerCase());
-                    }}
-                  />
-                );
-              })}
+              {getAllLabels().map((label) => (
+                <AccordionItem key={label.name} value={label.name}>
+                  <AccordionTrigger>
+                    <div className='flex items-center justify-between'>
+                      <Badge
+                        variant='outline'
+                        className='capitalize'
+                        style={{
+                          backgroundColor: `${label.defaultcolor}1A`,
+                          borderColor: `${label.defaultcolor}33`,
+                          color: label.defaultcolor,
+                        }}
+                      >
+                        {label.name}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <form
+                      className='flex items-end pt-2'
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const target = e.target as typeof e.target & {
+                          name: { value: string };
+                        };
+                        updateLabel(
+                          label.name,
+                          target.name.value.toLowerCase(),
+                        );
+                      }}
+                    >
+                      <div className='grid w-full gap-2'>
+                        <Label htmlFor='name'>Label name</Label>
+                        <Input
+                          ref={inputRef}
+                          id='name'
+                          defaultValue={label.name}
+                          autoComplete='off'
+                          className='h-10 min-h-10 rounded-[12px] rounded-e-none'
+                        />
+                      </div>
+                      <div className='flex w-fit gap-0'>
+                        <Button
+                          type='submit'
+                          className='h-10 min-h-10 !rounded-[0px]'
+                        >
+                          Save
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant='destructive'
+                              size={'icon'}
+                              className='size-10 rounded-[12px] !rounded-s-none'
+                            >
+                              <Trash className='size-4' />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className='!rounded-[16px]'>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                You are about to delete the label{' '}
+                                <Badge
+                                  variant='outline'
+                                  className='ml-1 capitalize'
+                                >
+                                  {label.name}
+                                </Badge>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel asChild>
+                                <Button
+                                  variant={'secondary'}
+                                  className='rounded-[12px] border-none'
+                                >
+                                  Cancel
+                                </Button>
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                className='rounded-[12px] bg-destructive hover:bg-destructive/80'
+                                onClick={() => deleteLabel(label.name)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </form>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
             </Accordion>
           </div>
           <DialogFooter>
@@ -282,145 +370,3 @@ export function LabelSelect(props: {
     </div>
   );
 }
-
-const CommandItemCreate = ({
-  inputValue,
-  onSelect,
-  labels,
-}: {
-  inputValue: string;
-  onSelect: () => void;
-  labels: LabelType[];
-}) => {
-  if (
-    inputValue.trim() === '' ||
-    labels.findIndex((l) => l.name === inputValue.trim().toLowerCase()) !== -1
-  ) {
-    return;
-  }
-
-  return (
-    <CommandItem
-      value={inputValue.trim()}
-      className='text-xs text-muted-foreground'
-      onSelect={onSelect}
-    >
-      <div className={cn('mr-2 h-4 w-4')} />
-      Create new label &quot;{inputValue.trim()}&quot;
-    </CommandItem>
-  );
-};
-
-const DialogListItem = ({
-  label,
-  onSubmit,
-  onDelete,
-}: {
-  label: LabelType;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  onDelete: () => void;
-}) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [accordionValue, setAccordionValue] = React.useState<string>('');
-  const [inputValue, setInputValue] = React.useState<string>(label.name);
-
-  const disabled = label.name === inputValue;
-
-  React.useEffect(() => {
-    if (accordionValue !== '') {
-      inputRef.current?.focus();
-    }
-  }, [accordionValue]);
-
-  return (
-    <AccordionItem value={label.name}>
-      <AccordionTrigger>
-        <div className='flex items-center justify-between'>
-          <div>
-            <Badge
-              variant='outline'
-              className='capitalize'
-              style={badgeStyle(label.defaultcolor)}
-            >
-              {label.name}
-            </Badge>
-          </div>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent>
-        <form
-          className='flex items-end pt-2'
-          onSubmit={(e) => {
-            onSubmit(e);
-            setAccordionValue('');
-          }}
-        >
-          <div className='grid w-full gap-2'>
-            <Label htmlFor='name'>Label name</Label>
-            <Input
-              ref={inputRef}
-              id='name'
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              autoComplete='off'
-              className='h-10 min-h-10 rounded-[12px] rounded-e-none'
-            />
-          </div>
-          <div className='flex w-fit gap-0'>
-            <Button
-              type='submit'
-              className='h-10 min-h-10 !rounded-[0px]'
-              disabled={disabled}
-            >
-              Save
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant='destructive'
-                  size={'icon'}
-                  className='size-10 rounded-[12px] !rounded-s-none'
-                >
-                  <Trash className='size-4' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className='!rounded-[16px]'>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    You are about to delete the label{' '}
-                    <Badge variant='outline' className='ml-1 capitalize'>
-                      {label.name}
-                    </Badge>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel asChild>
-                    <Button
-                      variant={'secondary'}
-                      className='rounded-[12px] border-none'
-                    >
-                      Cancel
-                    </Button>
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    className='rounded-[12px] bg-destructive hover:bg-destructive/80'
-                    onClick={onDelete}
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </form>
-      </AccordionContent>
-    </AccordionItem>
-  );
-};
-
-const badgeStyle = (color: string) => ({
-  backgroundColor: `${color}1A`,
-  borderColor: `${color}33`,
-  color: color,
-});

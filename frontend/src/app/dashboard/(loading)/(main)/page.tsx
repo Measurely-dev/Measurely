@@ -24,6 +24,7 @@ import {
   SortableItem,
 } from '@/components/ui/sortable';
 import {
+  ArrowUp10,
   BlocksIcon,
   Cuboid,
   Edit,
@@ -36,6 +37,7 @@ import {
   PlusSquare,
   Rocket,
   Sparkle,
+  Tag,
   Trash2,
   TrendingUp,
 } from 'lucide-react';
@@ -132,7 +134,7 @@ import {
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Block, BlockType, ChartType, Metric } from '@/types';
+import { Block, BlockType, ChartType, Metric, Project } from '@/types';
 import { toast } from 'sonner';
 import { generateString } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -894,6 +896,131 @@ const getRenameConfig = (
     className: 'max-w-xl !rounded-[16px]',
   },
 });
+
+const ChangeLabelDialogContent: FC<{
+  onLabelChange: (disabled: boolean, newLabel: string) => void;
+  initialLabel: string;
+}> = ({ onLabelChange, initialLabel }) => {
+  const [label, setLabel] = useState(initialLabel);
+
+  const handleLabelSelectChange: React.Dispatch<
+    React.SetStateAction<string>
+  > = (newSelectedLabel) => {
+    setLabel(newSelectedLabel);
+  };
+
+  useEffect(() => {
+    setLabel(initialLabel);
+  }, [initialLabel]);
+
+  useEffect(() => {
+    onLabelChange(label.trim() === '' || label === initialLabel, label);
+  }, [label, onLabelChange, initialLabel]);
+
+  return (
+    <div className='space-y-4'>
+      <p className='text-sm font-medium'>Edit Label</p>
+      <LabelSelect
+        selectedLabel={label}
+        setSelectedLabel={handleLabelSelectChange}
+      />
+    </div>
+  );
+};
+
+const getChangeLabelConfig = (
+  initialLabel: string,
+  onLabelChange: (disabled: boolean, newLabel: string) => void,
+) => ({
+  icon: <Tag className='size-4 text-primary' />,
+  title: 'Change Label',
+  description: 'Update the label for the selected item.',
+  alertDialogTitle: {
+    className: 'flex items-center gap-2',
+  },
+  contentSlot: (
+    <ChangeLabelDialogContent
+      onLabelChange={onLabelChange}
+      initialLabel={initialLabel}
+    />
+  ),
+  confirmText: 'Save',
+  cancelText: 'Cancel',
+  confirmButton: {
+    variant: 'default' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  cancelButton: {
+    variant: 'outline' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  alertDialogContent: {
+    className: 'max-w-xl !rounded-[16px]',
+  },
+});
+
+const MetricDialogContent: FC<{
+  onMetricChange: (disabled: boolean, newMetrics: Metric[]) => void;
+  initialMetrics: Metric[];
+}> = ({ onMetricChange, initialMetrics }) => {
+  const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
+
+  const handleMetricSelectChange: React.Dispatch<
+    React.SetStateAction<Metric[]>
+  > = (newSelectedMetrics) => {
+    setMetrics(newSelectedMetrics);
+  };
+
+  useEffect(() => {
+    setMetrics(initialMetrics);
+  }, [initialMetrics]);
+
+  useEffect(() => {
+    onMetricChange(metrics.length === 0, metrics);
+  }, [metrics, onMetricChange]);
+
+  return (
+    <div className='space-y-4'>
+      <p className='text-sm font-medium'>Edit Metrics</p>
+      <MetricSelect
+        selectedMetrics={metrics}
+        setSelectedMetrics={handleMetricSelectChange}
+      />
+    </div>
+  );
+};
+
+const getMetricChangeConfig = (
+  initialMetrics: Metric[],
+  onMetricChange: (disabled: boolean, newMetrics: Metric[]) => void,
+) => ({
+  icon: <ArrowUp10 className='size-4 text-primary' />,
+  title: 'Change Metrics',
+  description: 'Update the metrics for the selected item.',
+  alertDialogTitle: {
+    className: 'flex items-center gap-2',
+  },
+  contentSlot: (
+    <MetricDialogContent
+      onMetricChange={onMetricChange}
+      initialMetrics={initialMetrics}
+    />
+  ),
+  confirmText: 'Save',
+  cancelText: 'Cancel',
+  confirmButton: {
+    variant: 'default' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  cancelButton: {
+    variant: 'outline' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  alertDialogContent: {
+    className: 'max-w-xl !rounded-[16px]',
+  },
+});
+
 function BlockOptions(
   props: Block & {
     children: ReactNode;
@@ -905,6 +1032,10 @@ function BlockOptions(
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const [newName, setNewName] = useState(props.name);
   const [isRenamed, setIsRenamed] = useState(false);
+  const [isLabelChanged, setIsLabelChanged] = useState(false);
+  const [newLabel, setNewLabel] = useState(props.label);
+  const [newMetrics, setNewMetrics] = useState<Metric[]>([]);
+  const [isMetricChanged, setIsMetricChanged] = useState(false);
 
   async function handleDelete() {
     const isConfirmed = await confirm({
@@ -942,24 +1073,27 @@ function BlockOptions(
         for (let i = 0; i < nested.length; i++) {
           nested[i].id = i + 1;
         }
-        console.log(nested);
 
         setProjects(
           projects.map((proj, i) =>
             i === activeProject
-              ? Object.assign({}, proj, {
-                  blocks: Object.assign({}, proj.blocks, {
+              ? {
+                  ...proj,
+                  blocks: {
+                    ...proj.blocks,
                     layout: proj.blocks?.layout.map((l) =>
                       l.uniquekey === props.groupkey
-                        ? Object.assign({}, l, {
-                            nested: nested,
-                          })
+                        ? {
+                            ...l,
+                            nested,
+                          }
                         : l,
                     ),
-                  }),
-                })
+                    userid: proj.blocks?.userid || '',
+                  },
+                }
               : proj,
-          ),
+          ) as Project[],
         );
       } else {
         layout = layout?.filter((l) => l.uniquekey !== props.uniquekey) ?? [];
@@ -970,20 +1104,55 @@ function BlockOptions(
         setProjects(
           projects.map((proj, i) =>
             i === activeProject
-              ? Object.assign({}, proj, {
-                  blocks: Object.assign({}, proj.blocks, {
-                    layout: layout,
-                  }),
-                })
+              ? {
+                  ...proj,
+                  blocks: {
+                    ...proj.blocks,
+                    layout,
+                    userid: proj.blocks?.userid || '',
+                  },
+                }
               : proj,
-          ),
+          ) as Project[],
         );
       }
       toast.success(
-        `${props.type === BlockType.Group ? 'Group' : 'Block'} deleted successfully.`,
+        `${
+          props.type === BlockType.Group ? 'Group' : 'Block'
+        } deleted successfully.`,
       );
     }
   }
+  async function handleMetricChange() {
+    const metrics = props.metricIds
+      .map((id) =>
+        projects[activeProject]?.metrics?.find((metric) => metric.id === id),
+      )
+      .filter((metric): metric is Metric => metric !== undefined);
+
+    if (metrics.length === 0) {
+      toast.error('No valid metrics found.');
+      return;
+    }
+
+    const confirmConfig = getMetricChangeConfig(
+      metrics,
+      (disabled, selectedMetrics) => {
+        setNewMetrics(selectedMetrics);
+        confirm.updateConfig((prev) => ({
+          ...prev,
+          confirmButton: { ...prev.confirmButton, disabled },
+        }));
+      },
+    );
+
+    const isConfirmed = await confirm(confirmConfig);
+
+    if (isConfirmed) {
+      setIsMetricChanged(true);
+    }
+  }
+
   async function handleRename() {
     const confirmConfig = getRenameConfig(props.name, (disabled, newValue) => {
       setNewName(newValue);
@@ -1000,102 +1169,166 @@ function BlockOptions(
     }
   }
 
-  function handleColor(newcolor: string) {
-    if (props.groupkey !== undefined) {
-      setProjects(
-        projects.map((proj, i) =>
-          i === activeProject
-            ? Object.assign({}, proj, {
-                blocks: Object.assign({}, proj.blocks, {
-                  layout: proj.blocks?.layout.map((l) =>
-                    l.uniquekey === props.groupkey
-                      ? Object.assign({}, l, {
-                          nested: l.nested?.map((n) =>
-                            n.uniquekey === props.uniquekey
-                              ? Object.assign({}, n, {
-                                  color: newcolor,
-                                })
-                              : n,
-                          ),
-                        })
-                      : l,
-                  ),
-                }),
-              })
-            : proj,
-        ),
-      );
-    } else {
-      setProjects(
-        projects.map((proj, i) =>
-          i === activeProject
-            ? Object.assign({}, proj, {
-                blocks: Object.assign({}, proj.blocks, {
-                  layout: proj.blocks?.layout.map((l) =>
-                    l.uniquekey === props.uniquekey
-                      ? Object.assign({}, l, {
-                          color: newcolor,
-                        })
-                      : l,
-                  ),
-                }),
-              })
-            : proj,
-        ),
-      );
+  const handleLabelChange = async () => {
+    const confirmConfig = getChangeLabelConfig(
+      props.label,
+      (disabled, label) => {
+        setNewLabel(label);
+        confirm.updateConfig((prev) => ({
+          ...prev,
+          confirmButton: { ...prev.confirmButton, disabled },
+        }));
+      },
+    );
+
+    const isConfirmed = await confirm(confirmConfig);
+
+    if (isConfirmed) {
+      setIsLabelChanged(true);
     }
-  }
+  };
 
   useEffect(() => {
-    if (isRenamed) {
-      if (props.groupkey !== undefined) {
-        setProjects(
-          projects.map((proj, i) =>
-            i === activeProject
-              ? Object.assign({}, proj, {
-                  blocks: Object.assign({}, proj.blocks, {
-                    layout: proj.blocks?.layout.map((l) =>
-                      l.uniquekey === props.groupkey
-                        ? Object.assign({}, l, {
+    if (isRenamed && projects[activeProject]) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    props.groupkey
+                      ? l.uniquekey === props.groupkey
+                        ? {
+                            ...l,
                             nested: l.nested?.map((n) =>
                               n.uniquekey === props.uniquekey
-                                ? Object.assign({}, n, { name: newName })
+                                ? { ...n, name: newName }
                                 : n,
                             ),
-                          })
+                          }
+                        : l
+                      : l.uniquekey === props.uniquekey
+                        ? { ...l, name: newName }
                         : l,
-                    ),
-                  }),
-                })
-              : proj,
-          ),
-        );
-      } else {
-        setProjects(
-          projects.map((proj, i) =>
-            i === activeProject
-              ? Object.assign({}, proj, {
-                  blocks: Object.assign({}, proj.blocks, {
-                    layout: proj.blocks?.layout.map((l) =>
-                      l.uniquekey === props.uniquekey
-                        ? Object.assign({}, l, {
-                            name: newName,
-                          })
-                        : l,
-                    ),
-                  }),
-                })
-              : proj,
-          ),
-        );
-      }
+                  ),
+                  userid: proj.blocks?.userid || '',
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
 
       toast.success(
-        `${props.type === BlockType.Group ? 'Group' : 'Block'} renamed successfully to "${newName}".`,
+        `${
+          props.type === BlockType.Group ? 'Group' : 'Block'
+        } renamed successfully to "${newName}".`,
       );
       setIsRenamed(false);
     }
-  }, [isRenamed, newName]);
+
+    if (isLabelChanged && projects[activeProject]) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    l.uniquekey === props.uniquekey
+                      ? { ...l, label: newLabel }
+                      : l,
+                  ),
+                  userid: proj.blocks?.userid || '',
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+
+      toast.success(`Label updated successfully to "${newLabel}".`);
+      setIsLabelChanged(false);
+    }
+  }, [isRenamed, newName, isLabelChanged, newLabel, projects, activeProject]);
+
+  useEffect(() => {
+    if (isMetricChanged && projects[activeProject]) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    props.groupkey
+                      ? l.uniquekey === props.groupkey
+                        ? {
+                            ...l,
+                            nested: l.nested?.map((n) =>
+                              n.uniquekey === props.uniquekey
+                                ? {
+                                    ...n,
+                                    metricIds: newMetrics.map(
+                                      (metric) => metric.id,
+                                    ),
+                                  }
+                                : n,
+                            ),
+                          }
+                        : l
+                      : l.uniquekey === props.uniquekey
+                        ? {
+                            ...l,
+                            metricIds: newMetrics.map((metric) => metric.id),
+                          }
+                        : l,
+                  ),
+                  userid: proj.blocks?.userid || '',
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+
+      toast.success(`Metrics updated successfully.`);
+      setIsMetricChanged(false);
+    }
+  }, [isMetricChanged, newMetrics, projects, activeProject]);
+
+  function handleColor(newcolor: string) {
+    setProjects(
+      projects.map((proj, i) =>
+        i === activeProject
+          ? {
+              ...proj,
+              blocks: {
+                ...proj.blocks,
+                layout: proj.blocks?.layout.map((l) =>
+                  props.groupkey
+                    ? l.uniquekey === props.groupkey
+                      ? {
+                          ...l,
+                          nested: l.nested?.map((n) =>
+                            n.uniquekey === props.uniquekey
+                              ? { ...n, color: newcolor }
+                              : n,
+                          ),
+                        }
+                      : l
+                    : l.uniquekey === props.uniquekey
+                      ? { ...l, color: newcolor }
+                      : l,
+                ),
+                userid: proj.blocks?.userid || '',
+              },
+            }
+          : proj,
+      ) as Project[],
+    );
+  }
 
   return (
     <DropdownMenu onOpenChange={(e) => props.setIsOpen(e)}>
@@ -1112,11 +1345,13 @@ function BlockOptions(
             Rename
           </DropdownMenuItem>
           <DropdownMenuItem
+            onClick={handleLabelChange}
             className={props.type === BlockType.Group ? 'hidden' : ''}
           >
             Edit Label
           </DropdownMenuItem>
           <DropdownMenuItem
+            onClick={handleMetricChange}
             className={props.type === BlockType.Group ? 'hidden' : ''}
           >
             Edit Metric(s)
@@ -1125,9 +1360,6 @@ function BlockOptions(
             <ColorDropdown color={props.color} updateColor={handleColor} />
           </div>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator
-          className={props.type === BlockType.Group ? 'hidden' : ''}
-        />
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
