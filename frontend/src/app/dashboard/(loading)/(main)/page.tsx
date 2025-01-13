@@ -203,10 +203,10 @@ export default function DashboardHomePage() {
             </div>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Choose group name</DialogTitle>
+                <DialogTitle>Create new group</DialogTitle>
                 <DialogDescription>
-                  Choose a descriptive and concise name that reflects the data
-                  the group will hold.
+                  A Block Group organizes multiple blocks into a single
+                  category, making it easier to manage and view related data.
                 </DialogDescription>
               </DialogHeader>
               <div className='flex flex-col gap-2'>
