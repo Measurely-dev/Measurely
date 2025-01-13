@@ -32,9 +32,9 @@ export function MetricSelect(props: {
 
   const toggleMetric = (metric: Metric) => {
     props.setSelectedMetrics((currentMetrics) =>
-      !currentMetrics.includes(metric)
-        ? [...currentMetrics, metric]
-        : currentMetrics.filter((m) => m.id !== metric.id),
+      currentMetrics.some((m) => m.id === metric.id)
+        ? currentMetrics.filter((m) => m.id !== metric.id)
+        : [...currentMetrics, metric],
     );
     inputRef?.current?.focus();
   };
@@ -81,7 +81,9 @@ export function MetricSelect(props: {
               <CommandGroup className='max-h-[300px] overflow-auto'>
                 {projectMetrics.length > 0 ? (
                   projectMetrics.map((metric) => {
-                    const isActive = props.selectedMetrics.includes(metric);
+                    const isActive = props.selectedMetrics.some(
+                      (m) => m.id === metric.id,
+                    );
                     return (
                       <CommandItem
                         key={metric.id}

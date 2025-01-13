@@ -1,0 +1,550 @@
+'use client';
+
+import { ChangeEvent, FC, ReactNode, useEffect, useState } from 'react';
+import { Edit, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useContext } from 'react';
+import { ProjectsContext } from '@/dash-context';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Block, BlockType, Metric, Project } from '@/types';
+import { toast } from 'sonner';
+import { useConfirm } from '@omit/react-confirm-dialog';
+import { LabelSelect } from '@/components/ui/label-select';
+import { Input } from '@/components/ui/input';
+import { MetricSelect } from '@/components/ui/metric-select';
+import ColorDropdown from '@/components/ui/color-dropdown';
+
+const RenameConfirmContent: FC<{
+  onValueChange: (disabled: boolean, newValue: string) => void;
+  initialValue: string;
+}> = ({ onValueChange, initialValue }) => {
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    onValueChange(value.trim() === '' || value === initialValue, value);
+  }, [value, onValueChange, initialValue]);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
+
+  return (
+    <div className='space-y-2'>
+      <p className='mt-2 text-sm font-medium'>New name</p>
+      <Input
+        value={value}
+        onChange={handleInputChange}
+        placeholder='New name'
+        autoComplete='off'
+        className='h-11 rounded-[12px]'
+      />
+    </div>
+  );
+};
+
+const getRenameConfig = (
+  initialValue: string,
+  onValueChange: (disabled: boolean, newValue: string) => void,
+) => ({
+  icon: <Edit className='size-4 text-primary' />,
+  title: 'Rename Item',
+  alertDialogTitle: {
+    className: 'flex items-center gap-2',
+  },
+  description: 'Provide a new name for the selected item.',
+  contentSlot: (
+    <RenameConfirmContent
+      onValueChange={onValueChange}
+      initialValue={initialValue}
+    />
+  ),
+  confirmText: 'Rename',
+  cancelText: 'Cancel',
+  confirmButton: {
+    variant: 'default' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  cancelButton: {
+    variant: 'outline' as const,
+    className: 'w-full sm:w-auto rounded-[12px]',
+  },
+  alertDialogContent: {
+    className: 'max-w-xl !rounded-[16px]',
+  },
+});
+
+const ChangeLabelDialogContent: FC<{
+  onLabelChange: (newLabel: string) => void;
+  initialLabel: string;
+}> = ({ onLabelChange, initialLabel }) => {
+  const [label, setLabel] = useState(initialLabel);
+
+  const handleLabelSelectChange: React.Dispatch<
+    React.SetStateAction<string>
+  > = (newSelectedLabel) => {
+    setLabel(newSelectedLabel);
+  };
+
+  useEffect(() => {
+    setLabel(initialLabel);
+  }, [initialLabel]);
+
+  useEffect(() => {
+    onLabelChange(label.trim() === '' || label === initialLabel ? '' : label);
+  }, [label, onLabelChange, initialLabel]);
+
+  return (
+    <div className='space-y-4'>
+      <p className='text-sm font-medium'>Edit Label</p>
+      <LabelSelect
+        selectedLabel={label}
+        setSelectedLabel={handleLabelSelectChange}
+      />
+    </div>
+  );
+};
+
+const MetricDialogContent: FC<{
+  selectedMetrics: Metric[];
+  setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
+}> = ({ selectedMetrics, setSelectedMetrics }) => {
+  return (
+    <div className='space-y-4'>
+      <p className='text-sm font-medium'>Edit Metrics</p>
+      <MetricSelect
+        selectedMetrics={selectedMetrics}
+        setSelectedMetrics={setSelectedMetrics}
+      />
+    </div>
+  );
+};
+
+export default function BlockOptions(
+  props: Block & {
+    children: ReactNode;
+    setIsOpen: (state: boolean) => void;
+    groupkey?: string;
+  },
+) {
+  const confirm = useConfirm();
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
+  const [newName, setNewName] = useState(props.name);
+  const [isRenamed, setIsRenamed] = useState(false);
+  const [isLabelChanged, setIsLabelChanged] = useState(false);
+  const [newLabel, setNewLabel] = useState(props.label);
+  const [newMetrics, setNewMetrics] = useState<Metric[]>([]);
+  const [isMetricChanged, setIsMetricChanged] = useState(false);
+  const [isLabelDialogOpen, setIsLabelDialogOpen] = useState(false);
+  const [isMetricDialogOpen, setIsMetricDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setNewMetrics(
+      props.metricIds
+        .map((id) =>
+          projects[activeProject]?.metrics?.find((metric) => metric.id === id),
+        )
+        .filter((metric): metric is Metric => metric !== undefined),
+    );
+  }, [props.metricIds, projects, activeProject]);
+
+  async function handleDelete() {
+    const isConfirmed = await confirm({
+      title: `Delete ${props.type === BlockType.Group ? 'Group' : 'Block'}`,
+      icon: <Trash2 className='size-5 text-destructive' />,
+      description: `Are you sure you want to delete this ${
+        props.type === BlockType.Group ? 'Group' : 'Block'
+      }? This action cannot be undone.`,
+      confirmText: 'Yes, delete',
+      cancelText: 'Cancel',
+      cancelButton: {
+        size: 'default',
+        variant: 'outline',
+        className: 'rounded-[12px]',
+      },
+      confirmButton: {
+        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+      },
+      alertDialogTitle: {
+        className: 'flex items-center gap-2',
+      },
+      alertDialogContent: {
+        className: '!rounded-[16px]',
+      },
+    });
+    if (isConfirmed) {
+      let layout = projects[activeProject].blocks?.layout;
+      if (props.groupkey !== undefined) {
+        const blockIndex =
+          layout?.findIndex((l) => l.uniquekey === props.groupkey) ?? -1;
+        if (blockIndex === -1) return;
+
+        let nested = layout?.[blockIndex].nested ?? [];
+        nested = nested.filter((n) => n.uniquekey !== props.uniquekey);
+        for (let i = 0; i < nested.length; i++) {
+          nested[i].id = i + 1;
+        }
+
+        setProjects(
+          projects.map((proj, i) =>
+            i === activeProject
+              ? {
+                  ...proj,
+                  blocks: {
+                    ...proj.blocks,
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.groupkey
+                        ? {
+                            ...l,
+                            nested,
+                          }
+                        : l,
+                    ),
+                    userid: proj.blocks?.userid || '',
+                  },
+                }
+              : proj,
+          ) as Project[],
+        );
+      } else {
+        layout = layout?.filter((l) => l.uniquekey !== props.uniquekey) ?? [];
+        for (let i = 0; i < layout.length; i++) {
+          layout[i].id = i + 1;
+        }
+
+        setProjects(
+          projects.map((proj, i) =>
+            i === activeProject
+              ? {
+                  ...proj,
+                  blocks: {
+                    ...proj.blocks,
+                    layout,
+                    userid: proj.blocks?.userid || '',
+                  },
+                }
+              : proj,
+          ) as Project[],
+        );
+      }
+      toast.success(
+        `${
+          props.type === BlockType.Group ? 'Group' : 'Block'
+        } deleted successfully.`,
+      );
+    }
+  }
+
+  async function handleMetricChange() {
+    const metrics = props.metricIds
+      .map((id) =>
+        projects[activeProject]?.metrics?.find((metric) => metric.id === id),
+      )
+      .filter((metric): metric is Metric => metric !== undefined);
+
+    if (metrics.length === 0) {
+      toast.error('No valid metrics found.');
+      return;
+    }
+
+    setNewMetrics(metrics);
+    setIsMetricDialogOpen(true);
+  }
+
+  const handleLabelChange = async () => {
+    setNewLabel(props.label);
+    setIsLabelDialogOpen(true);
+  };
+
+  async function handleRename() {
+    const confirmConfig = getRenameConfig(props.name, (disabled, newValue) => {
+      setNewName(newValue);
+      confirm.updateConfig((prev) => ({
+        ...prev,
+        confirmButton: { ...prev.confirmButton, disabled },
+      }));
+    });
+
+    const isConfirmed = await confirm(confirmConfig);
+
+    if (isConfirmed) {
+      setIsRenamed(true);
+    }
+  }
+
+  useEffect(() => {
+    if (isRenamed && projects[activeProject]) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    props.groupkey
+                      ? l.uniquekey === props.groupkey
+                        ? {
+                            ...l,
+                            nested: l.nested?.map((n) =>
+                              n.uniquekey === props.uniquekey
+                                ? { ...n, name: newName }
+                                : n,
+                            ),
+                          }
+                        : l
+                      : l.uniquekey === props.uniquekey
+                        ? { ...l, name: newName }
+                        : l,
+                  ),
+                  userid: proj.blocks?.userid || '',
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+
+      toast.success(
+        `${
+          props.type === BlockType.Group ? 'Group' : 'Block'
+        } renamed successfully to "${newName}".`,
+      );
+      setIsRenamed(false);
+    }
+
+    if (isLabelChanged && projects[activeProject]) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    l.uniquekey === props.uniquekey
+                      ? { ...l, label: newLabel }
+                      : l,
+                  ),
+                  userid: proj.blocks?.userid || '',
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+
+      toast.success(`Label updated successfully to "${newLabel}".`);
+      setIsLabelChanged(false);
+    }
+  }, [isRenamed, newName, isLabelChanged, newLabel, projects, activeProject]);
+
+  useEffect(() => {
+    if (isMetricChanged && projects[activeProject]) {
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    props.groupkey
+                      ? l.uniquekey === props.groupkey
+                        ? {
+                            ...l,
+                            nested: l.nested?.map((n) =>
+                              n.uniquekey === props.uniquekey
+                                ? {
+                                    ...n,
+                                    metricIds: newMetrics.map(
+                                      (metric) => metric.id,
+                                    ),
+                                  }
+                                : n,
+                            ),
+                          }
+                        : l
+                      : l.uniquekey === props.uniquekey
+                        ? {
+                            ...l,
+                            metricIds: newMetrics.map((metric) => metric.id),
+                          }
+                        : l,
+                  ),
+                  userid: proj.blocks?.userid || '',
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+
+      toast.success(`Metrics updated successfully.`);
+      setIsMetricChanged(false);
+    }
+  }, [isMetricChanged, newMetrics, projects, activeProject]);
+
+  function handleColor(newcolor: string) {
+    setProjects(
+      projects.map((proj, i) =>
+        i === activeProject
+          ? {
+              ...proj,
+              blocks: {
+                ...proj.blocks,
+                layout: proj.blocks?.layout.map((l) =>
+                  props.groupkey
+                    ? l.uniquekey === props.groupkey
+                      ? {
+                          ...l,
+                          nested: l.nested?.map((n) =>
+                            n.uniquekey === props.uniquekey
+                              ? { ...n, color: newcolor }
+                              : n,
+                          ),
+                        }
+                      : l
+                    : l.uniquekey === props.uniquekey
+                      ? { ...l, color: newcolor }
+                      : l,
+                ),
+                userid: proj.blocks?.userid || '',
+              },
+            }
+          : proj,
+      ) as Project[],
+    );
+  }
+
+  return (
+    <>
+      <DropdownMenu onOpenChange={(e) => props.setIsOpen(e)}>
+        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
+        <DropdownMenuContent className='mr-8 w-56 rounded-[12px] shadow-md'>
+          {props.type === BlockType.Group ? (
+            <DropdownMenuLabel>Group Options</DropdownMenuLabel>
+          ) : (
+            <DropdownMenuLabel>Block Options</DropdownMenuLabel>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => handleRename()}>
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleLabelChange}
+              className={props.type === BlockType.Group ? 'hidden' : ''}
+            >
+              Edit Label
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleMetricChange}
+              className={props.type === BlockType.Group ? 'hidden' : ''}
+            >
+              Edit Metric(s)
+            </DropdownMenuItem>
+            <div className={props.type === BlockType.Group ? 'hidden' : ''}>
+              <ColorDropdown color={props.color} updateColor={handleColor} />
+            </div>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={handleDelete}
+              className='hover:!text-destructive'
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={isLabelDialogOpen} onOpenChange={setIsLabelDialogOpen}>
+        <DialogContent className='max-w-xl !rounded-[16px]'>
+          <DialogHeader>
+            <DialogTitle>Change Label</DialogTitle>
+            <DialogDescription>
+              Update the label for the selected item.
+            </DialogDescription>
+          </DialogHeader>
+          <ChangeLabelDialogContent
+            onLabelChange={(label) => {
+              setNewLabel(label);
+            }}
+            initialLabel={props.label}
+          />
+          <DialogFooter>
+            <Button
+              variant='secondary'
+              className='rounded-[12px]'
+              onClick={() => setIsLabelDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className='rounded-[12px]'
+              onClick={() => {
+                setIsLabelDialogOpen(false);
+                setIsLabelChanged(true);
+              }}
+              disabled={newLabel.trim() === ''}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isMetricDialogOpen} onOpenChange={setIsMetricDialogOpen}>
+        <DialogContent className='max-w-xl !rounded-[16px]'>
+          <DialogHeader>
+            <DialogTitle>Change Metrics</DialogTitle>
+            <DialogDescription>
+              Update the metrics for the selected item.
+            </DialogDescription>
+          </DialogHeader>
+          <MetricDialogContent
+            selectedMetrics={newMetrics}
+            setSelectedMetrics={setNewMetrics}
+          />
+          <DialogFooter>
+            <Button
+              variant='secondary'
+              className='rounded-[12px]'
+              onClick={() => setIsMetricDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className='rounded-[12px]'
+              onClick={() => {
+                setIsMetricDialogOpen(false);
+                setIsMetricChanged(true);
+              }}
+              disabled={newMetrics.length === 0}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
