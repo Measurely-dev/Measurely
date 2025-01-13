@@ -14,6 +14,7 @@ import TeamInvite from './team-invite';
 import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TeamPage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -77,7 +78,13 @@ export default function TeamPage() {
       />
       <div className='mt-5 h-full'>
         {projects[activeProject].members === null ? (
-          <>LOADING...</>
+          <div className='flex flex-col gap-3'>
+            <div className='flex gap-4'>
+              <Skeleton className='h-[40px] w-full rounded-[12px]' />
+              <Skeleton className='h-[40px] w-[220px] rounded-[12px]' />
+            </div>
+            <Skeleton className='h-[300px] w-full rounded-[12px]' />
+          </div>
         ) : (
           <TeamTable members={projects[activeProject].members} />
         )}
