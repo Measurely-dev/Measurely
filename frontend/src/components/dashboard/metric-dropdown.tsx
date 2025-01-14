@@ -68,8 +68,8 @@ export default function MetricDropdown(props: {
             projects?.map((v: Project) =>
               v.id === props.metric.projectid
                 ? Object.assign({}, v, {
-                  metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
-                })
+                    metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
+                  })
                 : v,
             ),
           );
@@ -92,13 +92,13 @@ export default function MetricDropdown(props: {
         <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
         <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
           {projects[activeProject].userrole === UserRole.Owner ||
-            (projects[activeProject].userrole === UserRole.Admin && (
-              <DialogTrigger asChild>
-                <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                  Edit
-                </DropdownMenuItem>
-              </DialogTrigger>
-            ))}
+          projects[activeProject].userrole === UserRole.Admin ? (
+            <DialogTrigger asChild>
+              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                Edit
+              </DropdownMenuItem>
+            </DialogTrigger>
+          ) : undefined}
           <DropdownMenuItem
             onClick={(e) => {
               navigator.clipboard.writeText(props.metric.id);
@@ -109,20 +109,20 @@ export default function MetricDropdown(props: {
             Copy ID
           </DropdownMenuItem>
           {projects[activeProject].userrole === UserRole.Owner ||
-            (projects[activeProject].userrole === UserRole.Admin && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    DeleteMetric();
-                  }}
-                  className={`bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20`}
-                >
-                  Delete
-                </DropdownMenuItem>
-              </>
-            ))}
+          projects[activeProject].userrole === UserRole.Admin ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  DeleteMetric();
+                }}
+                className={`bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20`}
+              >
+                Delete
+              </DropdownMenuItem>
+            </>
+          ) : undefined}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
