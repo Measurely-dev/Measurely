@@ -738,16 +738,16 @@ function Charts(props: {
     case ChartType.Combo:
       return (
         <ComboChart
-          data={ComboChartData}
+          data={props.data ?? []}
           {...chartProps}
           index='date'
           enableBiaxial
           barSeries={{
-            categories: ['SolarPanels'],
+            categories: [props.categories[0]],
             showYAxis: true,
           }}
           lineSeries={{
-            categories: ['Inverters'],
+            categories: [props.categories[1]],
             showYAxis: true,
             colors: ['fuchsia'],
           }}

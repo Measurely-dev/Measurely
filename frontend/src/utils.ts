@@ -276,10 +276,10 @@ export const fetchChartData = async (
 
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    if ((range === 1 || range === 7) && chartType === 'trend') {
-      tmpData[i].tooltiplabel +=
-        ' ' + parseXAxis(tmpData[i].date, range === 1 ? 0 : 1);
-    }
+    // if ((range === 1 || range === 7) && chartType === 'trend') {
+    //   tmpData[i].tooltiplabel +=
+    //     ' ' + parseXAxis(tmpData[i].date, range === 1 ? 0 : 1);
+    // }
 
     let matches = false;
     if (lastDate !== undefined) {
