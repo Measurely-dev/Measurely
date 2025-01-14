@@ -4,17 +4,22 @@ export default function Header(props: {
   children?: any;
   className?: string;
   titleClassName?: string;
+  descriptionClassName?: string;
 }) {
   return (
     <div
-      className={`flex w-full items-center justify-between gap-12 ${props.className}`}
+      className={`flex w-full gap-12 max-sm:flex-col max-sm:gap-5 sm:items-center sm:justify-between ${props.className}`}
     >
       <div className='flex flex-col gap-[5px]'>
-        <div className={`text- text-base font-medium ${props.titleClassName}`}>
+        <div className={`text-2xl font-medium ${props.titleClassName}`}>
           {props.title}
         </div>
         {props.description ? (
-          <div className='text-xs text-secondary'>{props.description}</div>
+          <div
+            className={`text-sm text-secondary ${props.descriptionClassName}`}
+          >
+            {props.description}
+          </div>
         ) : (
           <></>
         )}

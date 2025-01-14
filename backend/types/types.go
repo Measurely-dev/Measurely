@@ -22,7 +22,7 @@ const (
 	TEAM_OWNER = iota
 	TEAM_ADMIN
 	TEAM_DEV
-	TEAM_VIEW
+	TEAM_GUEST
 )
 
 type key int
@@ -34,17 +34,17 @@ type Token struct {
 	Email string    `json:"email"`
 }
 type User struct {
-	Id                uuid.UUID
-	Email             string
-	FirstName         string
-	LastName          string
+	Id                uuid.UUID `json:"id"`
+	Email             string    `json:"email"`
+	FirstName         string    `json:"firstname"`
+	LastName          string    `json:"lastname"`
 	Password          string
 	StripeCustomerId  string
 	CurrentPlan       string
-	Image             string
+	Image             string `json:"image"`
 	MonthlyEventCount int64
 	StartCountDate    time.Time
-	UserRole          int `db:"userrole"`
+	UserRole          int `db:"userrole" json:"userrole"`
 }
 
 type UserProvider struct {
@@ -125,4 +125,29 @@ type TeamRelation struct {
 	UserId    uuid.UUID `json:"userid"`
 	ProjectId uuid.UUID `json:"projectid"`
 	Role      int       `json:"rol"`
+}
+
+type Blocks struct {
+	TeamRelationId sql.Null[uuid.UUID]
+	UserId         uuid.UUID
+	ProjectId      uuid.UUID
+	Layout         []Block `json:"layout"`
+	Labels         []Label `json:"labels"`
+}
+
+type Block struct {
+	UniqueKey string      `json:"uniquekey"`
+	Id        int         `json:"id"`
+	Name      string      `json:"name"`
+	Nested    []Block     `json:"nested"`
+	MetricIds []uuid.UUID `json:"metricIds"`
+	Type      int         `json:"type"`
+	ChartType int         `json:"chartType"`
+	Label     string      `json:"label"`
+	Color     string      `json:"color"`
+}
+
+type Label struct {
+	Name         string `json:"name"`
+	DefaultColor string `json:"defaultcolor"`
 }

@@ -3,7 +3,10 @@ export interface Project {
   apikey: string;
   name: string;
   image: string;
+  userrole: UserRole;
   metrics: null | Metric[];
+  members: null | User[];
+  blocks: null | Blocks;
 }
 
 export interface Metric {
@@ -11,7 +14,7 @@ export interface Metric {
   projectid: string;
   name: string;
   type: MetricType;
-  eventcount : number;
+  eventcount: number;
   totalpos: number;
   totalneg: number;
   namepos: string;
@@ -28,10 +31,10 @@ export interface MetricEvent {
   date: Date;
   valuepos: number;
   valueneg: number;
-  eventcount : number;
+  eventcount: number;
   relativetotalpos: number;
   relativetotalneg: number;
-  relativeeventcount : number;
+  relativeeventcount: number;
 }
 
 export interface User {
@@ -42,6 +45,7 @@ export interface User {
   email: string;
   plan: Plan;
   providers: UserProvider[];
+  userrole: UserRole;
   eventcount: number;
 }
 
@@ -59,13 +63,58 @@ export interface Plan {
   monthlyeventlimit: number;
 }
 
+export interface Blocks {
+  userid: string;
+  projectid: string;
+  layout: Block[];
+  labels: LabelType[];
+}
+
+export interface Block {
+  uniquekey: string;
+  id: number;
+  name: string;
+  nested?: Block[];
+  metricIds: string[];
+  chartType?: ChartType;
+  type: BlockType;
+  label: string;
+  color: string;
+}
+
+export interface LabelType {
+  name: string;
+  defaultcolor: string;
+}
+
 export enum MetricType {
   Base,
   Dual,
-  Average
+  Average,
 }
 
 export enum Provider {
   GITHUB,
   GOOGLE,
+}
+
+export enum UserRole {
+  Owner,
+  Admin,
+  Developer,
+  Guest,
+}
+export enum ChartType {
+  Bar,
+  Area,
+  BarList,
+  Combo,
+  Pie,
+  Radar,
+}
+
+export enum BlockType {
+  Default,
+  Group,
+  Nested,
 }

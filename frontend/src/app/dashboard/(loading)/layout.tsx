@@ -7,6 +7,7 @@ import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
 import { loadMetrics } from '@/utils';
 import { LoaderIcon } from 'lucide-react';
+import { UserRole } from '@/types';
 
 export default function DashboardContentLayout({
   children,
@@ -25,7 +26,11 @@ export default function DashboardContentLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (projects.length === 0 && !projectsLoading) {
+    if (
+      projects.filter((proj) => proj.userrole === UserRole.Owner).length ===
+      0 &&
+      !projectsLoading
+    ) {
       router.push('/dashboard/new-project');
     }
 
@@ -98,6 +103,8 @@ export default function DashboardContentLayout({
             } else {
               json[i].metrics = null;
             }
+            json[i].members = null;
+            json[i].blocks = null;
           }
 
           setProjects(json);

@@ -3,6 +3,7 @@ package db
 import (
 	"Measurely/types"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -319,7 +320,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
 	}
 
-  // update filter metrics
+	// update filter metrics
 	for key, value := range *filters {
 		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
@@ -703,7 +704,7 @@ func (db *DB) DeleteTeamRelation(id, projectid uuid.UUID) error {
 }
 
 func (db *DB) UpdateUserRole(id, projectid uuid.UUID, newrole int) error {
-	_, err := db.Conn.Exec("UPDATE teamrealtion SET role = $1 WHERE userid = $2 AND projectid = $3", newrole, id, projectid)
+	_, err := db.Conn.Exec("UPDATE teamrelation SET role = $1 WHERE userid = $2 AND projectid = $3", newrole, id, projectid)
 	return err
 }
 
@@ -738,4 +739,92 @@ func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
 	}
 
 	return users, nil
+}
+
+func (db *DB) GetBlocks(projectId, userId uuid.UUID) (*types.Blocks, error) {
+	query := `
+        SELECT *
+        FROM Blocks
+        WHERE UserId = $1 AND ProjectId = $2
+    `
+
+	var blocks types.Blocks
+	var layoutJSON, labelsJSON []byte
+
+	// Use sqlx.Get to fetch a single record
+	row := db.Conn.QueryRowx(query, userId, projectId)
+
+	err := row.Scan(&blocks.TeamRelationId, &blocks.UserId, &blocks.ProjectId, &layoutJSON, &labelsJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal JSONB columns
+	if err := json.Unmarshal(layoutJSON, &blocks.Layout); err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(labelsJSON, &blocks.Labels); err != nil {
+		return nil, err
+	}
+
+	return &blocks, nil
+}
+
+func (db *DB) CreateBlocks(blocks types.Blocks) (*types.Blocks, error) {
+	query := `
+		INSERT INTO Blocks (TeamRelationId, UserId, ProjectId, Layout, Labels)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING TeamRelationId, UserId, ProjectId, Layout, Labels
+	`
+
+	layoutJSON, err := json.Marshal(blocks.Layout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal layout: %w", err)
+	}
+
+	labelsJSON, err := json.Marshal(blocks.Labels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal labels: %w", err)
+	}
+
+	var newBlocks types.Blocks
+	var returnedLayoutJSON, returnedLabelsJSON []byte
+
+	err = db.Conn.QueryRowx(query, blocks.TeamRelationId, blocks.UserId, blocks.ProjectId, layoutJSON, labelsJSON).
+		Scan(&newBlocks.TeamRelationId, &newBlocks.UserId, &newBlocks.ProjectId, &returnedLayoutJSON, &returnedLabelsJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert blocks: %w", err)
+	}
+
+	if err := json.Unmarshal(returnedLayoutJSON, &newBlocks.Layout); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal returned layout: %w", err)
+	}
+	if err := json.Unmarshal(returnedLabelsJSON, &newBlocks.Labels); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal returned labels: %w", err)
+	}
+
+	return &newBlocks, nil
+}
+
+func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.Block, newLabels []types.Label) error {
+	query := `
+		UPDATE blocks
+		SET layout = $1,
+        labels = $2
+		WHERE projectid = $3 AND userid = $4
+	`
+
+	layoutJSON, err := json.Marshal(newLayout)
+	if err != nil {
+		return err
+	}
+
+	labelsJSON, err := json.Marshal(newLabels)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Conn.Exec(query, layoutJSON, labelsJSON, projectId, userId)
+
+	return err
 }

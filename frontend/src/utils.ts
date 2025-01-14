@@ -1,8 +1,50 @@
 import { toast } from 'sonner';
-import { Metric, MetricType } from './types';
+import { Metric, MetricType, UserRole } from './types';
 
 export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 20000;
+
+const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+export function generateString(length : number) : string {
+    let result = ' ';
+    const charactersLength = characters.length;
+    for ( let i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
+}
+
+export function roleToString(role: UserRole): string {
+  switch (role) {
+    case UserRole.Owner:
+      return 'Owner';
+    case UserRole.Admin:
+      return 'Admin';
+    case UserRole.Developer:
+      return 'Developer';
+    case UserRole.Guest:
+      return 'Guest';
+    default:
+      return '';
+  }
+}
+
+export function formatFullName(firstname: string, lastname: string) {
+  firstname =
+    firstname.length > 1
+      ? firstname[0].toUpperCase() + firstname.slice(1)
+      : firstname.toUpperCase();
+  lastname =
+    lastname.length > 1
+      ? lastname[0].toUpperCase() + lastname.slice(1)
+      : lastname.toUpperCase();
+
+  return firstname + ' ' + lastname;
+}
+
+
 
 export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(

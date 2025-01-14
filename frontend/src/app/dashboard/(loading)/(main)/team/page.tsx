@@ -8,15 +8,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import WebChip from '@/components/website/chip';
-import { Users } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
+import { TeamTable } from './team-table';
+import TeamInvite from './team-invite';
+import { ProjectsContext } from '@/dash-context';
+import { UserRole } from '@/types';
 import { toast } from 'sonner';
-import Measurely from 'measurely-js';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TeamPage() {
-  const [loading, setLoading] = useState(false);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+
   useEffect(() => {
     document.title = 'Team | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -27,9 +29,37 @@ export default function TeamPage() {
       );
     }
   }, []);
+
+  useEffect(() => {
+    const loadTeam = async () => {
+      if (projects[activeProject]) {
+        if (projects[activeProject].members === null) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/members/${projects[activeProject].id}`,
+            { method: 'GET', credentials: 'include' },
+          );
+
+          if (response.ok) {
+            const body = await response.json();
+            setProjects(
+              projects.map((proj, i) =>
+                i === activeProject
+                  ? Object.assign({}, proj, { members: body })
+                  : proj,
+              ),
+            );
+          } else {
+            toast.error('Failed to load the team member list');
+          }
+        }
+      }
+    };
+
+    loadTeam();
+  }, [activeProject]);
   return (
-    <DashboardContentContainer className='mt-0 flex h-[calc(100vh-15px-50px)] w-full pb-10 pt-[15px]'>
-      <Breadcrumb>
+    <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
+      <Breadcrumb className='mb-5'>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink className='pointer-events-none'>
@@ -42,56 +72,22 @@ export default function TeamPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className='mx-auto mt-24 flex h-fit w-fit flex-col items-center justify-center gap-4'>
-        <WebChip color='default'>Coming soon</WebChip>
-        <div className='mb-4 flex aspect-[16/7] w-[100%] items-center justify-center rounded-xl border'>
-          <Users className='size-[50%] p-0 text-black' />
-        </div>
-        <div className='flex flex-col gap-3 text-center'>
-          <div className='text-lg font-semibold'>Team</div>
-          <div className='max-w-[400px] text-sm text-secondary'>
-            Collaborate with others by adding team members to your workspace.
-            Stay tuned for this upcoming feature!
+      <TeamInvite
+        loading={false}
+        disable={projects[activeProject].userrole === UserRole.Guest}
+      />
+      <div className='mt-5 h-full'>
+        {projects[activeProject].members === null ? (
+          <div className='flex flex-col gap-3'>
+            <div className='flex gap-4'>
+              <Skeleton className='h-[40px] w-full rounded-[12px]' />
+              <Skeleton className='h-[40px] w-[220px] rounded-[12px]' />
+            </div>
+            <Skeleton className='h-[300px] w-full rounded-[12px]' />
           </div>
-          <form
-            onSubmit={(e: FormEvent<HTMLFormElement>) => {
-              e.preventDefault();
-
-              if (process.env.NEXT_PUBLIC_ENV !== 'production') {
-                return;
-              }
-
-              const requested =
-                window.localStorage.getItem('request-team-feature') === 'true'
-                  ? true
-                  : false;
-              if (requested) {
-                toast.success('Thank you for your feedback');
-                return;
-              }
-
-              setLoading(true);
-              Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
-              Measurely.capture('275b1ffa-e304-4476-8e88-312b3d0a0dc6', {
-                value: 1,
-                filters: {},
-              }).finally(() => {
-                setLoading(false);
-                window.localStorage.setItem('request-team-feature', 'true');
-                toast.success('Thank you for your feedback');
-              });
-            }}
-          >
-            <Button
-              className='mx-auto mb-10 mt-4 w-fit rounded-xl'
-              type='submit'
-              loading={loading}
-              disabled={loading}
-            >
-              Request feature
-            </Button>
-          </form>
-        </div>
+        ) : (
+          <TeamTable members={projects[activeProject].members} />
+        )}
       </div>
     </DashboardContentContainer>
   );

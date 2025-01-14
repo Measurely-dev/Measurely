@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useContext, useEffect, useState } from 'react';
 import { ProjectsContext } from '@/dash-context';
@@ -22,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Project } from '@/types';
+import { Project, UserRole } from '@/types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { loadMetrics } from '@/utils';
@@ -123,6 +122,7 @@ export default function SettingProjectPage() {
       });
     }
   };
+
   useEffect(() => {
     if (projects.length !== 0) {
       const sorted = [
@@ -130,12 +130,20 @@ export default function SettingProjectPage() {
           (proj) => proj.name === projects[activeProject]?.name,
         ),
         ...projects.filter(
-          (proj) => proj.name !== projects[activeProject]?.name,
+          (proj) =>
+            proj.userrole === UserRole.Owner &&
+            proj.name !== projects[activeProject]?.name,
+        ),
+
+        ...projects.filter(
+          (proj) =>
+            proj.userrole !== UserRole.Owner &&
+            proj.name !== projects[activeProject]?.name,
         ),
       ];
       setSortedProjects(sorted);
     }
-  }, [projects, activeProject]);
+  }, [projects]);
 
   return (
     <Dialog>
@@ -159,13 +167,17 @@ export default function SettingProjectPage() {
             />
           ) : (
             <div className='flex flex-col divide-y'>
-              <Table className='rounded-[12px] overflow-hidden'>
+              <Table className='overflow-hidden rounded-[12px]'>
                 <TableCaption>A list of your projects.</TableCaption>
                 <TableHeader>
                   <TableRow className='bg-accent/60'>
-                    <TableHead className='min-w-[80px] w-[80px]'>Image</TableHead>
+                    <TableHead className='w-[80px] min-w-[80px]'>
+                      Image
+                    </TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead className='text-right' colSpan={4}>Action</TableHead>
+                    <TableHead className='text-right' colSpan={4}>
+                      Action
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -186,21 +198,27 @@ export default function SettingProjectPage() {
                         </TableCell>
                         <TableCell className='w-full' colSpan={4}>
                           <div className='flex w-full flex-row items-center justify-end gap-2'>
-                            <ApiDialog randomize projectid={proj.id}>
-                              <Button
-                                variant={'outline'}
-                                size={'icon'}
-                                className='rounded-[12px] hover:bg-background'
-                              >
-                                <Key className='size-4' />
-                              </Button>
-                            </ApiDialog>
+                            {proj.userrole !== UserRole.Guest && (
+                              <ApiDialog randomize projectid={proj.id}>
+                                <Button
+                                  variant={'outline'}
+                                  size={'icon'}
+                                  className='rounded-[12px] hover:bg-background'
+                                >
+                                  <Key className='size-4' />
+                                </Button>
+                              </ApiDialog>
+                            )}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   size={'icon'}
                                   variant={'ghost'}
                                   className='rounded-[12px] hover:bg-background'
+                                  disabled={
+                                    proj.userrole === UserRole.Guest ||
+                                    proj.userrole === UserRole.Developer
+                                  }
                                 >
                                   <MoreHorizontal className='size-4' />
                                 </Button>
@@ -229,7 +247,9 @@ export default function SettingProjectPage() {
                 <TableFooter>
                   <TableRow>
                     <TableCell colSpan={3}>Total</TableCell>
-                    <TableCell className='text-right'>{sortedProjects.length}</TableCell>
+                    <TableCell className='text-right'>
+                      {sortedProjects.length}
+                    </TableCell>
                   </TableRow>
                 </TableFooter>
               </Table>

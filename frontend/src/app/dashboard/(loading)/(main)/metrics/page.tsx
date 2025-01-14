@@ -34,12 +34,15 @@ import { BoxIcon, CurlyBraces, Link2Icon, Loader } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRouter } from 'next/navigation';
 import { ProjectsContext } from '@/dash-context';
+import { UserRole } from '@/types';
 
 export default function DashboardMetrics() {
   const { projects, activeProject } = useContext(ProjectsContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('total');
   const router = useRouter();
+  const [activeMetric, setActiveMetric] = useState(0);
+
   useEffect(() => {
     document.title = 'Metrics | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -51,6 +54,18 @@ export default function DashboardMetrics() {
     }
   }, []);
 
+  useEffect(() => {
+    const new_index =
+      projects[activeProject].metrics === null
+        ? 0
+        : projects[activeProject].metrics.length === 0
+          ? 0
+          : projects[activeProject].metrics.length - 1;
+
+    if (activeMetric > new_index) {
+      setActiveMetric(new_index);
+    }
+  }, [activeProject]);
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb>
@@ -66,7 +81,6 @@ export default function DashboardMetrics() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      {/* /Breadcrumb */}
       <div className='mt-5 flex h-full flex-row gap-5'>
         {projects[activeProject].metrics === null ? (
           <div className='flex h-[calc(100vh-50px-15px-200px)] w-full items-center justify-center'>
@@ -78,7 +92,13 @@ export default function DashboardMetrics() {
               <SearchComponent search={search} setSearch={setSearch} />
               <FiltersComponent filter={filter} setFilter={setFilter} />
               <Link href={'/dashboard/new-metric'}>
-                <Button className='h-full gap-[8px] rounded-[12px] max-md:w-full'>
+                <Button
+                  className='h-full gap-[8px] rounded-[12px] max-md:w-full'
+                  disabled={
+                    projects[activeProject].userrole !== UserRole.Admin &&
+                    projects[activeProject].userrole !== UserRole.Owner
+                  }
+                >
                   <Plus className='size-[16px]' />
                   Add metric
                 </Button>
@@ -90,10 +110,15 @@ export default function DashboardMetrics() {
                 title='No Metric Created'
                 description='You can create a new metric to start tracking values.'
                 icons={[CurlyBraces, BoxIcon, Link2Icon]}
-                action={{
-                  label: 'Create metric',
-                  onClick: () => router.push('/dashboard/new-metric'),
-                }}
+                action={
+                  projects[activeProject].userrole === UserRole.Owner ||
+                    projects[activeProject].userrole === UserRole.Admin
+                    ? {
+                      label: 'Create metric',
+                      onClick: () => router.push('/dashboard/new-metric'),
+                    }
+                    : undefined
+                }
               />
             ) : (
               <MetricTable search={search} filter={filter} />
