@@ -204,6 +204,7 @@ export default function DashboardHomePage() {
                                     name: groupInput,
                                     type: BlockType.Group,
                                     nested: [],
+                                    metricIds: {},
                                     label: 'group',
                                     uniquekey: generateString(10),
                                   },
