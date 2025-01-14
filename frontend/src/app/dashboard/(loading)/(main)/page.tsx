@@ -8,7 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Sortable,
   SortableDragHandle,
@@ -52,8 +52,6 @@ import {
 } from '@/components/ui/dialog';
 import { AreaChart } from '@/components/ui/area-chart';
 import {
-  AreaChartData,
-  BarChartData,
   BarListData,
   ComboChartData,
   PieChartData,
@@ -92,9 +90,9 @@ import {
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Block, BlockType, ChartType } from '@/types';
+import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
 import { toast } from 'sonner';
-import { generateString } from '@/utils';
+import { fetchChartData, generateString } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
@@ -481,6 +479,75 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
+  const { projects, activeProject } = useContext(ProjectsContext);
+  const [chartData, setChartData] = useState<any[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [rangeSummary, setRangeSummary] = useState<{
+    pos: number;
+    neg: number;
+    average: number;
+  }>({ pos: 0, neg: 0, average: 0 });
+  const [range, setRange] = useState(7);
+
+  // Get metrics for this block
+  const metrics = useMemo(() => {
+    return props.metricIds
+      .map((id) => projects[activeProject].metrics?.find((m) => m.id === id))
+      .filter((m) => m !== undefined) as Metric[];
+  }, [props.metricIds, projects, activeProject]);
+
+  useEffect(() => {
+    console.log(props);
+    const loadData = async () => {
+      if (metrics.length === 0) return;
+
+      const date = new Date();
+      date.setDate(date.getDate() - (range - 1));
+
+      // Create array of promises for all metrics
+      const dataPromises = metrics.map((metric) =>
+        fetchChartData(
+          date,
+          range,
+          metric,
+          projects[activeProject].id,
+          'trend',
+        ).then((data) => {
+          // Process dual metric types
+          if (metric.type === MetricType.Dual) {
+            data.forEach((item) => {
+              item[metric.name] = item[metric.namepos] - item[metric.nameneg];
+            });
+          }
+          return {
+            metric,
+            data,
+          };
+        }),
+      );
+
+      // Wait for all data to be fetched and processed
+      const results = await Promise.all(dataPromises);
+
+      // Combine the results
+      let combinedData: any[] = [];
+      results.forEach(({ metric, data }, index) => {
+        if (index === 0) {
+          combinedData = data;
+        } else {
+          data.forEach((item, i) => {
+            combinedData[i][metric.name] = item[metric.name];
+          });
+        }
+      });
+
+      setChartData(combinedData);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [metrics, range]);
+
   return (
     <>
       <CardHeader
@@ -537,7 +604,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
           >
             <div className='flex flex-row items-center gap-4'>
               <CardTitle className='!m-0 !p-0 text-xl'>{props.name}</CardTitle>
-              <Select defaultValue='7'>
+              <Select
+                defaultValue='7'
+                onValueChange={(value) => setRange(parseInt(value))}
+              >
                 <SelectTrigger
                   className='w-[140px] border'
                   style={cardStyle(props.color)}
@@ -557,10 +627,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
             props.chartType !== ChartType.Radar &&
             props.chartType !== ChartType.BarList ? (
               <div className='flex h-full'>
-                {[
-                  { name: 'SolarPanels', value: 21267 },
-                  { name: 'Inverters', value: 56023 },
-                ].map((item, i) => {
+                {metrics.map((metric, i) => {
                   return (
                     <div
                       key={i}
@@ -569,9 +636,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
                     >
                       <div className='absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10' />
                       <div className='font-sans text-xs font-normal'>
-                        {item.name}
+                        {metric.name}
                       </div>
-                      {valueFormatter(item.value)}
+                      {valueFormatter(21000)}
                     </div>
                   );
                 })}
@@ -589,7 +656,23 @@ function BlockContent(props: Block & { groupkey?: string }) {
           <CardDescription>January - June 2024</CardDescription>
         </CardHeader>
       ) : undefined}
-      <NestedBlocks {...props} />
+
+      {props.nested !== undefined && props.nested !== null && (
+        <NestedBlocks {...props} />
+      )}
+
+      {props.type !== BlockType.Group && (
+        <CardContent
+          className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
+        >
+          <Charts
+            chartType={props.chartType}
+            data={chartData}
+            categories={metrics.map((metric) => metric.name)}
+          />
+        </CardContent>
+      )}
+
       {props.type === BlockType.Group ? (
         <></>
       ) : (
@@ -612,7 +695,11 @@ function BlockContent(props: Block & { groupkey?: string }) {
   );
 }
 
-function Charts(props: { chartType: ChartType | undefined }) {
+function Charts(props: {
+  chartType: ChartType | undefined;
+  data: any[] | null;
+  categories: string[];
+}) {
   const chartProps = {
     className: 'h-full',
     valueFormatter,
@@ -622,22 +709,22 @@ function Charts(props: { chartType: ChartType | undefined }) {
     case ChartType.Area:
       return (
         <AreaChart
-          data={AreaChartData}
+          data={props.data ?? []}
           {...chartProps}
           colors={['violet', 'blue']}
           index='date'
-          categories={['SolarPanels', 'Inverters']}
+          categories={props.categories}
           yAxisLabel='Total'
         />
       );
     case ChartType.Bar:
       return (
         <BarChart
-          data={BarChartData}
+          data={props.data ?? []}
           {...chartProps}
           colors={['violet', 'blue']}
           index='date'
-          categories={['SolarPanels', 'Inverters']}
+          categories={props.categories}
           yAxisLabel='Total'
         />
       );
@@ -733,64 +820,54 @@ function Charts(props: { chartType: ChartType | undefined }) {
 }
 
 function NestedBlocks(props: Block) {
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
-  if (props.nested !== undefined && props.nested !== null) {
-    return (
-      <Sortable
-        orientation='horizontal'
-        value={props.nested}
-        strategy={rectSortingStrategy}
-        onValueChange={(value) => {
-          setProjects(
-            projects.map((proj, i) =>
-              i === activeProject
-                ? Object.assign({}, proj, {
-                    blocks: Object.assign({}, proj.blocks, {
-                      layout: proj.blocks?.layout.map((l) =>
-                        l.uniquekey === props.uniquekey
-                          ? Object.assign({}, l, {
-                              nested: value,
-                            })
-                          : l,
-                      ),
-                    }),
-                  })
-                : proj,
-            ),
-          );
-        }}
-        overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
-      >
-        <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
-          {props.nested.map((block) => (
-            <IndividualBlock
-              key={block.uniquekey}
-              groupkey={props.uniquekey}
-              {...block}
-            />
-          ))}
-          {props.nested.length < 3 ? (
-            <BlocksDialog type='compact' groupkey={props.uniquekey}>
-              <div className='h-full cursor-pointer select-none'>
-                <EmptyState
-                  title='Add new block'
-                  description='Add a new block to this group.'
-                  icons={[PlusCircle, Plus, PlusSquare]}
-                  className='flex !size-full max-h-none min-w-[320px] flex-col items-center justify-center bg-transparent'
-                />
-              </div>
-            </BlocksDialog>
-          ) : undefined}
-        </div>
-      </Sortable>
-    );
-  }
-
+  const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   return (
-    <CardContent
-      className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
+    <Sortable
+      orientation='horizontal'
+      value={props.nested ?? []}
+      strategy={rectSortingStrategy}
+      onValueChange={(value) => {
+        setProjects(
+          projects.map((proj, i) =>
+            i === activeProject
+              ? Object.assign({}, proj, {
+                  blocks: Object.assign({}, proj.blocks, {
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.uniquekey
+                        ? Object.assign({}, l, {
+                            nested: value,
+                          })
+                        : l,
+                    ),
+                  }),
+                })
+              : proj,
+          ),
+        );
+      }}
+      overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
     >
-      <Charts chartType={props.chartType} />
-    </CardContent>
+      <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
+        {props.nested?.map((block) => (
+          <IndividualBlock
+            key={block.uniquekey}
+            groupkey={props.uniquekey}
+            {...block}
+          />
+        ))}
+        {(props.nested ? props.nested.length : 0) < 3 ? (
+          <BlocksDialog type='compact' groupkey={props.uniquekey}>
+            <div className='h-full cursor-pointer select-none'>
+              <EmptyState
+                title='Add new block'
+                description='Add a new block to this group.'
+                icons={[PlusCircle, Plus, PlusSquare]}
+                className='flex !size-full max-h-none min-w-[320px] flex-col items-center justify-center bg-transparent'
+              />
+            </div>
+          </BlocksDialog>
+        ) : undefined}
+      </div>
+    </Sortable>
   );
 }
