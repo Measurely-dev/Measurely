@@ -2,7 +2,7 @@
 import DashboardContentContainer from '@/components/dashboard/container';
 import { MetricDatePicker } from '@/components/dashboard/date-picker';
 import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
-import { AreaChart, TooltipProps } from '@/components/ui/area-chart';
+import { AreaChart } from '@/components/ui/area-chart';
 import { BarChart } from '@/components/ui/bar-chart';
 import {
   Breadcrumb,
@@ -22,6 +22,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import customTooltip from '@/components/ui/custom-tooltip';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
@@ -250,16 +251,16 @@ export default function DashboardMetricPage() {
         projects.map((v) =>
           v.id === metric.projectid
             ? Object.assign({}, v, {
-              metrics: v.metrics?.map((m) =>
-                m.id === metric.id
-                  ? Object.assign({}, m, {
-                    totalpos: relativetotalpos,
-                    totalneg: relativetotalneg,
-                    eventcount: relativeeventcount,
-                  })
-                  : m,
-              ),
-            })
+                metrics: v.metrics?.map((m) =>
+                  m.id === metric.id
+                    ? Object.assign({}, m, {
+                        totalpos: relativetotalpos,
+                        totalneg: relativetotalneg,
+                        eventcount: relativeeventcount,
+                      })
+                    : m,
+                ),
+              })
             : v,
         ),
       );
@@ -573,7 +574,7 @@ function Chart(props: {
               previousEventCount === 0
                 ? 0
                 : (relativetotalpos - pos - (relativetotalneg - neg)) /
-                previousEventCount,
+                  previousEventCount,
             averagepercentdiff: 0,
           };
         }
@@ -912,7 +913,7 @@ function Chart(props: {
                   {props.metric?.type === MetricType.Average ? (
                     <>
                       {rangeSummary.averagepercentdiff > 0 &&
-                        props.type === 'overview'
+                      props.type === 'overview'
                         ? '+'
                         : ''}
                       {props.type === 'overview' ? (
@@ -924,7 +925,7 @@ function Chart(props: {
                   ) : (
                     <>
                       {rangeSummary.pos - rangeSummary.neg > 0 &&
-                        props.type === 'overview'
+                      props.type === 'overview'
                         ? '+'
                         : ''}
                       {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
@@ -962,7 +963,7 @@ function Chart(props: {
                 }
                 valueFormatter={(number: number) => valueFormatter(number)}
                 yAxisLabel='Total'
-                onValueChange={() => { }}
+                onValueChange={() => {}}
               />
             ) : (
               <>
@@ -981,14 +982,14 @@ function Chart(props: {
                   categories={
                     props.metric?.type !== MetricType.Dual
                       ? [
-                        activeFilter !== null
-                          ? activeFilter.name
-                          : (props.metric?.name ?? ''),
-                      ]
+                          activeFilter !== null
+                            ? activeFilter.name
+                            : (props.metric?.name ?? ''),
+                        ]
                       : [
-                        props.metric?.namepos ?? '',
-                        props.metric?.nameneg ?? '',
-                      ]
+                          props.metric?.namepos ?? '',
+                          props.metric?.nameneg ?? '',
+                        ]
                   }
                   valueFormatter={(number: number) =>
                     `${Intl.NumberFormat('us').format(number).toString()}`
@@ -996,7 +997,7 @@ function Chart(props: {
                   yAxisLabel='Total'
                   onValueChange={
                     props.metric?.type === MetricType.Dual
-                      ? () => { }
+                      ? () => {}
                       : undefined
                   }
                 />
@@ -1067,7 +1068,7 @@ function Filters(props: {
         >
           {props.activeFilter !== null
             ? props.activeFilter.name.charAt(0).toUpperCase() +
-            props.activeFilter.name.slice(1).toLowerCase()
+              props.activeFilter.name.slice(1).toLowerCase()
             : 'Select a filter'}
           <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
         </Button>
@@ -1265,7 +1266,7 @@ function AdvancedOptions(props: {
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
           {props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend' ? (
+          props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
               Chart type
               <Select
@@ -1292,7 +1293,7 @@ function AdvancedOptions(props: {
           )}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
-            (props.chartName === 'trend' && props.splitTrendChecked) ? (
+          (props.chartName === 'trend' && props.splitTrendChecked) ? (
             <Label className='flex flex-col gap-2'>
               Chart color
               <Select
@@ -1453,7 +1454,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
           {props.chartName === 'trend' &&
-            props.metricType === MetricType.Dual ? (
+          props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
@@ -1602,39 +1603,3 @@ function RangeSelector(props: {
     </ToggleGroup>
   );
 }
-
-const customTooltip = ({ label, payload }: TooltipProps) => {
-  if (!payload) return null;
-  return (
-    <>
-      <div className='w-full rounded-md border border-gray-500/10 bg-black px-4 py-1.5 text-sm shadow-md'>
-        <p className='flex w-full items-center justify-between gap-10'>
-          <span className='text-gray-50 dark:text-gray-50'> Date </span>
-          <span className='font-medium text-gray-50 dark:text-gray-50'>
-            {payload.length > 0 ? payload[0].payload.tooltiplabel : label}
-          </span>
-        </p>
-      </div>
-      <div className='mt-1 w-full space-y-2 rounded-md border border-gray-500/10 bg-white px-4 py-2 text-sm shadow-md'>
-        {payload.map((item, i) => {
-          return (
-            <div className='flex w-full justify-between gap-10' key={i}>
-              <span className='flex items-center gap-2 text-gray-700'>
-                <div
-                  className='size-1.5 rounded-full'
-                  style={{ backgroundColor: item.color }}
-                />
-                {item.category}
-              </span>
-              <div className='flex items-center space-x-1'>
-                <span className='font-medium text-gray-900'>
-                  {valueFormatter(item.value)}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-};

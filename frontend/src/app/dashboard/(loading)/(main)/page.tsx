@@ -96,6 +96,7 @@ import { fetchChartData, generateString } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
+import customTooltip from '@/components/ui/custom-tooltip';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -202,7 +203,7 @@ export default function DashboardHomePage() {
                                     name: groupInput,
                                     type: BlockType.Group,
                                     nested: [],
-                                    metricIds: {},
+                                    metricIds: [],
                                     label: 'group',
                                     uniquekey: generateString(10),
                                   },
@@ -482,11 +483,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const { projects, activeProject } = useContext(ProjectsContext);
   const [chartData, setChartData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [rangeSummary, setRangeSummary] = useState<{
-    pos: number;
-    neg: number;
-    average: number;
-  }>({ pos: 0, neg: 0, average: 0 });
   const [range, setRange] = useState(7);
 
   // Get metrics for this block
@@ -496,8 +492,15 @@ function BlockContent(props: Block & { groupkey?: string }) {
       .filter((m) => m !== undefined) as Metric[];
   }, [props.metricIds, projects, activeProject]);
 
+  function calculareSummary(data: any[], name: string): number {
+    let summary = 0;
+    for (let i = 0; i < data.length; i++) {
+      summary += data[i][name] ?? 0;
+    }
+    return summary;
+  }
+
   useEffect(() => {
-    console.log(props);
     const loadData = async () => {
       if (metrics.length === 0) return;
 
@@ -638,7 +641,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
                       <div className='font-sans text-xs font-normal'>
                         {metric.name}
                       </div>
-                      {valueFormatter(21000)}
+                      {valueFormatter(
+                        calculareSummary(chartData ?? [], metric.name),
+                      )}
                     </div>
                   );
                 })}
@@ -711,6 +716,7 @@ function Charts(props: {
         <AreaChart
           data={props.data ?? []}
           {...chartProps}
+          customTooltip={customTooltip}
           colors={['violet', 'blue']}
           index='date'
           categories={props.categories}
@@ -722,6 +728,7 @@ function Charts(props: {
         <BarChart
           data={props.data ?? []}
           {...chartProps}
+          customTooltip={customTooltip}
           colors={['violet', 'blue']}
           index='date'
           categories={props.categories}

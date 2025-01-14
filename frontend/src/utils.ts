@@ -4,16 +4,17 @@ import { Metric, MetricType, UserRole } from './types';
 export const MAXFILESIZE = 500 * 1024;
 export const INTERVAL = 20000;
 
-const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const characters =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-export function generateString(length : number) : string {
-    let result = ' ';
-    const charactersLength = characters.length;
-    for ( let i = 0; i < length; i++ ) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
+export function generateString(length: number): string {
+  let result = ' ';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
 
-    return result;
+  return result;
 }
 
 export function roleToString(role: UserRole): string {
@@ -43,8 +44,6 @@ export function formatFullName(firstname: string, lastname: string) {
 
   return firstname + ' ' + lastname;
 }
-
-
 
 export async function loadMetrics(projectid: string): Promise<Metric[]> {
   const res = await fetch(
@@ -278,7 +277,8 @@ export const fetchChartData = async (
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
     if ((range === 1 || range === 7) && chartType === 'trend') {
-      tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
+      tmpData[i].tooltiplabel +=
+        ' ' + parseXAxis(tmpData[i].date, range === 1 ? 0 : 1);
     }
 
     let matches = false;
@@ -413,7 +413,8 @@ export const fetchEventVariation = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${projectid
+    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${
+      projectid
     }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',
@@ -542,7 +543,7 @@ export const calculateTrend = (
       totalpos =
         trend[i]['Positive Trend'] -
         trend[i][
-        metric.type !== MetricType.Dual ? metric.name : metric.namepos
+          metric.type !== MetricType.Dual ? metric.name : metric.namepos
         ];
       totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
 
@@ -567,7 +568,7 @@ export const calculateTrend = (
       } else {
         if (
           trend[i][
-          metric.type !== MetricType.Dual ? metric.name : metric.namepos
+            metric.type !== MetricType.Dual ? metric.name : metric.namepos
           ] !== undefined
         ) {
           trend[i][metric.name] = totalpos;
