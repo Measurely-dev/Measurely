@@ -22,7 +22,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Block, BlockType, Metric, Project } from '@/types';
+import {
+  Block,
+  BlockType,
+  ChartType,
+  chartTypeMetricLimits,
+  Metric,
+  Project,
+} from '@/types';
 import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { LabelSelect } from '@/components/ui/label-select';
@@ -123,15 +130,40 @@ const ChangeLabelDialogContent: FC<{
     </div>
   );
 };
-
 const MetricDialogContent: FC<{
   selectedMetrics: Metric[];
   setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
-}> = ({ selectedMetrics, setSelectedMetrics }) => {
+  chartType: ChartType | undefined;
+}> = ({ selectedMetrics, setSelectedMetrics, chartType }) => {
+  const chartLimits =
+    chartType !== undefined
+      ? chartTypeMetricLimits[chartType]
+      : chartTypeMetricLimits[ChartType.Area];
+
+  const min = chartLimits.min;
+  const max = chartLimits.max;
+
   return (
     <div className='space-y-4'>
-      <p className='text-sm font-medium'>Edit Metrics</p>
+      <p className='text-sm font-medium'>
+        {`Select ${selectedMetrics.length} of ${max} metrics`}
+        <span
+          className={`ml-2 ${
+            selectedMetrics.length < min || selectedMetrics.length > max
+              ? 'text-red-500'
+              : 'text-green-500'
+          }`}
+        >
+          {selectedMetrics.length < min
+            ? `(${min - selectedMetrics.length} more required)`
+            : selectedMetrics.length > max
+              ? `(${selectedMetrics.length - max} too many)`
+              : ''}
+        </span>
+      </p>
       <MetricSelect
+        min={min}
+        max={max}
         selectedMetrics={selectedMetrics}
         setSelectedMetrics={setSelectedMetrics}
       />
@@ -515,7 +547,7 @@ export default function BlockOptions(
       <Dialog open={isMetricDialogOpen} onOpenChange={setIsMetricDialogOpen}>
         <DialogContent className='max-w-xl !rounded-[16px]'>
           <DialogHeader>
-            <DialogTitle>Change Metrics</DialogTitle>
+            <DialogTitle>Edit Metrics</DialogTitle>
             <DialogDescription>
               Update the metrics for the selected item.
             </DialogDescription>
@@ -523,6 +555,7 @@ export default function BlockOptions(
           <MetricDialogContent
             selectedMetrics={newMetrics}
             setSelectedMetrics={setNewMetrics}
+            chartType={props.chartType}
           />
           <DialogFooter>
             <Button

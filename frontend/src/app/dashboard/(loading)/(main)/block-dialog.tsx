@@ -57,7 +57,13 @@ import {
   Label as RechartLabel,
 } from 'recharts';
 import { Label } from '@/components/ui/label';
-import { Block, BlockType, ChartType, Metric } from '@/types';
+import {
+  Block,
+  BlockType,
+  ChartType,
+  chartTypeMetricLimits,
+  Metric,
+} from '@/types';
 import { toast } from 'sonner';
 import { generateString } from '@/utils';
 import { LabelSelect } from '@/components/ui/label-select';
@@ -334,6 +340,31 @@ function BlockItem(props: {
   state: any;
   setState: Dispatch<SetStateAction<number>>;
 }) {
+  const { projects, activeProject } = useContext(ProjectsContext);
+  const blockSelected = useMemo(
+    () => findBlockByValue(props.value),
+    [props.value],
+  );
+
+  const chartLimits = blockSelected
+    ? chartTypeMetricLimits[blockSelected.value as ChartType]
+    : { min: 0, max: 0 };
+  const min = chartLimits.min;
+
+  const handleClick = () => {
+    const project = projects[activeProject];
+    const totalMetrics = project.metrics?.length || 0;
+
+    if (totalMetrics < min) {
+      toast.warning(
+        `You need at least ${min} metrics to create a ${props.name}`,
+      );
+      return;
+    }
+
+    props.setState(props.state !== props.value ? props.value : 0);
+  };
+
   return (
     <div
       className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
@@ -341,9 +372,7 @@ function BlockItem(props: {
           ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
           : 'cursor-pointer hover:bg-accent/50'
       }`}
-      onClick={() => {
-        props.setState(props.state !== props.value ? props.value : 0);
-      }}
+      onClick={handleClick}
     >
       <div className='text-sm font-medium'>{props.name}</div>
       <div className='text-xs font-light text-secondary'>
@@ -359,6 +388,7 @@ function BlockItem(props: {
     </div>
   );
 }
+
 const findBlockByValue = (value: number) => {
   for (const block of blockWideType) {
     if (block.value === value) {
@@ -385,11 +415,21 @@ function BlocksDialogStack(props: {
     () => findBlockByValue(props.type),
     [props.type],
   );
+
+  const chartLimits =
+    blockSelected?.value !== undefined
+      ? chartTypeMetricLimits[blockSelected.value as ChartType]
+      : chartTypeMetricLimits[ChartType.Area];
+
+  const min = chartLimits.min;
+  const max = chartLimits.max;
+
   const [nameInputValue, setNameInputValue] = useState<string>('');
   const dialogStackContext = useContext(DialogStackContext);
   const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string>('');
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+
   if (!dialogStackContext) {
     return null;
   }
@@ -494,7 +534,23 @@ function BlocksDialogStack(props: {
 
         <DialogStackContent>
           <DialogHeader>
-            <DialogStackTitle>Select metrics</DialogStackTitle>
+            <DialogStackTitle>
+              {`Select ${selectedMetrics.length} of ${max} metrics`}
+              <span
+                className={`ml-2 ${
+                  selectedMetrics.length < min || selectedMetrics.length > max
+                    ? 'text-red-500'
+                    : 'text-green-500'
+                }`}
+              >
+                {selectedMetrics.length < min
+                  ? `(${min - selectedMetrics.length} more required)`
+                  : selectedMetrics.length > max
+                    ? `(${selectedMetrics.length - max} too many)`
+                    : ''}
+              </span>
+            </DialogStackTitle>
+
             <DialogStackDescription>
               You can select multiple metrics or a single one, to compare or
               track various data points.
@@ -504,6 +560,8 @@ function BlocksDialogStack(props: {
             <div className='flex flex-col gap-2'>
               <Label>Select metrics</Label>
               <MetricSelect
+                min={min}
+                max={max}
                 selectedMetrics={selectedMetrics}
                 setSelectedMetrics={setSelectedMetrics}
               />
@@ -517,7 +575,9 @@ function BlocksDialogStack(props: {
             </DialogStackPrevious>
             <Button
               className='rounded-[12px]'
-              disabled={selectedMetrics.length === 0}
+              disabled={
+                selectedMetrics.length < min || selectedMetrics.length > max
+              }
               onClick={() => {
                 props.setIsDialogOpen(false);
                 setNameInputValue('');

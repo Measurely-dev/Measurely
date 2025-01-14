@@ -21,7 +21,9 @@ import { Metric } from '@/types';
 
 export function MetricSelect(props: {
   selectedMetrics: Metric[];
-  setSelectedMetrics : React.Dispatch<React.SetStateAction<Metric[]>>
+  setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
+  min: number; 
+  max: number; 
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
@@ -31,21 +33,38 @@ export function MetricSelect(props: {
   const projectMetrics = projects?.[activeProject]?.metrics ?? [];
 
   const toggleMetric = (metric: Metric) => {
-    props.setSelectedMetrics((currentMetrics) =>
-      currentMetrics.some((m) => m.id === metric.id)
-        ? currentMetrics.filter((m) => m.id !== metric.id)
-        : [...currentMetrics, metric],
+    const isAlreadySelected = props.selectedMetrics.some(
+      (m) => m.id === metric.id,
     );
+
+    if (isAlreadySelected) {
+      if (props.selectedMetrics.length > 0) {
+        props.setSelectedMetrics((currentMetrics) =>
+          currentMetrics.filter((m) => m.id !== metric.id),
+        );
+      }
+    } else {
+      if (props.max === 1) {
+        props.setSelectedMetrics([metric]);
+      } else {
+        if (props.selectedMetrics.length >= props.max) return;
+        props.setSelectedMetrics((currentMetrics) => [
+          ...currentMetrics,
+          metric,
+        ]);
+      }
+    }
     inputRef?.current?.focus();
   };
-
   const onComboboxOpenChange = (value: boolean) => {
     inputRef.current?.blur();
     setOpenCombobox(value);
   };
 
   const clearSelectedMetrics = () => {
-    props.setSelectedMetrics([]);
+    if (props.selectedMetrics.length > 0) {
+      props.setSelectedMetrics([]);
+    }
   };
 
   return (
@@ -60,7 +79,8 @@ export function MetricSelect(props: {
           >
             <span className='truncate'>
               {props.selectedMetrics.length === 0 && 'Select metric(s)'}
-              {props.selectedMetrics.length === 1 && props.selectedMetrics[0].name}
+              {props.selectedMetrics.length === 1 &&
+                props.selectedMetrics[0].name}
               {props.selectedMetrics.length === 2 &&
                 props.selectedMetrics.map(({ name }) => name).join(', ')}
               {props.selectedMetrics.length > 2 &&
