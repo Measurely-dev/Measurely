@@ -629,7 +629,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
             {props.chartType !== ChartType.Pie &&
             props.chartType !== ChartType.Radar &&
             props.chartType !== ChartType.BarList ? (
-              <div className='flex h-full'>
+              <div className='grid grid-cols-2 h-full'>
                 {metrics.map((metric, i) => {
                   return (
                     <div
