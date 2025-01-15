@@ -24,7 +24,7 @@ import {
   FileQuestion,
   ArrowBigDown,
   ArrowBigUp,
-  Trash,
+  Trash2,
 } from 'lucide-react';
 import {
   Dispatch,
@@ -451,7 +451,7 @@ function MemberOption({
   async function deleteMember(member: User) {
     const isConfirmed = await confirm({
       title: `Remove ${formatFullName(member.firstname, member.lastname)} from the project`,
-      icon: <Trash className='size-6 fill-destructive text-destructive' />,
+      icon: <Trash2 className='size-5 text-destructive' />,
       description: `Are you sure you want to remove ${formatFullName(member.firstname, member.lastname)} from the project? This action will permanently remove the user's access to the project.`,
       confirmText: `Yes`,
       cancelText: 'Cancel',
@@ -464,7 +464,7 @@ function MemberOption({
         className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
       },
       alertDialogTitle: {
-        className: 'flex items-center gap-1',
+        className: 'flex items-center gap-2',
       },
       alertDialogContent: {
         className: '!rounded-[16px]',

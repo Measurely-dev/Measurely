@@ -63,27 +63,7 @@ import {
   fetchChartData,
   fetchEventVariation,
 } from '@/utils';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion-base';
+import { Dialog } from '@/components/ui/dialog';
 import {
   ArrowLeft,
   ArrowRight,
@@ -93,6 +73,7 @@ import {
   CircleOff,
   Copy,
   Edit,
+  Edit2,
   ListFilter,
   Loader,
   MoreHorizontal,
@@ -116,6 +97,7 @@ import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Badge } from '@/components/ui/badge';
+import FilterManagerDialog from './filter-manager';
 
 type AllowedColors =
   | 'blue'
@@ -247,103 +229,6 @@ const fakeFilterCategories = [
   },
 ];
 
-function FilterManagerDialog(props: {
-  open: boolean;
-  setOpen: (state: boolean) => void;
-}) {
-  const [activeAccordion, setActiveAccordion] = useState<string | undefined>();
-
-  const handleAccordionToggle = (categoryName: string) => {
-    setActiveAccordion((prev) =>
-      prev === categoryName ? undefined : categoryName,
-    );
-  };
-
-  return (
-    <Dialog open={props.open} onOpenChange={props.setOpen}>
-      <DialogContent className='max-h-[80vh] w-[95%] max-w-[600px] gap-0 overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle>Filter Manager</DialogTitle>
-          <DialogDescription className='text-sm text-muted-foreground'>
-            Manage and organize filters for this metric. Create new filters,
-            edit existing ones.
-          </DialogDescription>
-        </DialogHeader>
-        <Button className='my-5 mt-3 w-full rounded-[12px] flex items-center gap-2'>
-          <Tag className='size-4'/>
-          Create category
-        </Button>
-
-        <div className='flex h-[60px] items-center justify-between rounded-t-[12px] border-b bg-accent px-5'>
-          <div className='text-sm font-medium text-muted-foreground'>
-            Category
-          </div>
-          <div className='text-sm font-medium text-muted-foreground'>
-            Actions
-          </div>
-        </div>
-        <Accordion
-          type='single'
-          collapsible
-          value={activeAccordion}
-          onValueChange={setActiveAccordion}
-        >
-          {fakeFilterCategories.map((category) => (
-            <>
-              <AccordionItem
-                className='border-b px-5 hover:bg-accent/60'
-                value={category.name}
-                onClick={() => handleAccordionToggle(category.name)}
-              >
-                <div
-                  className={`flex h-[60px] cursor-pointer select-none items-center justify-between font-mono !text-sm font-semibold !no-underline ${activeAccordion === category.name ? 'text-blue-500' : ''}`}
-                >
-                  {category.name}
-                  <div className='flex items-center justify-center'>
-                    <Button
-                      variant={'ghost'}
-                      size={'icon'}
-                      className='rounded-[12px] text-primary'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                    >
-                      <MoreHorizontal className='size-5' />
-                    </Button>
-                  </div>
-                </div>
-                <AccordionContent className='flex flex-col gap-2'>
-                  <Button
-                    className='mb-4 flex w-full items-center gap-2 rounded-[12px] border'
-                    variant={'secondary'}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
-                    <ListFilter className='size-4' />
-                    New filter
-                  </Button>
-                  {category.filters.map((filter, index) => (
-                    <Badge
-                      key={index}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      className='group relative w-fit select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-red-500'
-                    >
-                      <X className='absolute -left-4 size-4 transition-all duration-200 group-hover:left-2' />
-                      {filter}
-                    </Badge>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            </>
-          ))}
-        </Accordion>
-      </DialogContent>
-    </Dialog>
-  );
-}
 export default function DashboardMetricPage() {
   const router = useRouter();
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -504,6 +389,7 @@ export default function DashboardMetricPage() {
         />
       </Dialog>
       <FilterManagerDialog
+        filterCategories={fakeFilterCategories}
         open={filterManagerOpen}
         setOpen={setFilterManagerOpen}
       />
