@@ -6,16 +6,14 @@ import {
 } from '@/components/ui/accordion-base';
 import {
   Edit2,
-  ListFilter,
   MoreHorizontal,
   Plus,
   PlusCircle,
   PlusSquare,
   Tag,
-  Trash,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   Dialog,
   DialogClose,
@@ -38,17 +36,21 @@ import { Label } from '@/components/ui/label';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TagInput } from 'emblor';
+import { Metric } from '@/types';
+import { toast } from 'sonner';
+import { ProjectsContext } from '@/dash-context';
 
 export default function FilterManagerDialog(props: {
   open: boolean;
   setOpen: (state: boolean) => void;
-  filterCategories: { name: string; filters: string[] }[];
+  metric: Metric;
 }) {
   const [activeAccordion, setActiveAccordion] = useState<string | undefined>();
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
   const [categoryToRename, setCategoryToRename] = useState<
     string | undefined
   >();
+  const [parentCategory, setParentCategory] = useState<string>('');
   const [renameInputValue, setRenameInputValue] = useState<string>('');
   const [creationDialogOpen, setCreationDialogOpen] = useState<boolean>(false);
   const [creationType, setCreationType] = useState<'filter' | 'category'>(
@@ -60,6 +62,7 @@ export default function FilterManagerDialog(props: {
   const [badgeInputValue, setBadgeInputValue] = useState<string>('');
   const confirm = useConfirm();
   const [tags, setTags] = useState<any[]>([]);
+  const { projects, setProjects } = useContext(ProjectsContext);
 
   const handleAccordionToggle = (categoryName: string) => {
     setActiveAccordion((prev) =>
@@ -73,8 +76,11 @@ export default function FilterManagerDialog(props: {
     setRenameDialogOpen(true);
   };
 
-  const handleCreate = (type: 'filter' | 'category') => {
+  const handleCreate = (type: 'filter' | 'category', category?: string) => {
     setCreationType(type);
+    if (category && type === 'filter') {
+      setParentCategory(category);
+    }
     setCreationInputValue('');
     setTags([]);
     setCreationDialogOpen(true);
@@ -90,6 +96,87 @@ export default function FilterManagerDialog(props: {
     setBadgeToEdit(badgeName);
     setBadgeInputValue(badgeName);
     setBadgeDialogOpen(true);
+  };
+
+  const handleCreation = async () => {
+    let filterTags = tags;
+    let category = creationInputValue;
+    if (creationType === 'filter') {
+      filterTags = [
+        {
+          id: 0,
+          text: creationInputValue,
+        },
+      ];
+
+      category = parentCategory;
+    }
+
+    const tagCreationPromises = filterTags.map(
+      async (tag): Promise<Metric | undefined> => {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/metric`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: tag.text,
+              type: props.metric.type,
+              namepos: '',
+              nameneg: '',
+              basevalue: 0,
+              projectid: props.metric.projectid,
+              parentmetricid: props.metric.id,
+              filtercategory: category,
+            }),
+          },
+        );
+
+        if (response.ok) {
+          const data = response.json();
+          return data;
+        }
+
+        const error = await response.text();
+        toast.error(error);
+        return undefined;
+      },
+    );
+
+    const results = await Promise.all(tagCreationPromises);
+    const filters = props.metric.filters ?? {};
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result) {
+        if (!filters[result.filtercategory]) {
+          filters[result.filtercategory] = [];
+        }
+
+        filters[result.filtercategory].push(result);
+      }
+    }
+
+    setProjects(
+      projects.map((proj) =>
+        proj.id === props.metric.projectid
+          ? Object.assign({}, proj, {
+              metrics: proj.metrics?.map((m) =>
+                m.id === props.metric.id
+                  ? Object.assign({}, m, {
+                      filters: filters,
+                    })
+                  : m,
+              ),
+            })
+          : proj,
+      ),
+    );
+
+    handleCloseCreationDialog();
   };
 
   const handleBadgeDelete = async () => {
@@ -168,7 +255,7 @@ export default function FilterManagerDialog(props: {
             <Tag className='size-4' />
             Create category
           </Button>
-          {props.filterCategories.length === 0 ? (
+          {Object.keys(props.metric.filters ?? {}).length === 0 ? (
             <EmptyState
               title='Add new filter category'
               description='Create a new category to organize your filters.'
@@ -191,18 +278,19 @@ export default function FilterManagerDialog(props: {
                 value={activeAccordion}
                 onValueChange={setActiveAccordion}
               >
-                {props.filterCategories.map((category) => (
+                {Object.keys(props.metric.filters ?? {}).map((category) => (
                   <>
                     <AccordionItem
+                      key={category}
                       className='border-b px-5 hover:bg-accent/60'
-                      value={category.name}
-                      onClick={() => handleAccordionToggle(category.name)}
+                      value={category}
+                      onClick={() => handleAccordionToggle(category)}
                     >
                       <div
-                        className={`flex h-[60px] cursor-pointer select-none items-center justify-between ${activeAccordion === category.name ? 'text-blue-500' : ''}`}
+                        className={`flex h-[60px] cursor-pointer select-none items-center justify-between ${activeAccordion === category ? 'text-blue-500' : ''}`}
                       >
                         <span className='font-mono !text-sm font-semibold !no-underline'>
-                          {category.name}
+                          {category}
                         </span>
                         <div className='flex items-center justify-center'>
                           <DropdownMenu>
@@ -225,7 +313,7 @@ export default function FilterManagerDialog(props: {
                               }}
                             >
                               <DropdownMenuItem
-                                onClick={() => handleRename(category.name)}
+                                onClick={() => handleRename(category)}
                               >
                                 Rename
                               </DropdownMenuItem>
@@ -245,23 +333,23 @@ export default function FilterManagerDialog(props: {
                           variant={'secondary'}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCreate('filter');
+                            handleCreate('filter', category);
                           }}
                         >
                           <Plus className='size-4' />
                           Add filter
                         </Button>
-                        {category.filters.map((filter, index) => (
+                        {props.metric.filters?.[category].map((filter) => (
                           <Badge
-                            key={index}
+                            key={filter.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleBadgeEdit(filter);
+                              handleBadgeEdit(filter.name);
                             }}
                             className='group relative w-fit cursor-pointer select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
                           >
                             <Edit2 className='absolute -left-4 size-4 transition-all duration-200 group-hover:left-2' />
-                            {filter}
+                            {filter.name}
                           </Badge>
                         ))}
                       </AccordionContent>
@@ -272,7 +360,7 @@ export default function FilterManagerDialog(props: {
               <div className='flex h-[60px] items-center justify-between rounded-b-[12px] bg-accent px-5'>
                 <div className='text-sm font-medium text-primary'>Total</div>
                 <div className='flex size-9 items-center justify-center rounded-[12px] bg-input/60 text-sm font-medium text-primary'>
-                  {props.filterCategories.length}
+                  {Object.keys(props.metric.filters ?? {}).length}
                 </div>
               </div>
             </>
@@ -381,7 +469,7 @@ export default function FilterManagerDialog(props: {
             </DialogClose>
             <Button
               className='w-fit rounded-[12px]'
-              onClick={handleCloseCreationDialog}
+              onClick={handleCreation}
               disabled={
                 creationInputValue.length < 2 ||
                 creationInputValue.trim() === '' ||
@@ -465,7 +553,7 @@ const FilterTagInput = (props: {
       minTags={1}
       maxTags={6}
       tags={tags}
-      setTags={(newTags) => {
+      setTags={(newTags: any) => {
         setTags(newTags);
       }}
       placeholder='Add a filter'

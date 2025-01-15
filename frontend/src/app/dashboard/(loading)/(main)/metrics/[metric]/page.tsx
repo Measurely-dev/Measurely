@@ -73,14 +73,9 @@ import {
   CircleOff,
   Copy,
   Edit,
-  Edit2,
   ListFilter,
   Loader,
-  MoreHorizontal,
-  Plus,
   Sliders,
-  Tag,
-  X,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import {
@@ -95,8 +90,6 @@ import {
 } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
-import { DialogDescription } from '@radix-ui/react-dialog';
-import { Badge } from '@/components/ui/badge';
 import FilterManagerDialog from './filter-manager';
 
 type AllowedColors =
@@ -195,39 +188,6 @@ function getDualMetricChartColors(
 const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
-
-const fakeFilterCategories = [
-  {
-    id: 1,
-    name: 'North America',
-    filters: ['USA', 'Canada', 'Mexico'],
-  },
-  {
-    id: 2,
-    name: 'Europe',
-    filters: ['Germany', 'France', 'Italy', 'Spain'],
-  },
-  {
-    id: 3,
-    name: 'Asia',
-    filters: ['China', 'India', 'Japan', 'South Korea'],
-  },
-  {
-    id: 4,
-    name: 'South America',
-    filters: ['Brazil', 'Argentina', 'Chile', 'Colombia'],
-  },
-  {
-    id: 5,
-    name: 'Africa',
-    filters: ['Nigeria', 'South Africa', 'Kenya', 'Egypt'],
-  },
-  {
-    id: 6,
-    name: 'Oceania',
-    filters: ['Australia', 'New Zealand', 'Papua New Guinea'],
-  },
-];
 
 export default function DashboardMetricPage() {
   const router = useRouter();
@@ -388,12 +348,13 @@ export default function DashboardMetricPage() {
           }}
         />
       </Dialog>
-      <FilterManagerDialog
-      
-        filterCategories={fakeFilterCategories}
-        open={filterManagerOpen}
-        setOpen={setFilterManagerOpen}
-      />
+      {metric && (
+        <FilterManagerDialog
+          metric={metric}
+          open={filterManagerOpen}
+          setOpen={setFilterManagerOpen}
+        />
+      )}
       <Card className='mt-5 rounded-[12px] border-none bg-accent'>
         <CardHeader>
           <CardTitle className='text-2xl'>Quick Actions</CardTitle>
@@ -413,13 +374,13 @@ export default function DashboardMetricPage() {
               },
               {
                 label: 'Push Value',
-                action: 'Manually push a new value to the metric.',
+                action: 'Manually push a new event to the metric.',
                 icon: <ArrowUpCircle className='size-8' />,
                 color: '#10B981', // Green
               },
               {
                 label: 'Edit Metric',
-                action: 'Edit theproperties name or settings of the metric.',
+                action: 'Edit the name the metric.',
                 icon: <Edit className='size-8' />,
                 color: '#F59E0B', // Yellow
                 onClick: () => {

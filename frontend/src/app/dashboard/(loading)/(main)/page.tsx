@@ -53,7 +53,6 @@ import {
 import { AreaChart } from '@/components/ui/area-chart';
 import {
   BarListData,
-  ComboChartData,
   PieChartData,
   RadarChartData,
 } from '@/components/global/block-fake-data';
@@ -482,7 +481,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [isOpen, setIsOpen] = useState(isHoveredMore);
   const { projects, activeProject } = useContext(ProjectsContext);
   const [chartData, setChartData] = useState<any[] | null>(null);
-  const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(7);
 
   // Get metrics for this block
@@ -545,7 +543,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
       });
 
       setChartData(combinedData);
-      setLoading(false);
     };
 
     loadData();

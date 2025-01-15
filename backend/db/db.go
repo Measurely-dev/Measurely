@@ -185,7 +185,7 @@ func (db *DB) SearchUsers(search string) ([]types.User, error) {
 	var users []types.User
 
 	query := `
-		SELECT * FROM users 
+		SELECT * FROM users
 		WHERE email ILIKE $1
 		OR (firstname ILIKE $1 AND lastname ILIKE $1)
 	`
@@ -232,7 +232,15 @@ func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, erro
 
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var new_metric types.Metric
-	err := db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId, metric.FilterCategory).Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount)
+	var row *sql.Row
+	if metric.ParentMetricId.Valid {
+		row = db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, parentmetricid, filtercategory) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.ParentMetricId.V, metric.FilterCategory)
+	} else {
+
+		row = db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, filtercategory) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.FilterCategory)
+	}
+
+	err := row.Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount)
 	return new_metric, err
 }
 
@@ -302,10 +310,10 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 	// Insert or update the MetricEvent in metricevents table for the main metric
 	_, err = tx.NamedExec(
-		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date) 
+		`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date)
     VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :relativeeventcount, :date)
         ON CONFLICT (metricid, date)
-        DO UPDATE SET 
+        DO UPDATE SET
         valuepos = metricevents.valuepos + EXCLUDED.valuepos,
         valueneg = metricevents.valueneg + EXCLUDED.valueneg,
         eventcount = metricevents.eventcount + 1,
@@ -325,10 +333,10 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		var filtertotalPos, filtertotalNeg, filtereventCount int64
 		var filterId uuid.UUID
 		err = tx.QueryRowx(`
-			UPDATE metrics 
+			UPDATE metrics
 			SET totalpos = metrics.totalpos + $1,
-					totalneg = metrics.totalneg + $2 
-      WHERE parentmetricid = $3 AND filtercategory = $4 AND name = $5 
+					totalneg = metrics.totalneg + $2
+      WHERE parentmetricid = $3 AND filtercategory = $4 AND name = $5
       RETURNING id, totalpos, totalneg, eventcount
 		`, toAdd, toRemove, metricid, key, value).Scan(&filterId, &filtertotalPos, &filtertotalNeg, &filtereventCount)
 		if err != nil {
@@ -348,10 +356,10 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 		// Insert or update MetricEvent for the filter
 		_, err = tx.NamedExec(
-			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date) 
+			`INSERT INTO metricevents (metricid, valuepos, valueneg, relativetotalpos, relativetotalneg, relativeeventcount, date)
     VALUES (:metricid, :valuepos, :valueneg, :relativetotalpos, :relativetotalneg, :relativeeventcount, :date)
         ON CONFLICT (metricid, date)
-        DO UPDATE SET 
+        DO UPDATE SET
         valuepos = metricevents.valuepos + EXCLUDED.valuepos,
         valueneg = metricevents.valueneg + EXCLUDED.valueneg,
         eventcount = metricevents.eventcount + 1,
@@ -447,18 +455,18 @@ func (db *DB) GetMetricEvents(metricid uuid.UUID, start time.Time, end time.Time
 	var err error
 	if usenext {
 		query = `
-            SELECT * 
+            SELECT *
             FROM metricevents
             WHERE metricid = $1 AND date > $2
-            ORDER BY date ASC 
+            ORDER BY date ASC
             LIMIT 1
     `
 		rows, err = db.Conn.Query(query, metricid, end)
 	} else {
 		query = `
-            SELECT * 
+            SELECT *
             FROM metricevents
-            WHERE metricid = $1 AND date BETWEEN $2 AND $3 
+            WHERE metricid = $1 AND date BETWEEN $2 AND $3
             ORDER BY date ASC
             `
 		rows, err = db.Conn.Query(query, metricid, start, end)
@@ -486,7 +494,7 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 
 	query := `
 		(
-			SELECT * 
+			SELECT *
 			FROM metricevents
 			WHERE metricid = $1 AND date >= $2 AND date <= $3
 			ORDER BY date ASC
@@ -494,7 +502,7 @@ func (db *DB) GetVariationEvents(metricid uuid.UUID, start time.Time, end time.T
 		)
 		UNION ALL
 		(
-			SELECT * 
+			SELECT *
 			FROM metricevents
 			WHERE metricid = $1 AND date <= $3 AND date >= $2
 			ORDER BY date DESC
@@ -514,19 +522,19 @@ func (db *DB) GetProject(id, userid uuid.UUID) (types.Project, error) {
 	var project types.Project
 
 	query := `
-		SELECT 
+		SELECT
 			p.*,
 			CASE
 				WHEN p.userid = $2 THEN 0
 				ELSE tr.role
 			END AS userrole
-		FROM 
+		FROM
 			projects p
-		LEFT JOIN 
-			TeamRelation tr 
-		ON 
+		LEFT JOIN
+			TeamRelation tr
+		ON
 			p.id = tr.projectid AND tr.userid = $2
-		WHERE 
+		WHERE
 			p.id = $1
 			AND (p.userid = $2 OR tr.userid = $2)
 	`
@@ -556,19 +564,19 @@ func (db *DB) GetProjects(userid uuid.UUID) ([]types.Project, error) {
 	var projects []types.Project
 
 	query := `
-		SELECT 
+		SELECT
 			p.*,
 			CASE
 				WHEN p.userid = $1 THEN 0
 				ELSE tr.role
 			END AS userrole
-		FROM 
+		FROM
 			projects p
-		LEFT JOIN 
-			TeamRelation tr 
-		ON 
+		LEFT JOIN
+			TeamRelation tr
+		ON
 			p.id = tr.projectid AND tr.userid = $1
-		WHERE 
+		WHERE
 			p.userid = $1 OR tr.userid = $1
 	`
 
@@ -712,23 +720,23 @@ func (db *DB) GetUsersByProjectId(projectid uuid.UUID) ([]types.User, error) {
 	var users []types.User
 
 	query := `
-		SELECT 
+		SELECT
 			u.*,
 			CASE
 				WHEN p.userid = u.id THEN 0
 				ELSE tr.role
 			END AS userrole
-		FROM 
+		FROM
 			users u
-		LEFT JOIN 
-			TeamRelation tr 
-		ON 
+		LEFT JOIN
+			TeamRelation tr
+		ON
 			u.id = tr.userid AND tr.projectid = $1
-		LEFT JOIN 
+		LEFT JOIN
 			projects p
-		ON 
+		ON
 			p.id = $1
-		WHERE 
+		WHERE
 			p.userid = u.id OR tr.projectid = $1
     LIMIT 5
 	`
