@@ -67,6 +67,8 @@ import {
 import { toast } from 'sonner';
 import { generateString } from '@/utils';
 import { LabelSelect } from '@/components/ui/label-select';
+import { FilterCategorySelect } from '@/components/ui/filter-category-select';
+import { useRouter } from 'next/navigation';
 
 interface BlockShowcaseType {
   name: string;
@@ -262,9 +264,36 @@ export default function BlocksDialog(props: {
 }) {
   const [value, setValue] = useState<number>(-1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { projects, activeProject } = useContext(ProjectsContext);
+  const router = useRouter();
+  const handleOpenChange = (open: boolean) => {
+    if (open && props.type === 'compact') {
+      const project = projects[activeProject];
+      const hasMetricWithFilters = project.metrics?.some(
+        (metric) => Object.keys(metric.filters || {}).length > 0,
+      );
+
+      if (!hasMetricWithFilters) {
+        toast.info('You must have at least one metric with filter(s).', {
+          action: {
+            label: 'How to?',
+            onClick: () => router.push('/docs/features/filters/'),
+            actionButtonStyle: {
+              borderRadius: '12px !important',
+              backgroundColor: 'blue !important',
+              color: 'white !important',
+            },
+          },
+        });
+        return;
+      }
+    }
+    setIsDialogOpen(open);
+  };
+
   return (
     <DialogStack>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild className='max-sm:w-full'>
           {props.children}
         </DialogTrigger>
@@ -356,9 +385,7 @@ function BlockItem(props: {
     const totalMetrics = project.metrics?.length || 0;
 
     if (totalMetrics < min) {
-      toast.warning(
-        `You need at least ${min} metrics to create a ${props.name}`,
-      );
+      toast.info(`You need at least ${min} metrics to create a ${props.name}`);
       return;
     }
 
@@ -428,7 +455,12 @@ function BlocksDialogStack(props: {
   const dialogStackContext = useContext(DialogStackContext);
   const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string>('');
+  const [selectFilterCategory, setSelectFilterCategory] = useState<string>('');
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+
+  const isCompactType = blockCompactType.some(
+    (block) => block.value === props.type,
+  );
 
   if (!dialogStackContext) {
     return null;
@@ -534,31 +566,42 @@ function BlocksDialogStack(props: {
 
         <DialogStackContent>
           <DialogHeader>
-            <DialogStackTitle>
-              {`Select ${selectedMetrics.length} of ${max} metrics`}
-              <span
-                className={`ml-2 ${
-                  selectedMetrics.length < min || selectedMetrics.length > max
-                    ? 'text-red-500'
-                    : 'text-green-500'
-                }`}
-              >
-                {selectedMetrics.length < min
-                  ? `(${min - selectedMetrics.length} more required)`
-                  : selectedMetrics.length > max
-                    ? `(${selectedMetrics.length - max} too many)`
-                    : ''}
-              </span>
-            </DialogStackTitle>
+            <DialogStackTitle>Select metric(s)</DialogStackTitle>
 
             <DialogStackDescription>
               You can select multiple metrics or a single one, to compare or
               track various data points.
             </DialogStackDescription>
           </DialogHeader>
-          <div className='my-4 mb-0'>
+          <div className='my-4 mb-0 flex flex-col gap-2'>
             <div className='flex flex-col gap-2'>
-              <Label>Select metrics</Label>
+              <Label>
+                {isCompactType &&
+                selectedMetrics.length > 0 &&
+                Object.keys(selectedMetrics[0].filters || {}).length === 0 ? (
+                  <span className='text-red-500'>
+                    Please select a metric that have filters
+                  </span>
+                ) : (
+                  <>
+                    {`Select ${selectedMetrics.length} of ${max} metrics`}
+                    <span
+                      className={`ml-2 ${
+                        selectedMetrics.length < min ||
+                        selectedMetrics.length > max
+                          ? 'text-red-500'
+                          : 'text-green-500'
+                      }`}
+                    >
+                      {selectedMetrics.length < min
+                        ? `(${min - selectedMetrics.length} more required)`
+                        : selectedMetrics.length > max
+                          ? `(${selectedMetrics.length - max} too many)`
+                          : ''}
+                    </span>
+                  </>
+                )}
+              </Label>
               <MetricSelect
                 min={min}
                 max={max}
@@ -566,6 +609,18 @@ function BlocksDialogStack(props: {
                 setSelectedMetrics={setSelectedMetrics}
               />
             </div>
+            {isCompactType &&
+              selectedMetrics.length > 0 &&
+              Object.keys(selectedMetrics[0].filters || {}).length > 0 && (
+                <div className='flex flex-col gap-2'>
+                  <Label>Select filter category</Label>
+                  <FilterCategorySelect
+                    metric={selectedMetrics[0]}
+                    selectedFilterCategory={selectFilterCategory}
+                    setSelectedFilterCategory={setSelectFilterCategory}
+                  />
+                </div>
+              )}
           </div>
           <DialogStackFooter>
             <DialogStackPrevious asChild>
@@ -576,7 +631,11 @@ function BlocksDialogStack(props: {
             <Button
               className='rounded-[12px]'
               disabled={
-                selectedMetrics.length < min || selectedMetrics.length > max
+                selectedMetrics.length < min ||
+                selectedMetrics.length > max ||
+                (isCompactType &&
+                  selectedMetrics.length > 0 &&
+                  Object.keys(selectedMetrics[0].filters || {}).length === 0)
               }
               onClick={() => {
                 props.setIsDialogOpen(false);

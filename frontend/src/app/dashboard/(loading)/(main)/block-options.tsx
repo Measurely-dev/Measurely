@@ -490,7 +490,7 @@ export default function BlockOptions(
               onClick={handleMetricChange}
               className={props.type === BlockType.Group ? 'hidden' : ''}
             >
-              Edit Metric(s)
+              {props.type !== BlockType.Nested ? 'Edit Metric(s)' : 'Edit Metric(s) & Filter'}
             </DropdownMenuItem>
             <div className={props.type === BlockType.Group ? 'hidden' : ''}>
               <ColorDropdown color={props.color} updateColor={handleColor} />
@@ -547,7 +547,7 @@ export default function BlockOptions(
       <Dialog open={isMetricDialogOpen} onOpenChange={setIsMetricDialogOpen}>
         <DialogContent className='max-w-xl !rounded-[16px]'>
           <DialogHeader>
-            <DialogTitle>Edit Metrics</DialogTitle>
+            <DialogTitle>Edit Metric(s)</DialogTitle>
             <DialogDescription>
               Update the metrics for the selected item.
             </DialogDescription>
