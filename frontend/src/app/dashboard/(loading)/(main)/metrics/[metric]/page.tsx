@@ -63,7 +63,17 @@ import {
   fetchChartData,
   fetchEventVariation,
 } from '@/utils';
-import { Dialog } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogFooter,
+  DialogHeader,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
   ArrowRight,
@@ -90,6 +100,7 @@ import {
 } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import FilterManagerDialog from './filter-manager';
 
 type AllowedColors =
@@ -196,6 +207,8 @@ export default function DashboardMetricPage() {
   const metricName = decodeURIComponent(useParams().metric as string);
   const [open, setOpen] = useState(false);
   const [filterManagerOpen, setFilterManagerOpen] = useState(false);
+  const [pushValueOpen, setPushValueOpen] = useState(false);
+  const [pushValue, setPushValue] = useState<number | string>(0);
   const [metric, setMetric] = useState(() => {
     if (projects[activeProject]) {
       const index = projects[activeProject].metrics?.findIndex(
@@ -320,6 +333,15 @@ export default function DashboardMetricPage() {
     color,
   });
 
+  const handlePushValue = () => {
+    if (pushValue !== null && metric && Number(pushValue)) {
+      toast.success('Value pushed successfully');
+      setPushValueOpen(false);
+    } else {
+      toast.error('Please enter a valid value');
+    }
+  };
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
@@ -348,13 +370,63 @@ export default function DashboardMetricPage() {
           }}
         />
       </Dialog>
-      {metric && (
-        <FilterManagerDialog
-          metric={metric}
-          open={filterManagerOpen}
-          setOpen={setFilterManagerOpen}
-        />
-      )}
+      <FilterManagerDialog
+        filterCategories={fakeFilterCategories}
+        open={filterManagerOpen}
+        setOpen={setFilterManagerOpen}
+      />
+      <Dialog open={pushValueOpen} onOpenChange={setPushValueOpen}>
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => setPushValueOpen(true)}
+            className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+          >
+            Push Value
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Push Value</DialogTitle>
+            <DialogDescription>
+              Enter the value you want to push to the metric.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='flex flex-col gap-2'>
+            <Label>Value</Label>
+            <Input
+              type='number'
+              min={0}
+              max={1000000000}
+              value={pushValue === 0 && !Number(pushValue) ? '' : pushValue}
+              onChange={(e) =>
+                setPushValue(
+                  e.target.value === '' ? '' : Number(e.target.value),
+                )
+              }
+              placeholder='Enter value...'
+              className='h-11 rounded-[12px]'
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button className='w-fit rounded-[12px]' variant='secondary'>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={
+                Number(pushValue) < 1000000000 && Number(pushValue)
+                  ? false
+                  : true
+              }
+              className='w-fit rounded-[12px]'
+              onClick={handlePushValue}
+            >
+              Push
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Card className='mt-5 rounded-[12px] border-none bg-accent'>
         <CardHeader>
           <CardTitle className='text-2xl'>Quick Actions</CardTitle>
@@ -377,6 +449,7 @@ export default function DashboardMetricPage() {
                 action: 'Manually push a new event to the metric.',
                 icon: <ArrowUpCircle className='size-8' />,
                 color: '#10B981', // Green
+                onClick: () => setPushValueOpen(true),
               },
               {
                 label: 'Edit Metric',
