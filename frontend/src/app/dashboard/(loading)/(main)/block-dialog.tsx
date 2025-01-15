@@ -274,13 +274,13 @@ export default function BlocksDialog(props: {
       );
 
       if (!hasMetricWithFilters) {
-        toast.info('You need at least one metric with a filter', {
+        toast.warning('You need at least one metric with a filter', {
           action: {
             label: 'How to?',
             onClick: () => router.push('/docs/features/filters/'),
           },
           classNames: {
-            actionButton: '!rounded-[6px] !bg-blue-500 !text-white',
+            actionButton: '!rounded-[6px] !bg-orange-500 !text-white',
           },
         });
         return;
@@ -383,7 +383,7 @@ function BlockItem(props: {
     const totalMetrics = project.metrics?.length || 0;
 
     if (totalMetrics < min) {
-      toast.info(`You need at least ${min} metrics to create a ${props.name}`);
+      toast.warning(`You need at least ${min} metrics to create a ${props.name}`);
       return;
     }
 
