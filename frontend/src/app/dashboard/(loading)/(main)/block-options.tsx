@@ -36,6 +36,8 @@ import { LabelSelect } from '@/components/ui/label-select';
 import { Input } from '@/components/ui/input';
 import { MetricSelect } from '@/components/ui/metric-select';
 import ColorDropdown from '@/components/ui/color-dropdown';
+import { FilterCategorySelect } from '@/components/ui/filter-category-select';
+import { Label } from '@/components/ui/label';
 
 const RenameConfirmContent: FC<{
   onValueChange: (disabled: boolean, newValue: string) => void;
@@ -134,7 +136,8 @@ const MetricDialogContent: FC<{
   selectedMetrics: Metric[];
   setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
   chartType: ChartType | undefined;
-}> = ({ selectedMetrics, setSelectedMetrics, chartType }) => {
+  isNested: boolean;
+}> = ({ selectedMetrics, setSelectedMetrics, chartType, isNested }) => {
   const chartLimits =
     chartType !== undefined
       ? chartTypeMetricLimits[chartType]
@@ -142,6 +145,7 @@ const MetricDialogContent: FC<{
 
   const min = chartLimits.min;
   const max = chartLimits.max;
+  const [selectFilterCategory, setSelectFilterCategory] = useState<string>('');
 
   return (
     <div className='space-y-4'>
@@ -167,6 +171,18 @@ const MetricDialogContent: FC<{
         selectedMetrics={selectedMetrics}
         setSelectedMetrics={setSelectedMetrics}
       />
+      {isNested &&
+        selectedMetrics.length > 0 &&
+        Object.keys(selectedMetrics[0].filters || {}).length > 0 && (
+          <div className='flex flex-col gap-2'>
+            <Label>Select filter category</Label>
+            <FilterCategorySelect
+              metric={selectedMetrics[0]}
+              selectedFilterCategory={selectFilterCategory}
+              setSelectedFilterCategory={setSelectFilterCategory}
+            />
+          </div>
+        )}
     </div>
   );
 };
@@ -188,6 +204,7 @@ export default function BlockOptions(
   const [isMetricChanged, setIsMetricChanged] = useState(false);
   const [isLabelDialogOpen, setIsLabelDialogOpen] = useState(false);
   const [isMetricDialogOpen, setIsMetricDialogOpen] = useState(false);
+  const [selectFilterCategory, setSelectFilterCategory] = useState<string>('');
 
   useEffect(() => {
     setNewMetrics(
@@ -409,6 +426,7 @@ export default function BlockOptions(
                                     metricIds: newMetrics.map(
                                       (metric) => metric.id,
                                     ),
+                                    filters: selectFilterCategory,
                                   }
                                 : n,
                             ),
@@ -418,6 +436,7 @@ export default function BlockOptions(
                         ? {
                             ...l,
                             metricIds: newMetrics.map((metric) => metric.id),
+                            filters: selectFilterCategory,
                           }
                         : l,
                   ),
@@ -431,7 +450,13 @@ export default function BlockOptions(
       toast.success(`Metrics updated successfully.`);
       setIsMetricChanged(false);
     }
-  }, [isMetricChanged, newMetrics, projects, activeProject]);
+  }, [
+    isMetricChanged,
+    newMetrics,
+    selectFilterCategory,
+    projects,
+    activeProject,
+  ]);
 
   function handleColor(newcolor: string) {
     setProjects(
@@ -490,7 +515,9 @@ export default function BlockOptions(
               onClick={handleMetricChange}
               className={props.type === BlockType.Group ? 'hidden' : ''}
             >
-              {props.type !== BlockType.Nested ? 'Edit Metric(s)' : 'Edit Metric(s) & Filter'}
+              {props.type !== BlockType.Nested
+                ? 'Edit Metric(s)'
+                : 'Edit Metric(s) & Filter'}
             </DropdownMenuItem>
             <div className={props.type === BlockType.Group ? 'hidden' : ''}>
               <ColorDropdown color={props.color} updateColor={handleColor} />
@@ -547,7 +574,11 @@ export default function BlockOptions(
       <Dialog open={isMetricDialogOpen} onOpenChange={setIsMetricDialogOpen}>
         <DialogContent className='max-w-xl !rounded-[16px]'>
           <DialogHeader>
-            <DialogTitle>Edit Metric(s)</DialogTitle>
+            <DialogTitle>
+              {props.type !== BlockType.Nested
+                ? 'Edit Metric(s)'
+                : 'Edit Metric(s) & Filter'}
+            </DialogTitle>
             <DialogDescription>
               Update the metrics for the selected item.
             </DialogDescription>
@@ -556,6 +587,7 @@ export default function BlockOptions(
             selectedMetrics={newMetrics}
             setSelectedMetrics={setNewMetrics}
             chartType={props.chartType}
+            isNested={props.type === BlockType.Nested}
           />
           <DialogFooter>
             <Button

@@ -274,15 +274,13 @@ export default function BlocksDialog(props: {
       );
 
       if (!hasMetricWithFilters) {
-        toast.info('You must have at least one metric with filter(s).', {
+        toast.info('You need at least one metric with a filter', {
           action: {
             label: 'How to?',
             onClick: () => router.push('/docs/features/filters/'),
-            actionButtonStyle: {
-              borderRadius: '12px !important',
-              backgroundColor: 'blue !important',
-              color: 'white !important',
-            },
+          },
+          classNames: {
+            actionButton: '!rounded-[6px] !bg-blue-500 !text-white',
           },
         });
         return;

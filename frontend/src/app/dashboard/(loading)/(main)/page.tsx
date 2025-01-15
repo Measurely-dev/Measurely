@@ -629,16 +629,16 @@ function BlockContent(props: Block & { groupkey?: string }) {
             {props.chartType !== ChartType.Pie &&
             props.chartType !== ChartType.Radar &&
             props.chartType !== ChartType.BarList ? (
-              <div className='grid grid-cols-2 h-full'>
+              <div className='flex h-full flex-row items-center'>
                 {metrics.map((metric, i) => {
                   return (
                     <div
                       key={i}
-                      className='group relative flex h-full select-none flex-col items-start justify-center gap-0.5 border-l px-5 font-mono text-2xl font-bold'
+                      className='group relative flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 whitespace-nowrap border-l px-5 font-mono text-2xl font-bold'
                       style={{ borderColor: `${props.color}33` }}
                     >
                       <div className='absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10' />
-                      <div className='font-sans text-xs font-normal'>
+                      <div className='whitespace-nowrap font-sans text-xs font-normal'>
                         {metric.name}
                       </div>
                       {valueFormatter(
