@@ -257,9 +257,13 @@ export default function FilterManagerDialog(props: {
           </Button>
           {Object.keys(props.metric.filters ?? {}).length === 0 ? (
             <EmptyState
-              title='Add new filter category'
+              title='Create new filter category'
               description='Create a new category to organize your filters.'
               icons={[PlusCircle, Plus, PlusSquare]}
+              action={{
+                label: 'Create category',
+                onClick: () => handleCreate('category'),
+              }}
             />
           ) : (
             <>
