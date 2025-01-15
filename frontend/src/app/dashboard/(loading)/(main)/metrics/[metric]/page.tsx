@@ -378,14 +378,6 @@ export default function DashboardMetricPage() {
         />
       )}
       <Dialog open={pushValueOpen} onOpenChange={setPushValueOpen}>
-        <DialogTrigger asChild>
-          <Button
-            onClick={() => setPushValueOpen(true)}
-            className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
-          >
-            Push Value
-          </Button>
-        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Push Value</DialogTitle>
