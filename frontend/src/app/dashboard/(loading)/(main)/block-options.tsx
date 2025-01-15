@@ -63,6 +63,7 @@ const RenameConfirmContent: FC<{
       <Input
         value={value}
         onChange={handleInputChange}
+        maxLength={25}
         placeholder='New name'
         autoComplete='off'
         className='h-11 rounded-[12px]'
