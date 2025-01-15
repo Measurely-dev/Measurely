@@ -389,6 +389,7 @@ export default function DashboardMetricPage() {
         />
       </Dialog>
       <FilterManagerDialog
+      
         filterCategories={fakeFilterCategories}
         open={filterManagerOpen}
         setOpen={setFilterManagerOpen}

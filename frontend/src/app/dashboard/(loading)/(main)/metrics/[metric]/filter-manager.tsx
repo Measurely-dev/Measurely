@@ -8,6 +8,9 @@ import {
   Edit2,
   ListFilter,
   MoreHorizontal,
+  Plus,
+  PlusCircle,
+  PlusSquare,
   Tag,
   Trash,
   Trash2,
@@ -33,6 +36,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useConfirm } from '@omit/react-confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { TagInput } from 'emblor';
 
 export default function FilterManagerDialog(props: {
   open: boolean;
@@ -54,6 +59,7 @@ export default function FilterManagerDialog(props: {
   const [badgeToEdit, setBadgeToEdit] = useState<string | undefined>();
   const [badgeInputValue, setBadgeInputValue] = useState<string>('');
   const confirm = useConfirm();
+  const [tags, setTags] = useState<any[]>([]);
 
   const handleAccordionToggle = (categoryName: string) => {
     setActiveAccordion((prev) =>
@@ -70,7 +76,14 @@ export default function FilterManagerDialog(props: {
   const handleCreate = (type: 'filter' | 'category') => {
     setCreationType(type);
     setCreationInputValue('');
+    setTags([]);
     setCreationDialogOpen(true);
+  };
+
+  const handleCloseCreationDialog = () => {
+    setCreationDialogOpen(false);
+    setCreationInputValue('');
+    setTags([]);
   };
 
   const handleBadgeEdit = (badgeName: string) => {
@@ -155,106 +168,115 @@ export default function FilterManagerDialog(props: {
             <Tag className='size-4' />
             Create category
           </Button>
-
-          <div className='flex h-[60px] items-center justify-between rounded-t-[12px] border-b bg-accent px-5'>
-            <div className='text-sm font-medium text-muted-foreground'>
-              Category
-            </div>
-            <div className='text-sm font-medium text-muted-foreground'>
-              Actions
-            </div>
-          </div>
-          <Accordion
-            className='relative'
-            type='single'
-            collapsible
-            value={activeAccordion}
-            onValueChange={setActiveAccordion}
-          >
-            {props.filterCategories.map((category) => (
-              <>
-                <AccordionItem
-                  className='border-b px-5 hover:bg-accent/60'
-                  value={category.name}
-                  onClick={() => handleAccordionToggle(category.name)}
-                >
-                  <div
-                    className={`flex h-[60px] cursor-pointer select-none items-center justify-between ${activeAccordion === category.name ? 'text-blue-500' : ''}`}
-                  >
-                    <span className='font-mono !text-sm font-semibold !no-underline'>
-                      {category.name}
-                    </span>
-                    <div className='flex items-center justify-center'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant={'ghost'}
-                            size={'icon'}
-                            className='rounded-[12px] text-primary'
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            <MoreHorizontal className='size-5' />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align='end'
+          {props.filterCategories.length === 0 ? (
+            <EmptyState
+              title='Add new filter category'
+              description='Create a new category to organize your filters.'
+              icons={[PlusCircle, Plus, PlusSquare]}
+            />
+          ) : (
+            <>
+              <div className='flex h-[60px] items-center justify-between rounded-t-[12px] border-b bg-accent px-5'>
+                <div className='text-sm font-medium text-muted-foreground'>
+                  Category
+                </div>
+                <div className='text-sm font-medium text-muted-foreground'>
+                  Actions
+                </div>
+              </div>
+              <Accordion
+                className='relative'
+                type='single'
+                collapsible
+                value={activeAccordion}
+                onValueChange={setActiveAccordion}
+              >
+                {props.filterCategories.map((category) => (
+                  <>
+                    <AccordionItem
+                      className='border-b px-5 hover:bg-accent/60'
+                      value={category.name}
+                      onClick={() => handleAccordionToggle(category.name)}
+                    >
+                      <div
+                        className={`flex h-[60px] cursor-pointer select-none items-center justify-between ${activeAccordion === category.name ? 'text-blue-500' : ''}`}
+                      >
+                        <span className='font-mono !text-sm font-semibold !no-underline'>
+                          {category.name}
+                        </span>
+                        <div className='flex items-center justify-center'>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant={'ghost'}
+                                size={'icon'}
+                                className='rounded-[12px] text-primary'
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <MoreHorizontal className='size-5' />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align='end'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DropdownMenuItem
+                                onClick={() => handleRename(category.name)}
+                              >
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className='hover:!text-red-500'
+                                onClick={handleFilterCategoryDelete}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                      <AccordionContent className='flex flex-col gap-2'>
+                        <Button
+                          className='mb-4 flex w-full items-center gap-2 rounded-[12px] border'
+                          variant={'secondary'}
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleCreate('filter');
                           }}
                         >
-                          <DropdownMenuItem
-                            onClick={() => handleRename(category.name)}
+                          <Plus className='size-4' />
+                          Add filter
+                        </Button>
+                        {category.filters.map((filter, index) => (
+                          <Badge
+                            key={index}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBadgeEdit(filter);
+                            }}
+                            className='group relative w-fit cursor-pointer select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
                           >
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className='hover:!text-red-500'
-                            onClick={handleFilterCategoryDelete}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                  <AccordionContent className='flex flex-col gap-2'>
-                    <Button
-                      className='mb-4 flex w-full items-center gap-2 rounded-[12px] border'
-                      variant={'secondary'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCreate('filter');
-                      }}
-                    >
-                      <ListFilter className='size-4' />
-                      New filter
-                    </Button>
-                    {category.filters.map((filter, index) => (
-                      <Badge
-                        key={index}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBadgeEdit(filter);
-                        }}
-                        className='group relative w-fit cursor-pointer select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
-                      >
-                        <Edit2 className='absolute -left-4 size-4 transition-all duration-200 group-hover:left-2' />
-                        {filter}
-                      </Badge>
-                    ))}
-                  </AccordionContent>
-                </AccordionItem>
-              </>
-            ))}
-          </Accordion>
-          <div className='flex h-[60px] items-center justify-between rounded-b-[12px] bg-accent px-5'>
-            <div className='text-sm font-medium text-primary'>Total</div>
-            <div className='flex size-9 items-center justify-center rounded-[12px] bg-input/60 text-sm font-medium text-primary'>
-              {props.filterCategories.length}
-            </div>
-          </div>
+                            <Edit2 className='absolute -left-4 size-4 transition-all duration-200 group-hover:left-2' />
+                            {filter}
+                          </Badge>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </>
+                ))}
+              </Accordion>
+              <div className='flex h-[60px] items-center justify-between rounded-b-[12px] bg-accent px-5'>
+                <div className='text-sm font-medium text-primary'>Total</div>
+                <div className='flex size-9 items-center justify-center rounded-[12px] bg-input/60 text-sm font-medium text-primary'>
+                  {props.filterCategories.length}
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -301,7 +323,10 @@ export default function FilterManagerDialog(props: {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={creationDialogOpen} onOpenChange={setCreationDialogOpen}>
+      <Dialog
+        open={creationDialogOpen}
+        onOpenChange={handleCloseCreationDialog}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -330,6 +355,22 @@ export default function FilterManagerDialog(props: {
               value={creationInputValue}
               onChange={(e) => setCreationInputValue(e.target.value)}
             />
+            {creationType === 'category' ? (
+              <>
+                <Label className='mt-4'>
+                  Add {tags.length} of 6 filter(s)
+                  {tags.length < 1 && (
+                    <span className='text-red-500'>
+                      {' '}
+                      ({1 - tags.length} more is required)
+                    </span>
+                  )}
+                </Label>
+                <FilterTagInput tags={tags} setTags={setTags} />
+              </>
+            ) : (
+              <></>
+            )}
           </div>
 
           <DialogFooter>
@@ -340,15 +381,15 @@ export default function FilterManagerDialog(props: {
             </DialogClose>
             <Button
               className='w-fit rounded-[12px]'
-              onClick={() => {
-                setCreationDialogOpen(false);
-              }}
+              onClick={handleCloseCreationDialog}
               disabled={
                 creationInputValue.length < 2 ||
-                creationInputValue.trim() === ''
+                creationInputValue.trim() === '' ||
+                (creationType === 'category' &&
+                  (tags.length < 1 || tags.length > 6))
               }
             >
-              Save
+              Create
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -409,3 +450,35 @@ export default function FilterManagerDialog(props: {
     </>
   );
 }
+
+const FilterTagInput = (props: {
+  tags: any[];
+  setTags: (tags: any) => void;
+}) => {
+  const { tags, setTags } = props;
+  const [activeTagIndex, setActiveTagIndex] = useState<number | null>(null);
+
+  return (
+    <TagInput
+      maxLength={20}
+      minLength={2}
+      minTags={1}
+      maxTags={6}
+      tags={tags}
+      setTags={(newTags) => {
+        setTags(newTags);
+      }}
+      placeholder='Add a filter'
+      styleClasses={{
+        inlineTagsContainer: 'min-h-11 rounded-[12px]',
+        input: 'w-full shadow-none min-w-[100px]',
+        tag: {
+          body: 'bg-accent/80 rounded-[10px] pl-4 !lowercase font-medium text-primary hover:text-red-500',
+          closeButton: 'hover:text-red-500',
+        },
+      }}
+      activeTagIndex={activeTagIndex}
+      setActiveTagIndex={setActiveTagIndex}
+    />
+  );
+};
