@@ -370,11 +370,13 @@ export default function DashboardMetricPage() {
           }}
         />
       </Dialog>
-      <FilterManagerDialog
-        filterCategories={fakeFilterCategories}
-        open={filterManagerOpen}
-        setOpen={setFilterManagerOpen}
-      />
+      {metric && (
+        <FilterManagerDialog
+          metric={metric}
+          open={filterManagerOpen}
+          setOpen={setFilterManagerOpen}
+        />
+      )}
       <Dialog open={pushValueOpen} onOpenChange={setPushValueOpen}>
         <DialogTrigger asChild>
           <Button
