@@ -13,7 +13,13 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
-import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Command,
   CommandEmpty,
@@ -62,16 +68,22 @@ import { Dialog } from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpCircle,
   Calendar,
   ChevronsUpDown,
   CircleOff,
   Copy,
   Edit,
+  Edit2,
+  Filter,
+  ListFilter,
   Loader,
+  MoveRight,
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import {
+  cloneElement,
   Dispatch,
   ReactNode,
   SetStateAction,
@@ -304,6 +316,12 @@ export default function DashboardMetricPage() {
     }
   }, [activeProject]);
 
+  const cardStyle = (color: string) => ({
+    borderColor: `${color}1A`,
+    backgroundColor: `${color}0D`,
+    color,
+  });
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
@@ -369,42 +387,100 @@ export default function DashboardMetricPage() {
                 )}
               </div>
             </div>
-            <div className='flex flex-row gap-2'>
-              <Button
-                variant={'secondary'}
-                size={'icon'}
-                className='size-9 min-w-9 rounded-[12px] max-sm:w-full'
-                onClick={() => {
-                  navigator.clipboard.writeText(metric ? metric.id : '');
-                  toast.success('Succefully copied metric ID');
-                }}
-                disabled={projects[activeProject].userrole === UserRole.Guest}
-              >
-                <Copy className='size-4' />
-              </Button>
-              <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
-                <DialogTrigger asChild>
-                  <Button
-                    className='rounded-[12px] max-sm:w-full'
-                    disabled={
-                      projects[activeProject].userrole === UserRole.Guest ||
-                      projects[activeProject].userrole === UserRole.Developer
-                    }
-                  >
-                    <Edit className='mr-2 size-4' />
-                    Edit
-                  </Button>
-                </DialogTrigger>
-                <EditMetricDialogContent
-                  metric={metric}
-                  setOpen={setOpen}
-                  onUpdate={(new_name: string) => {
-                    setMetric(Object.assign({}, metric, { name: new_name }));
-                  }}
-                />
-              </Dialog>
-            </div>
           </div>
+          <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
+            <EditMetricDialogContent
+              metric={metric}
+              setOpen={setOpen}
+              onUpdate={(new_name: string) => {
+                setMetric(Object.assign({}, metric, { name: new_name }));
+              }}
+            />
+          </Dialog>
+          <Card className='mt-10 rounded-[12px] border-none bg-accent'>
+            <CardHeader>
+              <CardTitle className='text-2xl'>Quick Actions</CardTitle>
+              <CardDescription>
+                Quickly manage your metrics with easy-to-access actions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className='grid grid-cols-4 gap-5 rounded-[12px] bg-background p-2'>
+                {[
+                  {
+                    label: 'Filter Manager',
+                    action: 'Manage, create and edit filters to this metric.',
+                    icon: <ListFilter className='size-8' />,
+                    color: '#3B82F6', // Blue
+                  },
+                  {
+                    label: 'Push Value',
+                    action: 'Manually push a new value to the metric.',
+                    icon: <ArrowUpCircle className='size-8' />,
+                    color: '#10B981', // Green
+                  },
+                  {
+                    label: 'Edit Metric',
+                    action: 'Edit the properties or settings of the metric.',
+                    icon: <Edit className='size-8' />,
+                    color: '#F59E0B', // Yellow
+                    onClick: () => {
+                      setOpen(true);
+                    },
+                  },
+                  {
+                    label: 'Copy Metric ID',
+                    action:
+                      'Copy the unique ID of this metric for use in the API.',
+                    icon: <Copy className='size-8' />,
+                    color: '#EF4444', // Red
+                    onClick: () => {
+                      navigator.clipboard.writeText(metric ? metric.id : '');
+                      toast.success('Succefully copied metric ID');
+                    },
+                  },
+                ].map(({ label, action, icon, color, onClick }, i) => {
+                  const styles = cardStyle(color);
+                  return (
+                    <div
+                      key={i}
+                      onClick={onClick}
+                      style={{
+                        borderColor: styles.borderColor,
+                        backgroundColor: styles.backgroundColor,
+                      }}
+                      className={`group flex cursor-pointer select-none overflow-hidden rounded-[10px] border p-1`}
+                    >
+                      <div
+                        style={{ backgroundColor: `${color}0F` }}
+                        className='my-auto flex aspect-square h-full items-center justify-center rounded-[10px] p-4'
+                      >
+                        {cloneElement(icon, { style: { color: styles.color } })}
+                      </div>
+                      <div className='ml-5 flex flex-col gap-1 py-2'>
+                        <div
+                          style={{ color: styles.color }}
+                          className='flex items-center gap-2 font-mono text-sm font-bold transition-all duration-200 group-hover:gap-4'
+                        >
+                          {label}
+                          <MoveRight
+                            style={{ color: styles.color }}
+                            className='size-5 transition-all duration-200'
+                          />
+                        </div>
+                        <div
+                          className='text-xs'
+                          style={{ color: styles.color }}
+                        >
+                          {action}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
           <Chart metric={metric} type='overview' />
           <Chart metric={metric} type='trend' />
         </div>
