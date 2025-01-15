@@ -429,7 +429,7 @@ export default function DashboardMetricPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='grid grid-cols-4 gap-5 rounded-[12px] bg-background p-2'>
+          <div className='grid grid-cols-4 gap-5 rounded-[12px] bg-background p-2 max-lg:grid-cols-2 max-md:grid-cols-1'>
             {[
               {
                 label: 'Filter Manager',
@@ -447,7 +447,7 @@ export default function DashboardMetricPage() {
               },
               {
                 label: 'Edit Metric',
-                action: 'Edit the name the metric.',
+                action: 'Edit the name of the metric.',
                 icon: <Edit className='size-8' />,
                 color: '#F59E0B', // Yellow
                 onClick: () => {
@@ -478,11 +478,11 @@ export default function DashboardMetricPage() {
                 >
                   <div
                     style={{ backgroundColor: `${color}0F` }}
-                    className='my-auto flex aspect-square h-full items-center justify-center rounded-[10px] p-4'
+                    className='my-auto flex aspect-square h-full items-center justify-center rounded-[10px] p-4 max-xl:hidden max-lg:flex'
                   >
                     {cloneElement(icon, { style: { color: styles.color } })}
                   </div>
-                  <div className='ml-5 flex flex-col gap-1 py-2 pr-1.5'>
+                  <div className='ml-5 flex flex-col gap-1 py-2 pr-1.5 max-xl:ml-0 max-xl:px-3 max-md:ml-5 max-md:px-0 max-md:pr-1.5'>
                     <div
                       style={{ color: styles.color }}
                       className='flex items-center gap-2 font-mono text-sm font-bold transition-all duration-200 group-hover:gap-3'
