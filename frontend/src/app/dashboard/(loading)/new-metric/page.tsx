@@ -26,6 +26,8 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { ProjectsContext } from '@/dash-context';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TabsContent } from '@radix-ui/react-tabs';
 
 const forbidden = [
   'average',
@@ -37,28 +39,59 @@ const forbidden = [
 
 export default function NewMetric() {
   const [step, setStep] = useState(1);
-  const [value, setValue] = useState<MetricType>(MetricType.Base);
-  const router = useRouter()
-  const {projects, activeProject} = useContext(ProjectsContext)
+  const [tab, setTab] = useState('metrics');
+  const [value, setValue] = useState<MetricType>(
+    tab === 'metrics' ? MetricType.Base : MetricType.Stripe
+  );
+  const router = useRouter();
+  const { projects, activeProject } = useContext(ProjectsContext);
 
   const metricTypes = [
     {
-      name: 'Basic Metric',
-      value: MetricType.Base,
-      description:
-        'Tracks a single, always-positive variable, perfect for monitoring growth, like total active users or daily logins.',
+      label: 'metrics',
+      types: [
+        {
+          name: 'Basic Metric',
+          value: MetricType.Base,
+          description:
+            'Tracks a single, always-positive variable, perfect for monitoring growth, like total active users or daily logins.',
+        },
+        {
+          name: 'Dual Variables Metric',
+          value: MetricType.Dual,
+          description:
+            'This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.',
+        },
+        {
+          name: 'Average Metric',
+          value: MetricType.Average,
+          description:
+            'An average metric tracks the average value of data over time, like session durations, revealing trends and typical performance.',
+        },
+      ],
     },
     {
-      name: 'Dual Variables Metric',
-      value: MetricType.Dual,
-      description:
-        'This metric compares two opposing variables, allowing you to track both positive and negative influences on a key metric. For example, monitor user activity by measuring new account creations versus deletions, giving you a clear view of net growth or decline.',
-    },
-    {
-      name: 'Average Metric',
-      value: MetricType.Average,
-      description:
-        'An average metric tracks the average value of data over time, like session durations, revealing trends and typical performance.',
+      label: 'integrations',
+      types: [
+        {
+          name: 'Stripe integration',
+          value: MetricType.Stripe,
+          description:
+            'Integrates with Stripe to track payment-related metrics such as revenue, subscriptions, customer churn, and transaction volume. Useful for monitoring business performance and growth through financial data.',
+        },
+        {
+          name: 'Google Analytics integration',
+          value: MetricType.Google,
+          description:
+            'Tracks both positive and negative variables, useful for monitoring traffic sources, bounce rates, and conversion metrics.',
+        },
+        {
+          name: 'AWS CloudWatch integration',
+          value: MetricType.AWS,
+          description:
+            'Monitors cloud infrastructure performance metrics, ideal for tracking resource utilization and server health.',
+        },
+      ],
     },
   ];
 
@@ -73,6 +106,10 @@ export default function NewMetric() {
     }
   };
 
+  const isComingSoon = (type: MetricType) => {
+    return type === MetricType.Google || type === MetricType.AWS;
+  };
+
   useEffect(() => {
     if (
       projects[activeProject].userrole !== UserRole.Admin &&
@@ -81,6 +118,10 @@ export default function NewMetric() {
       router.push('/dashboard');
     }
   }, []);
+
+  useEffect(() => {
+    setValue(tab === 'metrics' ? MetricType.Base : MetricType.Stripe);
+  }, [tab]);
 
   return (
     <div className='flex flex-col'>
@@ -96,21 +137,35 @@ export default function NewMetric() {
                     Select the type of metric you want to create
                   </div>
                 </div>
-                <div className='flex w-full flex-col gap-2'>
-                  {metricTypes.map((metric, i) => {
-                    return (
-                      <Metric
-                        descripiton={metric.description}
-                        name={metric.name}
-                        key={i}
-                        value={metric.value}
-                        state={value}
-                        setState={setValue}
-                      />
-                    );
-                  })}
-                </div>
-                {/* Next btn */}
+                <Tabs
+                  defaultValue='metrics'
+                  className='flex flex-col gap-5'
+                  onValueChange={(value) => setTab(value)}
+                >
+                  <TabsList className='mb-0 grid w-full grid-cols-2 border-0'>
+                    <TabsTrigger value='metrics'>Metrics</TabsTrigger>
+                    <TabsTrigger value='integrations'>Integrations</TabsTrigger>
+                  </TabsList>
+                  {metricTypes.map((metric) => (
+                    <TabsContent
+                      className='space-y-3'
+                      value={metric.label}
+                      key={metric.label}
+                    >
+                      {metric.types.map((type, j) => (
+                        <Metric
+                          key={j}
+                          name={type.name}
+                          value={type.value}
+                          description={type.description}
+                          state={value}
+                          setState={setValue}
+                          comingSoon={isComingSoon(type.value)}
+                        />
+                      ))}
+                    </TabsContent>
+                  ))}
+                </Tabs>
                 <Button
                   className='w-full rounded-[12px]'
                   onClick={() => setStep(2)}
@@ -132,23 +187,34 @@ export default function NewMetric() {
 function Metric(props: {
   name: string;
   value: number;
-  descripiton: string;
+  description: string;
   state: any;
   setState: Dispatch<SetStateAction<number>>;
+  comingSoon?: boolean;
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.state === props.value
-          ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
-          : 'cursor-pointer hover:bg-accent/50'
-        }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
+        props.comingSoon
+          ? 'cursor-not-allowed bg-accent'
+          : props.state === props.value
+            ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
+            : 'cursor-pointer hover:bg-accent/50'
+      }`}
       onClick={() => {
-        props.setState(props.value);
+        if (!props.comingSoon) {
+          props.setState(props.value);
+        }
       }}
     >
-      <div className='text-sm font-medium'>{props.name}</div>
+      <div className='flex items-center gap-2'>
+        <div className='text-sm font-medium'>{props.name}</div>
+        {props.comingSoon && (
+          <div className='text-xs text-blue-500'>coming soon</div>
+        )}
+      </div>
       <div className='text-xs font-light text-secondary'>
-        {props.descripiton}
+        {props.description}
       </div>
     </div>
   );
@@ -226,11 +292,11 @@ function BasicAverageStep(props: {
                   projects.map((v, i) =>
                     i === activeProject
                       ? Object.assign({}, v, {
-                        metrics: [
-                          ...(projects[activeProject].metrics ?? []),
-                          json,
-                        ],
-                      })
+                          metrics: [
+                            ...(projects[activeProject].metrics ?? []),
+                            json,
+                          ],
+                        })
                       : v,
                   ),
                 );
@@ -389,11 +455,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 projects.map((v, i) =>
                   i === activeProject
                     ? Object.assign({}, v, {
-                      metrics: [
-                        ...(projects[activeProject].metrics ?? []),
-                        json,
-                      ],
-                    })
+                        metrics: [
+                          ...(projects[activeProject].metrics ?? []),
+                          json,
+                        ],
+                      })
                     : v,
                 ),
               );
