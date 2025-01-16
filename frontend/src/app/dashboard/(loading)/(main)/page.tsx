@@ -668,7 +668,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
                       }}
                     >
                       <div
-                        className={`absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10 ${disabledItem === metric.name ? 'cursor-not-allowed opacity-10' : 'cursor-pointer'}`}
+                        className={`absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10 ${disabledItem === metric.name ? 'cursor-wait opacity-10' : 'cursor-copy'}`}
                       />
                       <div className='whitespace-nowrap font-sans text-xs font-normal'>
                         {metric.name}
