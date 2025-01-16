@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
-import { Metric, MetricType } from '@/types';
+import { Metric, MetricType, UserRole } from '@/types';
 import {
   calculateTrend,
   fetchNextEvent,
@@ -65,7 +65,6 @@ import {
 } from '@/utils';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogTitle,
   DialogDescription,
@@ -100,7 +99,7 @@ import {
 } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
+
 import FilterManagerDialog from './filter-manager';
 
 type AllowedColors =
@@ -334,8 +333,30 @@ export default function DashboardMetricPage() {
   });
 
   const handlePushValue = () => {
-    if (pushValue !== null && metric && Number(pushValue)) {
-      toast.success('Value pushed successfully');
+    if (
+      pushValue !== null &&
+      metric &&
+      Number(pushValue) &&
+      projects[activeProject].userrole !== UserRole.Guest
+    ) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/event/v1/${metric.name}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${projects[activeProject].apikey}`,
+        },
+        body: JSON.stringify({
+          value: pushValue,
+        }),
+      }).then((resp) => {
+        if (resp.ok) {
+          toast.success('Successfully created new event');
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+      });
       setPushValueOpen(false);
     } else {
       toast.error('Please enter a valid value');
