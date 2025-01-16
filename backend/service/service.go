@@ -2216,23 +2216,23 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 			DefaultLabels := []types.Label{
 				{
 					Name:         "overview",
-					DefaultColor: "#8b5cf6",
+					DefaultColor: "#8000ff",
 				},
 				{
 					Name:         "comparaison",
-					DefaultColor: "#E91E63",
+					DefaultColor: "#ff007f",
 				},
 				{
 					Name:         "revenue",
-					DefaultColor: "#3b82f6",
+					DefaultColor: "#0033cc",
 				},
 				{
 					Name:         "profit",
-					DefaultColor: "#06b6d4",
+					DefaultColor: "#00cccc",
 				},
 				{
 					Name:         "growth",
-					DefaultColor: "#eab308",
+					DefaultColor: "#cc9900",
 				},
 			}
 

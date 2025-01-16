@@ -730,13 +730,13 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       {props.type !== BlockType.Group && (
         <CardContent
-          className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
+          className={`relative h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
         >
           <Charts
             chartType={props.chartType}
             data={chartData}
             color={props.color}
-            metrics={metrics} // Add this prop
+            metrics={metrics}
             categories={props.filtercategories}
           />
         </CardContent>
@@ -810,12 +810,22 @@ const chartColorMap: Record<ColorKey, ColorKey[]> = {
   gray: ['gray', 'pink', 'blue', 'green'],
 };
 
-const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'blue',
-  },
-} satisfies ChartConfig;
+const CompactChartColorMap: Record<ColorKey, string> = {
+  pink: '#d6336c',
+  blue: '#0056b3',
+  green: '#007f3f',
+  orange: '#d35400',
+  red: '#b71c1c',
+  yellow: '#f57f17',
+  cyan: '#006064',
+  indigo: '#283593',
+  magenta: '#880e4f',
+  fuchsia: '#9c27b0',
+  purple: '#6a1b9a',
+  violet: '#4a148c',
+  lime: '#33691e',
+  gray: '#424242',
+};
 
 const pieChartConfig = {
   visitors: {
@@ -859,6 +869,22 @@ function Charts(props: {
   const validResolvedColorKey =
     resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const chartColors = chartColorMap[validResolvedColorKey];
+
+  const compactValidResolvedColorKey =
+    resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
+  const compactChartColor = CompactChartColorMap[compactValidResolvedColorKey];
+
+  const chartConfig = {
+    desktop: {
+      color: compactChartColor,
+    },
+  } satisfies ChartConfig;
+
+  const PieChartFakeData = [
+    { region: 'safari', visitors: 200, fill: `${compactChartColor}4D` },
+  ];
+  const totalValue = () =>
+    props.data?.reduce((total, { value = 0 }) => total + value, 0) || 0;
 
   switch (props.chartType) {
     case ChartType.Area:
@@ -917,64 +943,124 @@ function Charts(props: {
       );
     case ChartType.Pie:
       return (
-        <ChartContainer
-          config={pieChartConfig}
-          className='mx-auto h-full w-full'
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={props.data ?? []}
-              dataKey={props.metrics[0].name}
-              nameKey={props.categories?.[0]}
-              innerRadius={60}
-              strokeWidth={5}
-            >
-              <RechartLabel
-                content={({ viewBox }) => {
-                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor='middle'
-                        dominantBaseline='middle'
-                      >
-                        <tspan
+        <>
+          {totalValue() !== 0 ? (
+            <></>
+          ) : (
+            <div className='pointer-events-none absolute h-full w-full'>
+              <ChartContainer
+                config={chartConfig}
+                className='mx-auto h-full w-full'
+              >
+                <PieChart>
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
+                  <Pie
+                    data={PieChartFakeData}
+                    dataKey='visitors'
+                    nameKey='browser'
+                    innerRadius={60}
+                    strokeWidth={5}
+                  >
+                    <RechartLabel
+                      content={({ viewBox }) => {
+                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                          return (
+                            <text
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              textAnchor='middle'
+                              dominantBaseline='middle'
+                            >
+                              <tspan
+                                x={viewBox.cx}
+                                y={viewBox.cy}
+                                className='fill-muted-foreground text-3xl font-bold'
+                              >
+                                0
+                              </tspan>
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) + 24}
+                                className='fill-muted-foreground'
+                              >
+                                No data
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+            </div>
+          )}
+          <ChartContainer
+            config={pieChartConfig}
+            className='mx-auto h-full w-full'
+          >
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Pie
+                data={props.data ?? []}
+                dataKey={props.metrics[0].name}
+                nameKey={props.categories?.[0]}
+                innerRadius={60}
+                strokeWidth={5}
+              >
+                <RechartLabel
+                  content={({ viewBox }) => {
+                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      return (
+                        <text
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className='fill-foreground text-3xl font-bold'
+                          textAnchor='middle'
+                          dominantBaseline='middle'
                         >
-                          {props.data?.reduce(
-                            (sum, item) => sum + item[props.metrics[0].name],
-                            0,
-                          )}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className='fill-muted-foreground'
-                        >
-                          {props.metrics[0].name}
-                        </tspan>
-                      </text>
-                    );
-                  }
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className='fill-foreground text-3xl font-bold'
+                          >
+                            {props.data?.reduce(
+                              (sum, item) => sum + item[props.metrics[0].name],
+                              0,
+                            )}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className='fill-muted-foreground'
+                          >
+                            {props.metrics[0].name}
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        </>
       );
     case ChartType.Radar:
       return (
         <ChartContainer config={chartConfig} className='mx-auto h-full w-full'>
           <RadarChart data={props.data ?? []}>
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <PolarGrid className='fill-[blue] opacity-20' gridType='polygon' />
+            <PolarGrid
+              className='opacity-20'
+              style={{ fill: compactChartColor }}
+              gridType='polygon'
+            />
             <PolarAngleAxis dataKey={props.categories?.[0]} />
             <Radar
               dataKey={props.metrics[0].name}
@@ -988,6 +1074,7 @@ function Charts(props: {
       return <div>No chart available for this type.</div>;
   }
 }
+
 function NestedBlocks(props: Block) {
   const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   return (

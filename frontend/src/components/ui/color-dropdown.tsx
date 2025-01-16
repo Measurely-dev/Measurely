@@ -18,8 +18,7 @@ export const colors: Record<
   | 'yellow'
   | 'cyan'
   | 'indigo'
-  | 'magenta'
-  | 'amber',
+  | 'magenta',
   string
 > = {
   pink: '#ff007f',
@@ -32,7 +31,6 @@ export const colors: Record<
   cyan: '#00cccc',
   indigo: '#3a2fbf',
   magenta: '#cc00cc',
-  amber: '#ffbf00',
 } as const;
 
 export default function ColorDropdown(props: {
@@ -46,7 +44,7 @@ export default function ColorDropdown(props: {
           <div
             className='size-6 h-6 w-6 max-w-6 rounded-full border'
             style={{
-              backgroundColor: `${props.color}66`, 
+              backgroundColor: `${props.color}66`,
               borderColor: `${props.color}33` || '#ccc',
             }}
           />
