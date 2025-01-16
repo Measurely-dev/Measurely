@@ -606,6 +606,7 @@ function BlocksDialogStack(props: {
               <MetricSelect
                 min={min}
                 max={max}
+                setSelectFilterCategories={() => {}}
                 selectedMetrics={selectedMetrics}
                 setSelectedMetrics={setSelectedMetrics}
               />

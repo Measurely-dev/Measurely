@@ -1,6 +1,14 @@
 'use client';
 
-import { ChangeEvent, FC, ReactNode, useEffect, useState } from 'react';
+import {
+  ChangeEvent,
+  Dispatch,
+  FC,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useContext } from 'react';
@@ -136,9 +144,18 @@ const ChangeLabelDialogContent: FC<{
 const MetricDialogContent: FC<{
   selectedMetrics: Metric[];
   setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
+  selectFilterCategories: string;
+  setSelectFilterCategories: Dispatch<SetStateAction<string>>;
   chartType: ChartType | undefined;
   isNested: boolean;
-}> = ({ selectedMetrics, setSelectedMetrics, chartType, isNested }) => {
+}> = ({
+  selectedMetrics,
+  setSelectedMetrics,
+  selectFilterCategories,
+  setSelectFilterCategories,
+  chartType,
+  isNested,
+}) => {
   const chartLimits =
     chartType !== undefined
       ? chartTypeMetricLimits[chartType]
@@ -146,7 +163,6 @@ const MetricDialogContent: FC<{
 
   const min = chartLimits.min;
   const max = chartLimits.max;
-  const [selectFilterCategory, setSelectFilterCategory] = useState<string>('');
 
   return (
     <div className='space-y-4'>
@@ -170,6 +186,7 @@ const MetricDialogContent: FC<{
         min={min}
         max={max}
         selectedMetrics={selectedMetrics}
+        setSelectFilterCategories={setSelectFilterCategories}
         setSelectedMetrics={setSelectedMetrics}
       />
       {isNested &&
@@ -179,8 +196,8 @@ const MetricDialogContent: FC<{
             <Label>Select filter category</Label>
             <FilterCategorySelect
               metric={selectedMetrics[0]}
-              selectedFilterCategory={selectFilterCategory}
-              setSelectedFilterCategory={setSelectFilterCategory}
+              selectedFilterCategory={selectFilterCategories}
+              setSelectedFilterCategory={setSelectFilterCategories}
             />
           </div>
         )}
@@ -205,7 +222,9 @@ export default function BlockOptions(
   const [isMetricChanged, setIsMetricChanged] = useState(false);
   const [isLabelDialogOpen, setIsLabelDialogOpen] = useState(false);
   const [isMetricDialogOpen, setIsMetricDialogOpen] = useState(false);
-  const [selectFilterCategory, setSelectFilterCategory] = useState<string>('');
+  const [selectFilterCategory, setSelectFilterCategory] = useState<string>(
+    props.filtercategories[0] ?? '',
+  );
 
   useEffect(() => {
     setNewMetrics(
@@ -427,7 +446,7 @@ export default function BlockOptions(
                                     metricIds: newMetrics.map(
                                       (metric) => metric.id,
                                     ),
-                                    filters: selectFilterCategory,
+                                    filtercategories: [selectFilterCategory],
                                   }
                                 : n,
                             ),
@@ -437,7 +456,7 @@ export default function BlockOptions(
                         ? {
                             ...l,
                             metricIds: newMetrics.map((metric) => metric.id),
-                            filters: selectFilterCategory,
+                            filtercategories: [selectFilterCategory],
                           }
                         : l,
                   ),
@@ -587,6 +606,8 @@ export default function BlockOptions(
           <MetricDialogContent
             selectedMetrics={newMetrics}
             setSelectedMetrics={setNewMetrics}
+            selectFilterCategories={selectFilterCategory}
+            setSelectFilterCategories={setSelectFilterCategory}
             chartType={props.chartType}
             isNested={props.type === BlockType.Nested}
           />
@@ -604,7 +625,10 @@ export default function BlockOptions(
                 setIsMetricDialogOpen(false);
                 setIsMetricChanged(true);
               }}
-              disabled={newMetrics.length === 0}
+              disabled={
+                newMetrics.length === 0 ||
+                (props.type === BlockType.Nested && selectFilterCategory === '')
+              }
             >
               Save
             </Button>

@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/popover';
 import { ProjectsContext } from '@/dash-context';
 import { Metric } from '@/types';
+import { Dispatch, SetStateAction } from 'react';
 
 export function MetricSelect(props: {
   selectedMetrics: Metric[];
   setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
+  setSelectFilterCategories: Dispatch<SetStateAction<string>>;
   min: number;
   max: number;
 }) {
@@ -54,6 +56,8 @@ export function MetricSelect(props: {
         ]);
       }
     }
+
+    props.setSelectFilterCategories('');
     inputRef?.current?.focus();
   };
   const onComboboxOpenChange = (value: boolean) => {
@@ -144,7 +148,7 @@ export function MetricSelect(props: {
           <Badge
             key={id}
             variant='outline'
-            className='group relative w-fit px-3 select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none'
+            className='group relative w-fit select-none rounded-full border border-input bg-accent/80 px-3 text-sm font-medium text-muted-foreground shadow-none'
           >
             {name}
           </Badge>
