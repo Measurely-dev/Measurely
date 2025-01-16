@@ -77,9 +77,9 @@ export function FilterCategorySelect(props: {
               onValueChange={setInputValue}
             />
             <CommandEmpty>
-                {filterCategories.length === 0
-                    ? 'No filter categories available.'
-                    : 'No filter categories found.'}
+              {filterCategories.length === 0
+                ? 'No filter categories available.'
+                : 'No filter categories found.'}
             </CommandEmpty>
             <CommandList>
               <CommandGroup className='max-h-[300px] overflow-auto'>
@@ -125,7 +125,7 @@ export function FilterCategorySelect(props: {
         {props.selectedFilterCategory && (
           <Badge
             variant='outline'
-            className='mb-2 mr-2 border bg-background text-primary'
+            className='group relative w-fit select-none rounded-full border border-input bg-accent/80 px-3 text-sm font-medium text-muted-foreground shadow-none'
           >
             {props.selectedFilterCategory}
           </Badge>

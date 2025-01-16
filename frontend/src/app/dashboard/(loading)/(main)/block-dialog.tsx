@@ -383,7 +383,9 @@ function BlockItem(props: {
     const totalMetrics = project.metrics?.length || 0;
 
     if (totalMetrics < min) {
-      toast.warning(`You need at least ${min} metrics to create a ${props.name}`);
+      toast.warning(
+        `You need at least ${min} metrics to create a ${props.name}`,
+      );
       return;
     }
 
@@ -394,7 +396,7 @@ function BlockItem(props: {
     <div
       className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
         props.state === props.value
-          ? 'cursor-pointer bg-purple-500/5 ring-2 ring-purple-500'
+          ? 'cursor-pointer bg-blue-500/10 ring-2 ring-blue-500/70'
           : 'cursor-pointer hover:bg-accent/50'
       }`}
       onClick={handleClick}

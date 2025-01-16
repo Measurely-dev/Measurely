@@ -47,13 +47,7 @@ import { DialogClose } from '@radix-ui/react-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useRef,
-  useState,
-} from 'react';
+import { Dispatch, SetStateAction, useContext, useRef, useState } from 'react';
 import { ProjectsContext } from '@/dash-context';
 import { LabelType, Project } from '@/types';
 
@@ -169,7 +163,7 @@ export function LabelSelect(props: {
               ) : (
                 <Badge
                   variant='outline'
-                  className='truncate capitalize'
+                  className='group relative w-fit select-none truncate rounded-full border border-input bg-accent/80 px-3 text-sm font-medium capitalize text-muted-foreground shadow-none'
                   style={{
                     backgroundColor: `${getColorByLabel(props.selectedLabel)}1A`,
                     borderColor: `${getColorByLabel(props.selectedLabel)}33`,
