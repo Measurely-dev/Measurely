@@ -101,29 +101,53 @@ import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 
 import FilterManagerDialog from './filter-manager';
-
 type AllowedColors =
   | 'blue'
   | 'red'
   | 'green'
   | 'pink'
-  | 'amber'
   | 'black'
   | 'gray'
   | 'fuchsia'
   | 'cyan'
   | 'violet'
-  | 'lime';
+  | 'lime'
+  | 'purple'
+  | 'orange'
+  | 'yellow'
+  | 'indigo'
+  | 'magenta'
+  | 'teal'
+  | 'amber'
+  | 'rose'
+  | 'sky'
+  | 'emerald'
+  | 'coral'
+  | 'mint';
 
 interface ChartColors {
   blue: string;
   red: string;
   green: string;
   pink: string;
-  amber: string;
   black: string;
   gray: string;
   fuchsia: string;
+  cyan: string;
+  violet: string;
+  lime: string;
+  purple: string;
+  orange: string;
+  yellow: string;
+  indigo: string;
+  magenta: string;
+  teal: string;
+  amber: string;
+  rose: string;
+  sky: string;
+  emerald: string;
+  coral: string;
+  mint: string;
 }
 interface DualMetricChartColors {
   default: {
@@ -154,6 +178,22 @@ interface DualMetricChartColors {
     positive: AllowedColors;
     negative: AllowedColors;
   };
+  pastel: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  sunset: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  ocean: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  forest: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
 }
 
 const dualMetricChartColors: DualMetricChartColors = {
@@ -166,7 +206,7 @@ const dualMetricChartColors: DualMetricChartColors = {
     negative: 'violet',
   },
   warm: {
-    positive: 'amber',
+    positive: 'fuchsia',
     negative: 'red',
   },
   contrast: {
@@ -184,6 +224,22 @@ const dualMetricChartColors: DualMetricChartColors = {
   neutral: {
     positive: 'gray',
     negative: 'black',
+  },
+  pastel: {
+    positive: 'rose',
+    negative: 'teal',
+  },
+  sunset: {
+    positive: 'orange',
+    negative: 'violet',
+  },
+  ocean: {
+    positive: 'emerald',
+    negative: 'sky',
+  },
+  forest: {
+    positive: 'green',
+    negative: 'yellow',
   },
 };
 
@@ -1461,6 +1517,7 @@ function AdvancedOptions(props: {
           ) : (
             <></>
           )}
+
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
           (props.chartName === 'trend' && props.splitTrendChecked) ? (
@@ -1505,7 +1562,7 @@ function AdvancedOptions(props: {
                     <SelectItem value='warm'>
                       <div className='flex flex-row items-center gap-2'>
                         <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-amber-400' />
+                          <div className='size-2 rounded-full bg-fuchsia-400' />
                           <div className='size-2 rounded-full bg-red-500' />
                         </div>
                         Warm
@@ -1551,6 +1608,45 @@ function AdvancedOptions(props: {
                         Neutral
                       </div>
                     </SelectItem>
+                    <SelectItem value='pastel'>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='flex gap-1'>
+                          <div className='size-2 rounded-full bg-rose-400' />
+                          <div className='size-2 rounded-full bg-teal-500' />
+                        </div>
+                        Pastel
+                      </div>
+                    </SelectItem>
+
+                    <SelectItem value='sunset'>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='flex gap-1'>
+                          <div className='size-2 rounded-full bg-orange-500' />
+                          <div className='size-2 rounded-full bg-violet-500' />
+                        </div>
+                        Sunset
+                      </div>
+                    </SelectItem>
+
+                    <SelectItem value='ocean'>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='flex gap-1'>
+                          <div className='size-2 rounded-full bg-emerald-500' />
+                          <div className='size-2 rounded-full bg-sky-500' />
+                        </div>
+                        Ocean
+                      </div>
+                    </SelectItem>
+
+                    <SelectItem value='forest'>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='flex gap-1'>
+                          <div className='size-2 rounded-full bg-green-500' />
+                          <div className='size-2 rounded-full bg-yellow-500' />
+                        </div>
+                        Forest
+                      </div>
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -1573,7 +1669,7 @@ function AdvancedOptions(props: {
                     <SelectItem value={'blue'}>
                       <div className='flex flex-row items-center gap-2'>
                         <div className='size-2 rounded-full bg-blue-500' />
-                        Default
+                        Blue
                       </div>
                     </SelectItem>
                     <SelectItem value={'red'}>
@@ -1594,12 +1690,6 @@ function AdvancedOptions(props: {
                         Pink
                       </div>
                     </SelectItem>
-                    <SelectItem value={'amber'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-amber-400' />
-                        Amber
-                      </div>
-                    </SelectItem>
                     <SelectItem value={'fuchsia'}>
                       <div className='flex flex-row items-center gap-2'>
                         <div className='size-2 rounded-full bg-fuchsia-400' />
@@ -1618,11 +1708,66 @@ function AdvancedOptions(props: {
                         Black
                       </div>
                     </SelectItem>
+                    <SelectItem value={'cyan'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-cyan-500' />
+                        Cyan
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'violet'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-violet-500' />
+                        Violet
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'lime'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-lime-500' />
+                        Lime
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'yellow'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-yellow-500' />
+                        Yellow
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'orange'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-orange-500' />
+                        Orange
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'teal'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-teal-500' />
+                        Teal
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'amber'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-amber-500' />
+                        Amber
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'indigo'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-indigo-500' />
+                        Indigo
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={'rose'}>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className='size-2 rounded-full bg-rose-500' />
+                        Rose
+                      </div>
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </Label>
           )}
+
           {props.chartName === 'trend' &&
           props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>
