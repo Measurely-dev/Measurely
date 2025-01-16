@@ -51,11 +51,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AreaChart } from '@/components/ui/area-chart';
-import {
-  BarListData,
-  PieChartData,
-  RadarChartData,
-} from '@/components/global/block-fake-data';
+
 import { ComboChart } from '@/components/ui/combo-chart';
 import { BarChart } from '@/components/ui/bar-chart';
 import { Input } from '@/components/ui/input';
@@ -76,7 +72,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
 import { toast } from 'sonner';
-import { fetchChartData, generateString } from '@/utils';
+import { fetchChartData, fetchEventVariation, generateString } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
@@ -193,6 +189,7 @@ export default function DashboardHomePage() {
                       type: BlockType.Group,
                       nested: [],
                       metricIds: [],
+                      filtercategories: [],
                       label: 'group',
                       uniquekey: generateString(10),
                       color: '',
@@ -494,58 +491,92 @@ function BlockContent(props: Block & { groupkey?: string }) {
       const date = new Date();
       date.setDate(date.getDate() - (range - 1));
 
-      const dataPromises = metrics.map((metric) =>
-        fetchChartData(
-          date,
-          range,
-          metric,
-          projects[activeProject].id,
-          'trend',
-        ).then((data) => {
-          if (metric.type === MetricType.Dual) {
+      let combinedData: any[] = [];
+      if (props.type === BlockType.Nested) {
+        const dataPromises = metrics[0].filters[props.filtercategories[0]].map(
+          async (filter) => {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 1);
+            startDate.setDate(1);
+            startDate.setHours(0);
+            startDate.setMinutes(0);
+            startDate.setSeconds(0);
+
+            endDate.setHours(23);
+            endDate.setMinutes(59);
+            endDate.setSeconds(59);
+
+            const data = await fetchEventVariation(
+              projects[activeProject].id,
+              filter.id,
+              startDate,
+              endDate,
+            );
+
+            return {
+              [filter.filtercategory]: filter.name,
+              [metrics[0].name]: data.relativetotalpos - data.relativetotalneg,
+              name: filter.name,
+              value: data.relativetotalpos - data.relativetotalneg,
+            };
+          },
+        );
+
+        combinedData = await Promise.all(dataPromises);
+      } else {
+        const dataPromises = metrics.map((metric) =>
+          fetchChartData(
+            date,
+            range,
+            metric,
+            projects[activeProject].id,
+            'trend',
+          ).then((data) => {
+            if (metric.type === MetricType.Dual) {
+              data.forEach((item) => {
+                item[metric.name] = item[metric.namepos] - item[metric.nameneg];
+              });
+            } else if (metric.type === MetricType.Average) {
+              data.forEach((item) => {
+                const pos = item['+'] ?? 0;
+                const neg = item['-'] ?? 0;
+                const eventCount = item['Event Count'] ?? 0;
+                item[metric.name] =
+                  eventCount === 0 ? 0 : (pos - neg) / eventCount;
+              });
+            }
+            return {
+              metric,
+              data,
+            };
+          }),
+        );
+
+        const results = await Promise.all(dataPromises);
+
+        results.forEach(({ metric, data }, index) => {
+          if (index === 0) {
             data.forEach((item) => {
-              item[metric.name] = item[metric.namepos] - item[metric.nameneg];
+              combinedData.push({
+                date: item.date,
+                tooltiplabel: item.tooltiplabel,
+                [metric.name]: item[metric.name],
+              });
             });
-          } else if (metric.type === MetricType.Average) {
-            data.forEach((item) => {
-              const pos = item['+'] ?? 0;
-              const neg = item['-'] ?? 0;
-              const eventCount = item['Event Count'] ?? 0;
-              item[metric.name] =
-                eventCount === 0 ? 0 : (pos - neg) / eventCount;
+          } else {
+            data.forEach((item, i) => {
+              if (metric.type === MetricType.Average) {
+                combinedData[i][metric.name + '+'] = item['+'];
+                combinedData[i][metric.name + '-'] = item['-'];
+                combinedData[i][metric.name + 'Event Count'] =
+                  item['Event Count'];
+              }
+              combinedData[i][metric.name] = item[metric.name];
             });
           }
-          return {
-            metric,
-            data,
-          };
-        }),
-      );
-
-      const results = await Promise.all(dataPromises);
-
-      const combinedData: any[] = [];
-      results.forEach(({ metric, data }, index) => {
-        if (index === 0) {
-          data.forEach((item) => {
-            combinedData.push({
-              date: item.date,
-              tooltiplabel: item.tooltiplabel,
-              [metric.name]: item[metric.name],
-            });
-          });
-        } else {
-          data.forEach((item, i) => {
-            if (metric.type === MetricType.Average) {
-              combinedData[i][metric.name + '+'] = item['+'];
-              combinedData[i][metric.name + '-'] = item['-'];
-              combinedData[i][metric.name + 'Event Count'] =
-                item['Event Count'];
-            }
-            combinedData[i][metric.name] = item[metric.name];
-          });
-        }
-      });
+        });
+      }
 
       setChartData(combinedData);
     };
@@ -699,9 +730,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
           <Charts
             chartType={props.chartType}
             data={chartData}
-            categories={metrics.map((metric) => metric.name)}
             color={props.color}
             metrics={metrics} // Add this prop
+            categories={props.filtercategories}
           />
         </CardContent>
       )}
@@ -810,9 +841,9 @@ const pieChartConfig = {
 function Charts(props: {
   chartType: ChartType | undefined;
   data: any[] | null;
-  categories: string[];
   color: string;
-  metrics: Metric[]; // Add this prop
+  metrics: Metric[];
+  categories?: string[];
 }) {
   const chartProps = {
     className: 'h-full',
@@ -833,7 +864,7 @@ function Charts(props: {
           customTooltip={customTooltip}
           colors={chartColors}
           index='date'
-          categories={props.categories}
+          categories={props.metrics.map((m) => m.name)}
           yAxisLabel='Total'
           onValueChange={() => {}}
         />
@@ -846,7 +877,7 @@ function Charts(props: {
           customTooltip={customTooltip}
           colors={chartColors}
           index='date'
-          categories={props.categories}
+          categories={props.metrics.map((m) => m.name)}
           yAxisLabel='Total'
           onValueChange={() => {}}
         />
@@ -859,19 +890,28 @@ function Charts(props: {
           index='date'
           enableBiaxial
           barSeries={{
-            categories: [props.categories[0]],
+            categories: [props.metrics[0].name],
             showYAxis: true,
           }}
           lineSeries={{
-            categories: [props.categories[1]],
+            categories: [props.metrics[1].name],
             showYAxis: true,
           }}
           onValueChange={() => {}}
         />
       );
     case ChartType.BarList:
-      return <BarList data={BarListData} {...chartProps} />;
+      return (
+        <BarList
+          data={(props.data ?? [])
+            .slice()
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 10)}
+          {...chartProps}
+        />
+      );
     case ChartType.Pie:
+      console.log(props.metrics[0].name, props.categories?.[0]);
       return (
         <ChartContainer
           config={pieChartConfig}
@@ -883,9 +923,9 @@ function Charts(props: {
               content={<ChartTooltipContent hideLabel />}
             />
             <Pie
-              data={PieChartData}
-              dataKey='visitors'
-              nameKey='browser'
+              data={props.data ?? []}
+              dataKey={props.metrics[0].name}
+              nameKey={props.categories?.[0]}
               innerRadius={60}
               strokeWidth={5}
             >
@@ -904,14 +944,17 @@ function Charts(props: {
                           y={viewBox.cy}
                           className='fill-foreground text-3xl font-bold'
                         >
-                          {0}
+                          {props.data?.reduce(
+                            (sum, item) => sum + item[props.metrics[0].name],
+                            0,
+                          )}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className='fill-muted-foreground'
                         >
-                          Visitors
+                          {props.metrics[0].name}
                         </tspan>
                       </text>
                     );
@@ -925,12 +968,12 @@ function Charts(props: {
     case ChartType.Radar:
       return (
         <ChartContainer config={chartConfig} className='mx-auto h-full w-full'>
-          <RadarChart data={RadarChartData}>
+          <RadarChart data={props.data ?? []}>
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <PolarGrid className='fill-[blue] opacity-20' gridType='polygon' />
-            <PolarAngleAxis dataKey='month' />
+            <PolarAngleAxis dataKey={props.categories?.[0]} />
             <Radar
-              dataKey='desktop'
+              dataKey={props.metrics[0].name}
               fill='var(--color-desktop)'
               fillOpacity={0.5}
             />

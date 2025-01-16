@@ -2257,7 +2257,7 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-func (s *Service) UpdateBlocksLayout(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UpdateBlocks(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)

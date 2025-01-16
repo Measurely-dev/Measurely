@@ -27,7 +27,6 @@ export function FilterCategorySelect(props: {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>('');
-  console.log(props.metric);
 
   const filterCategories = Object.keys(props.metric?.filters || {});
 

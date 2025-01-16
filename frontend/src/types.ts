@@ -76,6 +76,7 @@ export interface Block {
   name: string;
   nested?: Block[];
   metricIds: string[];
+  filtercategories: string[];
   chartType?: ChartType;
   type: BlockType;
   label: string;

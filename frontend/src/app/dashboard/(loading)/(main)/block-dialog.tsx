@@ -636,7 +636,8 @@ function BlocksDialogStack(props: {
                 selectedMetrics.length > max ||
                 (isCompactType &&
                   selectedMetrics.length > 0 &&
-                  Object.keys(selectedMetrics[0].filters || {}).length === 0)
+                  Object.keys(selectedMetrics[0].filters || {}).length === 0) ||
+                (isCompactType && selectFilterCategory === '')
               }
               onClick={() => {
                 props.setIsDialogOpen(false);
@@ -665,6 +666,7 @@ function BlocksDialogStack(props: {
                   chartType: props.type,
                   label: selectedLabel,
                   metricIds: selectedMetrics.map((metric) => metric.id),
+                  filtercategories: [],
                   color: color,
                 };
                 if (props.groupKey !== undefined) {
@@ -682,6 +684,7 @@ function BlocksDialogStack(props: {
                     return;
                   }
 
+                  newBlock.filtercategories = [selectFilterCategory];
                   newBlock.id = length + 1;
                   setProjects(
                     projects.map((proj, i) =>

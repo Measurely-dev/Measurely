@@ -90,7 +90,7 @@ func (h *Handler) setup_api() {
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
 
 	authRouter.Get("/blocks/{projectid}", h.service.GetBlocks)
-	authRouter.Patch("/blocks/layout", h.service.UpdateBlocksLayout)
+	authRouter.Patch("/blocks/layout", h.service.UpdateBlocks)
 
 	authRouter.Get("/members/{projectid}", h.service.GetTeamMembers)
 	authRouter.Patch("/role", h.service.UpdateMemberRole)

@@ -136,15 +136,16 @@ type Blocks struct {
 }
 
 type Block struct {
-	UniqueKey string      `json:"uniquekey"`
-	Id        int         `json:"id"`
-	Name      string      `json:"name"`
-	Nested    []Block     `json:"nested"`
-	MetricIds []uuid.UUID `json:"metricIds"`
-	Type      int         `json:"type"`
-	ChartType int         `json:"chartType"`
-	Label     string      `json:"label"`
-	Color     string      `json:"color"`
+	UniqueKey        string      `json:"uniquekey"`
+	Id               int         `json:"id"`
+	Name             string      `json:"name"`
+	Nested           []Block     `json:"nested"`
+	MetricIds        []uuid.UUID `json:"metricIds"`
+	FilterCategories []string    `json:"filtercategories"`
+	Type             int         `json:"type"`
+	ChartType        int         `json:"chartType"`
+	Label            string      `json:"label"`
+	Color            string      `json:"color"`
 }
 
 type Label struct {
