@@ -553,15 +553,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
     loadData();
   }, [metrics, range]);
 
-  const getMaxWidth = (metrics: any[], data: any[]) => {
-    const maxWidth = metrics.reduce((max, metric) => {
-      const metricValue = calculateSummary(data ?? [], metric.name).toString();
-      return Math.max(max, metricValue.length);
-    }, 0);
-
-    return maxWidth;
-  };
-
   const handleCopy = (metric: Metric) => {
     if (isCopying) return;
 
@@ -657,7 +648,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
             props.chartType !== ChartType.BarList ? (
               <div className='flex h-full flex-row items-center'>
                 {metrics.map((metric, i) => {
-                  const maxWidth = getMaxWidth(metrics, chartData ?? []);
                   return (
                     <div
                       key={i}
@@ -668,11 +658,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
                           setDisabledItem(null);
                         }, 1000);
                       }}
-                      className={`group relative flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
-                      style={{
-                        borderColor: `${props.color}33`,
-                        minWidth: `${maxWidth * 25}px`,
-                      }}
+                      className={`group relative flex h-full min-w-[120px] w-fit select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
                     >
                       <div
                         className={`absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10 ${disabledItem === metric.name ? 'cursor-wait opacity-10' : 'cursor-copy'}`}

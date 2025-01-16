@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
@@ -292,6 +293,7 @@ export default function BlocksDialog(props: {
   return (
     <DialogStack>
       <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+        <DialogOverlay />
         <DialogTrigger asChild className='max-sm:w-full'>
           {props.children}
         </DialogTrigger>
@@ -475,11 +477,10 @@ function BlocksDialogStack(props: {
           setSelectedMetrics([]);
           closeDialog();
         }}
-        className='left-[calc(-25vw-19px)] top-[calc(-10vh-15px)] bg-black/20'
       />
       <DialogStackTrigger asChild>{props.children}</DialogStackTrigger>
-      <DialogStackBody className='h-full'>
-        <DialogStackContent>
+      <DialogStackBody className='z-[110] my-auto h-fit'>
+        <DialogStackContent className='relative'>
           <DialogHeader>
             <DialogStackTitle>
               Choose{' '}
@@ -612,7 +613,7 @@ function BlocksDialogStack(props: {
             {isCompactType &&
               selectedMetrics.length > 0 &&
               Object.keys(selectedMetrics[0].filters || {}).length > 0 && (
-                <div className='flex flex-col gap-2 mt-4'>
+                <div className='mt-4 flex flex-col gap-2'>
                   <Label>Select filter category</Label>
                   <FilterCategorySelect
                     metric={selectedMetrics[0]}

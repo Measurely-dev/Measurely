@@ -19,6 +19,7 @@ import type {
   ReactNode,
   SetStateAction,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DialogStackContextType {
   activeIndex: number;
@@ -163,23 +164,15 @@ export const DialogStackOverlay = ({
   if (!context.isOpen) {
     return null;
   }
-
-  const handleOverlayClick = () => {
-    context.setIsOpen(false);
-    context.setActiveIndex(0);
-  };
-
-  return (
+  return createPortal(
     <div
-      className={cn(
-        'fixed inset-0 z-[100] h-screen w-screen bg-blue-500/80',
-        'data-[state=closed]:animate-out data-[state=open]:animate-in',
-        'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        className,
-      )}
-      onClick={handleOverlayClick}
+      className='pointer-events-auto fixed inset-0 z-[100] bg-black/30'
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
       {...props}
-    />
+    />,
+    document.body,
   );
 };
 
