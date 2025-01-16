@@ -1,77 +1,100 @@
-export type ColorUtility = 'bg' | 'stroke' | 'fill' | 'text';
+import { ColorKey } from '@/app/dashboard/(loading)/(main)/page';
 
-const colors = {
+export type ColorUtility = 'bg' | 'stroke' | 'fill' | 'text';
+export const colorSchemeMap: Record<
+  ColorKey,
+  { bg: string; stroke: string; fill: string; text: string }
+> = {
+  pink: {
+    bg: 'bg-pink-400',
+    stroke: 'stroke-pink-500',
+    fill: 'fill-pink-500',
+    text: 'text-pink-500',
+  },
   blue: {
     bg: 'bg-blue-500',
-    stroke: 'stroke-blue-500',
-    fill: 'fill-blue-500',
-    text: 'text-blue-500',
-  },
-  black: {
-    bg: 'bg-black',
-    stroke: 'stroke-black',
-    fill: 'fill-black',
-    text: 'text-black',
+    stroke: 'stroke-blue-600',
+    fill: 'fill-blue-600',
+    text: 'text-blue-600',
   },
   green: {
     bg: 'bg-green-400',
-    stroke: 'stroke-green-400',
-    fill: 'fill-green-400',
-    text: 'text-green-400',
+    stroke: 'stroke-green-500',
+    fill: 'fill-green-500',
+    text: 'text-green-500',
+  },
+  purple: {
+    bg: 'bg-purple-400',
+    stroke: 'stroke-purple-500',
+    fill: 'fill-purple-500',
+    text: 'text-purple-500',
+  },
+  orange: {
+    bg: 'bg-orange-500',
+    stroke: 'stroke-orange-600',
+    fill: 'fill-orange-600',
+    text: 'text-orange-600',
   },
   red: {
     bg: 'bg-red-500',
-    stroke: 'stroke-red-500',
-    fill: 'fill-red-500',
-    text: 'text-red-500',
+    stroke: 'stroke-red-600',
+    fill: 'fill-red-600',
+    text: 'text-red-600',
   },
-  violet: {
-    bg: 'bg-violet-500',
-    stroke: 'stroke-violet-500',
-    fill: 'fill-violet-500',
-    text: 'text-violet-500',
-  },
-  amber: {
-    bg: 'bg-amber-400',
-    stroke: 'stroke-amber-400',
-    fill: 'fill-amber-400',
-    text: 'text-amber-400',
-  },
-  gray: {
-    bg: 'bg-gray-500',
-    stroke: 'stroke-gray-500',
-    fill: 'fill-gray-500',
-    text: 'text-gray-500',
+  yellow: {
+    bg: 'bg-yellow-500',
+    stroke: 'stroke-yellow-600',
+    fill: 'fill-yellow-600',
+    text: 'text-yellow-600',
   },
   cyan: {
     bg: 'bg-cyan-500',
-    stroke: 'stroke-cyan-500',
-    fill: 'fill-cyan-500',
-    text: 'text-cyan-500',
+    stroke: 'stroke-cyan-600',
+    fill: 'fill-cyan-600',
+    text: 'text-cyan-600',
   },
-  pink: {
-    bg: 'bg-pink-400',
-    stroke: 'stroke-pink-400',
-    fill: 'fill-pink-400',
-    text: 'text-pink-400',
+  indigo: {
+    bg: 'bg-indigo-500',
+    stroke: 'stroke-indigo-600',
+    fill: 'fill-indigo-600',
+    text: 'text-indigo-600',
   },
-  lime: {
-    bg: 'bg-lime-500',
-    stroke: 'stroke-lime-500',
-    fill: 'fill-lime-500',
-    text: 'text-lime-500',
+  magenta: {
+    bg: 'bg-fuchsia-500',
+    stroke: 'stroke-pink-600',
+    fill: 'fill-pink-600',
+    text: 'text-pink-600',
   },
   fuchsia: {
     bg: 'bg-fuchsia-400',
-    stroke: 'stroke-fuchsia-400',
-    fill: 'fill-fuchsia-400',
-    text: 'text-fuchsia-400',
+    stroke: 'stroke-fuchsia-500',
+    fill: 'fill-fuchsia-500',
+    text: 'text-fuchsia-500',
+  },
+  violet: {
+    bg: 'bg-violet-500',
+    stroke: 'stroke-violet-600',
+    fill: 'fill-violet-600',
+    text: 'text-violet-600',
+  },
+  lime: {
+    bg: 'bg-lime-500',
+    stroke: 'stroke-lime-600',
+    fill: 'fill-lime-600',
+    text: 'text-lime-600',
+  },
+  gray: {
+    bg: 'bg-gray-500',
+    stroke: 'stroke-gray-600',
+    fill: 'fill-gray-600',
+    text: 'text-gray-600',
   },
 };
+
 export const chartColors: Record<
-  keyof typeof colors,
+  keyof typeof colorSchemeMap,
   Record<ColorUtility, string>
-> = colors;
+> = colorSchemeMap;
 
 export type AvailableChartColorsKeys = keyof typeof chartColors;
 

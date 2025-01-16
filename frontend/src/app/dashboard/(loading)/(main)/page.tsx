@@ -96,6 +96,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
 import customTooltip from '@/components/ui/custom-tooltip';
+import { colors } from '@/components/ui/color-dropdown';
+import { colorSchemeMap } from '@/lib/chartUtils';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -548,6 +550,14 @@ function BlockContent(props: Block & { groupkey?: string }) {
     loadData();
   }, [metrics, range]);
 
+  const getMaxWidth = (metrics: any[], data: any[]) => {
+    const maxWidth = metrics.reduce((max, metric) => {
+      const metricValue = calculareSummary(data ?? [], metric.name).toString();
+      return Math.max(max, metricValue.length);
+    }, 0);
+
+    return maxWidth;
+  };
   return (
     <>
       <CardHeader
@@ -624,30 +634,35 @@ function BlockContent(props: Block & { groupkey?: string }) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-            props.chartType !== ChartType.Radar &&
-            props.chartType !== ChartType.BarList ? (
-              <div className='flex h-full flex-row items-center'>
-                {metrics.map((metric, i) => {
-                  return (
-                    <div
-                      key={i}
-                      className='group relative flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 whitespace-nowrap border-l px-5 font-mono text-2xl font-bold'
-                      style={{ borderColor: `${props.color}33` }}
-                    >
-                      <div className='absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10' />
-                      <div className='whitespace-nowrap font-sans text-xs font-normal'>
-                        {metric.name}
-                      </div>
-                      {valueFormatter(
-                        calculareSummary(chartData ?? [], metric.name),
-                      )}
+          props.chartType !== ChartType.Radar &&
+          props.chartType !== ChartType.BarList ? (
+            <div className='flex h-full flex-row items-center'>
+              {metrics.map((metric, i) => {
+                const maxWidth = getMaxWidth(metrics, chartData ?? []);
+
+                return (
+                  <div
+                    key={i}
+                    className='group relative overflow-x-hidden flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 whitespace-nowrap border-l px-5 font-mono text-2xl font-bold'
+                    style={{
+                      borderColor: `${props.color}33`,
+                      minWidth: `${maxWidth * 25}px`,
+                    }}
+                  >
+                    <div className='absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10' />
+                    <div className='whitespace-nowrap font-sans text-xs font-normal'>
+                      {metric.name}
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <></>
-            )}
+                    {valueFormatter(
+                      calculareSummary(chartData ?? [], metric.name),
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <></>
+          )}
           </div>
         </>
       )}
@@ -671,6 +686,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
             chartType={props.chartType}
             data={chartData}
             categories={metrics.map((metric) => metric.name)}
+            color={props.color}
           />
         </CardContent>
       )}
@@ -696,16 +712,69 @@ function BlockContent(props: Block & { groupkey?: string }) {
     </>
   );
 }
+export type ColorKey =
+  | 'pink'
+  | 'blue'
+  | 'green'
+  | 'orange'
+  | 'red'
+  | 'yellow'
+  | 'cyan'
+  | 'indigo'
+  | 'magenta'
+  | 'violet'
+  | 'lime'
+  | 'purple'
+  | 'fuchsia'
+  | 'gray';
+
+const hexToColorKeyMap: Record<string, ColorKey> = {
+  '#ff007f': 'pink',
+  '#0033cc': 'blue',
+  '#8000ff': 'purple',
+  '#007f3f': 'green',
+  '#ff6600': 'orange',
+  '#cc0000': 'red',
+  '#cc9900': 'yellow',
+  '#00cccc': 'cyan',
+  '#3a2fbf': 'indigo',
+  '#cc00cc': 'magenta',
+};
+
+const chartColorMap: Record<ColorKey, ColorKey[]> = {
+  pink: ['pink', 'fuchsia', 'blue', 'red'],
+  blue: ['blue', 'cyan', 'pink', 'violet'],
+  green: ['green', 'lime', 'cyan', 'blue'],
+  orange: ['orange', 'magenta', 'red', 'violet'],
+  red: ['red', 'pink', 'orange', 'violet'],
+  yellow: ['yellow', 'green', 'cyan', 'blue'],
+  cyan: ['cyan', 'blue', 'green', 'pink'],
+  indigo: ['indigo', 'violet', 'blue', 'cyan'],
+  magenta: ['fuchsia', 'pink', 'violet', 'red'],
+  fuchsia: ['fuchsia', 'pink', 'red', 'magenta'],
+  purple: ['fuchsia', 'pink', 'violet', 'indigo'],
+  violet: ['violet', 'indigo', 'blue', 'pink'],
+  lime: ['lime', 'green', 'yellow', 'cyan'],
+  gray: ['gray', 'pink', 'blue', 'green'],
+};
 
 function Charts(props: {
   chartType: ChartType | undefined;
   data: any[] | null;
   categories: string[];
+  color: string;
 }) {
   const chartProps = {
     className: 'h-full',
     valueFormatter,
   };
+
+  const resolvedColorKey = hexToColorKeyMap[props.color] || 'gray';
+
+  const validResolvedColorKey =
+    resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
+
+  const chartColors = chartColorMap[validResolvedColorKey];
 
   switch (props.chartType) {
     case ChartType.Area:
@@ -714,7 +783,7 @@ function Charts(props: {
           data={props.data ?? []}
           {...chartProps}
           customTooltip={customTooltip}
-          colors={['violet', 'blue']}
+          colors={chartColors}
           index='date'
           categories={props.categories}
           yAxisLabel='Total'
@@ -726,7 +795,7 @@ function Charts(props: {
           data={props.data ?? []}
           {...chartProps}
           customTooltip={customTooltip}
-          colors={['violet', 'blue']}
+          colors={chartColors}
           index='date'
           categories={props.categories}
           yAxisLabel='Total'
@@ -746,77 +815,8 @@ function Charts(props: {
           lineSeries={{
             categories: [props.categories[1]],
             showYAxis: true,
-            colors: ['fuchsia'],
           }}
         />
-      );
-    case ChartType.BarList:
-      return <BarList data={BarListData} {...chartProps} />;
-    case ChartType.Pie:
-      return (
-        <ChartContainer
-          config={pieChartConfig}
-          className='mx-auto h-full w-full'
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={PieChartData}
-              dataKey='visitors'
-              nameKey='browser'
-              innerRadius={60}
-              strokeWidth={5}
-            >
-              <RechartLabel
-                content={({ viewBox }) => {
-                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor='middle'
-                        dominantBaseline='middle'
-                      >
-                        <tspan
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          className='fill-foreground text-3xl font-bold'
-                        >
-                          {0}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className='fill-muted-foreground'
-                        >
-                          Visitors
-                        </tspan>
-                      </text>
-                    );
-                  }
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
-      );
-    case ChartType.Radar:
-      return (
-        <ChartContainer config={chartConfig} className='mx-auto h-full w-full'>
-          <RadarChart data={RadarChartData}>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <PolarGrid className='fill-[blue] opacity-20' gridType='polygon' />
-            <PolarAngleAxis dataKey='month' />
-            <Radar
-              dataKey='desktop'
-              fill='var(--color-desktop)'
-              fillOpacity={0.5}
-            />
-          </RadarChart>
-        </ChartContainer>
       );
     default:
       return <div>No chart available for this type.</div>;

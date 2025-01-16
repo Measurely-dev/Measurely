@@ -8,50 +8,32 @@ import {
   DropdownMenuSubTrigger,
 } from './dropdown-menu';
 
-const colors: Record<
+export const colors: Record<
   | 'pink'
   | 'blue'
   | 'purple'
-  | 'lightblue'
   | 'green'
-  | 'teal'
   | 'orange'
   | 'red'
   | 'yellow'
   | 'cyan'
   | 'indigo'
-  | 'lime'
-  | 'coral'
-  | 'skyblue'
   | 'magenta'
-  | 'lavender'
-  | 'aquamarine'
-  | 'gold'
-  | 'salmon'
-  | 'chartreuse',
+  | 'amber',
   string
 > = {
-  pink: '#b03060',
-  blue: '#1c3d7c',
-  purple: '#4b0082',
-  lightblue: '#34699a',
-  green: '#2a6e4b',
-  teal: '#005f60',
-  orange: '#b65c22',
-  red: '#8b0000',
-  yellow: '#b8860b',
-  cyan: '#006b6b',
-  indigo: '#2a275f',
-  lime: '#3b5f33',
-  coral: '#a34233',
-  skyblue: '#2d5c86',
-  magenta: '#730073',
-  lavender: '#574b90',
-  aquamarine: '#2e8b57',
-  gold: '#8b7500',
-  salmon: '#803636',
-  chartreuse: '#4b6b3c',
-};
+  pink: '#ff007f',
+  blue: '#0033cc',
+  purple: '#8000ff',
+  green: '#007f3f',
+  orange: '#ff6600',
+  red: '#cc0000',
+  yellow: '#cc9900',
+  cyan: '#00cccc',
+  indigo: '#3a2fbf',
+  magenta: '#cc00cc',
+  amber: '#ffbf00',
+} as const;
 
 export default function ColorDropdown(props: {
   color: string;
@@ -64,7 +46,7 @@ export default function ColorDropdown(props: {
           <div
             className='size-6 h-6 w-6 max-w-6 rounded-full border'
             style={{
-              backgroundColor: `${props.color}66`,
+              backgroundColor: `${props.color}66`, 
               borderColor: `${props.color}33` || '#ccc',
             }}
           />
