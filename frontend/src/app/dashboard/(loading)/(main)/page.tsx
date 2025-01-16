@@ -67,7 +67,7 @@ import {
 import { rectSortingStrategy } from '@dnd-kit/sortable';
 import Header from '@/components/dashboard/header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { ChartConfig } from '@/components/ui/chart';
+
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
@@ -453,9 +453,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
         totalpos += data[i][metric.namepos ?? ''] ?? 0;
         totalneg += data[i][metric.nameneg ?? ''] ?? 0;
       } else if (metric.type === MetricType.Average) {
-        totalpos += data[i]['+'] ?? 0;
-        totalneg += data[i]['-'] ?? 0;
-        eventcount += data[i]['Event Count'] ?? 0;
+        totalpos += data[i][metric.name + '+'] ?? 0;
+        totalneg += data[i][metric.name + '-'] ?? 0;
+        eventcount += data[i][metric.name + 'Event Count'] ?? 0;
       }
     }
 
@@ -509,17 +509,23 @@ function BlockContent(props: Block & { groupkey?: string }) {
           data.forEach((item) => {
             combinedData.push({
               date: item.date,
+              tooltiplabel: item.tooltiplabel,
               [metric.name]: item[metric.name],
             });
           });
         } else {
           data.forEach((item, i) => {
+            if (metric.type === MetricType.Average) {
+              combinedData[i][metric.name + '+'] = item['+'];
+              combinedData[i][metric.name + '-'] = item['-'];
+              combinedData[i][metric.name + 'Event Count'] =
+                item['Event Count'];
+            }
             combinedData[i][metric.name] = item[metric.name];
           });
         }
       });
 
-      console.log(combinedData);
       setChartData(combinedData);
     };
 
@@ -683,6 +689,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
         <CardContent
           className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
         >
+          {metrics.map((m) => m.name)}
           <Charts
             chartType={props.chartType}
             data={chartData}
@@ -768,24 +775,6 @@ function Charts(props: {
   color: string;
   metrics: Metric[]; // Add this prop
 }) {
-  const processData = (data: any[]) => {
-    if (!data) return [];
-
-    return data.map((item) => {
-      const processed = { ...item };
-      props.metrics.forEach((metric) => {
-        if (metric.type === MetricType.Average) {
-          const pos = item['+'] ?? 0;
-          const neg = item['-'] ?? 0;
-          const eventCount = item['Event Count'] ?? 0;
-          processed[metric.name] =
-            eventCount === 0 ? 0 : (pos - neg) / eventCount;
-        }
-      });
-      return processed;
-    });
-  };
-
   const chartProps = {
     className: 'h-full',
     valueFormatter,
@@ -796,13 +785,11 @@ function Charts(props: {
     resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const chartColors = chartColorMap[validResolvedColorKey];
 
-  const processedData = processData(props.data ?? []);
-
   switch (props.chartType) {
     case ChartType.Area:
       return (
         <AreaChart
-          data={processedData}
+          data={props.data ?? []}
           {...chartProps}
           customTooltip={customTooltip}
           colors={chartColors}
@@ -814,7 +801,7 @@ function Charts(props: {
     case ChartType.Bar:
       return (
         <BarChart
-          data={processedData}
+          data={props.data ?? []}
           {...chartProps}
           customTooltip={customTooltip}
           colors={chartColors}
@@ -826,7 +813,7 @@ function Charts(props: {
     case ChartType.Combo:
       return (
         <ComboChart
-          data={processedData}
+          data={props.data ?? []}
           {...chartProps}
           index='date'
           enableBiaxial

@@ -130,7 +130,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                     (projects[activeProject].metrics?.findIndex(
                       (m) => m.id === metric.id,
                     ) ?? 0) >
-                    user.plan.metric_per_project_limit - 1;
+                      user.plan.metric_per_project_limit - 1;
                   return (
                     <Item
                       key={metric.id}
@@ -187,48 +187,53 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
   };
 
   const load = async () => {
-    const {
-      pos,
-      neg,
-      relativetotalpos,
-      relativetotalneg,
-      relativeeventcount,
-      averagepercentdiff,
-      results,
-    } = await fetchEventVariation(props.metric.projectid, props.metric.id);
+    const variation = await fetchEventVariation(
+      props.metric.projectid,
+      props.metric.id,
+    );
+
+    if (variation.results === 0) {
+      variation.relativeeventcount = props.metric.eventcount;
+      variation.relativetotalpos = props.metric.totalpos;
+      variation.relativetotalneg = props.metric.totalneg;
+    }
 
     if (props.metric.type === MetricType.Average) {
-      setDailyUpdate(averagepercentdiff);
+      setDailyUpdate(variation.averagepercentdiff);
 
-      if (relativeeventcount === 0) {
+      if (variation.relativeeventcount === 0) {
         setAverage(0);
       } else {
-        setAverage((relativetotalpos - relativetotalneg) / relativeeventcount);
+        console.log(variation.relativetotalpos, variation.relativetotalneg);
+        setAverage(
+          (variation.relativetotalpos - variation.relativetotalneg) /
+            variation.relativeeventcount,
+        );
       }
     } else {
-      setDailyUpdate(pos - neg);
+      setDailyUpdate(variation.pos - variation.neg);
     }
 
     if (
-      (props.metric.totalpos !== relativetotalpos ||
-        props.metric.totalneg !== relativetotalneg ||
-        props.metric.eventcount !== relativeeventcount) &&
-      results !== 0
+      (props.metric.totalpos !== variation.relativetotalpos ||
+        props.metric.totalneg !== variation.relativetotalneg ||
+        props.metric.eventcount !== variation.relativeeventcount) &&
+      variation.results !== 0
     ) {
       setProjects(
         projects.map((v) =>
           v.id === props.metric?.projectid
             ? Object.assign({}, v, {
-              metrics: v.metrics?.map((m) =>
-                m.id === props.metric?.id
-                  ? Object.assign({}, m, {
-                    totalpos: relativetotalpos,
-                    totalneg: relativetotalneg,
-                    eventcount: relativeeventcount,
-                  })
-                  : m,
-              ),
-            })
+                metrics: v.metrics?.map((m) =>
+                  m.id === props.metric?.id
+                    ? Object.assign({}, m, {
+                        totalpos: variation.relativetotalpos,
+                        totalneg: variation.relativetotalneg,
+                        eventcount: variation.relativeeventcount,
+                      })
+                    : m,
+                ),
+              })
             : v,
         ),
       );

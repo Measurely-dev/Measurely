@@ -452,12 +452,14 @@ export const fetchEventVariation = async (
           (json[0].relativetotalpos -
             json[0].valuepos -
             (json[0].relativetotalneg - json[0].valueneg)) /
-          json[0].relativeeventcount;
+          (json[0].relativeeventcount - json[0].eventcount);
 
         if (json[1].relativeeventcount === 0) lastAverage = 0;
-        if (json[0].relativeeventcount === 0) firstAverage = 0;
+        if (json[0].relativeeventcount - json[0].eventcount === 0)
+          firstAverage = 0;
 
         const diff = lastAverage - firstAverage;
+        console.log(lastAverage);
 
         if (diff !== 0 && firstAverage === 0) {
           if (diff < 0) {
@@ -482,14 +484,14 @@ export const fetchEventVariation = async (
           (json[0].relativetotalpos -
             json[0].valuepos -
             (json[0].relativetotalneg - json[0].valueneg)) /
-          json[0].relativeeventcount;
+          (json[0].relativeeventcount - json[0].eventcount);
 
-        if (json[0].relativeeventcount === 0) {
-          lastAverage = 0;
+        if (json[0].relativeeventcount === 0) lastAverage = 0;
+        if (json[0].relativeeventcount - json[0].eventcount === 0)
           firstAverage = 0;
-        }
 
         const diff = lastAverage - firstAverage;
+        console.log(lastAverage, firstAverage);
 
         if (diff !== 0 && firstAverage === 0) {
           if (diff < 0) {

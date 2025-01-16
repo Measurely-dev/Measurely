@@ -236,38 +236,39 @@ export default function DashboardMetricPage() {
   const [average, setAverage] = useState<number>(0);
 
   const loadDailyValues = async (metric: Metric) => {
-    const {
-      pos,
-      neg,
-      relativetotalpos,
-      relativetotalneg,
-      relativeeventcount,
-      averagepercentdiff,
-      results,
-    } = await fetchEventVariation(metric.projectid, metric.id);
+    const variation = await fetchEventVariation(metric.projectid, metric.id);
 
     if (metric.type === MetricType.Average) {
-      if (relativeeventcount === 0) {
-        setAverage(0);
-      } else {
-        setAverage((relativetotalpos - relativetotalneg) / relativeeventcount);
+      if (variation.results == 0) {
+        variation.relativeeventcount = metric.eventcount;
+        variation.relativetotalpos = metric.totalpos;
+        variation.relativetotalneg = metric.totalneg;
       }
 
-      if (averagepercentdiff >= 0) {
-        setPosDaily(averagepercentdiff);
+      if (variation.relativeeventcount === 0) {
+        setAverage(0);
       } else {
-        setNegDaily(-averagepercentdiff);
+        setAverage(
+          (variation.relativetotalpos - variation.relativetotalneg) /
+            variation.relativeeventcount,
+        );
+      }
+
+      if (variation.averagepercentdiff >= 0) {
+        setPosDaily(variation.averagepercentdiff);
+      } else {
+        setNegDaily(-variation.averagepercentdiff);
       }
     } else {
-      setPosDaily(pos);
-      setNegDaily(neg);
+      setPosDaily(variation.pos);
+      setNegDaily(variation.neg);
     }
 
     if (
-      (metric.totalpos !== relativetotalpos ||
-        metric.totalneg !== relativetotalneg ||
-        metric.eventcount !== relativeeventcount) &&
-      results !== 0
+      (metric.totalpos !== variation.relativetotalpos ||
+        metric.totalneg !== variation.relativetotalneg ||
+        metric.eventcount !== variation.relativeeventcount) &&
+      variation.results !== 0
     ) {
       setProjects(
         projects.map((v) =>
@@ -276,9 +277,9 @@ export default function DashboardMetricPage() {
                 metrics: v.metrics?.map((m) =>
                   m.id === metric.id
                     ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                        eventcount: relativeeventcount,
+                        totalpos: variation.relativetotalpos,
+                        totalneg: variation.relativetotalneg,
+                        eventcount: variation.relativeeventcount,
                       })
                     : m,
                 ),
@@ -835,9 +836,6 @@ function Chart(props: {
         setLoading(true);
       }
       loadChart(start);
-      interval = setInterval(() => {
-        loadChart(start);
-      }, INTERVAL);
     } else {
       if (date !== undefined && date.from !== undefined) {
         setYear(date.from.getFullYear());
@@ -853,9 +851,6 @@ function Chart(props: {
             setLoading(true);
           }
           loadChart(to);
-          interval = setInterval(() => {
-            loadChart(to);
-          }, INTERVAL);
           setDate({
             from: date.from,
             to: to,
@@ -867,7 +862,7 @@ function Chart(props: {
     return () => {
       clearInterval(interval);
     };
-  }, [date?.from, range, year, activeFilter]);
+  }, [date?.from, range, year, activeFilter, props.metric]);
   return (
     <>
       <CardHeader className='p-0'>
