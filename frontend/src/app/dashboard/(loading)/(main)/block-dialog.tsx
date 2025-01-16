@@ -612,7 +612,7 @@ function BlocksDialogStack(props: {
             {isCompactType &&
               selectedMetrics.length > 0 &&
               Object.keys(selectedMetrics[0].filters || {}).length > 0 && (
-                <div className='flex flex-col gap-2'>
+                <div className='flex flex-col gap-2 mt-4'>
                   <Label>Select filter category</Label>
                   <FilterCategorySelect
                     metric={selectedMetrics[0]}
