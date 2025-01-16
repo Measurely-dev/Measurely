@@ -51,7 +51,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AreaChart } from '@/components/ui/area-chart';
-import {} from '@/components/global/block-fake-data';
+import {
+  BarListData,
+  PieChartData,
+  RadarChartData,
+} from '@/components/global/block-fake-data';
 import { ComboChart } from '@/components/ui/combo-chart';
 import { BarChart } from '@/components/ui/bar-chart';
 import { Input } from '@/components/ui/input';
@@ -79,7 +83,22 @@ import BlocksDialog from './block-dialog';
 import customTooltip from '@/components/ui/custom-tooltip';
 
 import { colorSchemeMap } from '@/lib/chartUtils';
-import { RadarChart } from 'recharts';
+import {
+  Pie,
+  PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  RadarChart,
+  Radar,
+  Label as RechartLabel,
+} from 'recharts';
+import { BarList } from '@/components/ui/bar-list';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -768,6 +787,39 @@ const chartColorMap: Record<ColorKey, ColorKey[]> = {
   gray: ['gray', 'pink', 'blue', 'green'],
 };
 
+const chartConfig = {
+  desktop: {
+    label: 'Desktop',
+    color: 'blue',
+  },
+} satisfies ChartConfig;
+
+const pieChartConfig = {
+  visitors: {
+    label: 'Visitors',
+  },
+  chrome: {
+    label: 'Chrome',
+    color: 'blue',
+  },
+  safari: {
+    label: 'Safari',
+    color: 'lightblue',
+  },
+  firefox: {
+    label: 'Firefox',
+    color: 'purple',
+  },
+  edge: {
+    label: 'Edge',
+    color: 'violet',
+  },
+  other: {
+    label: 'Other',
+    color: 'pink',
+  },
+} satisfies ChartConfig;
+
 function Charts(props: {
   chartType: ChartType | undefined;
   data: any[] | null;
@@ -796,6 +848,7 @@ function Charts(props: {
           index='date'
           categories={props.categories}
           yAxisLabel='Total'
+          onValueChange={() => {}}
         />
       );
     case ChartType.Bar:
@@ -808,6 +861,7 @@ function Charts(props: {
           index='date'
           categories={props.categories}
           yAxisLabel='Total'
+          onValueChange={() => {}}
         />
       );
     case ChartType.Combo:
@@ -825,11 +879,77 @@ function Charts(props: {
             categories: [props.categories[1]],
             showYAxis: true,
           }}
+          onValueChange={() => {}}
         />
       );
+    case ChartType.BarList:
+      return <BarList data={BarListData} {...chartProps} />;
+    case ChartType.Pie:
+      return (
+        <ChartContainer
+          config={pieChartConfig}
+          className='mx-auto h-full w-full'
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={PieChartData}
+              dataKey='visitors'
+              nameKey='browser'
+              innerRadius={60}
+              strokeWidth={5}
+            >
+              <RechartLabel
+                content={({ viewBox }) => {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor='middle'
+                        dominantBaseline='middle'
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className='fill-foreground text-3xl font-bold'
+                        >
+                          {0}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className='fill-muted-foreground'
+                        >
+                          Visitors
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
+            </Pie>
+          </PieChart>
+        </ChartContainer>
+      );
     case ChartType.Radar:
-      return <RadarChart data={props.data ?? []} {...chartProps} />;
-
+      return (
+        <ChartContainer config={chartConfig} className='mx-auto h-full w-full'>
+          <RadarChart data={RadarChartData}>
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <PolarGrid className='fill-[blue] opacity-20' gridType='polygon' />
+            <PolarAngleAxis dataKey='month' />
+            <Radar
+              dataKey='desktop'
+              fill='var(--color-desktop)'
+              fillOpacity={0.5}
+            />
+          </RadarChart>
+        </ChartContainer>
+      );
     default:
       return <div>No chart available for this type.</div>;
   }

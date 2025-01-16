@@ -580,7 +580,7 @@ function BlocksDialogStack(props: {
                 selectedMetrics.length > 0 &&
                 Object.keys(selectedMetrics[0].filters || {}).length === 0 ? (
                   <span className='text-red-500'>
-                    Please select a metric that have filters
+                    Please select a metric that has filters
                   </span>
                 ) : (
                   <>
