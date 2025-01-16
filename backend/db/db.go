@@ -886,3 +886,8 @@ func (db *DB) UpdateMetricStripeAccount(id uuid.UUID, stripeid string) error {
 	_, err := db.Conn.Exec(`UPDATE metrics SET stripeaccount = $1 WHERE id = $2 AND type = $3`, stripeid, id, types.STRIPE_METRIC)
 	return err
 }
+
+func (db *DB) UpdateMetricLastEventTimestamp(id uuid.UUID, date time.Time) error {
+	_, err := db.Conn.Exec(`UPDATE metrics SET lasteventtimestamp = $1 WHERE id = $2`, date, id)
+	return err
+}
