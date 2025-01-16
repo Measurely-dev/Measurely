@@ -51,14 +51,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AreaChart } from '@/components/ui/area-chart';
-import {
-  BarListData,
-  PieChartData,
-  RadarChartData,
-} from '@/components/global/block-fake-data';
+import {} from '@/components/global/block-fake-data';
 import { ComboChart } from '@/components/ui/combo-chart';
 import { BarChart } from '@/components/ui/bar-chart';
-import { BarList } from '@/components/ui/bar-list';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -72,21 +67,7 @@ import {
 import { rectSortingStrategy } from '@dnd-kit/sortable';
 import Header from '@/components/dashboard/header';
 import { EmptyState } from '@/components/ui/empty-state';
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import {
-  Pie,
-  PieChart,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
-  Label as RechartLabel,
-} from 'recharts';
+import { ChartConfig } from '@/components/ui/chart';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
@@ -492,12 +473,29 @@ function BlockContent(props: Block & { groupkey?: string }) {
       .filter((m) => m !== undefined) as Metric[];
   }, [props.metricIds, projects, activeProject]);
 
-  function calculateSummary(data: any[], name: string): number {
-    let summary = 0;
+  function calculateSummary(data: any[], metric: Metric): number {
+    let totalpos = 0;
+    let totalneg = 0;
+    let eventcount = 0;
+
     for (let i = 0; i < data.length; i++) {
-      summary += data[i][name] ?? 0;
+      if (metric.type === MetricType.Base) {
+        totalpos += data[i][metric.name] ?? 0;
+      } else if (metric.type === MetricType.Dual) {
+        totalpos += data[i][metric.namepos ?? ''] ?? 0;
+        totalneg += data[i][metric.nameneg ?? ''] ?? 0;
+      } else if (metric.type === MetricType.Average) {
+        totalpos += data[i]['+'] ?? 0;
+        totalneg += data[i]['-'] ?? 0;
+        eventcount += data[i]['Event Count'] ?? 0;
+      }
     }
-    return summary;
+
+    if (metric.type === MetricType.Average) {
+      return eventcount === 0 ? 0 : (totalpos - totalneg) / eventcount;
+    }
+
+    return totalpos - totalneg;
   }
 
   useEffect(() => {
@@ -519,6 +517,14 @@ function BlockContent(props: Block & { groupkey?: string }) {
             data.forEach((item) => {
               item[metric.name] = item[metric.namepos] - item[metric.nameneg];
             });
+          } else if (metric.type === MetricType.Average) {
+            data.forEach((item) => {
+              const pos = item['+'] ?? 0;
+              const neg = item['-'] ?? 0;
+              const eventCount = item['Event Count'] ?? 0;
+              item[metric.name] =
+                eventCount === 0 ? 0 : (pos - neg) / eventCount;
+            });
           }
           return {
             metric,
@@ -529,10 +535,15 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       const results = await Promise.all(dataPromises);
 
-      let combinedData: any[] = [];
+      const combinedData: any[] = [];
       results.forEach(({ metric, data }, index) => {
         if (index === 0) {
-          combinedData = data;
+          data.forEach((item) => {
+            combinedData.push({
+              date: item.date,
+              [metric.name]: item[metric.name],
+            });
+          });
         } else {
           data.forEach((item, i) => {
             combinedData[i][metric.name] = item[metric.name];
@@ -540,6 +551,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
         }
       });
 
+      console.log(combinedData);
       setChartData(combinedData);
     };
 
@@ -555,13 +567,13 @@ function BlockContent(props: Block & { groupkey?: string }) {
     return maxWidth;
   };
 
-  const handleCopy = (metricName: string) => {
+  const handleCopy = (metric: Metric) => {
     if (isCopying) return;
 
     setIsCopying(true);
 
     navigator.clipboard.writeText(
-      String(calculateSummary(chartData ?? [], metricName)),
+      String(calculateSummary(chartData ?? [], metric)),
     );
     toast.success('Successfully copied metric value to clipboard.');
 
@@ -656,7 +668,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
                       key={i}
                       onClick={() => {
                         setDisabledItem(metric.name);
-                        handleCopy(metric.name);
+                        handleCopy(metric);
                         setTimeout(() => {
                           setDisabledItem(null);
                         }, 1000);
@@ -673,8 +685,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
                       <div className='whitespace-nowrap font-sans text-xs font-normal'>
                         {metric.name}
                       </div>
+
                       {valueFormatter(
-                        calculateSummary(chartData ?? [], metric.name),
+                        calculateSummary(chartData ?? [], metric),
                       )}
                     </div>
                   );
@@ -707,6 +720,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
             data={chartData}
             categories={metrics.map((metric) => metric.name)}
             color={props.color}
+            metrics={metrics} // Add this prop
           />
         </CardContent>
       )}
@@ -784,24 +798,43 @@ function Charts(props: {
   data: any[] | null;
   categories: string[];
   color: string;
+  metrics: Metric[]; // Add this prop
 }) {
+  const processData = (data: any[]) => {
+    if (!data) return [];
+
+    return data.map((item) => {
+      const processed = { ...item };
+      props.metrics.forEach((metric) => {
+        if (metric.type === MetricType.Average) {
+          const pos = item['+'] ?? 0;
+          const neg = item['-'] ?? 0;
+          const eventCount = item['Event Count'] ?? 0;
+          processed[metric.name] =
+            eventCount === 0 ? 0 : (pos - neg) / eventCount;
+        }
+      });
+      return processed;
+    });
+  };
+
   const chartProps = {
     className: 'h-full',
     valueFormatter,
   };
 
   const resolvedColorKey = hexToColorKeyMap[props.color] || 'gray';
-
   const validResolvedColorKey =
     resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
-
   const chartColors = chartColorMap[validResolvedColorKey];
+
+  const processedData = processData(props.data ?? []);
 
   switch (props.chartType) {
     case ChartType.Area:
       return (
         <AreaChart
-          data={props.data ?? []}
+          data={processedData}
           {...chartProps}
           customTooltip={customTooltip}
           colors={chartColors}
@@ -813,7 +846,7 @@ function Charts(props: {
     case ChartType.Bar:
       return (
         <BarChart
-          data={props.data ?? []}
+          data={processedData}
           {...chartProps}
           customTooltip={customTooltip}
           colors={chartColors}
@@ -825,7 +858,7 @@ function Charts(props: {
     case ChartType.Combo:
       return (
         <ComboChart
-          data={props.data ?? []}
+          data={processedData}
           {...chartProps}
           index='date'
           enableBiaxial
@@ -843,7 +876,6 @@ function Charts(props: {
       return <div>No chart available for this type.</div>;
   }
 }
-
 function NestedBlocks(props: Block) {
   const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   return (

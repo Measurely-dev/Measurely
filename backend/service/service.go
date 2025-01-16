@@ -1788,7 +1788,7 @@ func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parentmetriciid"`
+		ParentMetricId uuid.UUID `json:"parentmetricid"`
 		ProjectId      uuid.UUID `json:"projectid"`
 		Category       string    `json:"category"`
 	}
