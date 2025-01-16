@@ -186,6 +186,23 @@ export default function DashboardHomePage() {
                 </DialogClose>
                 <Button
                   onClick={() => {
+                    const project = projects[activeProject];
+                    const newBlock: Block = {
+                      id: 0,
+                      name: groupInput,
+                      type: BlockType.Group,
+                      nested: [],
+                      metricIds: [],
+                      label: 'group',
+                      uniquekey: generateString(10),
+                      color: '',
+                    };
+                    let layoutCopy = project.blocks?.layout;
+                    if (layoutCopy === undefined) layoutCopy = [];
+                    layoutCopy.unshift(newBlock);
+                    for (let i = 0; i < layoutCopy.length; i++) {
+                      layoutCopy[i].id = i;
+                    }
                     setIsDialogOpen(false);
                     setGroupInput('');
                     setProjects(
@@ -193,23 +210,7 @@ export default function DashboardHomePage() {
                         i === activeProject
                           ? Object.assign({}, proj, {
                               blocks: Object.assign({}, proj.blocks, {
-                                layout: [
-                                  ...(proj.blocks === null
-                                    ? []
-                                    : proj.blocks.layout),
-                                  {
-                                    id:
-                                      proj.blocks === null
-                                        ? 1
-                                        : proj.blocks.layout.length + 1,
-                                    name: groupInput,
-                                    type: BlockType.Group,
-                                    nested: [],
-                                    metricIds: [],
-                                    label: 'group',
-                                    uniquekey: generateString(10),
-                                  },
-                                ],
+                                layout: layoutCopy,
                               }),
                             })
                           : proj,

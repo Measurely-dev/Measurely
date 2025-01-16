@@ -707,17 +707,19 @@ function BlocksDialogStack(props: {
                     project.blocks === null
                       ? 1
                       : project.blocks.layout.length + 1;
+
+                  let layoutCopy = project.blocks?.layout;
+                  if (layoutCopy === undefined) layoutCopy = [];
+                  layoutCopy.unshift(newBlock);
+                  for (let i = 0; i < layoutCopy.length; i++) {
+                    layoutCopy[i].id = i;
+                  }
                   setProjects(
                     projects.map((proj, i) =>
                       i === activeProject
                         ? Object.assign({}, proj, {
                             blocks: Object.assign({}, proj.blocks, {
-                              layout: [
-                                ...(proj.blocks === null
-                                  ? []
-                                  : proj.blocks.layout),
-                                newBlock,
-                              ],
+                              layout: layoutCopy,
                             }),
                           })
                         : proj,
