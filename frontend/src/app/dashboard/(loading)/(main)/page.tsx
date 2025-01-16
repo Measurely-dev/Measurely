@@ -79,6 +79,7 @@ import BlocksDialog from './block-dialog';
 import customTooltip from '@/components/ui/custom-tooltip';
 
 import { colorSchemeMap } from '@/lib/chartUtils';
+import { RadarChart } from 'recharts';
 
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -689,7 +690,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
         <CardContent
           className={`h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
         >
-          {metrics.map((m) => m.name)}
           <Charts
             chartType={props.chartType}
             data={chartData}
@@ -827,6 +827,9 @@ function Charts(props: {
           }}
         />
       );
+    case ChartType.Radar:
+      return <RadarChart data={props.data ?? []} {...chartProps} />;
+
     default:
       return <div>No chart available for this type.</div>;
   }
