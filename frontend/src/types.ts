@@ -113,15 +113,17 @@ export enum ChartType {
   Radar,
 }
 
-export const chartTypeMetricLimits: Record<ChartType, { min: number; max: number }> =
-  {
-    [ChartType.Area]: { min: 1, max: 4 },
-    [ChartType.Bar]: { min: 1, max: 4 },
-    [ChartType.Combo]: { min: 2, max: 2 },
-    [ChartType.Pie]: { min: 1, max: 1 },
-    [ChartType.Radar]: { min: 1, max: 1 },
-    [ChartType.BarList]: { min: 1, max: 5 },
-  };
+export const chartTypeMetricLimits: Record<
+  ChartType,
+  { min: number; max: number }
+> = {
+  [ChartType.Area]: { min: 1, max: 4 },
+  [ChartType.Bar]: { min: 1, max: 4 },
+  [ChartType.Combo]: { min: 2, max: 2 },
+  [ChartType.Pie]: { min: 1, max: 1 },
+  [ChartType.Radar]: { min: 1, max: 1 },
+  [ChartType.BarList]: { min: 1, max: 1 },
+};
 
 export enum BlockType {
   Default,
