@@ -22,8 +22,8 @@ import { Metric } from '@/types';
 export function MetricSelect(props: {
   selectedMetrics: Metric[];
   setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
-  min: number; 
-  max: number; 
+  min: number;
+  max: number;
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
@@ -144,7 +144,7 @@ export function MetricSelect(props: {
           <Badge
             key={id}
             variant='outline'
-            className='mb-2 mr-2 border bg-background text-primary'
+            className='group relative w-fit px-3 select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none'
           >
             {name}
           </Badge>
