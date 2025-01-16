@@ -90,7 +90,7 @@ func (h *Handler) setup_api() {
 	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
 
 	authRouter.Get("/blocks/{projectid}", h.service.GetBlocks)
-  authRouter.Patch("/blocks/layout", h.service.UpdateBlocksLayout)
+	authRouter.Patch("/blocks/layout", h.service.UpdateBlocksLayout)
 
 	authRouter.Get("/members/{projectid}", h.service.GetTeamMembers)
 	authRouter.Patch("/role", h.service.UpdateMemberRole)
@@ -104,6 +104,8 @@ func (h *Handler) setup_api() {
 	authRouter.Post("/metric", h.service.CreateMetric)
 	authRouter.Patch("/metric", h.service.UpdateMetric)
 	authRouter.Delete("/metric", h.service.DeleteMetric)
+	authRouter.Delete("/category", h.service.DeleteCategory)
+	authRouter.Patch("/category", h.service.UpdateCategory)
 
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)

@@ -1779,6 +1779,93 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ParentMetricId uuid.UUID `json:"parentmetriciid"`
+		ProjectId      uuid.UUID `json:"projectid"`
+		Category       string    `json:"category"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.DeleteMetricByCategory(request.ParentMetricId, request.ProjectId, request.Category)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to delete category", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ParentMetricId uuid.UUID `json:"parentmetricid"`
+		ProjectId      uuid.UUID `json:"projectid"`
+		OldName        string    `json:"oldname"`
+		NewName        string    `json:"newname"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.UpdateCategoryName(request.OldName, request.NewName, request.ParentMetricId, request.ProjectId)
+	if err != nil {
+		http.Error(w, "Failed to update category", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 	_, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {

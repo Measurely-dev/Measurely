@@ -249,6 +249,16 @@ func (db *DB) DeleteMetric(id uuid.UUID, projectid uuid.UUID) error {
 	return err
 }
 
+func (db *DB) DeleteMetricByCategory(parentmetricid uuid.UUID, projectid uuid.UUID, category string) error {
+	_, err := db.Conn.Exec("DELETE FROM metrics WHERE parentmetricid = $1 AND projectid = $2 AND filtercategory = $3", parentmetricid, projectid, category)
+	return err
+}
+
+func (db *DB) UpdateCategoryName(oldname, newname string, parentmetricid, projectid uuid.UUID) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET filtercategory = $1 WHERE parentmetricid = $2 AND projectid = $3 AND filtercategory = $4", newname, parentmetricid, projectid, oldname)
+	return err
+}
+
 func (db *DB) UpdateMetricAndCreateEvent(
 	metricid uuid.UUID,
 	userid uuid.UUID,

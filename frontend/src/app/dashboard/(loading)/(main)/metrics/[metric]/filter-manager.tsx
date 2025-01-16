@@ -58,8 +58,8 @@ export default function FilterManagerDialog(props: {
   );
   const [creationInputValue, setCreationInputValue] = useState<string>('');
   const [badgeDialogOpen, setBadgeDialogOpen] = useState<boolean>(false);
-  const [badgeToEdit, setBadgeToEdit] = useState<string | undefined>();
-  const [badgeInputValue, setBadgeInputValue] = useState<string>('');
+  const [filterToEdit, setFilterToEdit] = useState<Metric | undefined>();
+  const [filterInputValue, setFilterInputValue] = useState<string>('');
   const confirm = useConfirm();
   const [tags, setTags] = useState<any[]>([]);
   const { projects, setProjects } = useContext(ProjectsContext);
@@ -92,9 +92,9 @@ export default function FilterManagerDialog(props: {
     setTags([]);
   };
 
-  const handleBadgeEdit = (badgeName: string) => {
-    setBadgeToEdit(badgeName);
-    setBadgeInputValue(badgeName);
+  const handleBadgeEdit = (filter: Metric) => {
+    setFilterToEdit(filter);
+    setFilterInputValue(filter.name);
     setBadgeDialogOpen(true);
   };
 
@@ -204,11 +204,51 @@ export default function FilterManagerDialog(props: {
     });
 
     if (isConfirmed) {
+      if (filterToEdit === undefined) return;
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          metricid: filterToEdit?.id,
+          projectid: props.metric.projectid,
+        }),
+      }).then((resp) => {
+        if (resp.ok) {
+          const filters = props.metric.filters;
+
+          const newFilters = filters[filterToEdit?.filtercategory].filter(
+            (m) => m.id !== filterToEdit?.id,
+          );
+
+          filters[filterToEdit.filtercategory] = newFilters;
+
+          setProjects(
+            projects.map((proj) =>
+              proj.id === props.metric.id
+                ? Object.assign({}, proj, {
+                    metrics: proj.metrics?.map((m) =>
+                      m.id === props.metric.id
+                        ? Object.assign({}, m, {
+                            filters: newFilters,
+                          })
+                        : m,
+                    ),
+                  })
+                : proj,
+            ),
+          );
+        } else {
+          toast.error('Failed to delete filter.');
+        }
+      });
       setBadgeDialogOpen(false);
     }
   };
 
-  const handleFilterCategoryDelete = async () => {
+  const handleFilterCategoryDelete = async (category: string) => {
     const isConfirmed = await confirm({
       title: 'Delete Filter Category',
       icon: <Trash2 className='size-5 text-destructive' />,
@@ -233,8 +273,138 @@ export default function FilterManagerDialog(props: {
     });
 
     if (isConfirmed) {
-      // Handle the deletion logic here
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectid: props.metric.projectid,
+          parentmetricid: props.metric.id,
+          category: category,
+        }),
+      }).then((resp) => {
+        if (resp.ok) {
+          const filters = props.metric.filters;
+          delete filters[category];
+          setProjects(
+            projects.map((proj) =>
+              proj.id === props.metric.projectid
+                ? Object.assign({}, proj, {
+                    metrics: proj.metrics?.map((m) =>
+                      m.id === props.metric.id
+                        ? Object.assign({}, m, {
+                            filters: filters,
+                          })
+                        : m,
+                    ),
+                  })
+                : proj,
+            ),
+          );
+        } else {
+          resp.text().then((text) => {
+            toast.error(text);
+          });
+        }
+        setBadgeDialogOpen(false);
+      });
     }
+  };
+
+  const handleFilterRename = () => {
+    if (filterToEdit === undefined) return;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectid: props.metric.projectid,
+        metricid: filterToEdit?.id,
+        name: filterInputValue,
+        namepos: filterToEdit.namepos,
+        nameneg: filterToEdit.nameneg,
+      }),
+    }).then((resp) => {
+      if (resp.ok) {
+        const filters = props.metric.filters;
+
+        const index = filters[filterToEdit.filtercategory].findIndex(
+          (m) => m.id === filterToEdit.id,
+        );
+        if (index !== -1) return;
+        filters[filterToEdit.filtercategory][index].name = filterInputValue;
+
+        setProjects(
+          projects.map((proj) =>
+            proj.id === props.metric.projectid
+              ? Object.assign({}, proj, {
+                  metric: proj.metrics?.map((m) =>
+                    m.id === props.metric.id
+                      ? Object.assign({}, m, {
+                          filters: filters,
+                        })
+                      : m,
+                  ),
+                })
+              : proj,
+          ),
+        );
+      } else {
+        resp.text().then((text) => {
+          toast.error(text);
+        });
+      }
+    });
+
+    setBadgeDialogOpen(false);
+  };
+
+  const handleFilterCategoryRename = () => {
+    if (categoryToRename === undefined) return;
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        parentmetricid: props.metric.id,
+        projectid: props.metric.projectid,
+        newname: renameInputValue,
+        oldname: categoryToRename,
+      }),
+    }).then((resp) => {
+      if (resp.ok) {
+        const filters = props.metric.filters;
+        filters[renameInputValue] = props.metric.filters[categoryToRename];
+        delete filters[categoryToRename];
+        setProjects(
+          projects.map((proj) =>
+            proj.id === props.metric.projectid
+              ? Object.assign({}, proj, {
+                  metric: proj.metrics?.map((m) =>
+                    m.id === props.metric.id
+                      ? Object.assign({}, m, {
+                          filters: filters,
+                        })
+                      : m,
+                  ),
+                })
+              : proj,
+          ),
+        );
+      } else {
+        resp.text().then((text) => {
+          toast.error(text);
+        });
+      }
+      setRenameDialogOpen(false);
+    });
   };
 
   return (
@@ -323,7 +493,9 @@ export default function FilterManagerDialog(props: {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className='hover:!text-red-500'
-                                onClick={handleFilterCategoryDelete}
+                                onClick={() =>
+                                  handleFilterCategoryDelete(category)
+                                }
                               >
                                 Delete
                               </DropdownMenuItem>
@@ -348,7 +520,7 @@ export default function FilterManagerDialog(props: {
                             key={filter.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleBadgeEdit(filter.name);
+                              handleBadgeEdit(filter);
                             }}
                             className='group relative w-fit cursor-pointer select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
                           >
@@ -400,9 +572,7 @@ export default function FilterManagerDialog(props: {
             </DialogClose>
             <Button
               className='w-fit rounded-[12px]'
-              onClick={() => {
-                setRenameDialogOpen(false);
-              }}
+              onClick={handleFilterCategoryRename}
               disabled={
                 renameInputValue === categoryToRename ||
                 renameInputValue.length < 2 ||
@@ -502,8 +672,8 @@ export default function FilterManagerDialog(props: {
               type='text'
               className='h-11 rounded-[12px]'
               placeholder='New filter name...'
-              value={badgeInputValue}
-              onChange={(e) => setBadgeInputValue(e.target.value)}
+              value={filterInputValue}
+              onChange={(e) => setFilterInputValue(e.target.value)}
             />
           </div>
 
@@ -526,12 +696,12 @@ export default function FilterManagerDialog(props: {
             <Button
               className='w-fit rounded-[12px]'
               onClick={() => {
-                setBadgeDialogOpen(false);
+                handleFilterRename();
               }}
               disabled={
-                badgeInputValue === badgeToEdit ||
-                badgeInputValue.length < 2 ||
-                badgeInputValue.trim() === ''
+                filterInputValue === filterToEdit?.name ||
+                filterInputValue.length < 2 ||
+                filterInputValue.trim() === ''
               }
             >
               Save
