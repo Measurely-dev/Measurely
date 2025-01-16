@@ -452,6 +452,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [range, setRange] = useState(7);
   const [isCopying, setIsCopying] = useState(false);
   const [disabledItem, setDisabledItem] = useState<string | null>(null);
+  const [year, setYear] = useState<number>(0);
 
   const metrics = useMemo(() => {
     return props.metricIds
@@ -519,11 +520,15 @@ function BlockContent(props: Block & { groupkey?: string }) {
               [metrics[0].name]: data.relativetotalpos - data.relativetotalneg,
               name: filter.name,
               value: data.relativetotalpos - data.relativetotalneg,
+              year: startDate.getFullYear(),
             };
           },
         );
 
         combinedData = await Promise.all(dataPromises);
+        if (combinedData.length > 0) {
+          setYear(combinedData[0].year);
+        }
       } else {
         const dataPromises = metrics.map((metric) =>
           fetchChartData(
@@ -689,7 +694,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
                           setDisabledItem(null);
                         }, 1000);
                       }}
-                      className={`group relative flex h-full min-w-[120px] w-fit select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
+                      className={`group relative flex h-full w-fit min-w-[120px] select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
                     >
                       <div
                         className={`absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10 ${disabledItem === metric.name ? 'cursor-wait opacity-10' : 'cursor-copy'}`}
@@ -715,7 +720,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
       {props.type === BlockType.Nested ? (
         <CardHeader className='items-center pb-0'>
           <CardTitle>{props.name}</CardTitle>
-          <CardDescription>January - June 2024</CardDescription>
+          <CardDescription>January - June {year}</CardDescription>
         </CardHeader>
       ) : undefined}
 
