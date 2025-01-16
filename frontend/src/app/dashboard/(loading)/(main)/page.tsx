@@ -916,7 +916,6 @@ function Charts(props: {
         />
       );
     case ChartType.Pie:
-      console.log(props.metrics[0].name, props.categories?.[0]);
       return (
         <ChartContainer
           config={pieChartConfig}
