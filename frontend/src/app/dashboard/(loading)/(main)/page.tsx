@@ -476,7 +476,6 @@ const pieChartConfig = {
     color: 'pink',
   },
 } satisfies ChartConfig;
-
 function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
@@ -484,15 +483,16 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const { projects, activeProject } = useContext(ProjectsContext);
   const [chartData, setChartData] = useState<any[] | null>(null);
   const [range, setRange] = useState(7);
+  const [isCopying, setIsCopying] = useState(false);
+  const [disabledItem, setDisabledItem] = useState<string | null>(null);
 
-  // Get metrics for this block
   const metrics = useMemo(() => {
     return props.metricIds
       .map((id) => projects[activeProject].metrics?.find((m) => m.id === id))
       .filter((m) => m !== undefined) as Metric[];
   }, [props.metricIds, projects, activeProject]);
 
-  function calculareSummary(data: any[], name: string): number {
+  function calculateSummary(data: any[], name: string): number {
     let summary = 0;
     for (let i = 0; i < data.length; i++) {
       summary += data[i][name] ?? 0;
@@ -507,7 +507,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
       const date = new Date();
       date.setDate(date.getDate() - (range - 1));
 
-      // Create array of promises for all metrics
       const dataPromises = metrics.map((metric) =>
         fetchChartData(
           date,
@@ -516,7 +515,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
           projects[activeProject].id,
           'trend',
         ).then((data) => {
-          // Process dual metric types
           if (metric.type === MetricType.Dual) {
             data.forEach((item) => {
               item[metric.name] = item[metric.namepos] - item[metric.nameneg];
@@ -529,10 +527,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
         }),
       );
 
-      // Wait for all data to be fetched and processed
       const results = await Promise.all(dataPromises);
 
-      // Combine the results
       let combinedData: any[] = [];
       results.forEach(({ metric, data }, index) => {
         if (index === 0) {
@@ -552,12 +548,28 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
   const getMaxWidth = (metrics: any[], data: any[]) => {
     const maxWidth = metrics.reduce((max, metric) => {
-      const metricValue = calculareSummary(data ?? [], metric.name).toString();
+      const metricValue = calculateSummary(data ?? [], metric.name).toString();
       return Math.max(max, metricValue.length);
     }, 0);
 
     return maxWidth;
   };
+
+  const handleCopy = (metricName: string) => {
+    if (isCopying) return;
+
+    setIsCopying(true);
+
+    navigator.clipboard.writeText(
+      String(calculateSummary(chartData ?? [], metricName)),
+    );
+    toast.success('Successfully copied metric value to clipboard.');
+
+    setTimeout(() => {
+      setIsCopying(false);
+    }, 2000);
+  };
+
   return (
     <>
       <CardHeader
@@ -634,35 +646,43 @@ function BlockContent(props: Block & { groupkey?: string }) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-          props.chartType !== ChartType.Radar &&
-          props.chartType !== ChartType.BarList ? (
-            <div className='flex h-full flex-row items-center'>
-              {metrics.map((metric, i) => {
-                const maxWidth = getMaxWidth(metrics, chartData ?? []);
-
-                return (
-                  <div
-                    key={i}
-                    className='group relative overflow-x-hidden flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 whitespace-nowrap border-l px-5 font-mono text-2xl font-bold'
-                    style={{
-                      borderColor: `${props.color}33`,
-                      minWidth: `${maxWidth * 25}px`,
-                    }}
-                  >
-                    <div className='absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10' />
-                    <div className='whitespace-nowrap font-sans text-xs font-normal'>
-                      {metric.name}
+            props.chartType !== ChartType.Radar &&
+            props.chartType !== ChartType.BarList ? (
+              <div className='flex h-full flex-row items-center'>
+                {metrics.map((metric, i) => {
+                  const maxWidth = getMaxWidth(metrics, chartData ?? []);
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        setDisabledItem(metric.name);
+                        handleCopy(metric.name);
+                        setTimeout(() => {
+                          setDisabledItem(null);
+                        }, 2000);
+                      }}
+                      className={`group relative flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
+                      style={{
+                        borderColor: `${props.color}33`,
+                        minWidth: `${maxWidth * 25}px`,
+                      }}
+                    >
+                      <div
+                        className={`absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10 ${disabledItem === metric.name ? 'cursor-not-allowed opacity-10' : 'cursor-pointer'}`}
+                      />
+                      <div className='whitespace-nowrap font-sans text-xs font-normal'>
+                        {metric.name}
+                      </div>
+                      {valueFormatter(
+                        calculateSummary(chartData ?? [], metric.name),
+                      )}
                     </div>
-                    {valueFormatter(
-                      calculareSummary(chartData ?? [], metric.name),
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <></>
-          )}
+                  );
+                })}
+              </div>
+            ) : (
+              <></>
+            )}
           </div>
         </>
       )}
@@ -712,6 +732,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
     </>
   );
 }
+
 export type ColorKey =
   | 'pink'
   | 'blue'
