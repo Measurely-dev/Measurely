@@ -567,7 +567,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
     setTimeout(() => {
       setIsCopying(false);
-    }, 2000);
+    }, 1000);
   };
 
   return (
@@ -659,7 +659,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
                         handleCopy(metric.name);
                         setTimeout(() => {
                           setDisabledItem(null);
-                        }, 2000);
+                        }, 1000);
                       }}
                       className={`group relative flex h-full min-w-0 flex-1 select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
                       style={{
