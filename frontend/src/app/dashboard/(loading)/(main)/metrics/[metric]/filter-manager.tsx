@@ -152,7 +152,7 @@ export default function FilterManagerDialog(props: {
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       if (result) {
-        if (!filters[result.filtercategory]) {
+        if (filters[result.filtercategory] === undefined) {
           filters[result.filtercategory] = [];
         }
 

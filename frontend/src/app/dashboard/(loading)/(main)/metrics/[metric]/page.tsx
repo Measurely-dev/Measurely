@@ -208,7 +208,7 @@ export default function DashboardMetricPage() {
   const [filterManagerOpen, setFilterManagerOpen] = useState(false);
   const [pushValueOpen, setPushValueOpen] = useState(false);
   const [pushValue, setPushValue] = useState<number | string>(0);
-  const [metric, setMetric] = useState(() => {
+  const metric = useMemo(() => {
     if (projects[activeProject]) {
       const index = projects[activeProject].metrics?.findIndex(
         (g) => g.name === metricName,
@@ -221,7 +221,7 @@ export default function DashboardMetricPage() {
             'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
           );
         } else {
-          if (metricData !== null) {
+          if (metricData !== null && metricData !== undefined) {
             return metricData;
           }
         }
@@ -229,7 +229,7 @@ export default function DashboardMetricPage() {
     }
     router.push('/dashboard/metrics');
     return null;
-  });
+  }, [activeProject, projects]);
 
   const [posDaily, setPosDaily] = useState<number>(0);
   const [negDaily, setNegDaily] = useState<number>(0);
@@ -285,12 +285,6 @@ export default function DashboardMetricPage() {
               })
             : v,
         ),
-      );
-      setMetric(
-        Object.assign({}, metric, {
-          totalpos: relativetotalpos,
-          relativetotalneg,
-        }),
       );
     }
   };
@@ -387,7 +381,21 @@ export default function DashboardMetricPage() {
           metric={metric}
           setOpen={setOpen}
           onUpdate={(new_name: string) => {
-            setMetric(Object.assign({}, metric, { name: new_name }));
+            setProjects(
+              projects.map((proj) =>
+                proj.id === metric?.id
+                  ? Object.assign({}, proj, {
+                      metrics: proj.metrics?.map((m) =>
+                        m.id === metric.id
+                          ? Object.assign({}, m, {
+                              name: new_name,
+                            })
+                          : m,
+                      ),
+                    })
+                  : proj,
+              ),
+            );
           }}
         />
       </Dialog>

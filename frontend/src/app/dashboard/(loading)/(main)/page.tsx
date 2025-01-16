@@ -77,7 +77,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
 import customTooltip from '@/components/ui/custom-tooltip';
-import { colors } from '@/components/ui/color-dropdown';
+
 import { colorSchemeMap } from '@/lib/chartUtils';
 
 export default function DashboardHomePage() {
@@ -425,38 +425,6 @@ function IndividualBlock(props: Block & { groupkey?: string }) {
   );
 }
 
-const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'blue',
-  },
-} satisfies ChartConfig;
-
-const pieChartConfig = {
-  visitors: {
-    label: 'Visitors',
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'blue',
-  },
-  safari: {
-    label: 'Safari',
-    color: 'lightblue',
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'purple',
-  },
-  edge: {
-    label: 'Edge',
-    color: 'violet',
-  },
-  other: {
-    label: 'Other',
-    color: 'pink',
-  },
-} satisfies ChartConfig;
 function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
