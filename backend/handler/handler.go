@@ -109,11 +109,15 @@ func (h *Handler) setup_api() {
 
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)
+
+	authRouter.Get("/integrations/stripe", h.service.AuthorizeStripe)
+	authRouter.Get("/integrations-callback/stripe", h.service.StripeCallback)
 	////
 
 	// PUBLIC API ENDPOINT
 	publicRouter.Use(publicCors)
 	publicRouter.Post("/v1/{metricidentifier}", h.service.CreateMetricEventV1)
+
 	////
 
 	privateRouter.Mount("/", authRouter)

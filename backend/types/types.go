@@ -78,8 +78,8 @@ type Metric struct {
 	NameNeg            string              `json:"nameneg"`
 	Filters            map[string][]Metric `json:"filters"`
 	Created            time.Time           `json:"created"`
-	IntegrationApiKey  sql.Null[string]
 	LastEventTimestamp sql.Null[time.Time]
+	StripeAccount      sql.Null[string] `json:"stripeaccount"`
 }
 
 type MetricEvent struct {

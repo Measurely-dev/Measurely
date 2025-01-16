@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS Plans (
     Identifier TEXT NOT NULL UNIQUE,
     Name VARCHAR(50) NOT NULL,
     Price TEXT NOT NULL,
-    AppLimit INT NOT NULL,
-    MetricPerAppLimit INT NOT NULL,
+    ProjectLimit INT NOT NULL,
+    MetricPerProjectLimit INT NOT NULL,
     RequestLimit INT NOT NULL,
     MonthlyEventLimit BIGINT NOT NULL,
     Range INT NOT NULL
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS Providers (
 );
 
 -- Create Applications table
-CREATE TABLE IF NOT EXISTS Applications (
+CREATE TABLE IF NOT EXISTS Projects (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     ApiKey TEXT NOT NULL UNIQUE,
     UserId UUID NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS Applications (
 -- Create Metrics table
 CREATE TABLE IF NOT EXISTS Metrics (
     Id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
-    AppId UUID NOT NULL,
+    ProjectId UUID NOT NULL,
     Name VARCHAR(50) NOT NULL,
     Type SMALLINT NOT NULL,
     TotalPos BIGINT NOT NULL DEFAULT 0,
@@ -62,7 +62,15 @@ CREATE TABLE IF NOT EXISTS Metrics (
     NamePos VARCHAR(50) NOT NULL DEFAULT '',
     NameNeg VARCHAR(50) NOT NULL DEFAULT '',
     Created TIMESTAMP NOT NULL DEFAULT timezone ('UTC', CURRENT_TIMESTAMP),
-    FOREIGN KEY (AppId) REFERENCES Applications (Id) ON DELETE CASCADE
+    FilterCategory TEXT NOT NULL DEFAULT '',
+    ParentMetricId UUID,
+    EventCount BIGINT NOT NULL DEFAULT 0,
+    LastEventTimestamp TIMESTAMP,
+    -- INTEGRATION COLUMNS
+    StripeAccount TEXT,
+    UNIQUE (ParentMetricId, Name, FilterCategory),
+    FOREIGN KEY (ProjectId) REFERENCES Projects (Id) ON DELETE CASCADE,
+    FOREIGN KEY (ParentMetricId) REFERENCES Metrics (Id) ON DELETE CASCADE
 );
 
 -- Create Metric events table
@@ -74,6 +82,8 @@ CREATE TABLE IF NOT EXISTS MetricEvents (
     RelativeTotalPos BIGINT NOT NULL,
     RelativeTotalNeg BIGINT NOT NULL,
     Date TIMESTAMP NOT NULL,
+    RelativeEventCount BIGINT NOT NULL DEFAULT 0,
+    EventCount INT NOT NULL DEFAULT 1,
     UNIQUE (MetricId, Date),
     FOREIGN KEY (MetricId) REFERENCES Metrics (Id) ON DELETE CASCADE
 );
@@ -101,6 +111,37 @@ CREATE TABLE IF NOT EXISTS Feedbacks (
     Content TEXT NOT NULL
 );
 
+-- Create Waitlist table
+CREATE TABLE IF NOT EXISTS Waitlists (
+    Id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    Email TEXT NOT NULL UNIQUE,
+    Name TEXT NOT NULL
+);
+
+-- Create Team table
+CREATE TABLE IF NOT EXISTS TeamRelation (
+    Id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    UserId UUID NOT NULL,
+    ProjectId UUID NOT NULL,
+    Role SMALLINT NOT NULL,
+    UNIQUE (UserId, ProjectId),
+    FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE,
+    FOREIGN KEY (ProjectId) REFERENCES Projects (Id) ON DELETE CASCADE
+);
+
+-- Create Blocks table
+CREATE TABLE IF NOT EXISTS Blocks (
+    TeamRelationId UUID,
+    UserId UUID NOT NULL,
+    ProjectId UUID NOT NULL,
+    Layout JSONB NOT NULL,
+    Labels JSONB NOT NULL,
+    UNIQUE (UserId, TeamRelationId, ProjectId),
+    FOREIGN KEY (TeamRelationId) REFERENCES TeamRelation (Id) ON DELETE CASCADE,
+    FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE,
+    FOREIGN KEY (ProjectId) REFERENCES Projects (Id) ON DELETE CASCADE
+);
+
 -- Create Migrations table
 CREATE TABLE IF NOT EXISTS Migrations (Filename TEXT NOT NULL);
 
@@ -110,12 +151,24 @@ CREATE INDEX IF NOT EXISTS idx_emailchange_userid ON EmailChange (UserId);
 
 CREATE INDEX IF NOT EXISTS idx_accountrecovery_userid ON AccountRecovery (UserId);
 
-CREATE INDEX IF NOT EXISTS idx_metriquevents_metricid ON MetricEvents (MetricId);
+CREATE INDEX IF NOT EXISTS idx_metricevents_metricid ON MetricEvents (MetricId);
 
-CREATE INDEX IF NOT EXISTS idx_metriquevents_date ON MetricEvents (Date);
+CREATE INDEX IF NOT EXISTS idx_metricevents_date ON MetricEvents (Date);
 
-CREATE INDEX IF NOT EXISTS idx_metrics_appid ON Metrics (AppId);
+CREATE INDEX IF NOT EXISTS idx_metrics_projectid ON Metrics (ProjectId);
 
-CREATE INDEX IF NOT EXISTS idx_applications_userid ON Applications (UserId);
+CREATE INDEX IF NOT EXISTS idx_projects_userid ON Projects (UserId);
 
 CREATE INDEX IF NOT EXISTS idx_providers_userid_type ON Providers (UserId, Type);
+
+CREATE INDEX IF NOT EXISTS idx_metrics_parentmetricid ON Metrics (ParentMetricId);
+
+CREATE INDEX IF NOT EXISTS idx_metrics_filtercategory ON Metrics (FilterCategory);
+
+CREATE INDEX IF NOT EXISTS idx_metrics_name ON Metrics (Name);
+
+CREATE INDEX IF NOT EXISTS idx_teamrelation_userid ON TeamRelation (UserId);
+
+CREATE INDEX IF NOT EXISTS idx_teamrelation_projectid ON TeamRelation (ProjectId);
+
+CREATE INDEX IF NOT EXISTS idx_blocks_userid_projectid ON Blocks (UserId, ProjectId);

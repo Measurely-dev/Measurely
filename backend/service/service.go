@@ -1711,6 +1711,10 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i := range metrics {
+		metrics[i].StripeAccount.V = ""
+	}
+
 	bytes, err := json.Marshal(metrics)
 	if err != nil {
 		http.Error(w, "Failed to marshal metrics data: "+err.Error(), http.StatusInternalServerError)

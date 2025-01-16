@@ -240,7 +240,7 @@ func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 		row = db.Conn.QueryRow("INSERT INTO metrics (projectid, name, type, namepos, nameneg, filtercategory) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", metric.ProjectId, metric.Name, metric.Type, metric.NamePos, metric.NameNeg, metric.FilterCategory)
 	}
 
-	err := row.Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount)
+	err := row.Scan(&new_metric.Id, &new_metric.ProjectId, &new_metric.Name, &new_metric.Type, &new_metric.TotalPos, &new_metric.TotalNeg, &new_metric.NamePos, &new_metric.NameNeg, &new_metric.Created, &new_metric.FilterCategory, &new_metric.ParentMetricId, &new_metric.EventCount, &new_metric.LastEventTimestamp, &new_metric.StripeAccount)
 	return new_metric, err
 }
 
@@ -417,7 +417,7 @@ func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount, &metric.IntegrationApiKey, &metric.LastEventTimestamp)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount, &metric.LastEventTimestamp, &metric.StripeAccount)
 		if err != nil {
 			return nil, err
 		}
@@ -441,7 +441,7 @@ func (db *DB) GetMetrics(projectid uuid.UUID) ([]types.Metric, error) {
 }
 
 func (db *DB) GetAllIntegrationMetrics() ([]types.Metric, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE integrationapikey IS NOT NULL AND parentmetricid IS NULL")
+	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE type > 2 AND parentmetricid IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -452,7 +452,7 @@ func (db *DB) GetAllIntegrationMetrics() ([]types.Metric, error) {
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount, &metric.IntegrationApiKey, &metric.LastEventTimestamp)
+		err := rows.Scan(&metric.Id, &metric.ProjectId, &metric.Name, &metric.Type, &metric.TotalPos, &metric.TotalNeg, &metric.NamePos, &metric.NameNeg, &metric.Created, &metric.FilterCategory, &metric.ParentMetricId, &metric.EventCount, &metric.LastEventTimestamp, &metric.StripeAccount)
 		if err != nil {
 			return nil, err
 		}
@@ -879,5 +879,10 @@ func (db *DB) UpdateBlocksLayout(projectId, userId uuid.UUID, newLayout []types.
 
 	_, err = db.Conn.Exec(query, layoutJSON, labelsJSON, projectId, userId)
 
+	return err
+}
+
+func (db *DB) UpdateMetricStripeAccount(id uuid.UUID, stripeid string) error {
+	_, err := db.Conn.Exec(`UPDATE metrics SET stripeaccount = $1 WHERE id = $2 AND type = $3`, stripeid, id, types.STRIPE_METRIC)
 	return err
 }
