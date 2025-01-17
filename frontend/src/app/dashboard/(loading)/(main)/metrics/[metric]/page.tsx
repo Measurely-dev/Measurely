@@ -98,7 +98,6 @@ type AllowedColors =
   | 'red'
   | 'green'
   | 'pink'
-  | 'black'
   | 'gray'
   | 'fuchsia'
   | 'cyan'
@@ -122,7 +121,6 @@ interface ChartColors {
   red: string;
   green: string;
   pink: string;
-  black: string;
   gray: string;
   fuchsia: string;
   cyan: string;
@@ -203,7 +201,7 @@ const dualMetricChartColors: DualMetricChartColors = {
   },
   contrast: {
     positive: 'lime',
-    negative: 'black',
+    negative: 'gray',
   },
   soft: {
     positive: 'pink',
@@ -215,7 +213,7 @@ const dualMetricChartColors: DualMetricChartColors = {
   },
   neutral: {
     positive: 'gray',
-    negative: 'black',
+    negative: 'gray',
   },
   pastel: {
     positive: 'rose',
@@ -429,15 +427,9 @@ export default function DashboardMetricPage() {
         pushValueOpen={pushValueOpen}
         setPushValueOpen={setPushValueOpen}
       />
-      <Card className='mt-5 rounded-[12px] border-none bg-accent'>
-        <CardHeader>
-          <CardTitle className='text-2xl'>Quick Actions</CardTitle>
-          <CardDescription>
-            Quickly manage your metrics with easy-to-access actions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className='grid grid-cols-4 gap-5 rounded-[12px] bg-background p-2 max-lg:grid-cols-2 max-md:grid-cols-1'>
+      <Card className='mt-5 rounded-[12px] border-none bg-accent p-2'>
+        <CardContent className='p-0'>
+          <div className='grid grid-cols-4 gap-5 rounded-[10px] bg-background p-2 max-lg:grid-cols-2 max-md:grid-cols-1'>
             {[
               {
                 label: 'Filter Manager',
@@ -482,7 +474,7 @@ export default function DashboardMetricPage() {
                     borderColor: styles.borderColor,
                     backgroundColor: styles.backgroundColor,
                   }}
-                  className={`group flex cursor-pointer select-none overflow-hidden rounded-[10px] border p-1 transition-all duration-150 active:scale-[.98]`}
+                  className={`group flex cursor-pointer select-none overflow-hidden rounded-[8px] border p-1 transition-all duration-150 active:scale-[.98]`}
                 >
                   <div
                     style={{ backgroundColor: `${color}0F` }}
@@ -493,7 +485,7 @@ export default function DashboardMetricPage() {
                   <div className='ml-5 flex flex-col gap-1 py-2 pr-1.5 max-xl:ml-0 max-xl:px-3 max-md:ml-5 max-md:px-0 max-md:pr-1.5'>
                     <div
                       style={{ color: styles.color }}
-                      className='flex items-center gap-2 font-mono text-sm font-bold transition-all duration-200 group-hover:gap-3'
+                      className='flex items-center gap-2 text-sm font-semibold transition-all duration-200 group-hover:gap-3'
                     >
                       {label}
                       <ArrowRight
@@ -1495,7 +1487,7 @@ function AdvancedOptions(props: {
                       <div className='flex flex-row items-center gap-2'>
                         <div className='flex gap-1'>
                           <div className='size-2 rounded-full bg-lime-500' />
-                          <div className='size-2 rounded-full bg-black' />
+                          <div className='size-2 rounded-full bg-gray-500' />
                         </div>
                         Contrast
                       </div>
@@ -1525,7 +1517,7 @@ function AdvancedOptions(props: {
                       <div className='flex flex-row items-center gap-2'>
                         <div className='flex gap-1'>
                           <div className='size-2 rounded-full bg-gray-500' />
-                          <div className='size-2 rounded-full bg-black' />
+                          <div className='size-2 rounded-full bg-gray-500' />
                         </div>
                         Neutral
                       </div>
@@ -1622,12 +1614,6 @@ function AdvancedOptions(props: {
                       <div className='flex flex-row items-center gap-2'>
                         <div className='size-2 rounded-full bg-zinc-400' />
                         Gray
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'black'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-black' />
-                        Black
                       </div>
                     </SelectItem>
                     <SelectItem value={'cyan'}>
