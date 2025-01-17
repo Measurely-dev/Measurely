@@ -121,13 +121,19 @@ export const PushValueDialog = (props: {
                 <SelectItem value='no category selected'>
                   -- No category --
                 </SelectItem>
-                <SelectSeparator />
-                <SelectLabel>Filter categories</SelectLabel>
-                {Object.keys(props.metric?.filters || {}).map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
+                {Object.keys(props.metric?.filters || {}).length !== 0 ? (
+                  <>
+                    <SelectSeparator />
+                    <SelectLabel>Filter categories</SelectLabel>
+                    {Object.keys(props.metric?.filters || {}).map(
+                      (category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ),
+                    )}
+                  </>
+                ) : null}
               </SelectGroup>
             </SelectContent>
           </Select>
