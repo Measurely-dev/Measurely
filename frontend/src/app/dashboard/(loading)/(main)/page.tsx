@@ -72,7 +72,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
 import { toast } from 'sonner';
-import { fetchChartData, fetchEventVariation, generateString } from '@/utils';
+import { fetchChartData, fetchEventVariation, generateString, getMonthsFromDate } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
@@ -452,7 +452,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [range, setRange] = useState(7);
   const [isCopying, setIsCopying] = useState(false);
   const [disabledItem, setDisabledItem] = useState<string | null>(null);
-  const [year, setYear] = useState<number>(0);
+  const [date, setDate] = useState<Date>(new Date());
 
   const metrics = useMemo(() => {
     return props.metricIds
@@ -498,15 +498,18 @@ function BlockContent(props: Block & { groupkey?: string }) {
           async (filter) => {
             const endDate = new Date();
             const startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - 1);
             startDate.setDate(1);
             startDate.setHours(0);
             startDate.setMinutes(0);
             startDate.setSeconds(0);
 
+            const numberOfDays = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
+
+            endDate.setDate(numberOfDays);
             endDate.setHours(23);
             endDate.setMinutes(59);
             endDate.setSeconds(59);
+
 
             const data = await fetchEventVariation(
               projects[activeProject].id,
@@ -520,15 +523,15 @@ function BlockContent(props: Block & { groupkey?: string }) {
               [metrics[0].name]: data.pos - data.neg,
               name: filter.name,
               value: data.pos - data.neg,
-              relativetotal : data.relativetotalpos - data.relativetotalneg,
-              year: startDate.getFullYear(),
+              relativetotal: data.relativetotalpos - data.relativetotalneg,
+              date: startDate,
             };
           },
         );
 
         combinedData = await Promise.all(dataPromises);
         if (combinedData.length > 0) {
-          setYear(combinedData[0].year);
+          setDate(combinedData[0].date);
         }
       } else {
         const dataPromises = metrics.map((metric) =>
@@ -607,17 +610,17 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
 
 
-  const calculateCompactBlockPourcentage = (data : any[]) =>  {
+  const calculateCompactBlockPourcentage = (data: any[]) => {
     let categoryTotal = 0;
     let categoryVariation = 0;
-    for (let i = 0 ; i < (data?.length ?? 0); i++) {
+    for (let i = 0; i < (data?.length ?? 0); i++) {
       categoryTotal += data[i].relativetotal ?? 0
       categoryVariation += data[i][metrics[0].name] ?? 0
     }
 
     const previousTotal = categoryTotal - categoryVariation;
 
-    if(categoryVariation === 0) return 0;
+    if (categoryVariation === 0) return 0;
     if (previousTotal === 0) {
       return 100 * (categoryTotal < 0 ? -1 : 1)
     }
@@ -742,7 +745,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
       {props.type === BlockType.Nested ? (
         <CardHeader className='items-center pb-0'>
           <CardTitle>{props.name}</CardTitle>
-          <CardDescription>January - June {year}</CardDescription>
+          <CardDescription>{getMonthsFromDate(date)} - {date.getFullYear()}</CardDescription>
         </CardHeader>
       ) : undefined}
 
@@ -769,8 +772,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
       ) : (
         <CardFooter
           className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
-              ? 'items-center text-center'
-              : 'items-start'
+            ? 'items-center text-center'
+            : 'items-start'
             }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
