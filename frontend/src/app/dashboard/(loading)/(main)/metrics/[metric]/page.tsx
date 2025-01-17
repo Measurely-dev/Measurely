@@ -612,6 +612,7 @@ function Chart(props: {
         data,
         activeFilter,
       );
+
       setRangeSummary({ pos, neg, average, averagepercentdiff });
       if (props.type === 'trend') {
         data = calculateTrend(data, activeFilter, pos, neg, average);
@@ -659,7 +660,7 @@ function Chart(props: {
         if (
           data[i]['Positive Trend'] !== undefined &&
           data[i]['Negative Trend'] !== undefined &&
-          data[i]['Average Trend']
+          data[i]['Average Trend'] !== undefined
         ) {
           found = true;
           pos = data[i]['Positive Trend'];
@@ -668,6 +669,7 @@ function Chart(props: {
           break;
         }
       }
+
 
       if (!found) {
         if (date?.from === undefined)
@@ -701,6 +703,7 @@ function Chart(props: {
           results,
         } = await fetchNextEvent(metric.projectid, metric.id, end);
 
+
         if (results === 0) {
           return {
             pos: metric.totalpos,
@@ -732,6 +735,7 @@ function Chart(props: {
       let totalneg = 0;
       let eventcount = 0;
       let averagepercentdiff = 0;
+
 
       for (let i = 0; i < data.length; i++) {
         if (metric.type === MetricType.Base) {
