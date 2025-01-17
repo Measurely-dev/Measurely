@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -149,8 +150,8 @@ export default function EditMetricDialogContent(props: {
             )}
           </div>
         </div>
-        <div className='flex w-full flex-row gap-2'>
-          <DialogClose className='w-full'>
+        <DialogFooter>
+          <DialogClose className='w-fit'>
             <Button
               type='button'
               variant='secondary'
@@ -167,7 +168,7 @@ export default function EditMetricDialogContent(props: {
           <Button
             type='submit'
             variant='default'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             loading={loading}
             disabled={
               (name === props.metric?.name &&
@@ -178,7 +179,7 @@ export default function EditMetricDialogContent(props: {
           >
             Update
           </Button>
-        </div>
+        </DialogFooter>
       </form>
     </DialogContent>
   );
