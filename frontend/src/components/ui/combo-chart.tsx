@@ -1022,7 +1022,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                 type='linear'
                 dataKey={category}
                 stackId={stacked ? 'stack' : undefined}
-                isAnimationActive={false}
+                isAnimationActive={true}
                 fill=''
                 shape={(props: any) =>
                   renderShape(props, activeBar, activeLegend)
@@ -1156,13 +1156,13 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                 }}
                 key={`${category}-line-id`}
                 name={category}
-                type='linear'
+                type='bump'
                 dataKey={category}
                 stroke=''
                 strokeWidth={2}
                 strokeLinejoin='round'
                 strokeLinecap='round'
-                isAnimationActive={true}
+                isAnimationActive={false}
                 connectNulls={mergedLineSeries.connectNulls}
                 onClick={(props: any, event) => {
                   event.stopPropagation();

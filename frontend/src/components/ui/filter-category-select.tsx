@@ -129,7 +129,7 @@ export function FilterCategorySelect(props: {
         {props.selectedFilterCategory && (
           <Badge
             variant='outline'
-            className='group relative w-fit select-none rounded-full border border-input bg-accent/80 px-3 text-sm font-medium text-muted-foreground shadow-none'
+            className='group relative mr-1 w-fit select-none rounded-full border border-input bg-accent/80 px-3 text-sm font-medium text-muted-foreground shadow-none'
           >
             {props.selectedFilterCategory}
           </Badge>
