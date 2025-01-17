@@ -11,7 +11,6 @@ import {
   Label,
   BarChart as RechartsBarChart,
   Legend as RechartsLegend,
-  Rectangle,
   ResponsiveContainer,
   Tooltip,
   XAxis,

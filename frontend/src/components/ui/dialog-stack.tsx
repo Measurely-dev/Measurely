@@ -152,7 +152,6 @@ export const DialogStackTrigger = ({
 };
 
 export const DialogStackOverlay = ({
-  className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => {
   const context = useContext(DialogStackContext);
