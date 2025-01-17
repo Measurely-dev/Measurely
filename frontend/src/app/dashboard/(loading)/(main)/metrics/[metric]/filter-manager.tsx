@@ -175,7 +175,7 @@ export default function FilterManagerDialog(props: {
           : proj,
       ),
     );
-
+    setActiveAccordion(category);
     handleCloseCreationDialog();
   };
 
@@ -409,7 +409,13 @@ export default function FilterManagerDialog(props: {
 
   return (
     <>
-      <Dialog open={props.open} onOpenChange={props.setOpen}>
+      <Dialog
+        open={props.open}
+        onOpenChange={(e) => {
+          props.setOpen(e);
+          setActiveAccordion(undefined);
+        }}
+      >
         <DialogContent className='max-h-[80vh] w-[95%] max-w-[600px] gap-0 overflow-y-auto overflow-x-visible'>
           <DialogHeader>
             <DialogTitle>Filter Manager</DialogTitle>
@@ -515,19 +521,21 @@ export default function FilterManagerDialog(props: {
                           <Plus className='size-4' />
                           Add filter
                         </Button>
-                        {props.metric.filters?.[category].map((filter) => (
-                          <Badge
-                            key={filter.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleBadgeEdit(filter);
-                            }}
-                            className='group relative w-fit cursor-pointer select-none rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
-                          >
-                            <Edit2 className='absolute -left-4 size-4 transition-all duration-200 group-hover:left-2' />
-                            {filter.name}
-                          </Badge>
-                        ))}
+                        <div className='grid grid-cols-3 gap-2'>
+                          {props.metric.filters?.[category].map((filter) => (
+                            <Badge
+                              key={filter.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleBadgeEdit(filter);
+                              }}
+                              className='group relative col-span-1 w-fit cursor-pointer select-none overflow-hidden rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
+                            >
+                              <Edit2 className='absolute -left-4 size-4 transition-all duration-200 group-hover:left-2' />
+                              {filter.name}
+                            </Badge>
+                          ))}
+                        </div>
                       </AccordionContent>
                     </AccordionItem>
                   </>
