@@ -206,10 +206,10 @@ export default function DashboardHomePage() {
                       projects.map((proj, i) =>
                         i === activeProject
                           ? Object.assign({}, proj, {
-                              blocks: Object.assign({}, proj.blocks, {
-                                layout: layoutCopy,
-                              }),
-                            })
+                            blocks: Object.assign({}, proj.blocks, {
+                              layout: layoutCopy,
+                            }),
+                          })
                           : proj,
                       ),
                     );
@@ -399,10 +399,10 @@ function Blocks() {
               projects.map((proj, i) =>
                 i === activeProject
                   ? Object.assign({}, proj, {
-                      blocks: Object.assign({}, proj.blocks, {
-                        layout: value,
-                      }),
-                    })
+                    blocks: Object.assign({}, proj.blocks, {
+                      layout: value,
+                    }),
+                  })
                   : proj,
               ),
             );
@@ -680,8 +680,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-            props.chartType !== ChartType.Radar &&
-            props.chartType !== ChartType.BarList ? (
+              props.chartType !== ChartType.Radar &&
+              props.chartType !== ChartType.BarList ? (
               <div className='flex h-full flex-row items-center'>
                 {metrics.map((metric, i) => {
                   return (
@@ -747,11 +747,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${
-            props.type === BlockType.Nested
+          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
               ? 'items-center text-center'
               : 'items-start'
-          }`}
+            }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
@@ -884,8 +883,6 @@ function Charts(props: {
   const PieChartFakeData = [
     { region: 'safari', visitors: 200, fill: `${compactChartColor}4D` },
   ];
-  const totalValue = () =>
-    props.data?.reduce((total, { value = 0 }) => total + value, 0) || 0;
 
   switch (props.chartType) {
     case ChartType.Area:
@@ -898,7 +895,7 @@ function Charts(props: {
           index='date'
           categories={props.metrics.map((m) => m.name)}
           yAxisLabel='Total'
-          onValueChange={() => {}}
+          onValueChange={() => { }}
         />
       );
     case ChartType.Bar:
@@ -911,7 +908,7 @@ function Charts(props: {
           index='date'
           categories={props.metrics.map((m) => m.name)}
           yAxisLabel='Total'
-          onValueChange={() => {}}
+          onValueChange={() => { }}
         />
       );
     case ChartType.Combo:
@@ -931,7 +928,7 @@ function Charts(props: {
             showYAxis: true,
             colors: [chartColors[2]],
           }}
-          onValueChange={() => {}}
+          onValueChange={() => { }}
         />
       );
     case ChartType.BarList:
@@ -947,8 +944,61 @@ function Charts(props: {
     case ChartType.Pie:
       return (
         <>
-          {totalValue() !== 0 ? (
-            <></>
+          {props.data?.reduce(
+            (sum, item) => sum + item[props.metrics[0].name],
+            0,
+          ) !== 0 ? (
+            <ChartContainer
+              config={pieChartConfig}
+              className='mx-auto h-full w-full'
+            >
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <Pie
+                  data={props.data ?? []}
+                  dataKey={props.metrics[0].name}
+                  nameKey={props.categories?.[0]}
+                  innerRadius={60}
+                  strokeWidth={5}
+                >
+                  <RechartLabel
+                    content={({ viewBox }) => {
+                      if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                        return (
+                          <text
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            textAnchor='middle'
+                            dominantBaseline='middle'
+                          >
+                            <tspan
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              className='fill-foreground text-3xl font-bold'
+                            >
+                              {props.data?.reduce(
+                                (sum, item) => sum + item[props.metrics[0].name],
+                                0,
+                              )}
+                            </tspan>
+                            <tspan
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) + 24}
+                              className='fill-muted-foreground'
+                            >
+                              {props.metrics[0].name}
+                            </tspan>
+                          </text>
+                        );
+                      }
+                    }}
+                  />
+                </Pie>
+              </PieChart>
+            </ChartContainer>
           ) : (
             <div className='pointer-events-none absolute h-full w-full'>
               <ChartContainer
@@ -1001,57 +1051,6 @@ function Charts(props: {
               </ChartContainer>
             </div>
           )}
-          <ChartContainer
-            config={pieChartConfig}
-            className='mx-auto h-full w-full'
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                data={props.data ?? []}
-                dataKey={props.metrics[0].name}
-                nameKey={props.categories?.[0]}
-                innerRadius={60}
-                strokeWidth={5}
-              >
-                <RechartLabel
-                  content={({ viewBox }) => {
-                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor='middle'
-                          dominantBaseline='middle'
-                        >
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            className='fill-foreground text-3xl font-bold'
-                          >
-                            {props.data?.reduce(
-                              (sum, item) => sum + item[props.metrics[0].name],
-                              0,
-                            )}
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className='fill-muted-foreground'
-                          >
-                            {props.metrics[0].name}
-                          </tspan>
-                        </text>
-                      );
-                    }
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
         </>
       );
     case ChartType.Radar:
@@ -1090,16 +1089,16 @@ function NestedBlocks(props: Block) {
           projects.map((proj, i) =>
             i === activeProject
               ? Object.assign({}, proj, {
-                  blocks: Object.assign({}, proj.blocks, {
-                    layout: proj.blocks?.layout.map((l) =>
-                      l.uniquekey === props.uniquekey
-                        ? Object.assign({}, l, {
-                            nested: value,
-                          })
-                        : l,
-                    ),
-                  }),
-                })
+                blocks: Object.assign({}, proj.blocks, {
+                  layout: proj.blocks?.layout.map((l) =>
+                    l.uniquekey === props.uniquekey
+                      ? Object.assign({}, l, {
+                        nested: value,
+                      })
+                      : l,
+                  ),
+                }),
+              })
               : proj,
           ),
         );
