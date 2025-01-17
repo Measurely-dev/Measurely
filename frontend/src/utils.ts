@@ -491,7 +491,6 @@ export const fetchEventVariation = async (
           firstAverage = 0;
 
         const diff = lastAverage - firstAverage;
-        console.log(lastAverage, firstAverage);
 
         if (diff !== 0 && firstAverage === 0) {
           if (diff < 0) {

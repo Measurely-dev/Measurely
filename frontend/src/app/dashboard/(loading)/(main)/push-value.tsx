@@ -43,6 +43,17 @@ export const PushValueDialog = (props: {
       Number(pushValue) &&
       projects[activeProject].userrole !== UserRole.Guest
     ) {
+
+      let body: any= {
+        value : pushValue
+      }
+
+      if(selectedFilter !== '' && selectedFilterCategory !== '') {
+        body.filters = {
+          [selectedFilterCategory] : selectedFilter
+        }
+      }
+
       fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/event/v1/${props.metric.name}`,
         {
@@ -51,9 +62,7 @@ export const PushValueDialog = (props: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${projects[activeProject].apikey}`,
           },
-          body: JSON.stringify({
-            value: pushValue,
-          }),
+          body: JSON.stringify(body),
         },
       ).then((resp) => {
         if (resp.ok) {
@@ -151,7 +160,7 @@ export const PushValueDialog = (props: {
                     <SelectLabel>Filters</SelectLabel>
                     {props.metric.filters[selectedFilterCategory].map(
                       (filter, i) => (
-                        <SelectItem key={i} value={filter.id}>
+                        <SelectItem key={i} value={filter.name}>
                           {filter.name}
                         </SelectItem>
                       ),
