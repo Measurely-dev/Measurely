@@ -695,6 +695,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
                         }, 1000);
                       }}
                       className={`group relative flex h-full w-fit min-w-[120px] select-none flex-col items-start justify-center gap-0.5 overflow-x-hidden whitespace-nowrap border-l px-5 font-mono text-2xl font-bold`}
+                      style={{ borderColor: `${props.color}33` }}
                     >
                       <div
                         className={`absolute left-0 top-0 size-full bg-current opacity-0 group-hover:opacity-10 ${disabledItem === metric.name ? 'cursor-wait opacity-10' : 'cursor-copy'}`}
@@ -923,10 +924,12 @@ function Charts(props: {
           barSeries={{
             categories: [props.metrics[0].name],
             showYAxis: true,
+            colors: [chartColors[0]],
           }}
           lineSeries={{
             categories: [props.metrics[1].name],
             showYAxis: true,
+            colors: [chartColors[2]],
           }}
           onValueChange={() => {}}
         />

@@ -90,7 +90,7 @@ export const colorSchemeMap: Record<
     text: 'text-gray-600',
   },
 };
-export const chartColorSchemeMap: any = {
+export const chartColorSchemeMap = {
   pink: {
     bg: 'bg-pink-400',
     stroke: 'stroke-pink-500',

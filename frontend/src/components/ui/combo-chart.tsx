@@ -68,13 +68,15 @@ const renderShape = (
     y += height;
     height = Math.abs(height); // height must be a positive number
   }
-
+  const cornerRadius = 6; // Adjust for desired roundness
   return (
     <rect
       x={x}
       y={y}
       width={width}
       height={height}
+      rx={cornerRadius} // Apply rounded corners
+      ry={cornerRadius} // Apply rounded corners
       opacity={
         activeBar || (activeLegend && activeLegend !== name)
           ? deepEqual(activeBar, { ...payload, value })

@@ -165,6 +165,7 @@ const blockWideType: BlockShowcaseType[] = [
         barSeries={{
           categories: ['SolarPanels'],
           showYAxis: false,
+          colors: ['blue'],
         }}
         lineSeries={{
           categories: ['Inverters'],
