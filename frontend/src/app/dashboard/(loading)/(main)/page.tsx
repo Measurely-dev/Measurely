@@ -517,9 +517,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
             return {
               [filter.filtercategory]: filter.name,
-              [metrics[0].name]: data.relativetotalpos - data.relativetotalneg,
+              [metrics[0].name]: data.pos - data.neg,
               name: filter.name,
-              value: data.relativetotalpos - data.relativetotalneg,
+              value: data.pos - data.neg,
+              relativetotal : data.relativetotalpos - data.relativetotalneg,
               year: startDate.getFullYear(),
             };
           },
@@ -603,6 +604,26 @@ function BlockContent(props: Block & { groupkey?: string }) {
       setIsCopying(false);
     }, 1000);
   };
+
+
+
+  const calculateCompactBlockPourcentage = (data : any[]) =>  {
+    let categoryTotal = 0;
+    let categoryVariation = 0;
+    for (let i = 0 ; i < (data?.length ?? 0); i++) {
+      categoryTotal += data[i].relativetotal ?? 0
+      categoryVariation += data[i][metrics[0].name] ?? 0
+    }
+
+    const previousTotal = categoryTotal - categoryVariation;
+
+    if(categoryVariation === 0) return 0;
+    if (previousTotal === 0) {
+      return 100 * (categoryTotal < 0 ? -1 : 1)
+    }
+
+    return (categoryVariation / previousTotal) * 100
+  }
 
   return (
     <>
@@ -743,7 +764,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
         </CardContent>
       )}
 
-      {props.type === BlockType.Group ? (
+      {props.type !== BlockType.Nested ? (
         <></>
       ) : (
         <CardFooter
@@ -753,10 +774,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
             }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
-            Trending up by 5.2% this week <TrendingUp className='h-4 w-4' />
+            Trending up by {calculateCompactBlockPourcentage(chartData ?? [])}% <TrendingUp className='h-4 w-4' />
           </div>
           <div className='leading-none text-muted-foreground'>
-            Showing total visitors for the last 6 months
+            Showing total {metrics[0].name} for the last month
           </div>
         </CardFooter>
       )}
