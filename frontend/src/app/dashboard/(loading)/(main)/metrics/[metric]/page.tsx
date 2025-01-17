@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
-import { Metric, MetricType } from '@/types';
+import { Metric, MetricType, UserRole } from '@/types';
 import {
   calculateTrend,
   fetchNextEvent,
@@ -461,18 +461,27 @@ export default function DashboardMetricPage() {
                 color: '#A855F7', // Purple
                 onClick: () => {
                   navigator.clipboard.writeText(metric ? metric.id : '');
-                  toast.success('Succefully copied metric ID');
+                  toast.success('Successfully copied metric ID');
                 },
               },
             ].map(({ label, action, icon, color, onClick }, i) => {
               const styles = cardStyle(color);
+              const isDisabled =
+                user.userrole === UserRole.Guest ||
+                (user.userrole === UserRole.Developer &&
+                  label !== 'Copy Metric ID');
+
               return (
                 <div
                   key={i}
-                  onClick={onClick}
+                  onClick={() => {
+                    isDisabled ? null : onClick();
+                  }}
                   style={{
                     borderColor: styles.borderColor,
                     backgroundColor: styles.backgroundColor,
+                    opacity: isDisabled ? 0.5 : 1,
+                    pointerEvents: isDisabled ? 'none' : 'auto',
                   }}
                   className={`group flex cursor-pointer select-none overflow-hidden rounded-[8px] border p-1 transition-all duration-150 active:scale-[.98]`}
                 >
@@ -670,7 +679,6 @@ function Chart(props: {
         }
       }
 
-
       if (!found) {
         if (date?.from === undefined)
           return { pos: 0, neg: 0, average: 0, averagepercentdiff: 0 };
@@ -703,7 +711,6 @@ function Chart(props: {
           results,
         } = await fetchNextEvent(metric.projectid, metric.id, end);
 
-
         if (results === 0) {
           return {
             pos: metric.totalpos,
@@ -735,7 +742,6 @@ function Chart(props: {
       let totalneg = 0;
       let eventcount = 0;
       let averagepercentdiff = 0;
-
 
       for (let i = 0; i < data.length; i++) {
         if (metric.type === MetricType.Base) {
