@@ -38,15 +38,15 @@ export interface ProjectsContextType {
 
 export const UserContext = createContext<UserContextType>({
   user: defaultUser,
-  setUser: () => { },
+  setUser: () => {},
   userLoading: true,
-  setUserLoading: () => { },
+  setUserLoading: () => {},
 });
 export const ProjectsContext = createContext<ProjectsContextType>({
   projects: [],
-  setProjects: () => { },
+  setProjects: () => {},
   activeProject: -1,
-  setActiveProject: () => { },
+  setActiveProject: () => {},
   projectsLoading: true,
-  setProjectsLoading: () => { },
+  setProjectsLoading: () => {},
 });

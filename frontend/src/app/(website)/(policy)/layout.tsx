@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import '../../../styles/markdown.css'
+import '../../../styles/markdown.css';
 export const metadata: Metadata = {
   title: 'Policy | Measurely',
 };

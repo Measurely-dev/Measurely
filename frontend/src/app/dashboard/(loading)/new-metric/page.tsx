@@ -41,7 +41,7 @@ export default function NewMetric() {
   const [step, setStep] = useState(1);
   const [tab, setTab] = useState('metrics');
   const [value, setValue] = useState<MetricType>(
-    tab === 'metrics' ? MetricType.Base : MetricType.Stripe
+    tab === 'metrics' ? MetricType.Base : MetricType.Stripe,
   );
   const router = useRouter();
   const { projects, activeProject } = useContext(ProjectsContext);

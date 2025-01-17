@@ -77,7 +77,7 @@ export default function NewProject() {
 
         json.metrics = await loadMetrics(json.id);
         setActiveProject(projects.length);
-        localStorage.setItem('activeProject', (projects.length).toString());
+        localStorage.setItem('activeProject', projects.length.toString());
         setProjects((apps) => [...apps, json]);
         router.push('/dashboard');
       });
@@ -109,7 +109,7 @@ export default function NewProject() {
             }}
           >
             <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6 rounded-3xl bg-accent max-md:max-w-[95%]'>
-              <div className='flex flex-col gap-[5px] p-6 border-b'>
+              <div className='flex flex-col gap-[5px] border-b p-6'>
                 <div className='text-xl font-medium'>
                   {projects === null
                     ? 'Start your first project'

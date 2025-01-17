@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { parseISO, differenceInDays } from 'date-fns';
 import WebFooterHeader from '@/components/website/footer-header';
 
-
 export const metadata: Metadata = {
   title: 'Blog',
 };

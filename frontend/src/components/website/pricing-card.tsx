@@ -88,7 +88,10 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
       {name === 'Entreprise' ? (
         <>
           <Link href='mailto:info@measurely.dev' className='w-fit'>
-            <Button className={`mt-[30px] w-fit rounded-[12px]`} disabled={disabled}>
+            <Button
+              className={`mt-[30px] w-fit rounded-[12px]`}
+              disabled={disabled}
+            >
               {button}
             </Button>
           </Link>

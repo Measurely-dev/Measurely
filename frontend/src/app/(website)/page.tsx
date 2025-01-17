@@ -25,7 +25,7 @@ export default function Home({
       'direct',
       'launchtory',
       'quora',
-      'indiehackers'
+      'indiehackers',
     ];
 
     if (!refs.includes(ref)) ref = 'direct';

@@ -21,7 +21,7 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
         <div className='font-mono text-4xl font-semibold'>Documentation</div>
         <div className='text-lg text-secondary'>Couldn't be found</div>
         <Link href={'/docs/getting-started/introduction'}>
-          <Button className='mt-3 h-[45px] rounded-[12px] text-md' size={'lg'}>
+          <Button className='text-md mt-3 h-[45px] rounded-[12px]' size={'lg'}>
             Back to docs
           </Button>
         </Link>

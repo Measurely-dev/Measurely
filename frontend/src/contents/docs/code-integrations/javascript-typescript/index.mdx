@@ -1,9 +1,10 @@
 ---
-title: Measurely-js  
-description: How to interact with the Measurely API using the npm package.  
+title: Measurely-js
+description: How to interact with the Measurely API using the npm package.
 ---
 
 #
+
 Measurely-js is a lightweight library for interacting with the Measurely API, enabling developers to manage and track custom metrics programmatically using JavaScript or TypeScript.
 
 ## Installation
@@ -27,10 +28,10 @@ yarn add measurely-js
 Before using any methods, initialize the library with your Measurely API key:
 
 ```javascript
-import Measurely from "measurely-js";
+import Measurely from 'measurely-js';
 
 // Initialize the API key
-Measurely.init("your-api-key-here");
+Measurely.init('your-api-key-here');
 ```
 
 ### Capture Metrics
@@ -38,20 +39,21 @@ Measurely.init("your-api-key-here");
 Use the `capture` method to send metric data to the Measurely API:
 
 ```javascript
-const metricIdentifier = "metric-identifier"; // Replace with your metric ID or metric name
+const metricIdentifier = 'metric-identifier'; // Replace with your metric ID or metric name
 const payload = {
   value: 42, // Replace with the value you want to send
-  filters: { // Optional filters to categorize the metric
-    "environment": "production",
-    "region": "us-east-1",
+  filters: {
+    // Optional filters to categorize the metric
+    environment: 'production',
+    region: 'us-east-1',
   },
 };
 
 Measurely.capture(metricIdentifier, payload).then((result) => {
   if (result.success) {
-    console.log("Metric captured successfully:", result.message);
+    console.log('Metric captured successfully:', result.message);
   } else {
-    console.error("Failed to capture metric:", result.message);
+    console.error('Failed to capture metric:', result.message);
   }
 });
 ```
@@ -70,22 +72,22 @@ type CaptureResult = {
 ### Example
 
 ```javascript
-import Measurely from "measurely-js";
+import Measurely from 'measurely-js';
 
 // Initialize the API key
-Measurely.init("your-api-key-here");
+Measurely.init('your-api-key-here');
 
 // Send a metric
-Measurely.capture("metric-identifier", {
+Measurely.capture('metric-identifier', {
   value: 10,
   filters: {
-    environment: "staging",
+    environment: 'staging',
   },
 }).then((result) => {
   if (result.success) {
-    console.log("Metric captured successfully:", result.message);
+    console.log('Metric captured successfully:', result.message);
   } else {
-    console.error("Failed to capture metric:", result.message);
+    console.error('Failed to capture metric:', result.message);
   }
 });
 ```

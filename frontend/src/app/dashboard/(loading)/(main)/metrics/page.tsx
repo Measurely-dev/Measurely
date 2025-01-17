@@ -112,11 +112,11 @@ export default function DashboardMetrics() {
                 icons={[CurlyBraces, BoxIcon, Link2Icon]}
                 action={
                   projects[activeProject].userrole === UserRole.Owner ||
-                    projects[activeProject].userrole === UserRole.Admin
+                  projects[activeProject].userrole === UserRole.Admin
                     ? {
-                      label: 'Create metric',
-                      onClick: () => router.push('/dashboard/new-metric'),
-                    }
+                        label: 'Create metric',
+                        onClick: () => router.push('/dashboard/new-metric'),
+                      }
                     : undefined
                 }
               />

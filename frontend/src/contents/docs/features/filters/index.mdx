@@ -8,15 +8,17 @@ description: Learn what filters are and how to use them to categorize your metri
 A **filter** is a key-value pair used to add additional metadata to your metrics. Filters provide context about your data, allowing you to categorize, segment, and analyze metrics effectively.
 
 ### Why Use Filters?
+
 Filters are helpful when you want to:
+
 - Track metrics across different environments (e.g., production, staging, development).
 - Segment data based on user attributes, regions, or other categories.
 - Add flexible and descriptive labels to your metrics for better analysis.
 
 ### Example Use Cases
+
 - **Environment-based segmentation:** Use filters to track metrics in specific environments like `production` or `development`.
 - **Region-based analysis:** Monitor metrics across geographical locations like `us-east` or `eu-west`.
-
 
 # How to Create a Filter
 
@@ -28,18 +30,19 @@ Filters are defined as a map of key-value pairs in your metric payload. Here's h
 2. **Add filters to your payload:** Include a `filters` object when sending your event.
 
 ### Example in TypeScript
+
 Below is an example of creating a metric with filters using the Measurely TypeScript SDK:
 
 ```typescript
-import { Measurely } from "measurely-sdk";
+import { Measurely } from 'measurely-sdk';
 
 // Initialize Measurely with your API key
-const measurely = new Measurely("YOUR_API_KEY");
+const measurely = new Measurely('YOUR_API_KEY');
 
 // Define your filters
 const filters = {
-  environment: "production",
-  region: "us-east",
+  environment: 'production',
+  region: 'us-east',
 };
 
 // Create a metric payload with value and filters
@@ -49,16 +52,17 @@ const payload = {
 };
 
 // Capture the metric
-measurely.capture("example_metric", payload)
+measurely
+  .capture('example_metric', payload)
   .then((result) => {
     if (result.success) {
-      console.log("Metric captured successfully!");
+      console.log('Metric captured successfully!');
     } else {
-      console.error("Error capturing metric:", result.message);
+      console.error('Error capturing metric:', result.message);
     }
   })
   .catch((error) => {
-    console.error("Unexpected error:", error);
+    console.error('Unexpected error:', error);
   });
 ```
 

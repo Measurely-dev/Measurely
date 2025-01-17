@@ -29,7 +29,7 @@ export default function Register() {
       Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
       Measurely.capture('b3c58d0d-f1af-4c34-84ed-0450cd93e844', {
         value: 1,
-        filters: {}
+        filters: {},
       });
     }
   }, []);

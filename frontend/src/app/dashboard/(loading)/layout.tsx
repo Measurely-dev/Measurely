@@ -28,7 +28,7 @@ export default function DashboardContentLayout({
   useEffect(() => {
     if (
       projects.filter((proj) => proj.userrole === UserRole.Owner).length ===
-      0 &&
+        0 &&
       !projectsLoading
     ) {
       router.push('/dashboard/new-project');

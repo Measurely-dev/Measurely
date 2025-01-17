@@ -45,7 +45,7 @@ const Waitlist = () => {
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ email : email, name : name}),
+              body: JSON.stringify({ email: email, name: name }),
             })
               .then((res) => {
                 if (res.status === 200) {

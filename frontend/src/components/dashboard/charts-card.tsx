@@ -63,8 +63,8 @@ export function ChartsCard() {
   const metricList = useMemo(() => {
     return projects[activeProject].metrics
       ? projects[activeProject].metrics.sort(
-        (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
-      )
+          (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
+        )
       : null;
   }, [activeProject, projects]);
 
@@ -113,16 +113,16 @@ export function ChartsCard() {
         projects.map((proj: Project, i: number) =>
           i === activeProject
             ? Object.assign({}, proj, {
-              metrics: metricList?.map((m: Metric, j: number) =>
-                j === activeMetric
-                  ? Object.assign({}, m, {
-                    totalpos: relativetotalpos,
-                    totalneg: relativetotalneg,
-                    eventcount: relativeeventcount,
-                  })
-                  : m,
-              ),
-            })
+                metrics: metricList?.map((m: Metric, j: number) =>
+                  j === activeMetric
+                    ? Object.assign({}, m, {
+                        totalpos: relativetotalpos,
+                        totalneg: relativetotalneg,
+                        eventcount: relativeeventcount,
+                      })
+                    : m,
+                ),
+              })
             : proj,
         ),
       );
@@ -189,7 +189,7 @@ export function ChartsCard() {
         ]}
       />
       {projects[activeProject].metrics !== undefined &&
-        projects[activeProject].metrics?.length! > 0 ? (
+      projects[activeProject].metrics?.length! > 0 ? (
         <>
           <Header
             activeMetric={activeMetric}
@@ -224,7 +224,7 @@ export function ChartsCard() {
                             metric.eventcount === 0
                               ? 0
                               : (metric.totalpos - metric.totalneg) /
-                              metric.eventcount,
+                                  metric.eventcount,
                           )}
                           index='date'
                           color='blue'
@@ -232,7 +232,7 @@ export function ChartsCard() {
                           valueFormatter={(number: number) =>
                             `${Intl.NumberFormat('us').format(number).toString()}`
                           }
-                          onValueChange={() => { }}
+                          onValueChange={() => {}}
                           xAxisLabel='Date'
                           yAxisLabel='Total'
                         />
@@ -280,7 +280,7 @@ function Header(props: {
                   {valueFormatter(
                     (props.metrics[props.activeMetric].totalpos -
                       props.metrics[props.activeMetric].totalneg) /
-                    props.metrics[props.activeMetric].eventcount,
+                      props.metrics[props.activeMetric].eventcount,
                   )}
                 </>
               )}
@@ -289,7 +289,7 @@ function Header(props: {
             <>
               {valueFormatter(
                 props.metrics[props.activeMetric].totalpos -
-                props.metrics[props.activeMetric].totalneg,
+                  props.metrics[props.activeMetric].totalneg,
               )}
             </>
           )}

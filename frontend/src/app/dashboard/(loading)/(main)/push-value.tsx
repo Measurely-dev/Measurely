@@ -136,10 +136,7 @@ export const PushValueDialog = (props: {
           selectedFilterCategory !== 'no category selected' ? (
             <>
               <Label className='mt-2'>Select filter</Label>
-              <Select
-                value={selectedFilter}
-                onValueChange={setSelectedFilter}
-              >
+              <Select value={selectedFilter} onValueChange={setSelectedFilter}>
                 <SelectTrigger className='h-11 border text-primary'>
                   <SelectValue placeholder='Select a filter' />
                 </SelectTrigger>

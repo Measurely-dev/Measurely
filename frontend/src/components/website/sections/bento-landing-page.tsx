@@ -70,7 +70,10 @@ export default function BentoUiSection(props: {
           description='Track both single and dual metrics. Single metrics monitor growth, while dual metrics capture positive and negative trends for deeper analysis.'
           img={Image2}
         />
-        <SubscriptionUiSection type={props.type} isAuthentificated={props.isAuthentificated} />
+        <SubscriptionUiSection
+          type={props.type}
+          isAuthentificated={props.isAuthentificated}
+        />
         <WebTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'

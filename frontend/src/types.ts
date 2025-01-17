@@ -94,7 +94,7 @@ export enum MetricType {
   Average,
   Stripe,
   Google,
-  AWS
+  AWS,
 }
 
 export enum Provider {

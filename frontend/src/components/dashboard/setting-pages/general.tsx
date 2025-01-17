@@ -376,7 +376,7 @@ export default function SettingGeneralPage() {
         description='A list of providers linked or not to this account.'
         btn_loading={false}
         btn_disabled={false}
-        action={() => { }}
+        action={() => {}}
         content={
           <div className='flex flex-col gap-4'>
             {providers.map((provider: any) => {
@@ -401,7 +401,7 @@ export default function SettingGeneralPage() {
                   {(user.providers === null
                     ? 0
                     : (user?.providers.filter((p) => p.type === provider.type)
-                      .length ?? 0)) === 0 ? (
+                        .length ?? 0)) === 0 ? (
                     <Button
                       variant={'ghost'}
                       className='rounded-[10px]'
