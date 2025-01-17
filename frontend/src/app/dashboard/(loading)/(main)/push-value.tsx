@@ -107,7 +107,7 @@ export const PushValueDialog = (props: {
         <div className='flex flex-col gap-2'>
           <Label>Select filter category</Label>
           <Select
-            value={selectedFilterCategory || 'no category selected'}
+            value={selectedFilterCategory || 'no_category_selected'}
             onValueChange={(value) => {
               setSelectedFilterCategory(value);
               setSelectedFilter('');
@@ -118,7 +118,7 @@ export const PushValueDialog = (props: {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value='no category selected'>
+                <SelectItem value='no_category_selected'>
                   -- No category --
                 </SelectItem>
                 {Object.keys(props.metric?.filters || {}).length !== 0 ? (
@@ -139,7 +139,7 @@ export const PushValueDialog = (props: {
           </Select>
 
           {selectedFilterCategory &&
-          selectedFilterCategory !== 'no category selected' ? (
+          selectedFilterCategory !== 'no_category_selected' ? (
             <>
               <Label className='mt-2'>Select filter</Label>
               <Select value={selectedFilter} onValueChange={setSelectedFilter}>
@@ -176,7 +176,8 @@ export const PushValueDialog = (props: {
           </DialogClose>
           <Button
             disabled={
-              (selectedFilterCategory !== 'no category selected' &&
+              (selectedFilterCategory !== 'no_category_selected' &&
+                selectedFilterCategory !== '' &&
                 selectedFilter === '') ||
               !Number(pushValue) ||
               pushValue === ''
