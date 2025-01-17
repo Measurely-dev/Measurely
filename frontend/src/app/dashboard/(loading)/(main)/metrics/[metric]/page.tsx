@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
-import { Metric, MetricType, UserRole } from '@/types';
+import { Metric, MetricType } from '@/types';
 import {
   calculateTrend,
   fetchNextEvent,
@@ -63,16 +63,7 @@ import {
   fetchChartData,
   fetchEventVariation,
 } from '@/utils';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-  DialogFooter,
-  DialogHeader,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Dialog } from '@/components/ui/dialog';
 import {
   ArrowLeft,
   ArrowRight,
@@ -99,8 +90,9 @@ import {
 } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
-
 import FilterManagerDialog from './filter-manager';
+import { PushValueDialog } from '../../push-value';
+
 type AllowedColors =
   | 'blue'
   | 'red'
@@ -263,7 +255,7 @@ export default function DashboardMetricPage() {
   const [open, setOpen] = useState(false);
   const [filterManagerOpen, setFilterManagerOpen] = useState(false);
   const [pushValueOpen, setPushValueOpen] = useState(false);
-  const [pushValue, setPushValue] = useState<number | string>(0);
+
   const metric = useMemo(() => {
     if (projects[activeProject]) {
       const index = projects[activeProject].metrics?.findIndex(
@@ -383,37 +375,6 @@ export default function DashboardMetricPage() {
     color,
   });
 
-  const handlePushValue = () => {
-    if (
-      pushValue !== null &&
-      metric &&
-      Number(pushValue) &&
-      projects[activeProject].userrole !== UserRole.Guest
-    ) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/event/v1/${metric.name}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${projects[activeProject].apikey}`,
-        },
-        body: JSON.stringify({
-          value: pushValue,
-        }),
-      }).then((resp) => {
-        if (resp.ok) {
-          toast.success('Successfully created new event');
-        } else {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-        }
-      });
-      setPushValueOpen(false);
-    } else {
-      toast.error('Please enter a valid value');
-    }
-  };
-
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-20 pt-[15px]'>
       <Breadcrumb>
@@ -463,50 +424,11 @@ export default function DashboardMetricPage() {
           setOpen={setFilterManagerOpen}
         />
       )}
-      <Dialog open={pushValueOpen} onOpenChange={setPushValueOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Push Value</DialogTitle>
-            <DialogDescription>
-              Enter the value you want to push to the metric.
-            </DialogDescription>
-          </DialogHeader>
-          <div className='flex flex-col gap-2'>
-            <Label>Value</Label>
-            <Input
-              type='number'
-              min={0}
-              max={1000000000}
-              value={pushValue === 0 && !Number(pushValue) ? '' : pushValue}
-              onChange={(e) =>
-                setPushValue(
-                  e.target.value === '' ? '' : Number(e.target.value),
-                )
-              }
-              placeholder='Enter value...'
-              className='h-11 rounded-[12px]'
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button className='w-fit rounded-[12px]' variant='secondary'>
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              disabled={
-                Number(pushValue) < 1000000000 && Number(pushValue)
-                  ? false
-                  : true
-              }
-              className='w-fit rounded-[12px]'
-              onClick={handlePushValue}
-            >
-              Push
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PushValueDialog
+        metric={metric || ({} as Metric)}
+        pushValueOpen={pushValueOpen}
+        setPushValueOpen={setPushValueOpen}
+      />
       <Card className='mt-5 rounded-[12px] border-none bg-accent'>
         <CardHeader>
           <CardTitle className='text-2xl'>Quick Actions</CardTitle>

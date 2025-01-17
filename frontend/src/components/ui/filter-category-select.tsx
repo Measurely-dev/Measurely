@@ -23,6 +23,7 @@ export function FilterCategorySelect(props: {
   metric: Metric;
   selectedFilterCategory: string;
   setSelectedFilterCategory: React.Dispatch<React.SetStateAction<string>>;
+  placeholder?: string;
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
@@ -61,7 +62,11 @@ export function FilterCategorySelect(props: {
             className='h-11 w-full justify-between rounded-[12px] text-foreground'
           >
             <span className='truncate'>
-              {!props.selectedFilterCategory && 'Select filter category'}
+              {!props.selectedFilterCategory
+                ? props.placeholder
+                  ? props.placeholder
+                  : 'Select filter category'
+                : undefined}
               {props.selectedFilterCategory}
             </span>
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
