@@ -24,7 +24,7 @@ var metricIds = map[string]string{
 	"signups":   "2efb5cb3-9ed6-40f3-bbb3-2df19faf8ba7",
 	"apps":      "eb585285-4397-4007-a877-07e54aff06c7",
 	"feedbacks": "fc7306fd-0d8c-4e3d-a3f0-e0ce8d961a2d",
-	"waitlist":   "01a0b6a3-b1ec-46ca-b6b8-92a88b62b497",
+	"waitlist":  "01a0b6a3-b1ec-46ca-b6b8-92a88b62b497",
 }
 
 func isEmailValid(e string) bool {
@@ -130,106 +130,30 @@ func GenerateRandomKey() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func (s *Service) GetPlan(identifier string) (types.Plan, bool) {
-	value, ok := s.cache.plans.Load(identifier)
-	var plan types.Plan
+func (s *Service) GetProjectCache(api_key string) (ProjectCache, error) {
+	value, ok := s.projectsCache.Load(api_key)
+	var projectCache ProjectCache
 
 	if !ok {
-		var new_plan *types.Plan = nil
-		switch identifier {
-		case "starter":
-			new_plan = &types.Plan{
-				Price:                 "",
-				Identifier:            "starter",
-				Name:                  "Starter",
-				ProjectLimit:          1,
-				MetricPerProjectLimit: 5,
-				RequestLimit:          25,
-				MonthlyEventLimit:     5000,
-				Range:                 30,
-			}
-		case "plus":
-			new_plan = &types.Plan{
-				Price:                 os.Getenv("PLUS_PRICE_ID"),
-				Identifier:            "plus",
-				Name:                  "Plus",
-				ProjectLimit:          3,
-				MetricPerProjectLimit: 15,
-				RequestLimit:          1000,
-				MonthlyEventLimit:     1000000,
-				Range:                 365,
-			}
-		case "pro":
-			new_plan = &types.Plan{
-				Price:                 os.Getenv("PRO_PRICE_ID"),
-				Identifier:            "pro",
-				Name:                  "Pro",
-				ProjectLimit:          10,
-				MetricPerProjectLimit: 35,
-				RequestLimit:          10000,
-				MonthlyEventLimit:     10000000,
-				Range:                 365,
-			}
-		}
-
-		if new_plan != nil {
-			s.db.CreatePlan(*new_plan)
-			s.cache.plans.Store(new_plan.Identifier, *new_plan)
-			return *new_plan, true
-		}
-
-		return types.Plan{}, false
-	} else {
-		plan = value.(types.Plan)
-	}
-
-	return plan, ok
-}
-
-func (s *Service) GetUserCache(userid uuid.UUID) (UserCache, error) {
-	value, ok := s.cache.users.Load(userid)
-	var userCache UserCache
-	expired := false
-
-	if ok {
-		userCache = value.(UserCache)
-		if userCache.startDate.Month() != time.Now().UTC().Month() {
-			expired = true
-		}
-	}
-
-	if !ok || expired {
-		user, err := s.db.GetUserById(userid)
+		project, err := s.db.GetProjectByApi(api_key)
 		if err != nil {
-			return UserCache{}, nil
+			return ProjectCache{}, nil
 		}
 
-		plan, exists := s.GetPlan(user.CurrentPlan)
-		if !exists {
-			return UserCache{}, errors.New("user does not exist")
+		cache := ProjectCache{
+			api_key:             project.ApiKey,
+			id:                  project.Id,
+			event_count:         project.MonthlyEventCount,
+			monthly_event_limit: project.MaxEventPerMonth,
 		}
 
-		date := user.StartCountDate
-		count := user.MonthlyEventCount
-		if user.StartCountDate.Month() != time.Now().UTC().Month() {
-			s.db.ResetUserCount(user.Id)
-			date = time.Now().UTC()
-			count = 0
-		}
-
-		cache := UserCache{
-			plan_identifier: plan.Identifier,
-			metric_count:    count,
-			startDate:       date,
-		}
-
-		s.cache.users.Store(userid, cache)
+		s.projectsCache.Store(api_key, cache)
 
 		return cache, nil
 	}
 
-	userCache = value.(UserCache)
-	return userCache, nil
+	projectCache = value.(ProjectCache)
+	return projectCache, nil
 }
 
 func SetupCors() *cors.Cors {

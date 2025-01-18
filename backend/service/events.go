@@ -17,7 +17,7 @@ import (
 )
 
 func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
-	value, ok := s.cache.metrics[0].Load(metricid)
+	value, ok := s.metricsCache.Load(metricid)
 	var relation MetricCache
 	expired := false
 
@@ -44,7 +44,7 @@ func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
 			return false
 		}
 
-		s.cache.metrics[0].Store(metricid, MetricCache{
+		s.metricsCache.Store(metricid, MetricCache{
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
@@ -59,7 +59,7 @@ func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
 }
 
 func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
-	value, ok := s.cache.metrics[1].Load(apikey + metricname)
+	value, ok := s.metricsCache.Load(apikey + metricname)
 	var relation MetricCache
 	expired := false
 
@@ -87,7 +87,7 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 			return false
 		}
 
-		s.cache.metrics[1].Store(apikey+metricname, MetricCache{
+		s.metricsCache.Store(apikey+metricname, MetricCache{
 			key:         apikey,
 			metric_type: metric.Type,
 			user_id:     app.UserId,
@@ -99,41 +99,6 @@ func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
 	}
 
 	return relation.key == apikey
-}
-
-func (s *Service) RateAllow(user_id uuid.UUID, maxRequest int) bool {
-	value, ok := s.cache.ratelimits.Load(user_id)
-	expired := false
-	var rate RateLimit
-
-	if ok {
-		rate = value.(RateLimit)
-		if time.Now().After(rate.expiry) {
-			expired = true
-		}
-	}
-
-	if !ok || expired {
-		s.cache.ratelimits.Store(user_id, RateLimit{
-			current: 1,
-			max:     maxRequest,
-			expiry:  time.Now().Add(1 * time.Minute),
-		})
-
-		return true
-	}
-
-	if rate.current > rate.max {
-		return false
-	}
-
-	s.cache.ratelimits.Store(user_id, RateLimit{
-		current: rate.current + 1,
-		max:     rate.max,
-		expiry:  rate.expiry,
-	})
-
-	return true
 }
 
 func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
@@ -199,40 +164,27 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		value, _ = s.cache.metrics[1].Load(apikey + metricname)
+		value, _ = s.metricsCache.Load(apikey + metricname)
 	} else {
 		if !s.VerifyKeyToMetricId(metricid, apikey) {
 			http.Error(w, "Invalid API key or metric ID", http.StatusUnauthorized)
 			return
 		}
-		value, _ = s.cache.metrics[0].Load(metricid)
+		value, _ = s.metricsCache.Load(metricid)
 	}
 
 	// Retrieve the metric's and user's cache entry
 	metricCache := value.(MetricCache)
-	userCache, err := s.GetUserCache(metricCache.user_id)
+	projectCache, err := s.GetProjectCache(metricCache.key)
 	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	// Check if the rate limit is exceeded
-	if !s.RateAllow(metricCache.user_id, plan.RequestLimit) {
-		http.Error(w, "You have exceeded your plan's rate limit: "+strconv.Itoa(plan.RequestLimit)+" requests per minute", http.StatusTooManyRequests)
+		log.Println("Failed to retrieve project from cache:", err)
+		http.Error(w, "Project not found.", http.StatusNotFound)
 		return
 	}
 
 	// Check if the monthly limit is exceeded
-	if userCache.metric_count >= plan.MonthlyEventLimit {
-		http.Error(w, "You have exceeded your monthly event limit: "+strconv.FormatInt(plan.MonthlyEventLimit, 10)+" events per month", http.StatusTooManyRequests)
+	if projectCache.event_count > projectCache.monthly_event_limit {
+		http.Error(w, "You have exceeded your monthly event limit: "+strconv.Itoa(projectCache.monthly_event_limit)+" events per month", http.StatusTooManyRequests)
 		return
 	}
 
@@ -257,15 +209,16 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg, &formattedFilters); err != nil {
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, projectCache.id, pos, neg, &formattedFilters); err != nil {
 		log.Print("Failed to update metric and create event: ", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
 	} else {
-		s.cache.users.Store(metricCache.user_id, UserCache{
-			plan_identifier: userCache.plan_identifier,
-			metric_count:    count,
-			startDate:       userCache.startDate,
+		s.projectsCache.Store(projectCache.api_key, ProjectCache{
+			api_key:             projectCache.api_key,
+			id:                  projectCache.id,
+			event_count:         count,
+			monthly_event_limit: projectCache.monthly_event_limit,
 		})
 	}
 
@@ -309,26 +262,19 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the project
-	app, err := s.db.GetProject(projectid, token.Id)
+	project, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	// Verify API key and metric association
-	if !s.VerifyKeyToMetricId(metricid, app.ApiKey) {
+	if !s.VerifyKeyToMetricId(metricid, project.ApiKey) {
 		http.Error(w, "Metric not found", http.StatusNotFound)
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
+	plan, exists := s.plans[project.CurrentPlan]
 	if !exists {
 		log.Println("Failed to retrieve user from cache:", err)
 		http.Error(w, "User not found.", http.StatusNotFound)

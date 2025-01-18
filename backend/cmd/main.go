@@ -24,11 +24,10 @@ func main() {
 	}
 
 	service := service.New()
-	service.SetupBasicPlans()
 
 	handler := handler.New(&service)
 
-  go service.IntegrationWorker()
+	go service.IntegrationWorker()
 
 	PORT := ":8080"
 	log.Println("Server started on port ", PORT)

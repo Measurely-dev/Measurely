@@ -42,31 +42,21 @@ type MetricCache struct {
 	expiry      time.Time
 }
 
-type RateLimit struct {
-	current int
-	max     int
-	expiry  time.Time
-}
-
-type UserCache struct {
-	plan_identifier string
-	metric_count    int64
-	startDate       time.Time
-}
-
-type Cache struct {
-	plans      sync.Map
-	users      sync.Map
-	metrics    []sync.Map
-	ratelimits sync.Map
+type ProjectCache struct {
+	api_key             string
+	id                  uuid.UUID
+	event_count         int
+	monthly_event_limit int
 }
 
 type Service struct {
-	db        *db.DB
-	email     *email.Email
-	s3Client  *s3.Client
-	providers map[string]Provider
-	cache     Cache
+	db            *db.DB
+	email         *email.Email
+	s3Client      *s3.Client
+	providers     map[string]Provider
+	metricsCache  sync.Map
+	projectsCache sync.Map
+	plans         map[string]types.Plan
 }
 
 func New() Service {
@@ -134,25 +124,42 @@ func New() Service {
 		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
 	})
 
+	plans := make(map[string]types.Plan)
+
+	plans["starter"] = types.Plan{
+		Name:             "Starter",
+		MonthlyPriceId:   os.Getenv(""),
+		YearlyPriceId:    os.Getenv(""),
+		MetricLimit:      3,
+		Range:            30,
+		MaxEventPerMonth: 5000,
+	}
+
+	plans["plus"] = types.Plan{
+		Name:           "Plus",
+		MonthlyPriceId: os.Getenv(""),
+		YearlyPriceId:  os.Getenv(""),
+		MetricLimit:    15,
+		Range:          365,
+	}
+
+	plans["pro"] = types.Plan{
+		Name:           "Pro",
+		MonthlyPriceId: os.Getenv(""),
+		YearlyPriceId:  os.Getenv(""),
+		MetricLimit:    -1,
+		Range:          365,
+	}
+
 	// Return the new service with all components initialized
 	return Service{
-		db:        db,
-		email:     email,
-		providers: providers,
-		s3Client:  client,
-		cache: Cache{
-			plans:      sync.Map{},
-			users:      sync.Map{},
-			metrics:    []sync.Map{{}, {}},
-			ratelimits: sync.Map{},
-		},
+		db:            db,
+		email:         email,
+		providers:     providers,
+		s3Client:      client,
+		metricsCache:  sync.Map{},
+		projectsCache: sync.Map{},
 	}
-}
-
-func (s *Service) SetupBasicPlans() {
-	s.GetPlan("starter")
-	s.GetPlan("plus")
-	s.GetPlan("pro")
 }
 
 func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
@@ -442,7 +449,6 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 					FirstName:        strings.ToLower(strings.TrimSpace(providerUser.Name)),
 					LastName:         "",
 					StripeCustomerId: c.ID,
-					CurrentPlan:      "starter",
 				})
 				if err != nil {
 					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -453,7 +459,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
 				go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 			} else {
@@ -634,7 +640,6 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		FirstName:        request.FirstName,
 		LastName:         request.LastName,
 		StripeCustomerId: c.ID,
-		CurrentPlan:      "starter",
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -659,7 +664,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
 	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
@@ -719,37 +724,18 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	userCache, err := s.GetUserCache(user.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache: ", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user plan from cache: ", err)
-		http.Error(w, "Plan not found.", http.StatusNotFound)
-		return
-	}
-
-	plan.Price = ""
 	response := struct {
-		Id         uuid.UUID            `json:"id"`
-		Email      string               `json:"email"`
-		FirstName  string               `json:"firstname"`
-		LastName   string               `json:"lastname"`
-		EventCount int64                `json:"eventcount"`
-		Plan       types.Plan           `json:"plan"`
-		Providers  []types.UserProvider `json:"providers"`
+		Id        uuid.UUID            `json:"id"`
+		Email     string               `json:"email"`
+		FirstName string               `json:"firstname"`
+		LastName  string               `json:"lastname"`
+		Providers []types.UserProvider `json:"providers"`
 	}{
-		Id:         user.Id,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		EventCount: user.MonthlyEventCount,
-		Plan:       plan,
-		Providers:  finalProviders,
+		Id:        user.Id,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Providers: finalProviders,
 	}
 
 	bytes, jerr := json.Marshal(response)
@@ -915,7 +901,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": user.CurrentPlan}})
+	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -925,7 +911,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	})
 	go s.email.SendEmail(email.MailFields{
 		To:      "info@measurely.dev",
-		Subject: "Feedback Received from " + user.Email + " (" + user.CurrentPlan + ")",
+		Subject: "Feedback Received from " + user.Email,
 		Content: request.Content,
 	})
 }
@@ -945,24 +931,25 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.CurrentPlan != "starter" {
-		result := subscription.List(&stripe.SubscriptionListParams{
-			Customer: stripe.String(user.StripeCustomerId),
-		})
+	result := subscription.List(&stripe.SubscriptionListParams{
+		Customer: stripe.String(user.StripeCustomerId),
+	})
 
-		subscriptions := result.SubscriptionList()
+	subscriptions := result.SubscriptionList()
 
-		if subscriptions != nil {
-			if len(subscriptions.Data) != 0 {
-				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+	if subscriptions != nil {
+		if len(subscriptions.Data) != 0 {
+
+			for _, sub := range subscriptions.Data {
+				_, err := subscription.Cancel(sub.ID, nil)
 				if err != nil {
 					log.Println("Failed to cancel subscriptions: ", err)
 					http.Error(w, "Internal error", http.StatusInternalServerError)
 					return
 				}
 			}
-		}
 
+		}
 	}
 
 	// Delete stripe customer
@@ -994,7 +981,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": user.CurrentPlan}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
@@ -1222,33 +1209,6 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache: ", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user plan from cache: ", err)
-		http.Error(w, "Plan not found.", http.StatusNotFound)
-		return
-	}
-	if plan.ProjectLimit >= 0 {
-		count, cerr := s.db.GetProjectCountByUser(token.Id)
-		if cerr != nil {
-			log.Println("Error retrieving project count:", cerr)
-			http.Error(w, "Error checking project count, please try again later", http.StatusInternalServerError)
-			return
-		}
-
-		if count >= plan.ProjectLimit {
-			http.Error(w, "Project limit reached", http.StatusForbidden)
-			return
-		}
-	}
-
 	var apiKey string
 	var aerr error
 	for tries := 5; tries > 0; tries-- {
@@ -1269,9 +1229,12 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newApp, err := s.db.CreateProject(types.Project{
-		ApiKey: apiKey,
-		Name:   request.Name,
-		UserId: token.Id,
+		ApiKey:           apiKey,
+		Name:             request.Name,
+		UserId:           token.Id,
+		CurrentPlan:      "starter",
+		SubscriptionType: types.SUBSCRIPTION_MONTHLY,
+		MaxEventPerMonth: s.plans["starter"].MaxEventPerMonth,
 	})
 	if err != nil {
 		log.Println("Error creating project:", err)
@@ -1380,6 +1343,29 @@ func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println("Error fetching project:", err)
+			http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = subscription.Cancel(project.StripeSubscriptionId, nil)
+	if err != nil {
+		log.Println("Failed to cancel subscriptions: ", err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
 	// Delete the project
 	if err := s.db.DeleteProject(request.ProjectId, token.Id); err != nil {
 		log.Println("Error deleting project:", err)
@@ -1457,6 +1443,7 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, project := range projects {
+		projects[i].StripeSubscriptionId = ""
 		if project.UserRole == types.TEAM_GUEST {
 			projects[i].ApiKey = ""
 		}
@@ -1545,21 +1532,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	if count >= plan.MetricPerProjectLimit {
+	if count > s.plans[project.CurrentPlan].MetricLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}
@@ -1670,8 +1643,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Remove the metric from the cache
-	s.cache.metrics[0].Delete(request.MetricId)
-	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
+	s.metricsCache.Delete(request.MetricId)
+	s.metricsCache.Delete(project.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
 	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: -1})
@@ -1779,7 +1752,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
+	s.metricsCache.Delete(project.ApiKey + metric.Name)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -1888,9 +1861,6 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		users[i].Password = ""
 		users[i].StripeCustomerId = ""
-		users[i].MonthlyEventCount = 0
-		users[i].StartCountDate = time.Now().UTC()
-		users[i].CurrentPlan = ""
 	}
 
 	body, err := json.Marshal(users)
@@ -1953,6 +1923,17 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	count, err := s.db.GetTeamMembersCount(request.ProjectId)
+	if err != nil {
+		http.Error(w, "Failed to add team member", http.StatusInternalServerError)
+		return
+	}
+
+	if count > s.plans[project.CurrentPlan].TeamMemberLimit {
+		http.Error(w, "Team limit reached for this project", http.StatusForbidden)
+		return
+	}
+
 	err = s.db.CreateTeamRelation(types.TeamRelation{
 		UserId:    member.Id,
 		ProjectId: request.ProjectId,
@@ -1968,10 +1949,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	member.CurrentPlan = ""
 	member.Password = ""
-	member.MonthlyEventCount = 0
-	member.StartCountDate = time.Now().UTC()
 	member.StripeCustomerId = ""
 	member.UserRole = request.Role
 
@@ -2166,9 +2144,6 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		users[i].Password = ""
 		users[i].StripeCustomerId = ""
-		users[i].MonthlyEventCount = 0
-		users[i].StartCountDate = time.Now().UTC()
-		users[i].CurrentPlan = ""
 	}
 
 	body, err := json.Marshal(users)
