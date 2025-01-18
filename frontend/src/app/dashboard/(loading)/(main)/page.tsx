@@ -9,7 +9,6 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { useEffect, useMemo, useState } from 'react';
-import chroma from 'chroma-js';
 import {
   Sortable,
   SortableDragHandle,
@@ -527,20 +526,33 @@ function BlockContent(props: Block & { groupkey?: string }) {
               endDate,
             );
 
+            let value = data.pos - data.neg;
+
+            if (metrics[0].type === MetricType.Average) {
+              if (data.eventcount !== 0) {
+                value /= data.eventcount;
+              }
+            }
+
             return {
               [filter.filtercategory]: filter.name,
-              [metrics[0].name]: data.pos - data.neg,
+              [metrics[0].name]: value,
               name: filter.name,
-              value: data.pos - data.neg,
-              relativetotal: data.relativetotalpos - data.relativetotalneg,
-              date: startDate,
+              value: value,
+              metadata: {
+                value: data.pos - data.neg,
+                eventcount: data.eventcount,
+                relativetotal: data.relativetotalpos - data.relativetotalneg,
+                relativeeventcount: data.relativeeventcount,
+                date: startDate,
+              },
             };
           },
         );
 
         combinedData = await Promise.all(dataPromises);
         if (combinedData.length > 0) {
-          setDate(combinedData[0].date);
+          setDate(combinedData[0].metadata.date);
         }
       } else {
         const dataPromises = metrics.map((metric) =>
@@ -619,20 +631,43 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
   const calculateCompactBlockPourcentage = (data: any[]) => {
     let categoryTotal = 0;
+    let categoryEventCount = 0;
     let categoryVariation = 0;
+    let categoryEventCountVariation = 0;
     for (let i = 0; i < (data?.length ?? 0); i++) {
-      categoryTotal += data[i].relativetotal ?? 0;
+      categoryTotal += data[i].metadata.relativetotal ?? 0;
       categoryVariation += data[i][metrics[0].name] ?? 0;
+      categoryEventCount += data[i].metadata.relativeeventcount ?? 0;
+      categoryEventCountVariation += data[i].metadata.eventcount ?? 0;
     }
+
+    const calculateAverage = (numerator: number, denominator: number) => {
+      if (numerator === 0 || denominator === 0) return 0;
+      return numerator / denominator;
+    };
 
     const previousTotal = categoryTotal - categoryVariation;
+    const previousEventCount = categoryEventCount - categoryEventCountVariation;
 
-    if (categoryVariation === 0) return 0;
-    if (previousTotal === 0) {
-      return 100 * (categoryTotal < 0 ? -1 : 1);
+    if (metrics[0].type === MetricType.Average) {
+      const average = calculateAverage(categoryVariation, categoryEventCount);
+      const previousAverage = calculateAverage(
+        previousTotal,
+        previousEventCount,
+      );
+
+      const diff = average - previousAverage;
+      if (diff === 0 && previousAverage === 0) return 0;
+      if (previousAverage === 0) return 100 * (average < 0 ? -1 : 1);
+      return (diff / previousAverage) * 100;
+    } else {
+      if (categoryVariation === 0) return 0;
+      if (previousTotal === 0) {
+        return 100 * (categoryTotal < 0 ? -1 : 1);
+      }
+
+      return (categoryVariation / previousTotal) * 100;
     }
-
-    return (categoryVariation / previousTotal) * 100;
   };
 
   return (
@@ -862,8 +897,8 @@ const CompactChartColorMap: Record<ColorKey, string> = {
   gray: '#424242',
 };
 
-function createDynamicPieChartConfig(dataKeys: any, colors: string[]) {
-  return dataKeys.reduce((config: any, key: any, index: number) => {
+function createDynamicPieChartConfig(dataKeys: any, _: string[]) {
+  return dataKeys.reduce((config: any, key: any, _: number) => {
     config[key] = {
       label: key.charAt(0).toUpperCase() + key.slice(1),
       color: 'blue',
@@ -892,22 +927,6 @@ function Charts(props: {
   const compactValidResolvedColorKey =
     resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const compactChartColor = CompactChartColorMap[compactValidResolvedColorKey];
-
-  const pieChartConfig = createDynamicPieChartConfig(
-    props.metrics[0].filters?.[props.categories?.[0] ?? ''].map(
-      (filter) => filter.name,
-    ) ?? [],
-    chartColors,
-  );
-  const noDataPieChartConfig = {
-    desktop: {
-      color: compactChartColor,
-    },
-  };
-
-  const PieChartFakeData = [
-    { region: 'safari', visitors: 200, fill: `${compactChartColor}4D` },
-  ];
 
   switch (props.chartType) {
     case ChartType.Area:
@@ -968,6 +987,21 @@ function Charts(props: {
         />
       );
     case ChartType.Pie:
+      const pieChartConfig = createDynamicPieChartConfig(
+        props.metrics[0].filters?.[props.categories?.[0] ?? ''].map(
+          (filter) => filter.name,
+        ) ?? [],
+        chartColors,
+      );
+      const noDataPieChartConfig = {
+        desktop: {
+          color: compactChartColor,
+        },
+      };
+
+      const PieChartFakeData = [
+        { region: 'safari', visitors: 200, fill: `${compactChartColor}4D` },
+      ];
       return (
         <>
           {props.data?.reduce(

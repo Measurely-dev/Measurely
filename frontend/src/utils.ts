@@ -395,6 +395,7 @@ export const fetchEventVariation = async (
 ): Promise<{
   pos: number;
   neg: number;
+  eventcount: number;
   relativetotalpos: number;
   relativetotalneg: number;
   relativeeventcount: number;
@@ -429,6 +430,7 @@ export const fetchEventVariation = async (
     if (json != null) {
       let pos = 0;
       let neg = 0;
+      let eventcount = 0;
       let averagepercentdiff = 0;
       let relativetotalpos = 0;
       let relativetotalneg = 0;
@@ -441,6 +443,9 @@ export const fetchEventVariation = async (
         neg =
           json[1].relativetotalneg -
           (json[0].relativetotalneg - json[0].valueneg);
+        eventcount =
+          json[1].relativeeventcount -
+          (json[0].relativeeventcount - json[0].evencount);
         relativetotalpos = json[1].relativetotalpos;
         relativetotalneg = json[1].relativetotalneg;
         relativeeventcount = json[1].relativeeventcount;
@@ -505,6 +510,7 @@ export const fetchEventVariation = async (
       return {
         pos,
         neg,
+        eventcount,
         relativetotalpos,
         relativetotalneg,
         relativeeventcount,
@@ -516,6 +522,7 @@ export const fetchEventVariation = async (
   return {
     pos: 0,
     neg: 0,
+    eventcount: 0,
     relativetotalpos: 0,
     relativetotalneg: 0,
     relativeeventcount: 0,
