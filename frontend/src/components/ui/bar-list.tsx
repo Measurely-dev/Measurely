@@ -18,6 +18,7 @@ interface BarListProps<T = unknown>
   showAnimation?: boolean;
   onValueChange?: (payload: Bar<T>) => void;
   sortOrder?: 'ascending' | 'descending' | 'none';
+  color?: string; // Hex or CSS color for all bars
 }
 
 function BarListInner<T>(
@@ -27,6 +28,7 @@ function BarListInner<T>(
     showAnimation = false,
     onValueChange,
     sortOrder = 'descending',
+    color = 'blue',
     className,
     ...props
   }: BarListProps<T>,
@@ -85,18 +87,17 @@ function BarListInner<T>(
                 // base
                 'flex items-center rounded transition-all',
                 rowHeight,
-                // background color
-                'bg-blue-200 dark:bg-blue-900',
-                onValueChange
-                  ? 'group-hover:bg-blue-300 group-hover:dark:bg-blue-800'
-                  : '',
+                onValueChange ? 'group-hover:bg-opacity-80' : '',
                 // margin and duration
                 {
                   'mb-0': index === sortedData.length - 1,
                   'duration-800': showAnimation,
                 },
               )}
-              style={{ width: `${widths[index]}%` }}
+              style={{
+                width: `${widths[index]}%`,
+                backgroundColor: `${color}1A`,
+              }}
             >
               <div className={cx('absolute left-2 flex max-w-full pr-2')}>
                 {item.href ? (
@@ -122,10 +123,11 @@ function BarListInner<T>(
                   <p
                     className={cx(
                       // base
-                      'truncate whitespace-nowrap text-sm',
+                      'truncate whitespace-nowrap text-sm font-medium',
                       // text color
                       'text-gray-900 dark:text-gray-50',
                     )}
+                    style={{ color: color }}
                   >
                     {item.name}
                   </p>
@@ -148,10 +150,11 @@ function BarListInner<T>(
             <p
               className={cx(
                 // base
-                'truncate whitespace-nowrap text-sm leading-none',
+                'truncate whitespace-nowrap font-mono text-sm font-medium leading-none',
                 // text color
                 'text-gray-900 dark:text-gray-50',
               )}
+              style={{ color: color }}
             >
               {valueFormatter(item.value)}
             </p>

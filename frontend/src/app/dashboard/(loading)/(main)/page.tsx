@@ -9,6 +9,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { useEffect, useMemo, useState } from 'react';
+import chroma from 'chroma-js';
 import {
   Sortable,
   SortableDragHandle,
@@ -72,7 +73,12 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
 import { toast } from 'sonner';
-import { fetchChartData, fetchEventVariation, generateString, getMonthsFromDate } from '@/utils';
+import {
+  fetchChartData,
+  fetchEventVariation,
+  generateString,
+  getMonthsFromDate,
+} from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
 import BlocksDialog from './block-dialog';
@@ -206,10 +212,10 @@ export default function DashboardHomePage() {
                       projects.map((proj, i) =>
                         i === activeProject
                           ? Object.assign({}, proj, {
-                            blocks: Object.assign({}, proj.blocks, {
-                              layout: layoutCopy,
-                            }),
-                          })
+                              blocks: Object.assign({}, proj.blocks, {
+                                layout: layoutCopy,
+                              }),
+                            })
                           : proj,
                       ),
                     );
@@ -399,10 +405,10 @@ function Blocks() {
               projects.map((proj, i) =>
                 i === activeProject
                   ? Object.assign({}, proj, {
-                    blocks: Object.assign({}, proj.blocks, {
-                      layout: value,
-                    }),
-                  })
+                      blocks: Object.assign({}, proj.blocks, {
+                        layout: value,
+                      }),
+                    })
                   : proj,
               ),
             );
@@ -503,13 +509,16 @@ function BlockContent(props: Block & { groupkey?: string }) {
             startDate.setMinutes(0);
             startDate.setSeconds(0);
 
-            const numberOfDays = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
+            const numberOfDays = new Date(
+              startDate.getFullYear(),
+              startDate.getMonth() + 1,
+              0,
+            ).getDate();
 
             endDate.setDate(numberOfDays);
             endDate.setHours(23);
             endDate.setMinutes(59);
             endDate.setSeconds(59);
-
 
             const data = await fetchEventVariation(
               projects[activeProject].id,
@@ -608,25 +617,23 @@ function BlockContent(props: Block & { groupkey?: string }) {
     }, 1000);
   };
 
-
-
   const calculateCompactBlockPourcentage = (data: any[]) => {
     let categoryTotal = 0;
     let categoryVariation = 0;
     for (let i = 0; i < (data?.length ?? 0); i++) {
-      categoryTotal += data[i].relativetotal ?? 0
-      categoryVariation += data[i][metrics[0].name] ?? 0
+      categoryTotal += data[i].relativetotal ?? 0;
+      categoryVariation += data[i][metrics[0].name] ?? 0;
     }
 
     const previousTotal = categoryTotal - categoryVariation;
 
     if (categoryVariation === 0) return 0;
     if (previousTotal === 0) {
-      return 100 * (categoryTotal < 0 ? -1 : 1)
+      return 100 * (categoryTotal < 0 ? -1 : 1);
     }
 
-    return (categoryVariation / previousTotal) * 100
-  }
+    return (categoryVariation / previousTotal) * 100;
+  };
 
   return (
     <>
@@ -704,8 +711,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
               </Select>
             </div>
             {props.chartType !== ChartType.Pie &&
-              props.chartType !== ChartType.Radar &&
-              props.chartType !== ChartType.BarList ? (
+            props.chartType !== ChartType.Radar &&
+            props.chartType !== ChartType.BarList ? (
               <div className='flex h-full flex-row items-center'>
                 {metrics.map((metric, i) => {
                   return (
@@ -745,7 +752,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
       {props.type === BlockType.Nested ? (
         <CardHeader className='items-center pb-0'>
           <CardTitle>{props.name}</CardTitle>
-          <CardDescription>{getMonthsFromDate(date)} - {date.getFullYear()}</CardDescription>
+          <CardDescription>
+            {getMonthsFromDate(date)} - {date.getFullYear()}
+          </CardDescription>
         </CardHeader>
       ) : undefined}
 
@@ -771,10 +780,11 @@ function BlockContent(props: Block & { groupkey?: string }) {
         <></>
       ) : (
         <CardFooter
-          className={`flex-col gap-2 text-sm ${props.type === BlockType.Nested
-            ? 'items-center text-center'
-            : 'items-start'
-            }`}
+          className={`flex-col gap-2 text-sm ${
+            props.type === BlockType.Nested
+              ? 'items-center text-center'
+              : 'items-start'
+          }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
             Trending up by {calculateCompactBlockPourcentage(chartData ?? [])}% this month <TrendingUp className='h-4 w-4' />
@@ -851,31 +861,15 @@ const CompactChartColorMap: Record<ColorKey, string> = {
   gray: '#424242',
 };
 
-const pieChartConfig = {
-  visitors: {
-    label: 'Visitors',
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'blue',
-  },
-  safari: {
-    label: 'Safari',
-    color: 'lightblue',
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'purple',
-  },
-  edge: {
-    label: 'Edge',
-    color: 'violet',
-  },
-  other: {
-    label: 'Other',
-    color: 'pink',
-  },
-} satisfies ChartConfig;
+function createDynamicPieChartConfig(dataKeys: any, colors: string[]) {
+  return dataKeys.reduce((config: any, key: any, index: number) => {
+    config[key] = {
+      label: key.charAt(0).toUpperCase() + key.slice(1),
+      color: 'gray',
+    };
+    return config;
+  }, {});
+}
 
 function Charts(props: {
   chartType: ChartType | undefined;
@@ -898,11 +892,15 @@ function Charts(props: {
     resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const compactChartColor = CompactChartColorMap[compactValidResolvedColorKey];
 
-  const chartConfig = {
+  const pieChartConfig = createDynamicPieChartConfig(
+    props.categories || [],
+    chartColors,
+  );
+  const noDataPieChartConfig = {
     desktop: {
       color: compactChartColor,
     },
-  } satisfies ChartConfig;
+  };
 
   const PieChartFakeData = [
     { region: 'safari', visitors: 200, fill: `${compactChartColor}4D` },
@@ -919,7 +917,7 @@ function Charts(props: {
           index='date'
           categories={props.metrics.map((m) => m.name)}
           yAxisLabel='Total'
-          onValueChange={() => { }}
+          onValueChange={() => {}}
         />
       );
     case ChartType.Bar:
@@ -932,7 +930,7 @@ function Charts(props: {
           index='date'
           categories={props.metrics.map((m) => m.name)}
           yAxisLabel='Total'
-          onValueChange={() => { }}
+          onValueChange={() => {}}
         />
       );
     case ChartType.Combo:
@@ -952,7 +950,7 @@ function Charts(props: {
             showYAxis: true,
             colors: [chartColors[2]],
           }}
-          onValueChange={() => { }}
+          onValueChange={() => {}}
         />
       );
     case ChartType.BarList:
@@ -963,6 +961,7 @@ function Charts(props: {
             .sort((a, b) => b.value - a.value)
             .slice(0, 10)}
           {...chartProps}
+          color={`${compactChartColor}`}
         />
       );
     case ChartType.Pie:
@@ -973,7 +972,7 @@ function Charts(props: {
             0,
           ) !== 0 ? (
             <ChartContainer
-              config={pieChartConfig}
+              config={{france: {color: compactChartColor}}}
               className='mx-auto h-full w-full'
             >
               <PieChart>
@@ -987,6 +986,7 @@ function Charts(props: {
                   nameKey={props.categories?.[0]}
                   innerRadius={60}
                   strokeWidth={5}
+                  fill='grey'
                 >
                   <RechartLabel
                     content={({ viewBox }) => {
@@ -1001,17 +1001,19 @@ function Charts(props: {
                             <tspan
                               x={viewBox.cx}
                               y={viewBox.cy}
-                              className='fill-foreground text-3xl font-bold'
+                              style={{ fill: compactChartColor }}
+                              className='text-3xl font-bold'
                             >
                               {props.data?.reduce(
-                                (sum, item) => sum + item[props.metrics[0].name],
+                                (sum, item) =>
+                                  sum + item[props.metrics[0].name],
                                 0,
                               )}
                             </tspan>
                             <tspan
                               x={viewBox.cx}
                               y={(viewBox.cy || 0) + 24}
-                              className='fill-muted-foreground'
+                              style={{ fill: compactChartColor }}
                             >
                               {props.metrics[0].name}
                             </tspan>
@@ -1026,7 +1028,7 @@ function Charts(props: {
           ) : (
             <div className='pointer-events-none absolute h-full w-full'>
               <ChartContainer
-                config={chartConfig}
+                config={noDataPieChartConfig}
                 className='mx-auto h-full w-full'
               >
                 <PieChart>
@@ -1037,7 +1039,7 @@ function Charts(props: {
                   <Pie
                     data={PieChartFakeData}
                     dataKey='visitors'
-                    nameKey='browser'
+                    nameKey='region'
                     innerRadius={60}
                     strokeWidth={5}
                   >
@@ -1054,14 +1056,15 @@ function Charts(props: {
                               <tspan
                                 x={viewBox.cx}
                                 y={viewBox.cy}
-                                className='fill-muted-foreground text-3xl font-bold'
+                                style={{ fill: compactChartColor }}
+                                className='text-3xl font-bold'
                               >
                                 0
                               </tspan>
                               <tspan
                                 x={viewBox.cx}
                                 y={(viewBox.cy || 0) + 24}
-                                className='fill-muted-foreground'
+                                style={{ fill: compactChartColor }}
                               >
                                 No data
                               </tspan>
@@ -1079,7 +1082,10 @@ function Charts(props: {
       );
     case ChartType.Radar:
       return (
-        <ChartContainer config={chartConfig} className='mx-auto h-full w-full'>
+        <ChartContainer
+          config={{} as ChartConfig}
+          className='mx-auto h-full w-full'
+        >
           <RadarChart data={props.data ?? []}>
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <PolarGrid
@@ -1090,7 +1096,7 @@ function Charts(props: {
             <PolarAngleAxis dataKey={props.categories?.[0]} />
             <Radar
               dataKey={props.metrics[0].name}
-              fill='var(--color-desktop)'
+              fill={compactChartColor}
               fillOpacity={0.5}
             />
           </RadarChart>
@@ -1113,16 +1119,16 @@ function NestedBlocks(props: Block) {
           projects.map((proj, i) =>
             i === activeProject
               ? Object.assign({}, proj, {
-                blocks: Object.assign({}, proj.blocks, {
-                  layout: proj.blocks?.layout.map((l) =>
-                    l.uniquekey === props.uniquekey
-                      ? Object.assign({}, l, {
-                        nested: value,
-                      })
-                      : l,
-                  ),
-                }),
-              })
+                  blocks: Object.assign({}, proj.blocks, {
+                    layout: proj.blocks?.layout.map((l) =>
+                      l.uniquekey === props.uniquekey
+                        ? Object.assign({}, l, {
+                            nested: value,
+                          })
+                        : l,
+                    ),
+                  }),
+                })
               : proj,
           ),
         );
