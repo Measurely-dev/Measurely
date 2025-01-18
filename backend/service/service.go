@@ -1511,7 +1511,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Type != types.BASE_METRIC && request.Type != types.DUAL_METRIC && request.Type != types.AVERAGE_METRIC {
+	if request.Type < 0 || request.Type > 3 {
 		http.Error(w, "Invalid metric type", http.StatusBadRequest)
 		return
 	}

@@ -110,7 +110,7 @@ func (h *Handler) setup_api() {
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)
 
-	authRouter.Get("/integrations/stripe", h.service.AuthorizeStripe)
+	authRouter.Post("/integrations/stripe", h.service.AuthorizeStripe)
 	authRouter.Get("/integrations-callback/stripe", h.service.StripeCallback)
 	////
 

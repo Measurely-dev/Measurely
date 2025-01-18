@@ -77,7 +77,7 @@ export default function NewMetric() {
           name: 'Stripe integration',
           value: MetricType.Stripe,
           description:
-            'Integrates with Stripe to track payment-related metrics such as revenue, subscriptions, customer churn, and transaction volume. Useful for monitoring business performance and growth through financial data.',
+            'Integrates with Stripe to track payment-related metrics such as revenue, subscriptions, refunds, and payment intents. Useful for monitoring business performance and growth through financial data.',
         },
         {
           name: 'Google Analytics integration',
@@ -103,6 +103,8 @@ export default function NewMetric() {
         return <BasicAverageStep setStep={setStep} type={value} />;
       case MetricType.Dual:
         return <DualStep setStep={setStep} />;
+      case MetricType.Stripe:
+        return <StripeStep setStep={setStep} />
     }
   };
 
@@ -194,13 +196,12 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
-        props.comingSoon
-          ? 'cursor-not-allowed bg-accent'
-          : props.state === props.value
-            ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
-            : 'cursor-pointer hover:bg-accent/50'
-      }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.comingSoon
+        ? 'cursor-not-allowed bg-accent'
+        : props.state === props.value
+          ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
+          : 'cursor-pointer hover:bg-accent/50'
+        }`}
       onClick={() => {
         if (!props.comingSoon) {
           props.setState(props.value);
@@ -292,11 +293,11 @@ function BasicAverageStep(props: {
                   projects.map((v, i) =>
                     i === activeProject
                       ? Object.assign({}, v, {
-                          metrics: [
-                            ...(projects[activeProject].metrics ?? []),
-                            json,
-                          ],
-                        })
+                        metrics: [
+                          ...(projects[activeProject].metrics ?? []),
+                          json,
+                        ],
+                      })
                       : v,
                   ),
                 );
@@ -455,11 +456,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 projects.map((v, i) =>
                   i === activeProject
                     ? Object.assign({}, v, {
-                        metrics: [
-                          ...(projects[activeProject].metrics ?? []),
-                          json,
-                        ],
-                      })
+                      metrics: [
+                        ...(projects[activeProject].metrics ?? []),
+                        json,
+                      ],
+                    })
                     : v,
                 ),
               );
@@ -602,6 +603,136 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+
+function StripeStep(props: {
+  setStep: Dispatch<SetStateAction<number>>;
+}) {
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
+  const router = useRouter();
+
+  return (
+    <div className='mx-auto flex flex-col gap-6'>
+      <div className='flex flex-col gap-[5px]'>
+        <div className='text-xl font-medium'>
+          Stripe Metric
+        </div>
+        <div className='text-sm text-secondary'>
+          Tracks revenue, subscriptions, refunds, and more via Stripe for financial insights.
+        </div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            if (name === '') {
+              toast.error('Please enter a name');
+              setLoading(false);
+              return;
+            }
+
+            if (forbidden.includes(name.toLowerCase())) {
+              toast.error(
+                'The variable names you have chosen are used internally, please choose something else.',
+              );
+              setLoading(false);
+              return;
+            }
+
+            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                name: name,
+                projectid: projects[activeProject].id,
+                basevalue: 0,
+                type: MetricType.Stripe,
+                namepos: 'income',
+                nameneg: 'outcome',
+              }),
+            })
+
+
+            if (response.ok) {
+              const data = await response.json()
+
+              fetch(`${process.env.NEXT_PUBLIC_API_URL}/integrations/stripe`, {method : "POST", credentials : "include", headers : {
+                "Content-Type" :"application/json"
+              }, body:JSON.stringify({
+                  projectid : data.projectid,
+                  metricid : data.id
+                })}).then(res => {
+                  if(res.ok) {
+                    return res.json()
+                  }else {
+                    res.text().then(text => {
+                      toast.error(text)
+                      setLoading(false)
+                    })
+                  }
+                }).then(data => {
+                  if (data !== undefined && data !== null) {
+                    window.location.replace(data.url);
+                  }
+                })
+
+            } else {
+
+              response.text().then((text) => {
+                toast.error(text);
+                setLoading(false);
+              });
+            }
+
+
+          }}
+        >
+          <div className='flex w-full flex-col gap-3'>
+            <div className='my-2 flex flex-col gap-4'>
+              <div className='flex w-full flex-col gap-3'>
+                <Label>Metric name</Label>
+                <Input
+                  placeholder={
+                    "Revenue, Earnings, Sales, Profit"
+                  }
+                  type='text'
+                  maxLength={30}
+                  className='h-11 rounded-[12px]'
+                  value={name}
+                  onChange={(e) => setName(e.target.value.trimStart())}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className='flex w-full flex-row gap-2 max-md:flex-col'>
+            <Button
+              type='button'
+              variant='secondary'
+              className='w-full rounded-[12px]'
+              onClick={() => props.setStep(1)}
+            >
+              Back
+            </Button>
+            <Button
+              type='submit'
+              variant='default'
+              loading={loading}
+              disabled={name === '' || loading}
+              className='w-full rounded-[12px]'
+            >
+              Create
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

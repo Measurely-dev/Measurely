@@ -777,10 +777,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
             }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
-            Trending up by {calculateCompactBlockPourcentage(chartData ?? [])}% <TrendingUp className='h-4 w-4' />
+            Trending up by {calculateCompactBlockPourcentage(chartData ?? [])}% this month <TrendingUp className='h-4 w-4' />
           </div>
           <div className='leading-none text-muted-foreground'>
-            Showing total {metrics[0].name} for the last month
+            Showing total {metrics[0].name.toLowerCase()} for the last month
           </div>
         </CardFooter>
       )}
