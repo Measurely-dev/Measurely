@@ -41,7 +41,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
       className={`relative flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className} ${popular ? 'rounded-tl-2xl' : ''}`}
     >
       {popular ? (
-        <div className='absolute -left-[8px] -top-[8px] flex items-center gap-2 rounded-[20px] rounded-bl-none rounded-tr-none border border-purple-200 bg-purple-50 px-2.5 py-1.5'>
+        <div className='absolute -left-[8px] -top-[8px] flex items-center gap-2 rounded-[20px] rounded-bl-none rounded-br-[12px] rounded-tr-none border border-purple-200 bg-purple-50 px-2.5 py-1.5'>
           <Sparkles className='size-4 text-purple-500' />
           <div className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono font-bold text-transparent'>
             Popular
