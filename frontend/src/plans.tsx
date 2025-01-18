@@ -13,11 +13,8 @@ export const plans = [
       <div key='2'>
         <strong className='text-black'>5</strong> metrics per project
       </div>,
-      <div key='3'>
-        <strong className='text-black'>25</strong> updates per minute
-      </div>,
       <div key='4'>
-        <strong className='text-black'>5k</strong> updates per month
+        <strong className='text-black'>5k</strong> events per month
       </div>,
       <div key='5'>
         Support (<strong className='text-black'>2-3</strong> business days)
@@ -39,12 +36,6 @@ export const plans = [
       <div key='2'>
         <strong className='text-black'>15</strong> metrics per project
       </div>,
-      <div key='3'>
-        <strong className='text-black'>1K</strong> updates per minute
-      </div>,
-      <div key='4'>
-        <strong className='text-black'>1M</strong> updates per month
-      </div>,
       <div key='5'>
         Support (<strong className='text-black'>1-2</strong> business days)
       </div>,
@@ -64,12 +55,6 @@ export const plans = [
       </div>,
       <div key='2'>
         <strong className='text-black'>35</strong> metrics per project
-      </div>,
-      <div key='3'>
-        <strong className='text-black'>10K</strong> updates per minute
-      </div>,
-      <div key='4'>
-        <strong className='text-black'>10M</strong> updates per month
       </div>,
       <div key='5'>
         Support (<strong className='text-black'>1</strong> business days)

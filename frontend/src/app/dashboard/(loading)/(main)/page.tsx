@@ -787,7 +787,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
           }`}
         >
           <div className={`flex gap-2 font-medium leading-none`}>
-            Trending up by {calculateCompactBlockPourcentage(chartData ?? [])}% this month <TrendingUp className='h-4 w-4' />
+            Trending up by {calculateCompactBlockPourcentage(chartData ?? [])}%
+            this month <TrendingUp className='h-4 w-4' />
           </div>
           <div className='leading-none text-muted-foreground'>
             Showing total {metrics[0].name.toLowerCase()} for the last month
@@ -865,7 +866,7 @@ function createDynamicPieChartConfig(dataKeys: any, colors: string[]) {
   return dataKeys.reduce((config: any, key: any, index: number) => {
     config[key] = {
       label: key.charAt(0).toUpperCase() + key.slice(1),
-      color: 'gray',
+      color: 'blue',
     };
     return config;
   }, {});
@@ -893,7 +894,9 @@ function Charts(props: {
   const compactChartColor = CompactChartColorMap[compactValidResolvedColorKey];
 
   const pieChartConfig = createDynamicPieChartConfig(
-    props.categories || [],
+    props.metrics[0].filters?.[props.categories?.[0] ?? ''].map(
+      (filter) => filter.name,
+    ) ?? [],
     chartColors,
   );
   const noDataPieChartConfig = {
@@ -972,7 +975,7 @@ function Charts(props: {
             0,
           ) !== 0 ? (
             <ChartContainer
-              config={{france: {color: compactChartColor}}}
+              config={pieChartConfig}
               className='mx-auto h-full w-full'
             >
               <PieChart>

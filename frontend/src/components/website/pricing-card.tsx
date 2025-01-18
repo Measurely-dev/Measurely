@@ -14,6 +14,7 @@ interface WebPricingCardProps {
   list?: Array<ReactNode>;
   button?: string;
   disabled?: boolean | false;
+  sliderValue?: string | 0;
   popular?: boolean | false;
   [key: string]: any; // Accept any additional props
 }
@@ -30,6 +31,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
   disabled,
   loading,
   onSelect,
+  sliderValue,
   popular,
   ...additionalProps
 }) => {
@@ -39,7 +41,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
       className={`relative flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className} ${popular ? 'rounded-tl-2xl' : ''}`}
     >
       {popular ? (
-        <div className='absolute -left-[8px] -top-[8px] flex items-center gap-2 rounded-2xl rounded-bl-none rounded-tr-none border border-purple-200 bg-purple-50 px-2 py-1'>
+        <div className='absolute -left-[8px] -top-[8px] flex items-center gap-2 rounded-[20px] rounded-bl-none rounded-tr-none border border-purple-200 bg-purple-50 px-2.5 py-1.5'>
           <Sparkles className='size-4 text-purple-500' />
           <div className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono font-bold text-transparent'>
             Popular
@@ -59,17 +61,48 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
           ) : (
             <>
               <div className='text-3xl font-semibold leading-none'>
-                ${price}
+                {name === 'Starter' ? (
+                  'Free'
+                ) : recurrence === 'year' ? (
+                  <>
+                    <span className='line-through'>
+                      ${Math.round((price || 0) * 1.2)}
+                    </span>
+                    <span className='ml-2 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono font-bold text-transparent'>
+                      ${Math.round(price || 0)}{' '}
+                    </span>
+                  </>
+                ) : (
+                  `$${Math.round(price || 0)}`
+                )}
               </div>
+
               <div className='text-xs text-secondary'>
-                {recurrence === 'month' ? 'USD per month' : 'forever'}
+                {recurrence === 'month'
+                  ? 'USD per month'
+                  : recurrence === 'year'
+                    ? 'USD per year'
+                    : 'forever'}
               </div>
             </>
           )}
         </div>
       </div>
-
       <div className='mt-5 flex flex-col gap-4'>
+        {name === 'Starter' ? undefined : (
+          <>
+            <div className='flex flex-row items-center gap-[10px]'>
+              <div className='text-sm font-medium text-secondary'>
+                Up to{' '}
+                <span className='mx-1 animate-gradient rounded-[6px] border bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text px-2 py-1 font-mono text-base font-bold text-transparent'>
+                  {sliderValue}
+                </span>{' '}
+                events per month
+              </div>
+            </div>
+          </>
+        )}
+
         <div className='mb-[10px] text-sm font-semibold'>For {target}</div>
         {list?.map((listItem, i) => {
           return (

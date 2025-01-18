@@ -5,6 +5,8 @@ import WebPricingCard from '../pricing-card';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { Slider } from '@/components/ui/slider';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 export default function PricingCardsSection(props: {
   isAuthentificated: string | null;
@@ -12,27 +14,39 @@ export default function PricingCardsSection(props: {
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
+  const [sliderValue, setSliderValue] = useState<number[]>([0]);
+  const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
   const router = useRouter();
 
-  const enterpriseList = [
-    <div key='1'>
-      Up to <strong className='text-black'>100</strong> projects
-    </div>,
-    <div key='2'>
-      Up to an <strong className='text-black'>unlimited</strong> amount of
-      metrics per project
-    </div>,
-    <div key='3'>
-      Up to <strong className='text-black'>10,000</strong> updates per minute
-    </div>,
-    <div key='4'>
-      Up to an <strong className='text-black'>unlimited</strong> amount of
-      updates per month
-    </div>,
-    <div key='5'>
-      Support <strong className='text-black'>SLAs</strong> available
-    </div>,
-  ];
+  function getEventAmount(value: number): string {
+    const valueMap: Record<number, string> = {
+      0: '10K',
+      10: '50K',
+      20: '100K',
+      30: '250K',
+      40: '500K',
+      50: '1M',
+      60: '2M',
+      70: '4M',
+      80: '6M',
+      90: '8M',
+      100: '10M+',
+    };
+
+    return valueMap[value] || 'N/A';
+  }
+
+  function calculatePrice(basePrice: number): number {
+    const additionalCostPerStep = 5;
+    const sliderSteps = sliderValue[0] / 10;
+    let totalPrice = basePrice + additionalCostPerStep * sliderSteps;
+
+    if (billingPeriod === 'year') {
+      totalPrice = totalPrice * 12 * 0.8;
+    }
+
+    return Math.round(totalPrice);
+  }
 
   const subscribe = (plan: string) => {
     if (props.isAuthentificated === 'true') {
@@ -71,6 +85,7 @@ export default function PricingCardsSection(props: {
       router.push('/register');
     }
   };
+
   return (
     <>
       <WebPageHeader
@@ -79,15 +94,57 @@ export default function PricingCardsSection(props: {
             <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
               Pricing
             </span>
-            <br className='sm:hidden' />
-            that fits
-            <br /> your needs
+            that fits your needs
           </span>
         }
-        description="No hidden fees, just the plan that's right for you"
+        description=''
       />
-      <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-lg:grid-cols-1'>
+      <div className='mx-auto mt-[40px] flex w-full max-w-[400px] flex-row items-center gap-4'>
+        <span className='font-mono text-sm font-medium text-primary'>10K</span>
+        <Slider
+          defaultValue={[0]}
+          max={100}
+          step={10}
+          value={sliderValue}
+          onValueChange={(e) => setSliderValue(e)}
+          formatLabel={(value) =>
+            getEventAmount(value) === '10M+'
+              ? `${getEventAmount(value)} events`
+              : `Up to ${getEventAmount(value)} events`
+          }
+        />
+        <span className='font-mono text-sm font-medium text-primary'>10M+</span>
+      </div>
+      <ToggleGroup
+        type='single'
+        variant='default'
+        className='mx-auto my-[30px] w-fit rounded-[12px] bg-accent p-1'
+        onValueChange={(value) => {
+          if (value !== billingPeriod) {
+            setBillingPeriod(value === 'year' ? 'year' : 'month');
+          }
+        }}
+        value={billingPeriod}
+      >
+        <ToggleGroupItem
+          value='month'
+          className='rounded-[10px] data-[state=on]:!bg-background'
+        >
+          Monthly
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value='year'
+          className='flex items-center rounded-[10px] data-[state=on]:!bg-background'
+        >
+          Yearly
+          <span className='bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+            -20%
+          </span>
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <div className='grid grid-cols-3 gap-[10px] max-lg:grid-cols-1'>
         {plans.map((plan, i) => {
+          const isStarter = plan.name === 'Starter';
           return (
             <WebPricingCard
               className={
@@ -96,11 +153,12 @@ export default function PricingCardsSection(props: {
                   : 'lg:scale-95'
               }
               key={i}
+              sliderValue={getEventAmount(sliderValue[0])}
               name={plan.name}
               popular={plan.name === 'Plus' ? true : false}
               description={plan.description}
-              price={plan.price}
-              recurrence={plan.reccurence}
+              price={isStarter ? plan.price : calculatePrice(plan.price)}
+              recurrence={plan.name === 'Starter' ? 'forever' : billingPeriod}
               target={plan.target}
               list={plan.list}
               button={
@@ -117,18 +175,6 @@ export default function PricingCardsSection(props: {
           );
         })}
       </div>
-      <WebPricingCard
-        recurrence='month'
-        name='Entreprise'
-        className='mt-5'
-        description='Designed for businesses requiring custom solutions. Enjoy personalized limits, advanced features, and premium support to meet your unique needs. Reach out to our sales team to craft a plan tailored specifically for you.'
-        price='custom pricing'
-        reccurence='forever'
-        target='large organizations'
-        list={enterpriseList}
-        disabled={props.type === 'waitlist' ? true : false}
-        button='Talk to sales'
-      />
     </>
   );
 }
