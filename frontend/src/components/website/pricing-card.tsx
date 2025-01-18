@@ -89,20 +89,25 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         </div>
       </div>
       <div className='mt-5 flex flex-col gap-4'>
-        {name === 'Starter' ? undefined : (
+        {sliderValue ? (
           <>
-            <div className='flex flex-row items-center gap-[10px]'>
-              <div className='text-sm font-medium text-secondary'>
-                Up to{' '}
-                <span className='mx-1 animate-gradient rounded-[6px] border bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text px-2 py-1 font-mono text-base font-bold text-transparent'>
-                  {sliderValue}
-                </span>{' '}
-                events per month
-              </div>
-            </div>
+            {name === 'Starter' ? undefined : (
+              <>
+                <div className='flex flex-row items-center gap-[10px]'>
+                  <div className='text-sm font-medium text-secondary'>
+                    Up to{' '}
+                    <span className='mx-1 animate-gradient rounded-[6px] border bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text px-2 py-1 font-mono text-base font-bold text-transparent'>
+                      {sliderValue}
+                    </span>{' '}
+                    events per month
+                  </div>
+                </div>
+              </>
+            )}
           </>
+        ) : (
+          <></>
         )}
-
         <div className='mb-[10px] text-sm font-semibold'>For {target}</div>
         {list?.map((listItem, i) => {
           return (
