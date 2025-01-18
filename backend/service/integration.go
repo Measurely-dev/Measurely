@@ -204,8 +204,8 @@ func (s *Service) AuthorizeStripe(w http.ResponseWriter, r *http.Request) {
 	params := url.Values{}
 	params.Add("response_type", "code")
 	params.Add("client_id", os.Getenv("STRIPE_CLIENT_ID"))
-	params.Add("scope", "read_write") // Adjust scope based on your needs
-	params.Add("redirect_uri", GetURL()+"/integrations-callback/stripe")
+	params.Add("scope", "read_write") 
+  params.Add("redirect_uri", GetURL()+"/integrations-callback/stripe")
 	params.Add("state", metric.Id.String())
 
 	// // Optional parameters for a better user experience
