@@ -73,12 +73,12 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <Head>
-        {/* Performance Optimization */}
         <link rel='preconnect' href='https://fonts.gstatic.com' />
+        <title>Measurely</title>
       </Head>
       <body className={GeistSans.className + ' ' + GeistMono.variable}>
         {children}
-        <Toaster richColors theme='light' closeButton />
+        <Toaster richColors theme='light' position='bottom-right' closeButton />
       </body>
     </html>
   );
