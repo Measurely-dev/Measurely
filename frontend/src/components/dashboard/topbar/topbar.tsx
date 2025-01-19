@@ -29,7 +29,7 @@ export default function DashboardTopbar() {
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ProjectsChip />
           <div className='max-sm:hidden'>
-            {projects[activeProject].userrole !== UserRole.Guest && (
+            {projects[activeProject].user_role !== UserRole.Guest && (
               <ApiDialog projectid={projects[activeProject]?.id ?? ''}>
                 <Button
                   size={'sm'}
@@ -48,8 +48,8 @@ export default function DashboardTopbar() {
             <Button
               className='h-[35px] gap-[8px] rounded-[12px]'
               disabled={
-                projects[activeProject].userrole !== UserRole.Admin &&
-                projects[activeProject].userrole !== UserRole.Owner
+                projects[activeProject].user_role !== UserRole.Admin &&
+                projects[activeProject].user_role !== UserRole.Owner
               }
             >
               <Plus className='size-[16px]' />

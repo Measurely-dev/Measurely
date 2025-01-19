@@ -109,8 +109,8 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 	apikey := authHeader[7:]
 
-	metricid, err := uuid.Parse(chi.URLParam(r, "metricidentifier"))
-	metricname := chi.URLParam(r, "metricidentifier")
+	metricid, err := uuid.Parse(chi.URLParam(r, "metric_identifier"))
+	metricname := chi.URLParam(r, "metric_identifier")
 	useName := false
 
 	if metricname == "" && err != nil {
@@ -232,13 +232,13 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
+	metricid, err := uuid.Parse(r.URL.Query().Get("metric_id"))
 	if err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
 	}
 
-	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
+	projectid, err := uuid.Parse(r.URL.Query().Get("project_id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
@@ -257,7 +257,7 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	usenext := false
-	if r.URL.Query().Get("usenext") == "1" {
+	if r.URL.Query().Get("use_next") == "1" {
 		usenext = true
 	}
 
@@ -320,13 +320,13 @@ func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
+	metricid, err := uuid.Parse(r.URL.Query().Get("metric_id"))
 	if err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
 	}
 
-	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
+	projectid, err := uuid.Parse(r.URL.Query().Get("project_id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return

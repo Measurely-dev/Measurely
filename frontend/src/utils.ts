@@ -32,22 +32,22 @@ export function roleToString(role: UserRole): string {
   }
 }
 
-export function formatFullName(firstname: string, lastname: string) {
-  firstname =
-    firstname.length > 1
-      ? firstname[0].toUpperCase() + firstname.slice(1)
-      : firstname.toUpperCase();
-  lastname =
-    lastname.length > 1
-      ? lastname[0].toUpperCase() + lastname.slice(1)
-      : lastname.toUpperCase();
+export function formatFullName(first_name: string, last_name: string) {
+  first_name =
+    first_name.length > 1
+      ? first_name[0].toUpperCase() + first_name.slice(1)
+      : first_name.toUpperCase();
+  last_name =
+    last_name.length > 1
+      ? last_name[0].toUpperCase() + last_name.slice(1)
+      : last_name.toUpperCase();
 
-  return firstname + ' ' + lastname;
+  return first_name + ' ' + last_name;
 }
 
-export async function loadMetrics(projectid: string): Promise<Metric[]> {
+export async function loadMetrics(project_id: string): Promise<Metric[]> {
   const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + '/metrics?projectid=' + projectid,
+    process.env.NEXT_PUBLIC_API_URL + '/metrics?project_id=' + project_id,
     {
       method: 'GET',
       headers: {
@@ -61,16 +61,16 @@ export async function loadMetrics(projectid: string): Promise<Metric[]> {
     if (json === null) return [];
 
     for (let i = 0; i < json.length; i++) {
-      const namepos = json[i].namepos;
-      const nameneg = json[i].nameneg;
+      const name_pos = json[i].name_pos;
+      const name_neg = json[i].name_neg;
 
       if (json[i].filters === null) continue;
       const filterCategories = Object.keys(json[i].filters);
 
       for (let j = 0; j < filterCategories.length; j++) {
         for (let k = 0; k < json[i].filters[filterCategories[j]].length; k++) {
-          json[i].filters[filterCategories[j]][k].namepos = namepos;
-          json[i].filters[filterCategories[j]][k].nameneg = nameneg;
+          json[i].filters[filterCategories[j]][k].name_pos = name_pos;
+          json[i].filters[filterCategories[j]][k].name_neg = name_neg;
         }
       }
     }
@@ -108,8 +108,8 @@ export const fetchChartData = async (
   date: Date,
   range: number,
   metric: Metric,
-  projectid: string,
-  chartType: 'trend' | 'overview',
+  project_id: string,
+  chart_type: 'trend' | 'overview',
 ): Promise<any[]> => {
   const tmpData: any[] = [];
   if (!date) {
@@ -132,13 +132,13 @@ export const fetchChartData = async (
   let dataLength = 0;
 
   if (range === 1) {
-    if (chartType === 'trend') {
+    if (chart_type === 'trend') {
       dataLength = 24 * 3;
     } else {
       dataLength = 24;
     }
   } else if (range === 7) {
-    if (chartType === 'trend') {
+    if (chart_type === 'trend') {
       dataLength = range * 3;
     } else {
       dataLength = range;
@@ -156,20 +156,20 @@ export const fetchChartData = async (
       date: eventDate,
     };
     if (eventDate <= now) {
-      data[metric.type !== MetricType.Dual ? metric.name : metric.namepos] = 0;
+      data[metric.type !== MetricType.Dual ? metric.name : metric.name_pos] = 0;
       if (metric.type === MetricType.Dual) {
-        data[metric.nameneg] = 0;
+        data[metric.name_neg] = 0;
       }
     }
     tmpData.push(data);
     if (range === 1) {
-      if (chartType === 'trend') {
+      if (chart_type === 'trend') {
         dateCounter.setMinutes(dateCounter.getMinutes() + 20);
       } else {
         dateCounter.setHours(dateCounter.getHours() + 1);
       }
     } else if (range === 7) {
-      if (chartType === 'trend') {
+      if (chart_type === 'trend') {
         dateCounter.setHours(dateCounter.getHours() + 8);
       } else {
         dateCounter.setDate(dateCounter.getDate() + 1);
@@ -181,7 +181,7 @@ export const fetchChartData = async (
     }
   }
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&projectid=${projectid}&start=${from.toISOString()}&end=${to.toISOString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?metric_id=${metric.id}&project_id=${project_id}&start=${from.toISOString()}&end=${to.toISOString()}`,
     { method: 'GET', credentials: 'include' },
   )
     .then((resp) => {
@@ -205,7 +205,7 @@ export const fetchChartData = async (
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
                 eventDate.getHours() === tmpData[j].date.getHours();
-              if (chartType === 'trend') {
+              if (chart_type === 'trend') {
                 matches =
                   matches &&
                   eventDate.getMinutes() === tmpData[j].date.getMinutes();
@@ -215,7 +215,7 @@ export const fetchChartData = async (
                 eventDate.getDate() === tmpData[j].date.getDate() &&
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              if (chartType === 'trend') {
+              if (chart_type === 'trend') {
                 matches =
                   matches &&
                   eventDate.getHours() >= tmpData[j].date.getHours() &&
@@ -235,36 +235,38 @@ export const fetchChartData = async (
             if (matches) {
               if (metric.type === MetricType.Average) {
                 const current_average = tmpData[j][metric.name] ?? 0;
-                const current_eventcount = tmpData[j]['Event Count'] ?? 0;
+                const current_event_count = tmpData[j]['Event Count'] ?? 0;
 
                 tmpData[j]['Event Count'] =
-                  current_eventcount + json[i].eventcount;
+                  current_event_count + json[i].event_count;
 
                 tmpData[j][metric.name] =
-                  (current_average * current_eventcount +
-                    (json[i].valuepos - json[i].valueneg)) /
+                  (current_average * current_event_count +
+                    (json[i].value_pos - json[i].value_neg)) /
                   tmpData[j]['Event Count'];
                 if (tmpData[j]['+'] === undefined) tmpData[j]['+'] = 0;
                 if (tmpData[j]['-'] === undefined) tmpData[j]['-'] = 0;
-                tmpData[j]['+'] += json[i].valuepos;
-                tmpData[j]['-'] += json[i].valueneg;
+                tmpData[j]['+'] += json[i].value_pos;
+                tmpData[j]['-'] += json[i].value_neg;
               } else {
                 tmpData[j][
-                  metric.type === MetricType.Base ? metric.name : metric.namepos
-                ] += json[i].valuepos;
-                tmpData[j][metric.nameneg] += json[i].valueneg;
+                  metric.type === MetricType.Base
+                    ? metric.name
+                    : metric.name_pos
+                ] += json[i].value_pos;
+                tmpData[j][metric.name_neg] += json[i].value_neg;
               }
 
-              tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
-              tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
-              tmpData[j]['Event Trend'] = json[i].relativeeventcount;
+              tmpData[j]['Positive Trend'] = json[i].relative_total_pos;
+              tmpData[j]['Negative Trend'] = json[i].relative_total_neg;
+              tmpData[j]['Event Trend'] = json[i].relative_event_count;
 
-              if (json[i].relativeeventcount === 0) {
+              if (json[i].relative_event_count === 0) {
                 tmpData[j]['Average Trend'] = 0;
               } else {
                 tmpData[j]['Average Trend'] =
-                  (json[i].relativetotalpos - json[i].relativetotalneg) /
-                  json[i].relativeeventcount;
+                  (json[i].relative_total_pos - json[i].relative_total_neg) /
+                  json[i].relative_event_count;
               }
             }
           }
@@ -276,7 +278,7 @@ export const fetchChartData = async (
 
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    // if ((range === 1 || range === 7) && chartType === 'trend') {
+    // if ((range === 1 || range === 7) && chart_type === 'trend') {
     //   tmpData[i].tooltiplabel +=
     //     ' ' + parseXAxis(tmpData[i].date, range === 1 ? 0 : 1);
     // }
@@ -313,16 +315,16 @@ export const fetchChartData = async (
 };
 
 export const fetchNextEvent = async (
-  projectid: string,
-  metricid: string,
+  project_id: string,
+  metric_id: string,
   start?: Date,
 ): Promise<{
   pos: number;
   neg: number;
-  eventcount: number;
-  relativetotalpos: number;
-  relativetotalneg: number;
-  relativeeventcount: number;
+  event_count: number;
+  relative_total_pos: number;
+  relative_total_neg: number;
+  relative_event_count: number;
   results: number;
 }> => {
   const from = start === undefined ? new Date() : new Date(start);
@@ -333,7 +335,7 @@ export const fetchNextEvent = async (
 
   const to = new Date(from);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?projectid=${projectid}&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?project_id=${project_id}&metric_id=${metric_id}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
     {
       method: 'GET',
       credentials: 'include',
@@ -348,29 +350,29 @@ export const fetchNextEvent = async (
       if (json.length > 0) {
         let pos = 0;
         let neg = 0;
-        let eventcount = 0;
-        let relativetotalpos = 0;
-        let relativetotalneg = 0;
-        let relativeeventcount = 0;
+        let event_count = 0;
+        let relative_total_pos = 0;
+        let relative_total_neg = 0;
+        let relative_event_count = 0;
         let results = 0;
         for (let i = 0; i < json.length; i++) {
-          relativetotalpos = json[i].relativetotalpos;
-          relativetotalneg = json[i].relativetotalneg;
-          relativeeventcount = json[i].relativeeventcount;
+          relative_total_pos = json[i].relative_total_pos;
+          relative_total_neg = json[i].relative_total_neg;
+          relative_event_count = json[i].relative_event_count;
 
-          pos += json[i].valuepos;
-          neg += json[i].valueneg;
-          eventcount += json[i].eventcount;
+          pos += json[i].value_pos;
+          neg += json[i].value_neg;
+          event_count += json[i].event_count;
 
           results += 1;
         }
         return {
           pos,
           neg,
-          eventcount,
-          relativetotalpos,
-          relativetotalneg,
-          relativeeventcount,
+          event_count,
+          relative_total_pos,
+          relative_total_neg,
+          relative_event_count,
           results,
         };
       }
@@ -379,26 +381,26 @@ export const fetchNextEvent = async (
   return {
     pos: 0,
     neg: 0,
-    eventcount: 0,
-    relativetotalpos: 0,
-    relativetotalneg: 0,
-    relativeeventcount: 0,
+    event_count: 0,
+    relative_total_pos: 0,
+    relative_total_neg: 0,
+    relative_event_count: 0,
     results: 0,
   };
 };
 
 export const fetchEventVariation = async (
-  projectid: string,
-  metricid: string,
+  project_id: string,
+  metric_id: string,
   startDate?: Date,
   endDate?: Date,
 ): Promise<{
   pos: number;
   neg: number;
-  eventcount: number;
-  relativetotalpos: number;
-  relativetotalneg: number;
-  relativeeventcount: number;
+  event_count: number;
+  relative_total_pos: number;
+  relative_total_neg: number;
+  relative_event_count: number;
   averagepercentdiff: number;
   results: number;
 }> => {
@@ -414,9 +416,9 @@ export const fetchEventVariation = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${
-      projectid
-    }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?project_id=${
+      project_id
+    }&metric_id=${metric_id}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {
       method: 'GET',
       credentials: 'include',
@@ -430,37 +432,37 @@ export const fetchEventVariation = async (
     if (json != null) {
       let pos = 0;
       let neg = 0;
-      let eventcount = 0;
+      let event_count = 0;
       let averagepercentdiff = 0;
-      let relativetotalpos = 0;
-      let relativetotalneg = 0;
-      let relativeeventcount = 0;
+      let relative_total_pos = 0;
+      let relative_total_neg = 0;
+      let relative_event_count = 0;
 
       if (json.length > 1) {
         pos =
-          json[1].relativetotalpos -
-          (json[0].relativetotalpos - json[0].valuepos);
+          json[1].relative_total_pos -
+          (json[0].relative_total_pos - json[0].value_pos);
         neg =
-          json[1].relativetotalneg -
-          (json[0].relativetotalneg - json[0].valueneg);
-        eventcount =
-          json[1].relativeeventcount -
-          (json[0].relativeeventcount - json[0].evencount);
-        relativetotalpos = json[1].relativetotalpos;
-        relativetotalneg = json[1].relativetotalneg;
-        relativeeventcount = json[1].relativeeventcount;
+          json[1].relative_total_neg -
+          (json[0].relative_total_neg - json[0].value_neg);
+        event_count =
+          json[1].relative_event_count -
+          (json[0].relative_event_count - json[0].evencount);
+        relative_total_pos = json[1].relative_total_pos;
+        relative_total_neg = json[1].relative_total_neg;
+        relative_event_count = json[1].relative_event_count;
 
         let lastAverage =
-          (json[1].relativetotalpos - json[1].relativetotalneg) /
-          json[1].relativeeventcount;
+          (json[1].relative_total_pos - json[1].relative_total_neg) /
+          json[1].relative_event_count;
         let firstAverage =
-          (json[0].relativetotalpos -
-            json[0].valuepos -
-            (json[0].relativetotalneg - json[0].valueneg)) /
-          (json[0].relativeeventcount - json[0].eventcount);
+          (json[0].relative_total_pos -
+            json[0].value_pos -
+            (json[0].relative_total_neg - json[0].value_neg)) /
+          (json[0].relative_event_count - json[0].event_count);
 
-        if (json[1].relativeeventcount === 0) lastAverage = 0;
-        if (json[0].relativeeventcount - json[0].eventcount === 0)
+        if (json[1].relative_event_count === 0) lastAverage = 0;
+        if (json[0].relative_event_count - json[0].event_count === 0)
           firstAverage = 0;
 
         const diff = lastAverage - firstAverage;
@@ -475,23 +477,23 @@ export const fetchEventVariation = async (
           averagepercentdiff = (diff / firstAverage) * 100;
         }
       } else if (json.length > 0) {
-        pos = json[0].valuepos;
-        neg = json[0].valueneg;
-        relativetotalpos = json[0].relativetotalpos;
-        relativetotalneg = json[0].relativetotalneg;
-        relativeeventcount = json[0].relativeeventcount;
+        pos = json[0].value_pos;
+        neg = json[0].value_neg;
+        relative_total_pos = json[0].relative_total_pos;
+        relative_total_neg = json[0].relative_total_neg;
+        relative_event_count = json[0].relative_event_count;
 
         let lastAverage =
-          (json[0].relativetotalpos - json[0].relativetotalneg) /
-          json[0].relativeeventcount;
+          (json[0].relative_total_pos - json[0].relative_total_neg) /
+          json[0].relative_event_count;
         let firstAverage =
-          (json[0].relativetotalpos -
-            json[0].valuepos -
-            (json[0].relativetotalneg - json[0].valueneg)) /
-          (json[0].relativeeventcount - json[0].eventcount);
+          (json[0].relative_total_pos -
+            json[0].value_pos -
+            (json[0].relative_total_neg - json[0].value_neg)) /
+          (json[0].relative_event_count - json[0].event_count);
 
-        if (json[0].relativeeventcount === 0) lastAverage = 0;
-        if (json[0].relativeeventcount - json[0].eventcount === 0)
+        if (json[0].relative_event_count === 0) lastAverage = 0;
+        if (json[0].relative_event_count - json[0].event_count === 0)
           firstAverage = 0;
 
         const diff = lastAverage - firstAverage;
@@ -510,10 +512,10 @@ export const fetchEventVariation = async (
       return {
         pos,
         neg,
-        eventcount,
-        relativetotalpos,
-        relativetotalneg,
-        relativeeventcount,
+        event_count,
+        relative_total_pos,
+        relative_total_neg,
+        relative_event_count,
         averagepercentdiff,
         results: json.length,
       };
@@ -522,10 +524,10 @@ export const fetchEventVariation = async (
   return {
     pos: 0,
     neg: 0,
-    eventcount: 0,
-    relativetotalpos: 0,
-    relativetotalneg: 0,
-    relativeeventcount: 0,
+    event_count: 0,
+    relative_total_pos: 0,
+    relative_total_neg: 0,
+    relative_event_count: 0,
     averagepercentdiff: 0,
     results: 0,
   };
@@ -534,8 +536,8 @@ export const fetchEventVariation = async (
 export const calculateTrend = (
   data: any[],
   metric: Metric | null | undefined,
-  totalpos: number,
-  totalneg: number,
+  total_pos: number,
+  total_neg: number,
   average: number,
 ): any[] => {
   if (!metric) return data;
@@ -547,12 +549,12 @@ export const calculateTrend = (
       trend[i]['Event Trend'] !== undefined &&
       trend[i]['Average Trend'] !== undefined
     ) {
-      totalpos =
+      total_pos =
         trend[i]['Positive Trend'] -
         trend[i][
-          metric.type !== MetricType.Dual ? metric.name : metric.namepos
+          metric.type !== MetricType.Dual ? metric.name : metric.name_pos
         ];
-      totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
+      total_neg = trend[i]['Negative Trend'] - (trend[i][metric.name_neg] ?? 0);
 
       if (metric.type === MetricType.Average) {
         trend[i][metric.name] = trend[i]['Average Trend'];
@@ -561,11 +563,11 @@ export const calculateTrend = (
           trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
       }
 
-      const eventcount = trend[i]['Event Trend'] - trend[i]['Event Count'];
-      if (eventcount === 0) {
+      const event_count = trend[i]['Event Trend'] - trend[i]['Event Count'];
+      if (event_count === 0) {
         average = 0;
       } else {
-        average = (totalpos - totalneg) / eventcount;
+        average = (total_pos - total_neg) / event_count;
       }
     } else {
       if (metric.type === MetricType.Average) {
@@ -575,13 +577,13 @@ export const calculateTrend = (
       } else {
         if (
           trend[i][
-            metric.type !== MetricType.Dual ? metric.name : metric.namepos
+            metric.type !== MetricType.Dual ? metric.name : metric.name_pos
           ] !== undefined
         ) {
-          trend[i][metric.name] = totalpos;
+          trend[i][metric.name] = total_pos;
         }
-        if (trend[i][metric.nameneg] !== undefined) {
-          trend[i][metric.name] -= totalneg;
+        if (trend[i][metric.name_neg] !== undefined) {
+          trend[i][metric.name] -= total_neg;
         }
       }
     }

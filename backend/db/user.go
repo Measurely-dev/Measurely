@@ -14,12 +14,12 @@ func (db *DB) CreateWaitlistEntry(email string, name string) error {
 
 func (db *DB) CreateProvider(provider types.UserProvider) (types.UserProvider, error) {
 	var new_provider types.UserProvider
-	err := db.Conn.QueryRow(`
+	err := db.Conn.QueryRowx(`
 		INSERT INTO providers (user_id, type, provider_user_id)
 		VALUES ($1, $2, $3)
 		RETURNING *`,
 		provider.UserId, provider.Type, provider.ProviderUserId,
-	).Scan(&new_provider)
+	).StructScan(&new_provider)
 	return new_provider, err
 }
 
@@ -39,16 +39,15 @@ func (db *DB) GetProviderByProviderUserId(provideruserid string, providerType in
 }
 
 func (db *DB) GetProvidersByUserId(userid uuid.UUID) ([]types.UserProvider, error) {
-	rows, err := db.Conn.Query("SELECT * FROM providers WHERE user_id = $1", userid)
+	var providers []types.UserProvider
+	rows, err := db.Conn.Queryx("SELECT * FROM providers WHERE user_id = $1", userid)
 	if err != nil {
 		return []types.UserProvider{}, err
 	}
 	defer rows.Close()
-
-	var providers []types.UserProvider
 	for rows.Next() {
 		var provider types.UserProvider
-		err := rows.Scan(&provider.Id, &provider.UserId, &provider.Type, &provider.ProviderUserId)
+		err := rows.StructScan(&provider)
 		if err != nil {
 			return []types.UserProvider{}, err
 		}
@@ -70,8 +69,8 @@ func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
 	rows, err := db.Conn.NamedQuery(`
 		INSERT INTO users (
-			email, first_name, last_name, password, stripe_customer_id, current_plan, start_count_date
-		) VALUES (:email, :first_name, :last_name, :password, :stripe_customer_id, :current_plan, :start_count_date)
+			email, first_name, last_name, password, stripe_customer_id
+		) VALUES (:email, :first_name, :last_name, :password, :stripe_customer_id)
 		RETURNING *`,
 		user,
 	)
@@ -79,12 +78,8 @@ func (db *DB) CreateUser(user types.User) (types.User, error) {
 		return types.User{}, err
 	}
 	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&new_user)
-		if err != nil {
-			return types.User{}, err
-		}
-	}
+	rows.Next()
+	rows.StructScan(&new_user)
 	return new_user, err
 }
 
@@ -210,5 +205,10 @@ func (db *DB) DeleteEmailChangeRequest(id uuid.UUID) error {
 
 func (db *DB) DeleteAccountRecovery(id uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM account_recovery WHERE id = $1", id)
+	return err
+}
+
+func (db *DB) UpdateUserInvoiceStatus(id uuid.UUID, status int) error {
+	_, err := db.Conn.Exec("UPDATE users SET invoice_status = $1 WHERE id = $2", status, id)
 	return err
 }

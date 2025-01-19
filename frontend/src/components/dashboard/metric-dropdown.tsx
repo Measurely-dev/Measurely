@@ -57,8 +57,8 @@ export default function MetricDropdown(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectid: props.metric.projectid,
-          metricid: props.metric.id,
+          project_id: props.metric.project_id,
+          metric_id: props.metric.id,
         }),
         credentials: 'include',
       }).then((res) => {
@@ -66,7 +66,7 @@ export default function MetricDropdown(props: {
           toast.success('Metric succesfully deleted');
           setProjects(
             projects?.map((v: Project) =>
-              v.id === props.metric.projectid
+              v.id === props.metric.project_id
                 ? Object.assign({}, v, {
                     metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
                   })
@@ -84,15 +84,15 @@ export default function MetricDropdown(props: {
       <DropdownMenu
         open={props.isOpen}
         onOpenChange={(e) => {
-          if (projects[activeProject].userrole !== UserRole.Guest) {
+          if (projects[activeProject].user_role !== UserRole.Guest) {
             props.setIsOpen(e);
           }
         }}
       >
         <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
         <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-          {projects[activeProject].userrole === UserRole.Owner ||
-          projects[activeProject].userrole === UserRole.Admin ? (
+          {projects[activeProject].user_role === UserRole.Owner ||
+          projects[activeProject].user_role === UserRole.Admin ? (
             <DialogTrigger asChild>
               <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                 Edit
@@ -108,8 +108,8 @@ export default function MetricDropdown(props: {
           >
             Copy ID
           </DropdownMenuItem>
-          {projects[activeProject].userrole === UserRole.Owner ||
-          projects[activeProject].userrole === UserRole.Admin ? (
+          {projects[activeProject].user_role === UserRole.Owner ||
+          projects[activeProject].user_role === UserRole.Admin ? (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem

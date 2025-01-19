@@ -7,11 +7,12 @@ SET
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     email VARCHAR(255) NOT NULL UNIQUE,
-    firstname VARCHAR(50) NOT NULL,
-    lastname VARCHAR(50) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
     password TEXT NOT NULL,
     stripe_customer_id TEXT NOT NULL UNIQUE,
-    image TEXT NOT NULL DEFAULT ''
+    image TEXT NOT NULL DEFAULT '',
+    invoice_status SMALLINT NOT NULL DEFAULT 0
 );
 
 -- Create Providers table
@@ -46,8 +47,8 @@ CREATE TABLE IF NOT EXISTS metrics (
     project_id UUID NOT NULL,
     name VARCHAR(50) NOT NULL,
     type SMALLINT NOT NULL,
-    total_pos NUMERIC(20, 2) NOT NULL DEFAULT 0,
-    total_neg NUMERIC(20, 2) NOT NULL DEFAULT 0,
+    total_pos BIGINT NOT NULL DEFAULT 0,
+    total_neg BIGINT NOT NULL DEFAULT 0,
     name_pos VARCHAR(50) NOT NULL DEFAULT '',
     name_neg VARCHAR(50) NOT NULL DEFAULT '',
     created TIMESTAMP NOT NULL DEFAULT timezone ('UTC', CURRENT_TIMESTAMP),
@@ -67,8 +68,8 @@ CREATE TABLE IF NOT EXISTS metric_events (
     metric_id UUID NOT NULL,
     value_pos INT NOT NULL,
     value_neg INT NOT NULL,
-    relative_total_pos NUMERIC(20, 2) NOT NULL,
-    relative_total_neg NUMERIC(20, 2) NOT NULL,
+    relative_total_pos BIGINT NOT NULL,
+    relative_total_neg BIGINT NOT NULL,
     date TIMESTAMP NOT NULL,
     relative_event_count BIGINT NOT NULL DEFAULT 0,
     event_count INT NOT NULL DEFAULT 1,

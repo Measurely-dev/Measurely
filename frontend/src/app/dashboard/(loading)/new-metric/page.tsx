@@ -104,7 +104,7 @@ export default function NewMetric() {
       case MetricType.Dual:
         return <DualStep setStep={setStep} />;
       case MetricType.Stripe:
-        return <StripeStep setStep={setStep} />
+        return <StripeStep setStep={setStep} />;
     }
   };
 
@@ -114,8 +114,8 @@ export default function NewMetric() {
 
   useEffect(() => {
     if (
-      projects[activeProject].userrole !== UserRole.Admin &&
-      projects[activeProject].userrole !== UserRole.Owner
+      projects[activeProject].user_role !== UserRole.Admin &&
+      projects[activeProject].user_role !== UserRole.Owner
     ) {
       router.push('/dashboard');
     }
@@ -196,12 +196,13 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${props.comingSoon
-        ? 'cursor-not-allowed bg-accent'
-        : props.state === props.value
-          ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
-          : 'cursor-pointer hover:bg-accent/50'
-        }`}
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
+        props.comingSoon
+          ? 'cursor-not-allowed bg-accent'
+          : props.state === props.value
+            ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
+            : 'cursor-pointer hover:bg-accent/50'
+      }`}
       onClick={() => {
         if (!props.comingSoon) {
           props.setState(props.value);
@@ -268,10 +269,10 @@ function BasicAverageStep(props: {
               credentials: 'include',
               body: JSON.stringify({
                 name: name,
-                projectid: projects[activeProject].id,
-                basevalue: baseValue,
+                project_id: projects[activeProject].id,
+                base_value: baseValue,
                 type: props.type,
-                namepos: 'added',
+                name_pos: 'added',
                 nameneg: 'removed',
               }),
             })
@@ -293,11 +294,11 @@ function BasicAverageStep(props: {
                   projects.map((v, i) =>
                     i === activeProject
                       ? Object.assign({}, v, {
-                        metrics: [
-                          ...(projects[activeProject].metrics ?? []),
-                          json,
-                        ],
-                      })
+                          metrics: [
+                            ...(projects[activeProject].metrics ?? []),
+                            json,
+                          ],
+                        })
                       : v,
                   ),
                 );
@@ -426,10 +427,10 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             credentials: 'include',
             body: JSON.stringify({
               name: name,
-              projectid: projects[activeProject].id,
-              basevalue: baseValue,
+              project_id: projects[activeProject].id,
+              base_value: baseValue,
               type: MetricType.Dual,
-              namepos: namePos,
+              name_pos: namePos,
               nameneg: nameNeg,
             }),
           })
@@ -456,11 +457,11 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
                 projects.map((v, i) =>
                   i === activeProject
                     ? Object.assign({}, v, {
-                      metrics: [
-                        ...(projects[activeProject].metrics ?? []),
-                        json,
-                      ],
-                    })
+                        metrics: [
+                          ...(projects[activeProject].metrics ?? []),
+                          json,
+                        ],
+                      })
                     : v,
                 ),
               );
@@ -607,23 +608,18 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   );
 }
 
-
-function StripeStep(props: {
-  setStep: Dispatch<SetStateAction<number>>;
-}) {
+function StripeStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
-  const router = useRouter();
+  const { projects, activeProject } = useContext(ProjectsContext);
 
   return (
     <div className='mx-auto flex flex-col gap-6'>
       <div className='flex flex-col gap-[5px]'>
-        <div className='text-xl font-medium'>
-          Stripe Metric
-        </div>
+        <div className='text-xl font-medium'>Stripe Metric</div>
         <div className='text-sm text-secondary'>
-          Tracks revenue, subscriptions, refunds, and more via Stripe for financial insights.
+          Tracks revenue, subscriptions, refunds, and more via Stripe for
+          financial insights.
         </div>
         <form
           onSubmit={async (e) => {
@@ -643,55 +639,60 @@ function StripeStep(props: {
               return;
             }
 
-            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
+            const response = await fetch(
+              process.env.NEXT_PUBLIC_API_URL + '/metric',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  name: name,
+                  project_id: projects[activeProject].id,
+                  base_value: 0,
+                  type: MetricType.Stripe,
+                  name_pos: 'income',
+                  nameneg: 'outcome',
+                }),
               },
-              credentials: 'include',
-              body: JSON.stringify({
-                name: name,
-                projectid: projects[activeProject].id,
-                basevalue: 0,
-                type: MetricType.Stripe,
-                namepos: 'income',
-                nameneg: 'outcome',
-              }),
-            })
-
+            );
 
             if (response.ok) {
-              const data = await response.json()
+              const data = await response.json();
 
-              fetch(`${process.env.NEXT_PUBLIC_API_URL}/integrations/stripe`, {method : "POST", credentials : "include", headers : {
-                "Content-Type" :"application/json"
-              }, body:JSON.stringify({
-                  projectid : data.projectid,
-                  metricid : data.id
-                })}).then(res => {
-                  if(res.ok) {
-                    return res.json()
-                  }else {
-                    res.text().then(text => {
-                      toast.error(text)
-                      setLoading(false)
-                    })
+              fetch(`${process.env.NEXT_PUBLIC_API_URL}/integrations/stripe`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  project_id: data.projectid,
+                  metric_id: data.id,
+                }),
+              })
+                .then((res) => {
+                  if (res.ok) {
+                    return res.json();
+                  } else {
+                    res.text().then((text) => {
+                      toast.error(text);
+                      setLoading(false);
+                    });
                   }
-                }).then(data => {
+                })
+                .then((data) => {
                   if (data !== undefined && data !== null) {
                     window.location.replace(data.url);
                   }
-                })
-
+                });
             } else {
-
               response.text().then((text) => {
                 toast.error(text);
                 setLoading(false);
               });
             }
-
-
           }}
         >
           <div className='flex w-full flex-col gap-3'>
@@ -699,9 +700,7 @@ function StripeStep(props: {
               <div className='flex w-full flex-col gap-3'>
                 <Label>Metric name</Label>
                 <Input
-                  placeholder={
-                    "Revenue, Earnings, Sales, Profit"
-                  }
+                  placeholder={'Revenue, Earnings, Sales, Profit'}
                   type='text'
                   maxLength={30}
                   className='h-11 rounded-[12px]'

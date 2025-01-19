@@ -132,8 +132,8 @@ export default function PasswordReset() {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  newpassword: password,
-                  requestid: searchParams.get('code'),
+                  new_password: password,
+                  request_id: searchParams.get('code'),
                 }),
                 credentials: 'include',
               }).then((res) => {

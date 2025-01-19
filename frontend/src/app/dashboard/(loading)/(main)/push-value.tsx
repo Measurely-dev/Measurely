@@ -41,17 +41,16 @@ export const PushValueDialog = (props: {
       pushValue !== null &&
       props.metric &&
       Number(pushValue) &&
-      projects[activeProject].userrole !== UserRole.Guest
+      projects[activeProject].user_role !== UserRole.Guest
     ) {
+      const body: any = {
+        value: pushValue,
+      };
 
-      let body: any= {
-        value : pushValue
-      }
-
-      if(selectedFilter !== '' && selectedFilterCategory !== '') {
+      if (selectedFilter !== '' && selectedFilterCategory !== '') {
         body.filters = {
-          [selectedFilterCategory] : selectedFilter
-        }
+          [selectedFilterCategory]: selectedFilter,
+        };
       }
 
       fetch(
@@ -60,7 +59,7 @@ export const PushValueDialog = (props: {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${projects[activeProject].apikey}`,
+            Authorization: `Bearer ${projects[activeProject].api_key}`,
           },
           body: JSON.stringify(body),
         },

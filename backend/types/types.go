@@ -31,6 +31,11 @@ const (
 	SUBSCRIPTION_YEARLY
 )
 
+const (
+	INVOICE_ACTIVE = iota
+	INVOICE_FAILED
+)
+
 type key int
 
 const TOKEN key = iota
@@ -47,7 +52,8 @@ type User struct {
 	Password         string    `db:"password" json:"-"`
 	StripeCustomerId string    `db:"stripe_customer_id" json:"-"`
 	Image            string    `db:"image" json:"image"`
-	UserRole         int       `json:"user_role"`
+	InvoiceStatus    int       `db:"invoice_status" json:"invoice_status"`
+	UserRole         int       `json:"user_role" db:"user_role"`
 }
 
 type UserProvider struct {
@@ -61,7 +67,7 @@ type Project struct {
 	Id                   uuid.UUID `db:"id" json:"id"`
 	ApiKey               string    `db:"api_key" json:"api_key"`
 	UserId               uuid.UUID `db:"user_id" json:"user_id"`
-	UserRole             int       `json:"user_role"`
+	UserRole             int       `json:"user_role" db:"user_role"`
 	Name                 string    `db:"name" json:"name"`
 	Image                string    `db:"image" json:"image"`
 	CurrentPlan          string    `db:"current_plan" json:"current_plan"`
@@ -75,7 +81,7 @@ type Metric struct {
 	Id                 uuid.UUID           `db:"id" json:"id"`
 	ProjectId          uuid.UUID           `db:"project_id" json:"project_id"`
 	FilterCategory     string              `db:"filter_category" json:"filter_category"`
-	ParentMetricId     sql.Null[uuid.UUID] `db:"parent_metric_id" json:"parent_metric_id"`
+	ParentMetricId     sql.Null[uuid.UUID] `db:"parent_metric_id" json:"-"`
 	Name               string              `db:"name" json:"name"`
 	Type               int                 `db:"type" json:"type"`
 	EventCount         int64               `db:"event_count" json:"event_count"`
@@ -86,7 +92,7 @@ type Metric struct {
 	Filters            map[string][]Metric `db:"filters" json:"filters"`
 	Created            time.Time           `db:"created" json:"created"`
 	LastEventTimestamp sql.Null[time.Time] `db:"last_event_timestamp"`
-	StripeAccount      sql.Null[string]    `db:"stripe_account" json:"-"`
+	StripeApiKey       sql.Null[string]    `db:"stripe_api_key" json:"-"`
 }
 
 type MetricEvent struct {
@@ -121,8 +127,8 @@ type Feedback struct {
 
 type Plan struct {
 	Name             string `json:"name"`
-	MonthlyPriceId   string `json:"monthly_price_id"`
-	YearlyPriceId    string `json:"yearly_price_id"`
+	MonthlyPriceId   string `json:"-"`
+	YearlyPriceId    string `json:"-"`
 	MetricLimit      int    `json:"metric_limit"`
 	TeamMemberLimit  int    `json:"team_member_limit"`
 	Range            int    `json:"range"`

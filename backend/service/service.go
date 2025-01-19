@@ -159,6 +159,7 @@ func New() Service {
 		s3Client:      client,
 		metricsCache:  sync.Map{},
 		projectsCache: sync.Map{},
+		plans:         plans,
 	}
 }
 
@@ -454,6 +455,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 						http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
 					} else {
+						log.Println("Error creatiing user: ", err)
 						http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 					}
 					return
@@ -586,8 +588,8 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Email     string `json:"email"`
 		Password  string `json:"password"`
-		FirstName string `json:"firstname"`
-		LastName  string `json:"lastname"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
 	}
 
 	// Try to unmarshal the request body
@@ -727,8 +729,8 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 	response := struct {
 		Id        uuid.UUID            `json:"id"`
 		Email     string               `json:"email"`
-		FirstName string               `json:"firstname"`
-		LastName  string               `json:"lastname"`
+		FirstName string               `json:"first_name"`
+		LastName  string               `json:"last_name"`
 		Providers []types.UserProvider `json:"providers"`
 	}{
 		Id:        user.Id,
@@ -799,8 +801,8 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		RequestId   uuid.UUID `json:"requestid"`
-		NewPassword string    `json:"newpassword"`
+		RequestId   uuid.UUID `json:"request_id"`
+		NewPassword string    `json:"new_password"`
 	}
 
 	// Try to unmarshal the request body
@@ -1045,7 +1047,7 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		RequestId uuid.UUID `json:"requestid"`
+		RequestId uuid.UUID `json:"request_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1228,7 +1230,7 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newApp, err := s.db.CreateProject(types.Project{
+	new_project, err := s.db.CreateProject(types.Project{
 		ApiKey:           apiKey,
 		Name:             request.Name,
 		UserId:           token.Id,
@@ -1242,8 +1244,19 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newApp.UserRole = types.TEAM_OWNER
-	bytes, jerr := json.Marshal(newApp)
+	new_project.UserRole = types.TEAM_OWNER
+
+	type ProjectResponse struct {
+		types.Project
+		Plan types.Plan `json:"plan"`
+	}
+
+	response := ProjectResponse{
+		Project: new_project,
+		Plan:    s.plans[new_project.CurrentPlan],
+	}
+
+	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
 		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
 		return
@@ -1264,7 +1277,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"projectid"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Attempt to decode the request body into the `request` struct
@@ -1334,7 +1347,7 @@ func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"project"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Try to unmarshal the request body
@@ -1386,7 +1399,7 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		NewName   string    `json:"new_name"`
-		ProjectId uuid.UUID `json:"projectid"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1432,6 +1445,11 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type ProjectResponse struct {
+		types.Project
+		Plan types.Plan `json:"plan"`
+	}
+
 	// Fetch Projects
 	projects, err := s.db.GetProjects(token.Id)
 	if err == sql.ErrNoRows {
@@ -1442,14 +1460,23 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	projects_response := []ProjectResponse{}
+
 	for i, project := range projects {
 		projects[i].StripeSubscriptionId = ""
 		if project.UserRole == types.TEAM_GUEST {
 			projects[i].ApiKey = ""
 		}
+
+		response := ProjectResponse{
+			Project: project,
+			Plan:    s.plans[project.CurrentPlan],
+		}
+
+		projects_response = append(projects_response, response)
 	}
 
-	bytes, err := json.Marshal(projects)
+	bytes, err := json.Marshal(projects_response)
 	if err != nil {
 		http.Error(w, "Failed to marshal projects data: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -1468,13 +1495,13 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		Name           string     `json:"name"`
-		ProjectId      uuid.UUID  `json:"projectid"`
+		ProjectId      uuid.UUID  `json:"project_id"`
 		Type           int        `json:"type"`
-		BaseValue      int64      `json:"basevalue"`
-		NamePos        string     `json:"namepos"`
-		NameNeg        string     `json:"nameneg"`
-		ParentMetricId *uuid.UUID `json:"parentmetricid,omitempty"`
-		FilterCategory string     `json:"filtercategory"`
+		BaseValue      int64      `json:"base_value"`
+		NamePos        string     `json:"name_pos"`
+		NameNeg        string     `json:"name_neg"`
+		ParentMetricId *uuid.UUID `json:"parent_metric_id,omitempty"`
+		FilterCategory string     `json:"filter_category"`
 	}
 
 	// Try to unmarshal the request body
@@ -1606,8 +1633,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MetricId  uuid.UUID `json:"metricid"`
-		ProjectId uuid.UUID `json:"projectid"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Try to unmarshal the request body
@@ -1685,7 +1712,7 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := range metrics {
-		metrics[i].StripeAccount.V = ""
+		metrics[i].StripeApiKey.V = ""
 	}
 
 	bytes, err := json.Marshal(metrics)
@@ -1706,11 +1733,11 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"projectid"`
-		MetricId  uuid.UUID `json:"metricid"`
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
 		Name      string    `json:"name"`
-		NamePos   string    `json:"namepos"`
-		NameNeg   string    `json:"nameneg"`
+		NamePos   string    `json:"name_pos"`
+		NameNeg   string    `json:"name_neg"`
 	}
 
 	// Try to unmarshal the request body
@@ -1765,8 +1792,8 @@ func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parentmetricid"`
-		ProjectId      uuid.UUID `json:"projectid"`
+		ParentMetricId uuid.UUID `json:"parent_metric_id"`
+		ProjectId      uuid.UUID `json:"project_id"`
 		Category       string    `json:"category"`
 	}
 
@@ -1808,10 +1835,10 @@ func (s *Service) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parentmetricid"`
-		ProjectId      uuid.UUID `json:"projectid"`
-		OldName        string    `json:"oldname"`
-		NewName        string    `json:"newname"`
+		ParentMetricId uuid.UUID `json:"parent_metric_id"`
+		ProjectId      uuid.UUID `json:"project_id"`
+		OldName        string    `json:"old_name"`
+		NewName        string    `json:"new_name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1881,8 +1908,8 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberEmail string    `json:"memberemail"`
-		ProjectId   uuid.UUID `json:"projectid"`
+		MemberEmail string    `json:"member_email"`
+		ProjectId   uuid.UUID `json:"project_id"`
 		Role        int       `json:"role"`
 	}
 
@@ -1978,8 +2005,8 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
+		MemberId  uuid.UUID `json:"member_id"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -2040,9 +2067,9 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
-		NewRole   int       `json:"NewRole"`
+		MemberId  uuid.UUID `json:"member_id"`
+		ProjectId uuid.UUID `json:"project_id"`
+		NewRole   int       `json:"new_role"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -2119,7 +2146,7 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
+	projectid, err := uuid.Parse(chi.URLParam(r, "project_id"))
 	if err != nil {
 		http.Error(w, "Invalid app id", http.StatusBadRequest)
 		return
@@ -2163,7 +2190,7 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
+	projectid, err := uuid.Parse(chi.URLParam(r, "project_id"))
 	if err != nil {
 		http.Error(w, "Invalid project Id", http.StatusBadRequest)
 		return
@@ -2244,9 +2271,9 @@ func (s *Service) UpdateBlocks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		NewLayout []types.Block `json:"newlayout"`
-		NewLabels []types.Label `json:"newlabels"`
-		ProjectId uuid.UUID     `json:"projectid"`
+		NewLayout []types.Block `json:"new_layout"`
+		NewLabels []types.Label `json:"new_labels"`
+		ProjectId uuid.UUID     `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

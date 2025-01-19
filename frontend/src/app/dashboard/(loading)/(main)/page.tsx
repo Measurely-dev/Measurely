@@ -70,7 +70,14 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
+import {
+  Block,
+  BlockType,
+  ChartType,
+  Metric,
+  MetricType,
+  UserRole,
+} from '@/types';
 import { toast } from 'sonner';
 import {
   fetchChartData,
@@ -193,10 +200,10 @@ export default function DashboardHomePage() {
                       name: groupInput,
                       type: BlockType.Group,
                       nested: [],
-                      metricIds: [],
-                      filtercategories: [],
+                      metric_ids: [],
+                      filter_categories: [],
                       label: 'group',
-                      uniquekey: generateString(10),
+                      unique_key: generateString(10),
                       color: '',
                     };
                     let layoutCopy = project.blocks?.layout;
@@ -255,8 +262,9 @@ export default function DashboardHomePage() {
 
 function UpgradeCard() {
   const { user } = useContext(UserContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   function render() {
-    switch (user?.plan.identifier) {
+    switch (projects[activeProject].plan.name.toLowerCase()) {
       case 'starter':
         return (
           <Card className='mt-5 rounded-[12px] border-none bg-black'>
@@ -265,21 +273,23 @@ function UpgradeCard() {
                 <div className='flex flex-row items-center gap-3'>
                   <Rocket className='size-5 text-white' />
                   <div className='text-md font-semibold text-white'>
-                    You're using the {user?.plan.name} plan
+                    You're using the {projects[activeProject].plan.name} plan
                   </div>
                 </div>
                 <div className='text-sm text-white/70'>
                   You can unlock your limits by upgrading to the next plan.
                 </div>
               </div>
-              <PlansDialog>
-                <Button
-                  className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
-                  variant={'default'}
-                >
-                  Upgrade
-                </Button>
-              </PlansDialog>
+              {projects[activeProject].user_role === UserRole.Owner && (
+                <PlansDialog>
+                  <Button
+                    className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
+                    variant={'default'}
+                  >
+                    Upgrade
+                  </Button>
+                </PlansDialog>
+              )}
             </CardContent>
           </Card>
         );
@@ -291,12 +301,12 @@ function UpgradeCard() {
                 <div className='flex flex-row items-center gap-3'>
                   <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 px-2 text-xs font-medium'>
                     <Sparkle className='size-3' />
-                    {user?.plan.name}
+                    {projects[activeProject].plan.name}
                   </div>
                   <div className='text-md font-semibold text-white'>
                     Welcome back,{' '}
                     <span className='font-semibold capitalize'>
-                      {user?.firstname}
+                      {user?.first_name}
                     </span>
                   </div>
                 </div>
@@ -352,14 +362,6 @@ function Blocks() {
                     : proj,
                 ),
               );
-            } else {
-              setProjects(
-                projects.map((proj, i) =>
-                  i === activeProject
-                    ? Object.assign({}, proj, { blocks: null })
-                    : proj,
-                ),
-              );
             }
           });
       } else {
@@ -370,9 +372,9 @@ function Blocks() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            newlayout: projects[activeProject].blocks.layout,
-            newlabels: projects[activeProject].blocks?.labels,
-            projectid: projects[activeProject].id,
+            new_layout: projects[activeProject].blocks.layout,
+            new_labels: projects[activeProject].blocks?.labels,
+            project_id: projects[activeProject].id,
           }),
         });
       }
@@ -416,7 +418,7 @@ function Blocks() {
         >
           <div className='grid grid-cols-3 gap-4'>
             {projects[activeProject].blocks.layout.map((block) => (
-              <IndividualBlock key={block.uniquekey} {...block} />
+              <IndividualBlock key={block.unique_key} {...block} />
             ))}
           </div>
         </Sortable>
@@ -460,10 +462,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [date, setDate] = useState<Date>(new Date());
 
   const metrics = useMemo(() => {
-    return props.metricIds
+    return props.metric_ids
       .map((id) => projects[activeProject].metrics?.find((m) => m.id === id))
       .filter((m) => m !== undefined) as Metric[];
-  }, [props.metricIds, projects, activeProject]);
+  }, [props.metric_ids, projects, activeProject]);
 
   function calculateSummary(data: any[], metric: Metric): number {
     let totalpos = 0;
@@ -474,8 +476,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
       if (metric.type === MetricType.Base) {
         totalpos += data[i][metric.name] ?? 0;
       } else if (metric.type === MetricType.Dual) {
-        totalpos += data[i][metric.namepos ?? ''] ?? 0;
-        totalneg += data[i][metric.nameneg ?? ''] ?? 0;
+        totalpos += data[i][metric.name_pos ?? ''] ?? 0;
+        totalneg += data[i][metric.name_neg ?? ''] ?? 0;
       } else if (metric.type === MetricType.Average) {
         totalpos += data[i][metric.name + '+'] ?? 0;
         totalneg += data[i][metric.name + '-'] ?? 0;
@@ -499,7 +501,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       let combinedData: any[] = [];
       if (props.type === BlockType.Nested) {
-        const dataPromises = metrics[0].filters[props.filtercategories[0]].map(
+        const dataPromises = metrics[0].filters[props.filter_categories[0]].map(
           async (filter) => {
             const endDate = new Date();
             const startDate = new Date();
@@ -529,21 +531,22 @@ function BlockContent(props: Block & { groupkey?: string }) {
             let value = data.pos - data.neg;
 
             if (metrics[0].type === MetricType.Average) {
-              if (data.eventcount !== 0) {
-                value /= data.eventcount;
+              if (data.event_count !== 0) {
+                value /= data.event_count;
               }
             }
 
             return {
-              [filter.filtercategory]: filter.name,
+              [filter.filter_category]: filter.name,
               [metrics[0].name]: value,
               name: filter.name,
               value: value,
               metadata: {
                 value: data.pos - data.neg,
-                eventcount: data.eventcount,
-                relativetotal: data.relativetotalpos - data.relativetotalneg,
-                relativeeventcount: data.relativeeventcount,
+                eventcount: data.event_count,
+                relativetotal:
+                  data.relative_total_pos - data.relative_total_neg,
+                relativeeventcount: data.relative_event_count,
                 date: startDate,
               },
             };
@@ -565,7 +568,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
           ).then((data) => {
             if (metric.type === MetricType.Dual) {
               data.forEach((item) => {
-                item[metric.name] = item[metric.namepos] - item[metric.nameneg];
+                item[metric.name] =
+                  item[metric.name_pos] - item[metric.name_pos];
               });
             } else if (metric.type === MetricType.Average) {
               data.forEach((item) => {
@@ -745,9 +749,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
                 </SelectContent>
               </Select>
             </div>
-            {props.chartType !== ChartType.Pie &&
-            props.chartType !== ChartType.Radar &&
-            props.chartType !== ChartType.BarList ? (
+            {props.chart_type !== ChartType.Pie &&
+            props.chart_type !== ChartType.Radar &&
+            props.chart_type !== ChartType.BarList ? (
               <div className='flex h-full flex-row items-center'>
                 {metrics.map((metric, i) => {
                   return (
@@ -799,14 +803,14 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       {props.type !== BlockType.Group && (
         <CardContent
-          className={`relative h-[30vh] min-h-[240px] ${props.chartType !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
+          className={`relative h-[30vh] min-h-[240px] ${props.chart_type !== ChartType.BarList ? 'flex items-center justify-center' : ''} ${props.type === BlockType.Nested ? 'mt-5 h-[35vh]' : ''}`}
         >
           <Charts
-            chartType={props.chartType}
+            chartType={props.chart_type}
             data={chartData}
             color={props.color}
             metrics={metrics}
-            categories={props.filtercategories}
+            categories={props.filter_categories}
           />
         </CardContent>
       )}
@@ -1158,7 +1162,7 @@ function NestedBlocks(props: Block) {
               ? Object.assign({}, proj, {
                   blocks: Object.assign({}, proj.blocks, {
                     layout: proj.blocks?.layout.map((l) =>
-                      l.uniquekey === props.uniquekey
+                      l.unique_key === props.unique_key
                         ? Object.assign({}, l, {
                             nested: value,
                           })
@@ -1175,13 +1179,13 @@ function NestedBlocks(props: Block) {
       <div className='grid grid-cols-3 gap-4 overflow-y-scroll p-3'>
         {props.nested?.map((block) => (
           <IndividualBlock
-            key={block.uniquekey}
-            groupkey={props.uniquekey}
+            key={block.unique_key}
+            groupkey={props.unique_key}
             {...block}
           />
         ))}
         {(props.nested ? props.nested.length : 0) < 3 ? (
-          <BlocksDialog type='compact' groupkey={props.uniquekey}>
+          <BlocksDialog type='compact' groupkey={props.unique_key}>
             <div className='h-full cursor-pointer select-none'>
               <EmptyState
                 title='Add new block'

@@ -66,7 +66,7 @@ export default function ApiDialog(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectid: apiIndex !== undefined ? projects?.[apiIndex].id : '',
+          project_id: apiIndex !== undefined ? projects?.[apiIndex].id : '',
         }),
         credentials: 'include',
       })
@@ -97,8 +97,8 @@ export default function ApiDialog(props: {
   useEffect(() => {
     if (projects !== null && projects.length > 0) {
       const appIndex = projects.findIndex((app) => app.id === props.projectid);
-      if (appIndex !== -1 && projects[appIndex].apikey !== null) {
-        setApiKey(projects[appIndex].apikey);
+      if (appIndex !== -1 && projects[appIndex].api_key !== null) {
+        setApiKey(projects[appIndex].api_key);
       }
     }
   }, [activeProject, projects]);

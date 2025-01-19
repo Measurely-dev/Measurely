@@ -74,7 +74,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		Plan             string    `json:"plan"`
-		MaxEvent         int       `json:"maxevents"`
+		MaxEvent         int       `json:"max_events"`
 		ProjectId        uuid.UUID `json:"project_id"`
 		SubscriptionType int       `json:"subscription_type"`
 	}
@@ -280,6 +280,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 
 		}
 		s.db.UpdateProjectPlan(project.Id, session.Metadata["plan"], session.Subscription.ID, int(session.LineItems.Data[0].Quantity))
+		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_ACTIVE)
 		s.projectsCache.Delete(project.ApiKey)
 
 		go measurely.Capture(metricIds["projects"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": session.Metadata["plan"]}})
@@ -318,6 +319,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		}
 
 		s.db.ResetProjectsMonthlyEventCount(user.Id)
+		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_ACTIVE)
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -351,33 +353,13 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		result := subscription.List(&stripe.SubscriptionListParams{
-			Customer: stripe.String(user.StripeCustomerId),
-		})
-
-		subscriptions := result.SubscriptionList()
-
-		if subscriptions != nil {
-			if len(subscriptions.Data) > 0 {
-				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
-				if err != nil {
-					log.Println(err)
-				}
-
-			}
-		}
-
-		// s.db.UpdateUserPlan(user.Id, "starter")
-
-		// go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
-		// go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": user.CurrentPlan}})
+		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_FAILED)
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
-			To:      user.Email,
-			Subject: "Invoice Failed",
-			Content: "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
-
+			To:          user.Email,
+			Subject:     "Invoice Failed",
+			Content:     "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "<br> Some features will be temporarly locked until this is resolved.",
 			Link:        GetOrigin() + "/dashboard",
 			ButtonTitle: "View Dashboard",
 		})

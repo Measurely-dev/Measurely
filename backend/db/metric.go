@@ -20,11 +20,10 @@ func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 		return types.Metric{}, err
 	}
 	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&newMetric)
-		if err != nil {
-			return types.Metric{}, err
-		}
+	rows.Next()
+	err = rows.StructScan(&newMetric)
+	if err != nil {
+		return types.Metric{}, err
 	}
 
 	return newMetric, err

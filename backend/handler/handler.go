@@ -65,34 +65,34 @@ func (h *Handler) setup_api() {
 	// privateRouter.Get("/rates", h.service.GetRates)
 	// privateRouter.Get("/plans", h.service.GetPlans)
 
-	privateRouter.Patch("/changeemail", h.service.UpdateUserEmail)
+	privateRouter.Patch("/change_email", h.service.UpdateUserEmail)
 	////
 
 	// ROUTES THAT REQUIRE AUTHENTIFICATION
 	authRouter.Use(h.service.AuthenticatedMiddleware)
 	authRouter.Post("/feedback", h.service.SendFeedback)
 
-	authRouter.Get("/is-connected", h.service.IsConnected)
+	authRouter.Get("/is_connected", h.service.IsConnected)
 	authRouter.Delete("/account", h.service.DeleteAccount)
 	authRouter.Post("/disconnect/{provider}", h.service.DisconnectProvider)
 	authRouter.Get("/user", h.service.GetUser)
-	authRouter.Post("/user-image", h.service.UploadUserImage)
+	authRouter.Post("/user_image", h.service.UploadUserImage)
 
 	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
 	authRouter.Patch("/password", h.service.UpdatePassword)
-	authRouter.Post("/requestemailchange", h.service.RequestEmailChange)
+	authRouter.Post("/request_email_change", h.service.RequestEmailChange)
 
 	authRouter.Get("/projects", h.service.GetProjects)
 	authRouter.Post("/project", h.service.CreateProject)
 	authRouter.Delete("/project", h.service.DeleteProject)
-	authRouter.Patch("/project-name", h.service.UpdateProjectName)
-	authRouter.Post("/project-image/{projectid}", h.service.UploadProjectImage)
-	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
+	authRouter.Patch("/project_name", h.service.UpdateProjectName)
+	authRouter.Post("/project_image/{project_id}", h.service.UploadProjectImage)
+	authRouter.Patch("/rand_apikey", h.service.RandomizeApiKey)
 
-	authRouter.Get("/blocks/{projectid}", h.service.GetBlocks)
+	authRouter.Get("/blocks/{project_id}", h.service.GetBlocks)
 	authRouter.Patch("/blocks/layout", h.service.UpdateBlocks)
 
-	authRouter.Get("/members/{projectid}", h.service.GetTeamMembers)
+	authRouter.Get("/members/{project_id}", h.service.GetTeamMembers)
 	authRouter.Patch("/role", h.service.UpdateMemberRole)
 	authRouter.Delete("/member", h.service.RemoveTeamMember)
 	authRouter.Post("/member", h.service.AddTeamMember)
@@ -100,7 +100,7 @@ func (h *Handler) setup_api() {
 
 	authRouter.Get("/metrics", h.service.GetMetrics)
 	authRouter.Get("/events", h.service.GetMetricEvents)
-	authRouter.Get("/daily-variation", h.service.GetDailyVariation)
+	authRouter.Get("/daily_variation", h.service.GetDailyVariation)
 	authRouter.Post("/metric", h.service.CreateMetric)
 	authRouter.Patch("/metric", h.service.UpdateMetric)
 	authRouter.Delete("/metric", h.service.DeleteMetric)
@@ -109,14 +109,11 @@ func (h *Handler) setup_api() {
 
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)
-
-	authRouter.Post("/integrations/stripe", h.service.AuthorizeStripe)
-	authRouter.Get("/integrations-callback/stripe", h.service.StripeCallback)
 	////
 
 	// PUBLIC API ENDPOINT
 	publicRouter.Use(publicCors)
-	publicRouter.Post("/v1/{metricidentifier}", h.service.CreateMetricEventV1)
+	publicRouter.Post("/v1/{metric_identifier}", h.service.CreateMetricEventV1)
 
 	////
 
