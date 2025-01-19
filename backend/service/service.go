@@ -1372,11 +1372,13 @@ func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = subscription.Cancel(project.StripeSubscriptionId, nil)
-	if err != nil {
-		log.Println("Failed to cancel subscriptions: ", err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+	if project.StripeSubscriptionId != "" {
+		_, err = subscription.Cancel(project.StripeSubscriptionId, nil)
+		if err != nil {
+			log.Println("Failed to cancel subscriptions: ", err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Delete the project
