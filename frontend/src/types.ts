@@ -1,52 +1,56 @@
 export interface Project {
   id: string;
-  apikey: string;
+  api_key: string;
   name: string;
   image: string;
-  userrole: UserRole;
+  user_role: UserRole;
   metrics: null | Metric[];
   members: null | User[];
   blocks: null | Blocks;
+  current_plan: string;
+  subscription_type: SubscriptionType;
+  max_event_per_month: number;
+  monthly_event_count: number;
+  plan: Plan;
 }
 
 export interface Metric {
   id: string;
-  projectid: string;
+  project_id: string;
   name: string;
   type: MetricType;
-  eventcount: number;
-  totalpos: number;
-  totalneg: number;
-  namepos: string;
-  nameneg: string;
+  event_count: number;
+  total_pos: number;
+  total_neg: number;
+  name_pos: string;
+  name_neg: string;
   filters: {
     [category: string]: Metric[];
   };
-  filtercategory: string;
+  filter_category: string;
   created: Date;
+  last_event_timestamp: { Valid: boolean; V: Date };
 }
 
 export interface MetricEvent {
   id: string;
   date: Date;
-  valuepos: number;
-  valueneg: number;
-  eventcount: number;
-  relativetotalpos: number;
-  relativetotalneg: number;
-  relativeeventcount: number;
+  value_pos: number;
+  value_neg: number;
+  event_count: number;
+  relative_total_pos: number;
+  relative_total_neg: number;
+  relative_event_count: number;
 }
 
 export interface User {
   id: string;
-  firstname: string;
-  lastname: string;
+  first_name: string;
+  last_name: string;
   image: string;
   email: string;
-  plan: Plan;
-  providers: UserProvider[];
-  userrole: UserRole;
-  eventcount: number;
+  user_role: UserRole;
+  invoice_status: InvoiceStatus;
 }
 
 export interface UserProvider {
@@ -56,28 +60,26 @@ export interface UserProvider {
 
 export interface Plan {
   name: string;
-  identifier: string;
-  projectlimit: number;
-  metric_per_project_limit: number;
-  requestlimit: number;
-  monthlyeventlimit: number;
+  metric_limit: number;
+  team_member_limit: number;
+  range: number;
 }
 
 export interface Blocks {
-  userid: string;
-  projectid: string;
+  user_id: string;
+  project_id: string;
   layout: Block[];
   labels: LabelType[];
 }
 
 export interface Block {
-  uniquekey: string;
+  unique_key: string;
   id: number;
   name: string;
   nested?: Block[];
-  metricIds: string[];
-  filtercategories: string[];
-  chartType?: ChartType;
+  metric_ids: string[];
+  filter_categories: string[];
+  chart_type?: ChartType;
   type: BlockType;
   label: string;
   color: string;
@@ -85,7 +87,7 @@ export interface Block {
 
 export interface LabelType {
   name: string;
-  defaultcolor: string;
+  default_color: string;
 }
 
 export enum MetricType {
@@ -115,6 +117,16 @@ export enum ChartType {
   Combo,
   Pie,
   Radar,
+}
+
+export enum SubscriptionType {
+  MONTHLY,
+  YEARLY,
+}
+
+export enum InvoiceStatus {
+  ACTIVE,
+  FAILED,
 }
 
 export const chartTypeMetricLimits: Record<

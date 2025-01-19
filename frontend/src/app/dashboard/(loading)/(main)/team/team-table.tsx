@@ -89,17 +89,17 @@ export const TeamTable = (props: { members: User[] }) => {
       props.members.filter((member) => {
         const matchesSearch =
           (
-            member.firstname.toLowerCase() +
+            member.first_name.toLowerCase() +
             ' ' +
-            member.lastname.toLowerCase()
+            member.last_name.toLowerCase()
           ).includes(search.toLowerCase()) ||
           member.email.toLowerCase().includes(search.toLowerCase()) ||
-          roleToString(member.userrole)
+          roleToString(member.user_role)
             .toLowerCase()
             .includes(search.toLowerCase());
 
         const matchesRole =
-          roleFilter === 'All' || member.userrole === roleFilter;
+          roleFilter === 'All' || member.user_role === roleFilter;
 
         return matchesSearch && matchesRole;
       }) ?? [];
@@ -108,7 +108,7 @@ export const TeamTable = (props: { members: User[] }) => {
       if (a.email === user.email) return -1;
       if (b.email === user.email) return 1;
 
-      return a.userrole - b.userrole;
+      return a.user_role - b.user_role;
     });
   }, [search, props.members, roleFilter]);
 
@@ -257,17 +257,20 @@ const Item = (props: { member: User }) => {
             <Avatar className='size-9'>
               <AvatarImage
                 src={props.member.image}
-                alt={`@${formatFullName(props.member.firstname, props.member.lastname)}`}
+                alt={`@${formatFullName(props.member.first_name, props.member.last_name)}`}
               />
               <AvatarFallback>
-                {props.member.firstname.charAt(0).toUpperCase()}
-                {props.member.lastname.charAt(0).toUpperCase()}
+                {props.member.first_name.charAt(0).toUpperCase()}
+                {props.member.last_name.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className='w-full truncate'>
               {user.id === props.member.id
                 ? 'You'
-                : formatFullName(props.member.firstname, props.member.lastname)}
+                : formatFullName(
+                    props.member.first_name,
+                    props.member.last_name,
+                  )}
             </div>
           </div>
         </TableCell>
@@ -279,9 +282,9 @@ const Item = (props: { member: User }) => {
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
             <span
-              className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.userrole)]}`}
+              className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.user_role)]}`}
             >
-              {roleToString(props.member.userrole)}
+              {roleToString(props.member.user_role)}
             </span>
           </div>
         </TableCell>
@@ -372,10 +375,10 @@ function MemberOption({
   };
 
   async function switchRole(member: User, newRole: UserRole) {
-    const isUpgrade = newRole < member.userrole;
+    const isUpgrade = newRole < member.user_role;
 
     const isConfirmed = await confirm({
-      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}`,
+      title: `${isUpgrade ? 'Upgrade' : 'Downgrade'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}`,
       icon: isUpgrade ? (
         <ArrowBigUp className='size-6 fill-green-500 text-green-500' />
       ) : (
@@ -383,7 +386,7 @@ function MemberOption({
       ),
       description: `Are you sure you want to ${
         isUpgrade ? 'upgrade' : 'downgrade'
-      } ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}? This action will ${
+      } ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}? This action will ${
         isUpgrade
           ? 'grant additional permissions'
           : 'limit their access and permissions'
@@ -416,14 +419,14 @@ function MemberOption({
           'Content-Type': 'authorization/json',
         },
         body: JSON.stringify({
-          memberid: member.id,
-          projectid: projects[activeProject].id,
-          newrole: newRole,
+          member_id: member.id,
+          project_id: projects[activeProject].id,
+          new_role: newRole,
         }),
       }).then((resp) => {
         if (resp.ok) {
           toast.success(
-            `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.firstname, member.lastname)}'s role to ${roleToString(newRole)}`,
+            `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}`,
           );
 
           setProjects(
@@ -432,7 +435,7 @@ function MemberOption({
                 ? Object.assign({}, proj, {
                     members: (proj.members ?? []).map((m) =>
                       m.id === member.id
-                        ? Object.assign({}, m, { userrole: newRole })
+                        ? Object.assign({}, m, { user_role: newRole })
                         : m,
                     ),
                   })
@@ -450,9 +453,9 @@ function MemberOption({
 
   async function deleteMember(member: User) {
     const isConfirmed = await confirm({
-      title: `Remove ${formatFullName(member.firstname, member.lastname)} from the project`,
+      title: `Remove ${formatFullName(member.first_name, member.last_name)} from the project`,
       icon: <Trash2 className='size-5 text-destructive' />,
-      description: `Are you sure you want to remove ${formatFullName(member.firstname, member.lastname)} from the project? This action will permanently remove the user's access to the project.`,
+      description: `Are you sure you want to remove ${formatFullName(member.first_name, member.last_name)} from the project? This action will permanently remove the user's access to the project.`,
       confirmText: `Yes`,
       cancelText: 'Cancel',
       cancelButton: {
@@ -479,13 +482,13 @@ function MemberOption({
           'Content-Type': 'authorization/json',
         },
         body: JSON.stringify({
-          memberid: member.id,
-          projectid: projects[activeProject].id,
+          member_id: member.id,
+          project_id: projects[activeProject].id,
         }),
       }).then((resp) => {
         if (resp.ok) {
           toast.success(
-            `Successfully removed ${formatFullName(member.firstname, member.lastname)} from the project`,
+            `Successfully removed ${formatFullName(member.first_name, member.last_name)} from the project`,
           );
 
           setProjects(
@@ -513,13 +516,13 @@ function MemberOption({
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className='mr-8 w-56 rounded-[12px] shadow-md'>
         <DropdownMenuLabel>
-          {formatFullName(member.firstname, member.lastname)}
+          {formatFullName(member.first_name, member.last_name)}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {member.id === user.id ||
-          (projects[activeProject].userrole !== UserRole.Admin &&
-            projects[activeProject].userrole !== UserRole.Owner) ? (
+          (projects[activeProject].user_role !== UserRole.Admin &&
+            projects[activeProject].user_role !== UserRole.Owner) ? (
             <></>
           ) : (
             <DropdownMenuSub>
@@ -534,7 +537,7 @@ function MemberOption({
                         <DropdownMenuItem
                           key={i}
                           className='rounded-[10px]'
-                          disabled={member.userrole === role}
+                          disabled={member.user_role === role}
                           onClick={() => switchRole(member, role)}
                         >
                           <span
@@ -558,10 +561,10 @@ function MemberOption({
             Copy email
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        {projects[activeProject].userrole === UserRole.Admin ||
-        (projects[activeProject].userrole === UserRole.Owner &&
+        {projects[activeProject].user_role === UserRole.Admin ||
+        (projects[activeProject].user_role === UserRole.Owner &&
           member.id !== user.id) ||
-        (projects[activeProject].userrole !== UserRole.Owner &&
+        (projects[activeProject].user_role !== UserRole.Owner &&
           member.id === user.id) ? (
           <>
             <DropdownMenuSeparator />

@@ -223,18 +223,18 @@ export default function BlockOptions(
   const [isLabelDialogOpen, setIsLabelDialogOpen] = useState(false);
   const [isMetricDialogOpen, setIsMetricDialogOpen] = useState(false);
   const [selectFilterCategory, setSelectFilterCategory] = useState<string>(
-    props.filtercategories[0] ?? '',
+    props.filter_categories[0] ?? '',
   );
 
   useEffect(() => {
     setNewMetrics(
-      props.metricIds
+      props.metric_ids
         .map((id) =>
           projects[activeProject]?.metrics?.find((metric) => metric.id === id),
         )
         .filter((metric): metric is Metric => metric !== undefined),
     );
-  }, [props.metricIds, projects, activeProject]);
+  }, [props.metric_ids, projects, activeProject]);
 
   async function handleDelete() {
     const isConfirmed = await confirm({
@@ -264,11 +264,11 @@ export default function BlockOptions(
       let layout = projects[activeProject].blocks?.layout;
       if (props.groupkey !== undefined) {
         const blockIndex =
-          layout?.findIndex((l) => l.uniquekey === props.groupkey) ?? -1;
+          layout?.findIndex((l) => l.unique_key === props.groupkey) ?? -1;
         if (blockIndex === -1) return;
 
         let nested = layout?.[blockIndex].nested ?? [];
-        nested = nested.filter((n) => n.uniquekey !== props.uniquekey);
+        nested = nested.filter((n) => n.unique_key !== props.unique_key);
         for (let i = 0; i < nested.length; i++) {
           nested[i].id = i + 1;
         }
@@ -281,21 +281,21 @@ export default function BlockOptions(
                   blocks: {
                     ...proj.blocks,
                     layout: proj.blocks?.layout.map((l) =>
-                      l.uniquekey === props.groupkey
+                      l.unique_key === props.groupkey
                         ? {
                             ...l,
                             nested,
                           }
                         : l,
                     ),
-                    userid: proj.blocks?.userid || '',
+                    userid: proj.blocks?.user_id || '',
                   },
                 }
               : proj,
           ) as Project[],
         );
       } else {
-        layout = layout?.filter((l) => l.uniquekey !== props.uniquekey) ?? [];
+        layout = layout?.filter((l) => l.unique_key !== props.unique_key) ?? [];
         for (let i = 0; i < layout.length; i++) {
           layout[i].id = i + 1;
         }
@@ -308,7 +308,7 @@ export default function BlockOptions(
                   blocks: {
                     ...proj.blocks,
                     layout,
-                    userid: proj.blocks?.userid || '',
+                    userid: proj.blocks?.user_id || '',
                   },
                 }
               : proj,
@@ -324,7 +324,7 @@ export default function BlockOptions(
   }
 
   async function handleMetricChange() {
-    const metrics = props.metricIds
+    const metrics = props.metric_ids
       .map((id) =>
         projects[activeProject]?.metrics?.find((metric) => metric.id === id),
       )
@@ -371,21 +371,21 @@ export default function BlockOptions(
                   ...proj.blocks,
                   layout: proj.blocks?.layout.map((l) =>
                     props.groupkey
-                      ? l.uniquekey === props.groupkey
+                      ? l.unique_key === props.groupkey
                         ? {
                             ...l,
                             nested: l.nested?.map((n) =>
-                              n.uniquekey === props.uniquekey
+                              n.unique_key === props.unique_key
                                 ? { ...n, name: newName }
                                 : n,
                             ),
                           }
                         : l
-                      : l.uniquekey === props.uniquekey
+                      : l.unique_key === props.unique_key
                         ? { ...l, name: newName }
                         : l,
                   ),
-                  userid: proj.blocks?.userid || '',
+                  userid: proj.blocks?.user_id || '',
                 },
               }
             : proj,
@@ -409,11 +409,11 @@ export default function BlockOptions(
                 blocks: {
                   ...proj.blocks,
                   layout: proj.blocks?.layout.map((l) =>
-                    l.uniquekey === props.uniquekey
+                    l.unique_key === props.unique_key
                       ? { ...l, label: newLabel }
                       : l,
                   ),
-                  userid: proj.blocks?.userid || '',
+                  userid: proj.blocks?.user_id || '',
                 },
               }
             : proj,
@@ -436,11 +436,11 @@ export default function BlockOptions(
                   ...proj.blocks,
                   layout: proj.blocks?.layout.map((l) =>
                     props.groupkey
-                      ? l.uniquekey === props.groupkey
+                      ? l.unique_key === props.groupkey
                         ? {
                             ...l,
                             nested: l.nested?.map((n) =>
-                              n.uniquekey === props.uniquekey
+                              n.unique_key === props.unique_key
                                 ? {
                                     ...n,
                                     metricIds: newMetrics.map(
@@ -452,7 +452,7 @@ export default function BlockOptions(
                             ),
                           }
                         : l
-                      : l.uniquekey === props.uniquekey
+                      : l.unique_key === props.unique_key
                         ? {
                             ...l,
                             metricIds: newMetrics.map((metric) => metric.id),
@@ -460,7 +460,7 @@ export default function BlockOptions(
                           }
                         : l,
                   ),
-                  userid: proj.blocks?.userid || '',
+                  userid: proj.blocks?.user_id || '',
                 },
               }
             : proj,
@@ -488,21 +488,21 @@ export default function BlockOptions(
                 ...proj.blocks,
                 layout: proj.blocks?.layout.map((l) =>
                   props.groupkey
-                    ? l.uniquekey === props.groupkey
+                    ? l.unique_key === props.groupkey
                       ? {
                           ...l,
                           nested: l.nested?.map((n) =>
-                            n.uniquekey === props.uniquekey
+                            n.unique_key === props.unique_key
                               ? { ...n, color: newcolor }
                               : n,
                           ),
                         }
                       : l
-                    : l.uniquekey === props.uniquekey
+                    : l.unique_key === props.unique_key
                       ? { ...l, color: newcolor }
                       : l,
                 ),
-                userid: proj.blocks?.userid || '',
+                userid: proj.blocks?.user_id || '',
               },
             }
           : proj,
@@ -608,7 +608,7 @@ export default function BlockOptions(
             setSelectedMetrics={setNewMetrics}
             selectFilterCategories={selectFilterCategory}
             setSelectFilterCategories={setSelectFilterCategory}
-            chartType={props.chartType}
+            chartType={props.chart_type}
             isNested={props.type === BlockType.Nested}
           />
           <DialogFooter>

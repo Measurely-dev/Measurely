@@ -74,7 +74,7 @@ export default function SettingProjectPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ projectid: project.id }),
+        body: JSON.stringify({ project_id: project.id }),
       }).then(async (resp) => {
         if (resp.status === 200) {
           toast.success('Successfully deleted project: ' + project.name);
@@ -131,13 +131,13 @@ export default function SettingProjectPage() {
         ),
         ...projects.filter(
           (proj) =>
-            proj.userrole === UserRole.Owner &&
+            proj.user_role === UserRole.Owner &&
             proj.name !== projects[activeProject]?.name,
         ),
 
         ...projects.filter(
           (proj) =>
-            proj.userrole !== UserRole.Owner &&
+            proj.user_role !== UserRole.Owner &&
             proj.name !== projects[activeProject]?.name,
         ),
       ];
@@ -198,7 +198,7 @@ export default function SettingProjectPage() {
                         </TableCell>
                         <TableCell className='w-full' colSpan={4}>
                           <div className='flex w-full flex-row items-center justify-end gap-2'>
-                            {proj.userrole !== UserRole.Guest && (
+                            {proj.user_role !== UserRole.Guest && (
                               <ApiDialog randomize projectid={proj.id}>
                                 <Button
                                   variant={'outline'}
@@ -216,8 +216,8 @@ export default function SettingProjectPage() {
                                   variant={'ghost'}
                                   className='rounded-[12px] hover:bg-background'
                                   disabled={
-                                    proj.userrole === UserRole.Guest ||
-                                    proj.userrole === UserRole.Developer
+                                    proj.user_role === UserRole.Guest ||
+                                    proj.user_role === UserRole.Developer
                                   }
                                 >
                                   <MoreHorizontal className='size-4' />

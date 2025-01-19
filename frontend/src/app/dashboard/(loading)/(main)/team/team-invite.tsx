@@ -39,8 +39,8 @@ export default function TeamInvite(props: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        memberemail: email,
-        projectid: projects[activeProject].id,
+        member_email: email,
+        project_id: projects[activeProject].id,
         role: selectedRole,
       }),
     })

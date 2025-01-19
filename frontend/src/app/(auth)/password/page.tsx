@@ -110,8 +110,8 @@ export default function Password() {
               credentials: 'include',
               body: JSON.stringify({
                 email: email,
-                firstname: first_name,
-                lastname: last_name,
+                first_name: first_name,
+                last_name: last_name,
                 password: password,
               }),
             }).then((res) => {

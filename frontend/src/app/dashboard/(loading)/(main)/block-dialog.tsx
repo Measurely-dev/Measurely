@@ -656,25 +656,25 @@ function BlocksDialogStack(props: {
                   return;
                 }
                 const color =
-                  project.blocks?.labels[labelIndex].defaultcolor ?? '';
+                  project.blocks?.labels[labelIndex].default_color ?? '';
                 const newBlock: Block = {
                   id: 0,
-                  uniquekey: generateString(10),
+                  unique_key: generateString(10),
                   name: nameInputValue,
                   type:
                     props.groupKey === undefined
                       ? BlockType.Default
                       : BlockType.Nested,
-                  chartType: props.type,
+                  chart_type: props.type,
                   label: selectedLabel,
-                  metricIds: selectedMetrics.map((metric) => metric.id),
-                  filtercategories: [],
+                  metric_ids: selectedMetrics.map((metric) => metric.id),
+                  filter_categories: [],
                   color: color,
                 };
                 if (props.groupKey !== undefined) {
                   const layout =
                     project.blocks?.layout.filter(
-                      (l) => l.uniquekey === props.groupKey,
+                      (l) => l.unique_key === props.groupKey,
                     ) ?? [];
                   if (layout.length === 0) {
                     toast.error('Block does not exist');
@@ -686,7 +686,7 @@ function BlocksDialogStack(props: {
                     return;
                   }
 
-                  newBlock.filtercategories = [selectFilterCategory];
+                  newBlock.filter_categories = [selectFilterCategory];
                   newBlock.id = length + 1;
                   setProjects(
                     projects.map((proj, i) =>
@@ -694,7 +694,7 @@ function BlocksDialogStack(props: {
                         ? Object.assign({}, proj, {
                             blocks: Object.assign({}, proj.blocks, {
                               layout: proj.blocks?.layout.map((l) =>
-                                l.uniquekey === props.groupKey
+                                l.unique_key === props.groupKey
                                   ? Object.assign({}, l, {
                                       nested: [
                                         ...(l.nested ? l.nested : []),

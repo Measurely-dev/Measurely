@@ -266,14 +266,8 @@ export default function DashboardMetricPage() {
       if (index !== undefined && index !== -1) {
         const metricData = projects[activeProject].metrics?.[index];
 
-        if (index > user.plan.metric_per_project_limit - 1) {
-          toast.error(
-            'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
-          );
-        } else {
-          if (metricData !== null && metricData !== undefined) {
-            return metricData;
-          }
+        if (metricData !== null && metricData !== undefined) {
+          return metricData;
         }
       }
     }
@@ -290,21 +284,21 @@ export default function DashboardMetricPage() {
   };
 
   const loadDailyValues = async (metric: Metric) => {
-    const variation = await fetchEventVariation(metric.projectid, metric.id);
+    const variation = await fetchEventVariation(metric.project_id, metric.id);
 
     if (metric.type === MetricType.Average) {
       if (variation.results == 0) {
-        variation.relativeeventcount = metric.eventcount;
-        variation.relativetotalpos = metric.totalpos;
-        variation.relativetotalneg = metric.totalneg;
+        variation.relative_event_count = metric.event_count;
+        variation.relative_total_pos = metric.total_pos;
+        variation.relative_total_neg = metric.total_neg;
       }
 
-      if (variation.relativeeventcount === 0) {
+      if (variation.relative_event_count === 0) {
         setAverage(0);
       } else {
         setAverage(
-          (variation.relativetotalpos - variation.relativetotalneg) /
-            variation.relativeeventcount,
+          (variation.relative_total_pos - variation.relative_total_neg) /
+            variation.relative_event_count,
         );
       }
 
@@ -319,21 +313,21 @@ export default function DashboardMetricPage() {
     }
 
     if (
-      (metric.totalpos !== variation.relativetotalpos ||
-        metric.totalneg !== variation.relativetotalneg ||
-        metric.eventcount !== variation.relativeeventcount) &&
+      (metric.total_pos !== variation.relative_total_pos ||
+        metric.total_neg !== variation.relative_total_neg ||
+        metric.event_count !== variation.relative_event_count) &&
       variation.results !== 0
     ) {
       setProjects(
         projects.map((v) =>
-          v.id === metric.projectid
+          v.id === metric.project_id
             ? Object.assign({}, v, {
                 metrics: v.metrics?.map((m) =>
                   m.id === metric.id
                     ? Object.assign({}, m, {
-                        totalpos: variation.relativetotalpos,
-                        totalneg: variation.relativetotalneg,
-                        eventcount: variation.relativeeventcount,
+                        total_pos: variation.relative_total_pos,
+                        total_neg: variation.relative_total_neg,
+                        event_count: variation.relative_event_count,
                       })
                     : m,
                 ),
@@ -475,16 +469,14 @@ export default function DashboardMetricPage() {
             ].map(({ label, action, icon, color, onClick }, i) => {
               const styles = cardStyle(color);
               const isDisabled =
-                user.userrole === UserRole.Guest ||
-                (user.userrole === UserRole.Developer &&
+                user.user_role === UserRole.Guest ||
+                (user.user_role === UserRole.Developer &&
                   label !== 'Copy Metric ID');
 
               return (
                 <div
                   key={i}
-                  onClick={() => {
-                    isDisabled ? null : onClick();
-                  }}
+                  onClick={onClick}
                   style={{
                     borderColor: styles.borderColor,
                     backgroundColor: styles.backgroundColor,
@@ -643,7 +635,7 @@ function Chart(props: {
         from,
         range,
         activeFilter,
-        activeFilter.projectid,
+        activeFilter.project_id,
         props.type,
       );
 
@@ -661,7 +653,7 @@ function Chart(props: {
         from,
         range,
         props.metric,
-        props.metric.projectid,
+        props.metric.project_id,
         props.type,
       );
 
@@ -721,46 +713,46 @@ function Chart(props: {
         const now = new Date();
         if (end.getTime() > now.getTime()) {
           return {
-            pos: metric.totalpos,
-            neg: metric.totalneg,
+            pos: metric.total_pos,
+            neg: metric.total_neg,
             average:
-              metric.eventcount === 0
+              metric.event_count === 0
                 ? 0
-                : (metric.totalpos - metric.totalneg) / metric.eventcount,
+                : (metric.total_pos - metric.total_neg) / metric.event_count,
             averagepercentdiff: 0,
           };
         }
 
         const {
-          relativetotalpos,
-          relativetotalneg,
-          relativeeventcount,
+          relative_total_pos,
+          relative_total_neg,
+          relative_event_count,
           pos,
           neg,
-          eventcount,
+          event_count,
           results,
-        } = await fetchNextEvent(metric.projectid, metric.id, end);
+        } = await fetchNextEvent(metric.project_id, metric.id, end);
 
         if (results === 0) {
           return {
-            pos: metric.totalpos,
-            neg: metric.totalneg,
+            pos: metric.total_pos,
+            neg: metric.total_neg,
             average:
-              metric.eventcount === 0
+              metric.event_count === 0
                 ? 0
-                : (metric.totalpos - metric.totalneg) / metric.eventcount,
+                : (metric.total_pos - metric.total_neg) / metric.event_count,
             averagepercentdiff: 0,
           };
         } else {
-          const previousEventCount = relativeeventcount - eventcount;
+          const previousevent_count = relative_event_count - event_count;
           return {
-            pos: relativetotalpos - pos,
-            neg: relativetotalneg - neg,
+            pos: relative_total_pos - pos,
+            neg: relative_total_neg - neg,
             average:
-              previousEventCount === 0
+              previousevent_count === 0
                 ? 0
-                : (relativetotalpos - pos - (relativetotalneg - neg)) /
-                  previousEventCount,
+                : (relative_total_pos - pos - (relative_total_neg - neg)) /
+                  previousevent_count,
             averagepercentdiff: 0,
           };
         }
@@ -768,23 +760,23 @@ function Chart(props: {
 
       return { pos, neg, average, averagepercentdiff: 0 };
     } else {
-      let totalpos = 0;
-      let totalneg = 0;
-      let eventcount = 0;
+      let total_pos = 0;
+      let total_neg = 0;
+      let event_count = 0;
       let averagepercentdiff = 0;
 
       for (let i = 0; i < data.length; i++) {
         if (metric.type === MetricType.Base) {
-          totalpos += data[i][metric.name] ?? 0;
+          total_pos += data[i][metric.name] ?? 0;
         } else if (metric.type === MetricType.Dual) {
-          totalpos += data[i][metric.namepos ?? ''] ?? 0;
-          totalneg += data[i][metric.nameneg ?? ''] ?? 0;
+          total_pos += data[i][metric.name_pos ?? ''] ?? 0;
+          total_neg += data[i][metric.name_neg ?? ''] ?? 0;
         } else if (metric.type === MetricType.Average) {
-          totalpos += data[i]['+'] ?? 0;
-          totalneg += data[i]['-'] ?? 0;
+          total_pos += data[i]['+'] ?? 0;
+          total_neg += data[i]['-'] ?? 0;
         }
 
-        eventcount += data[i]['Event Count'] ?? 0;
+        event_count += data[i]['Event Count'] ?? 0;
       }
 
       if (metric.type === MetricType.Average) {
@@ -808,10 +800,10 @@ function Chart(props: {
 
           let firstAverage =
             (latestDatapoint['Positive Trend'] -
-              totalpos -
-              (latestDatapoint['Negative Trend'] - totalneg)) /
-            (latestDatapoint['Event Trend'] - eventcount);
-          if (latestDatapoint['Event Trend'] - eventcount === 0)
+              total_pos -
+              (latestDatapoint['Negative Trend'] - total_neg)) /
+            (latestDatapoint['Event Trend'] - event_count);
+          if (latestDatapoint['Event Trend'] - event_count === 0)
             firstAverage = 0;
 
           const diff = lastAverage - firstAverage;
@@ -829,8 +821,8 @@ function Chart(props: {
       }
 
       return {
-        pos: totalpos,
-        neg: totalneg,
+        pos: total_pos,
+        neg: total_neg,
         average: 0,
         averagepercentdiff: averagepercentdiff,
       };
@@ -1167,8 +1159,8 @@ function Chart(props: {
                             : (props.metric?.name ?? ''),
                         ]
                       : [
-                          props.metric?.namepos ?? '',
-                          props.metric?.nameneg ?? '',
+                          props.metric?.name_pos ?? '',
+                          props.metric?.name_neg ?? '',
                         ]
                   }
                   valueFormatter={(number: number) =>
@@ -1212,7 +1204,7 @@ function Filters(props: {
         const updatedFilters = await Promise.all(
           filters.map(async (filter: any) => {
             const { pos, neg } = await fetchEventVariation(
-              filter.projectid,
+              filter.project_id,
               filter.id,
               props.start,
               end,
@@ -1807,7 +1799,7 @@ function RangeSelector(props: {
   range: number;
   setRange: Dispatch<SetStateAction<number>>;
 }) {
-  const { user } = useContext(UserContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   return (
     <ToggleGroup
       type='single'
@@ -1848,7 +1840,7 @@ function RangeSelector(props: {
       </ToggleGroupItem>
       <div
         onClick={() => {
-          if (user?.plan.identifier === 'starter') {
+          if (projects[activeProject].plan.name.toLowerCase() === 'starter') {
             toast.warning(
               'Your current plan allows viewing up to 30 days of data. Upgrade to unlock extended date ranges.',
             );
@@ -1857,7 +1849,9 @@ function RangeSelector(props: {
       >
         <ToggleGroupItem
           value='365'
-          disabled={user?.plan.identifier === 'starter' ? true : false}
+          disabled={
+            projects[activeProject].plan.name.toLowerCase() === 'starter'
+          }
           className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
         >
           12M

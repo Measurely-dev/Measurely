@@ -95,8 +95,8 @@ export default function DashboardMetrics() {
                 <Button
                   className='h-full gap-[8px] rounded-[12px] max-md:w-full'
                   disabled={
-                    projects[activeProject].userrole !== UserRole.Admin &&
-                    projects[activeProject].userrole !== UserRole.Owner
+                    projects[activeProject].user_role !== UserRole.Admin &&
+                    projects[activeProject].user_role !== UserRole.Owner
                   }
                 >
                   <Plus className='size-[16px]' />
@@ -111,8 +111,8 @@ export default function DashboardMetrics() {
                 description='You can create a new metric to start tracking values.'
                 icons={[CurlyBraces, BoxIcon, Link2Icon]}
                 action={
-                  projects[activeProject].userrole === UserRole.Owner ||
-                  projects[activeProject].userrole === UserRole.Admin
+                  projects[activeProject].user_role === UserRole.Owner ||
+                  projects[activeProject].user_role === UserRole.Admin
                     ? {
                         label: 'Create metric',
                         onClick: () => router.push('/dashboard/new-metric'),

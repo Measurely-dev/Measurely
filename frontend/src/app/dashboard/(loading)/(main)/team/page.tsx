@@ -74,7 +74,7 @@ export default function TeamPage() {
       </Breadcrumb>
       <TeamInvite
         loading={false}
-        disable={projects[activeProject].userrole === UserRole.Guest}
+        disable={projects[activeProject].user_role === UserRole.Guest}
       />
       <div className='mt-5 h-full'>
         {projects[activeProject].members === null ? (

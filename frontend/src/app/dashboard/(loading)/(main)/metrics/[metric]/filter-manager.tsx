@@ -125,12 +125,12 @@ export default function FilterManagerDialog(props: {
             body: JSON.stringify({
               name: tag.text,
               type: props.metric.type,
-              namepos: '',
-              nameneg: '',
-              basevalue: 0,
-              projectid: props.metric.projectid,
+              name_pos: '',
+              name_neg: '',
+              base_value: 0,
+              project_id: props.metric.project_id,
               parentmetricid: props.metric.id,
-              filtercategory: category,
+              filter_category: category,
             }),
           },
         );
@@ -152,17 +152,17 @@ export default function FilterManagerDialog(props: {
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       if (result) {
-        if (filters[result.filtercategory] === undefined) {
-          filters[result.filtercategory] = [];
+        if (filters[result.filter_category] === undefined) {
+          filters[result.filter_category] = [];
         }
 
-        filters[result.filtercategory].push(result);
+        filters[result.filter_category].push(result);
       }
     }
 
     setProjects(
       projects.map((proj) =>
-        proj.id === props.metric.projectid
+        proj.id === props.metric.project_id
           ? Object.assign({}, proj, {
               metrics: proj.metrics?.map((m) =>
                 m.id === props.metric.id
@@ -212,18 +212,18 @@ export default function FilterManagerDialog(props: {
         },
         credentials: 'include',
         body: JSON.stringify({
-          metricid: filterToEdit?.id,
-          projectid: props.metric.projectid,
+          metric_id: filterToEdit?.id,
+          project_id: props.metric.project_id,
         }),
       }).then((resp) => {
         if (resp.ok) {
           const filters = props.metric.filters;
 
-          const newFilters = filters[filterToEdit?.filtercategory].filter(
+          const newFilters = filters[filterToEdit?.filter_category].filter(
             (m) => m.id !== filterToEdit?.id,
           );
 
-          filters[filterToEdit.filtercategory] = newFilters;
+          filters[filterToEdit.filter_category] = newFilters;
 
           setProjects(
             projects.map((proj) =>
@@ -248,7 +248,7 @@ export default function FilterManagerDialog(props: {
     }
   };
 
-  const handleFilterCategoryDelete = async (category: string) => {
+  const handlefilter_categoryDelete = async (category: string) => {
     const isConfirmed = await confirm({
       title: 'Delete Filter Category',
       icon: <Trash2 className='size-5 text-destructive' />,
@@ -280,8 +280,8 @@ export default function FilterManagerDialog(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectid: props.metric.projectid,
-          parentmetricid: props.metric.id,
+          project_id: props.metric.project_id,
+          parent_metric_id: props.metric.id,
           category: category,
         }),
       }).then((resp) => {
@@ -290,7 +290,7 @@ export default function FilterManagerDialog(props: {
           delete filters[category];
           setProjects(
             projects.map((proj) =>
-              proj.id === props.metric.projectid
+              proj.id === props.metric.project_id
                 ? Object.assign({}, proj, {
                     metrics: proj.metrics?.map((m) =>
                       m.id === props.metric.id
@@ -323,25 +323,25 @@ export default function FilterManagerDialog(props: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        projectid: props.metric.projectid,
-        metricid: filterToEdit?.id,
+        project_id: props.metric.project_id,
+        metric_id: filterToEdit?.id,
         name: filterInputValue,
-        namepos: filterToEdit.namepos,
-        nameneg: filterToEdit.nameneg,
+        name_pos: filterToEdit.name_pos,
+        name_neg: filterToEdit.name_neg,
       }),
     }).then((resp) => {
       if (resp.ok) {
         const filters = props.metric.filters;
 
-        const index = filters[filterToEdit.filtercategory].findIndex(
+        const index = filters[filterToEdit.filter_category].findIndex(
           (m) => m.id === filterToEdit.id,
         );
         if (index !== -1) return;
-        filters[filterToEdit.filtercategory][index].name = filterInputValue;
+        filters[filterToEdit.filter_category][index].name = filterInputValue;
 
         setProjects(
           projects.map((proj) =>
-            proj.id === props.metric.projectid
+            proj.id === props.metric.project_id
               ? Object.assign({}, proj, {
                   metric: proj.metrics?.map((m) =>
                     m.id === props.metric.id
@@ -364,7 +364,7 @@ export default function FilterManagerDialog(props: {
     setBadgeDialogOpen(false);
   };
 
-  const handleFilterCategoryRename = () => {
+  const handlefilter_categoryRename = () => {
     if (categoryToRename === undefined) return;
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
       method: 'PATCH',
@@ -373,10 +373,10 @@ export default function FilterManagerDialog(props: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        parentmetricid: props.metric.id,
-        projectid: props.metric.projectid,
-        newname: renameInputValue,
-        oldname: categoryToRename,
+        parent_metric_id: props.metric.id,
+        project_id: props.metric.project_id,
+        new_name: renameInputValue,
+        old_name: categoryToRename,
       }),
     }).then((resp) => {
       if (resp.ok) {
@@ -385,7 +385,7 @@ export default function FilterManagerDialog(props: {
         delete filters[categoryToRename];
         setProjects(
           projects.map((proj) =>
-            proj.id === props.metric.projectid
+            proj.id === props.metric.project_id
               ? Object.assign({}, proj, {
                   metric: proj.metrics?.map((m) =>
                     m.id === props.metric.id
@@ -500,7 +500,7 @@ export default function FilterManagerDialog(props: {
                               <DropdownMenuItem
                                 className='hover:!text-red-500'
                                 onClick={() =>
-                                  handleFilterCategoryDelete(category)
+                                  handlefilter_categoryDelete(category)
                                 }
                               >
                                 Delete
@@ -580,7 +580,7 @@ export default function FilterManagerDialog(props: {
             </DialogClose>
             <Button
               className='w-fit rounded-[12px]'
-              onClick={handleFilterCategoryRename}
+              onClick={handlefilter_categoryRename}
               disabled={
                 renameInputValue === categoryToRename ||
                 renameInputValue.length < 2 ||

@@ -1,7 +1,7 @@
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ProjectsContext, UserContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { Metric, MetricType, UserRole } from '@/types';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
@@ -17,7 +17,6 @@ import {
   Search,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
-import { toast } from 'sonner';
 import {
   Table,
   TableBody,
@@ -53,8 +52,8 @@ const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
 function sortByTotal(a: Metric, b: Metric): number {
-  const aTotal = a.totalpos - a.totalneg;
-  const bTotal = b.totalpos - b.totalneg;
+  const aTotal = a.total_pos - a.total_neg;
+  const bTotal = b.total_pos - b.total_neg;
   if (aTotal < bTotal) {
     return 1;
   } else if (aTotal > bTotal) {
@@ -66,15 +65,6 @@ function sortByTotal(a: Metric, b: Metric): number {
 
 export default function MetricTable(props: { search: string; filter: string }) {
   const { projects, activeProject } = useContext(ProjectsContext);
-  const { user } = useContext(UserContext);
-  const metricsLimitReached = useMemo(() => {
-    if (projects[activeProject].metrics === null) return false;
-    else
-      return (
-        projects[activeProject].metrics.length >
-        user.plan.metric_per_project_limit
-      );
-  }, [projects[activeProject].metrics]);
 
   const filteredMetrics = useMemo(() => {
     return (
@@ -125,20 +115,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
               </TableHeader>
               <TableBody>
                 {filteredMetrics.map((metric, i) => {
-                  const isBlocked =
-                    metricsLimitReached &&
-                    (projects[activeProject].metrics?.findIndex(
-                      (m) => m.id === metric.id,
-                    ) ?? 0) >
-                      user.plan.metric_per_project_limit - 1;
-                  return (
-                    <Item
-                      key={metric.id}
-                      metric={metric}
-                      index={i}
-                      blocked={isBlocked}
-                    />
-                  );
+                  return <Item key={metric.id} metric={metric} index={i} />;
                 })}
               </TableBody>
               <TableFooter>
@@ -156,7 +133,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
     </div>
   );
 }
-const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
+const Item = (props: { metric: Metric; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -188,26 +165,26 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
 
   const load = async () => {
     const variation = await fetchEventVariation(
-      props.metric.projectid,
+      props.metric.project_id,
       props.metric.id,
     );
 
     if (variation.results === 0) {
-      variation.relativeeventcount = props.metric.eventcount;
-      variation.relativetotalpos = props.metric.totalpos;
-      variation.relativetotalneg = props.metric.totalneg;
+      variation.relative_event_count = props.metric.event_count;
+      variation.relative_total_pos = props.metric.total_pos;
+      variation.relative_total_neg = props.metric.total_neg;
     }
 
     if (props.metric.type === MetricType.Average) {
       setDailyUpdate(variation.averagepercentdiff);
 
-      if (variation.relativeeventcount === 0) {
+      if (variation.relative_event_count === 0) {
         setAverage(0);
       } else {
-        console.log(variation.relativetotalpos, variation.relativetotalneg);
+        console.log(variation.relative_total_pos, variation.relative_total_neg);
         setAverage(
-          (variation.relativetotalpos - variation.relativetotalneg) /
-            variation.relativeeventcount,
+          (variation.relative_total_pos - variation.relative_total_neg) /
+            variation.relative_event_count,
         );
       }
     } else {
@@ -215,21 +192,21 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
     }
 
     if (
-      (props.metric.totalpos !== variation.relativetotalpos ||
-        props.metric.totalneg !== variation.relativetotalneg ||
-        props.metric.eventcount !== variation.relativeeventcount) &&
+      (props.metric.total_pos !== variation.relative_total_pos ||
+        props.metric.total_neg !== variation.relative_total_neg ||
+        props.metric.event_count !== variation.relative_event_count) &&
       variation.results !== 0
     ) {
       setProjects(
         projects.map((v) =>
-          v.id === props.metric?.projectid
+          v.id === props.metric?.project_id
             ? Object.assign({}, v, {
                 metrics: v.metrics?.map((m) =>
                   m.id === props.metric?.id
                     ? Object.assign({}, m, {
-                        totalpos: variation.relativetotalpos,
-                        totalneg: variation.relativetotalneg,
-                        eventcount: variation.relativeeventcount,
+                        total_pos: variation.relative_total_pos,
+                        total_neg: variation.relative_total_neg,
+                        event_count: variation.relative_event_count,
                       })
                     : m,
                 ),
@@ -255,16 +232,10 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
     <Dialog open={isEditOpen} onOpenChange={(e) => setIsEditOpen(e)}>
       <TableRow
         onClick={() => {
-          if (props.blocked) {
-            toast.error(
-              'You have exceeded your plan limits. Please upgrade to unlock your metrics.',
-            );
-          } else {
-            setIsLoading(true);
-            router.push(
-              `/dashboard/metrics/${encodeURIComponent(props.metric.name)}`,
-            );
-          }
+          setIsLoading(true);
+          router.push(
+            `/dashboard/metrics/${encodeURIComponent(props.metric.name)}`,
+          );
         }}
         className={`select-none ${isOpen ? '!bg-blue-500/5' : ''}`}
       >
@@ -290,7 +261,9 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
               <>{valueFormatter(average)}</>
             ) : (
               <>
-                {valueFormatter(props.metric.totalpos - props.metric.totalneg)}
+                {valueFormatter(
+                  props.metric.total_pos - props.metric.total_neg,
+                )}
               </>
             )}
           </div>
@@ -325,7 +298,7 @@ const Item = (props: { metric: Metric; index: number; blocked: boolean }) => {
                 variant={'ghost'}
                 size={'icon'}
                 className='size-fit py-2 pl-2 hover:bg-transparent'
-                disabled={projects[activeProject].userrole === UserRole.Guest}
+                disabled={projects[activeProject].user_role === UserRole.Guest}
               >
                 <MoreHorizontal className='size-5' />
               </Button>

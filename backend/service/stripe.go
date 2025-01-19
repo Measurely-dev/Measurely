@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/measurely-dev/measurely-go"
 	"github.com/stripe/stripe-go/v79"
 	bilsession "github.com/stripe/stripe-go/v79/billingportal/session"
@@ -72,7 +73,10 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Plan string `json:"plan"`
+		Plan             string    `json:"plan"`
+		MaxEvent         int       `json:"max_events"`
+		ProjectId        uuid.UUID `json:"project_id"`
+		SubscriptionType int       `json:"subscription_type"`
 	}
 
 	// Try to unmarshal the request body
@@ -82,9 +86,30 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plan, exists := s.GetPlan(request.Plan)
+	plan, exists := s.plans[request.Plan]
 	if !exists {
 		http.Error(w, "Invalid plan", http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusForbidden)
+		return
+	}
+
+	if project.CurrentPlan == request.Plan {
+		http.Error(w, "You are already using this plan", http.StatusNotModified)
 		return
 	}
 
@@ -95,9 +120,15 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.CurrentPlan == request.Plan {
-		http.Error(w, "You are already using this plan", http.StatusNotModified)
-		return
+	var priceid string
+	if request.SubscriptionType == types.SUBSCRIPTION_YEARLY {
+		priceid = plan.YearlyPriceId
+	} else {
+		priceid = plan.MonthlyPriceId
+	}
+
+	if request.Plan == "starter" {
+		request.MaxEvent = s.plans["starter"].MaxEventPerMonth
 	}
 
 	params := &stripe.CheckoutSessionParams{
@@ -105,13 +136,13 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		CancelURL:  stripe.String(GetOrigin() + "/dashboard"),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price:    stripe.String(plan.Price),
-				Quantity: stripe.Int64(1),
+				Price:    stripe.String(priceid),
+				Quantity: stripe.Int64(int64(request.MaxEvent)),
 			},
 		},
 		Mode:     stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 		Customer: stripe.String(user.StripeCustomerId),
-		Metadata: map[string]string{"plan": request.Plan},
+		Metadata: map[string]string{"plan": request.Plan, "priceid": priceid, "projectid": project.Id.String(), "maxevent": strconv.Itoa(request.MaxEvent)},
 		ConsentCollection: &stripe.CheckoutSessionConsentCollectionParams{
 			PaymentMethodReuseAgreement: &stripe.CheckoutSessionConsentCollectionPaymentMethodReuseAgreementParams{
 				Position: stripe.String(string(stripe.CheckoutSessionConsentCollectionPaymentMethodReuseAgreementPositionHidden)),
@@ -127,31 +158,20 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	if request.Plan == "starter" {
 		w.WriteHeader(http.StatusOK)
 
-		if user.CurrentPlan != "starter" {
-			result := subscription.List(&stripe.SubscriptionListParams{
-				Customer: stripe.String(user.StripeCustomerId),
-			})
-
-			subscriptions := result.SubscriptionList()
-
-			if subscriptions != nil {
-				if len(subscriptions.Data) != 0 {
-					_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
-					if err != nil {
-						log.Println("Failed to cancel subscriptions: ", err)
-						http.Error(w, "Internal error", http.StatusInternalServerError)
-						return
-					}
-				}
+		if project.StripeSubscriptionId != "" {
+			_, err := subscription.Cancel(project.StripeSubscriptionId, nil)
+			if err != nil {
+				log.Println("Failed to cancel subscriptions: ", err)
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				return
 			}
-
 		}
 
-		s.db.UpdateUserPlan(token.Id, "starter")
-		s.cache.users.Delete(token.Id)
+		s.db.UpdateProjectPlan(project.Id, "starter", "", s.plans["starter"].MaxEventPerMonth)
+		s.projectsCache.Delete(project.ApiKey)
 
-    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
-    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+		go measurely.Capture(metricIds["projects"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+		go measurely.Capture(metricIds["projects"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": project.CurrentPlan}})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -215,7 +235,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		planData, exists := s.GetPlan(session.Metadata["plan"])
+		planData, exists := s.plans[session.Metadata["plan"]]
 		if !exists {
 			log.Println("Plan not found")
 			http.Error(w, "Plan not found", http.StatusNotFound)
@@ -235,35 +255,36 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if user.CurrentPlan != "starter" {
-			result := subscription.List(&stripe.SubscriptionListParams{
-				Customer: stripe.String(user.StripeCustomerId),
-			})
+		projectid, err := uuid.Parse(session.Metadata["projectid"])
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Invalid project id", http.StatusBadRequest)
+			return
+		}
 
-			subscriptions := result.SubscriptionList()
+		project, err := s.db.GetProject(projectid, user.Id)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 
-			if subscriptions != nil {
-				if len(subscriptions.Data) != 0 {
-					for _, sub := range subscriptions.Data {
-						if sub.Items.Data[0].Price.ID != planData.Price {
-							_, err := subscription.Cancel(sub.ID, nil)
-							if err != nil {
-								log.Println("Failed to cancel subscriptions: ", err)
-								http.Error(w, "Internal error", http.StatusInternalServerError)
-								return
-							}
-						}
-					}
-				}
+		if project.StripeSubscriptionId != "" {
+
+			_, err := subscription.Cancel(project.StripeSubscriptionId, nil)
+			if err != nil {
+				log.Println("Failed to cancel subscriptions: ", err)
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				return
 			}
 
 		}
+		s.db.UpdateProjectPlan(project.Id, session.Metadata["plan"], session.Subscription.ID, int(session.LineItems.Data[0].Quantity))
+		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_ACTIVE)
+		s.projectsCache.Delete(project.ApiKey)
 
-		s.db.UpdateUserPlan(user.Id, planData.Identifier)
-		s.cache.users.Delete(user.Id)
-
-    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : planData.Identifier}})
-    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+		go measurely.Capture(metricIds["projects"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": session.Metadata["plan"]}})
+		go measurely.Capture(metricIds["projects"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": project.CurrentPlan}})
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
@@ -297,6 +318,9 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		s.db.ResetProjectsMonthlyEventCount(user.Id)
+		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_ACTIVE)
+
 		// send email
 		go s.email.SendEmail(email.MailFields{
 			To:      user.Email,
@@ -329,33 +353,13 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		result := subscription.List(&stripe.SubscriptionListParams{
-			Customer: stripe.String(user.StripeCustomerId),
-		})
-
-		subscriptions := result.SubscriptionList()
-
-		if subscriptions != nil {
-			if len(subscriptions.Data) > 0 {
-				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
-				if err != nil {
-					log.Println(err)
-				}
-
-			}
-		}
-
-		s.db.UpdateUserPlan(user.Id, "starter")
-
-    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
-    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan" : user.CurrentPlan}})
+		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_FAILED)
 
 		// send email
 		go s.email.SendEmail(email.MailFields{
-			To:      user.Email,
-			Subject: "Invoice Failed",
-			Content: "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "\n You have been downgraded to the starter plan.",
-
+			To:          user.Email,
+			Subject:     "Invoice Failed",
+			Content:     "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "<br> Some features will be temporarly locked until this is resolved.",
 			Link:        GetOrigin() + "/dashboard",
 			ButtonTitle: "View Dashboard",
 		})

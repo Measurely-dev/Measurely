@@ -7,36 +7,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { ProjectsContext, UserContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 import { loadMetrics } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 
 export default function ProjectsChip() {
   const [open, setOpen] = useState(false);
-  const { user } = useContext(UserContext);
   const { projects, activeProject, setActiveProject, setProjects } =
     useContext(ProjectsContext);
 
-  const projectsLimitReached = useMemo(() => {
-    return projects.length > user.plan.projectlimit;
-  }, [projects]);
-
   const handleAppSelect = async (id: string) => {
     const index = projects.findIndex((proj) => proj.id === id);
-    if (
-      projectsLimitReached &&
-      index > user.plan.projectlimit - 1 &&
-      index < ownedProjects.length
-    ) {
-      toast.error(
-        'You have exceeded your plan limits. Please upgrade to unlock your projects',
-      );
-      return;
-    }
 
     if (index <= projects.length - 1) {
       if (projects[index].metrics === null) {
@@ -55,11 +39,11 @@ export default function ProjectsChip() {
   };
 
   const ownedProjects = useMemo(() => {
-    return projects.filter((proj) => proj.userrole === UserRole.Owner);
+    return projects.filter((proj) => proj.user_role === UserRole.Owner);
   }, [projects]);
 
   const joinedProjects = useMemo(() => {
-    return projects.filter((proj) => proj.userrole !== UserRole.Owner);
+    return projects.filter((proj) => proj.user_role !== UserRole.Owner);
   }, [projects]);
 
   return (
@@ -90,18 +74,11 @@ export default function ProjectsChip() {
         side='bottom'
         align='start'
       >
-        {ownedProjects.map((app, i) => {
-          const isBlocked =
-            projectsLimitReached &&
-            i > user.plan.projectlimit - 1 &&
-            i < ownedProjects.length;
-
+        {ownedProjects.map((app) => {
           return (
             <div
               key={app.id}
-              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75 ${
-                isBlocked ? 'cursor-not-allowed opacity-50' : ''
-              }`}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75`}
               onClick={() => {
                 handleAppSelect(app.id);
               }}

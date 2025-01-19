@@ -42,31 +42,21 @@ type MetricCache struct {
 	expiry      time.Time
 }
 
-type RateLimit struct {
-	current int
-	max     int
-	expiry  time.Time
-}
-
-type UserCache struct {
-	plan_identifier string
-	metric_count    int64
-	startDate       time.Time
-}
-
-type Cache struct {
-	plans      sync.Map
-	users      sync.Map
-	metrics    []sync.Map
-	ratelimits sync.Map
+type ProjectCache struct {
+	api_key             string
+	id                  uuid.UUID
+	event_count         int
+	monthly_event_limit int
 }
 
 type Service struct {
-	db        *db.DB
-	email     *email.Email
-	s3Client  *s3.Client
-	providers map[string]Provider
-	cache     Cache
+	db            *db.DB
+	email         *email.Email
+	s3Client      *s3.Client
+	providers     map[string]Provider
+	metricsCache  sync.Map
+	projectsCache sync.Map
+	plans         map[string]types.Plan
 }
 
 func New() Service {
@@ -134,25 +124,43 @@ func New() Service {
 		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
 	})
 
+	plans := make(map[string]types.Plan)
+
+	plans["starter"] = types.Plan{
+		Name:             "Starter",
+		MonthlyPriceId:   os.Getenv(""),
+		YearlyPriceId:    os.Getenv(""),
+		MetricLimit:      3,
+		Range:            30,
+		MaxEventPerMonth: 5000,
+	}
+
+	plans["plus"] = types.Plan{
+		Name:           "Plus",
+		MonthlyPriceId: os.Getenv(""),
+		YearlyPriceId:  os.Getenv(""),
+		MetricLimit:    15,
+		Range:          365,
+	}
+
+	plans["pro"] = types.Plan{
+		Name:           "Pro",
+		MonthlyPriceId: os.Getenv(""),
+		YearlyPriceId:  os.Getenv(""),
+		MetricLimit:    -1,
+		Range:          365,
+	}
+
 	// Return the new service with all components initialized
 	return Service{
-		db:        db,
-		email:     email,
-		providers: providers,
-		s3Client:  client,
-		cache: Cache{
-			plans:      sync.Map{},
-			users:      sync.Map{},
-			metrics:    []sync.Map{{}, {}},
-			ratelimits: sync.Map{},
-		},
+		db:            db,
+		email:         email,
+		providers:     providers,
+		s3Client:      client,
+		metricsCache:  sync.Map{},
+		projectsCache: sync.Map{},
+		plans:         plans,
 	}
-}
-
-func (s *Service) SetupBasicPlans() {
-	s.GetPlan("starter")
-	s.GetPlan("plus")
-	s.GetPlan("pro")
 }
 
 func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
@@ -442,18 +450,18 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 					FirstName:        strings.ToLower(strings.TrimSpace(providerUser.Name)),
 					LastName:         "",
 					StripeCustomerId: c.ID,
-					CurrentPlan:      "starter",
 				})
 				if err != nil {
 					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 						http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
 					} else {
+						log.Println("Error creatiing user: ", err)
 						http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 					}
 					return
 				}
 
-				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
 				go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 			} else {
@@ -580,8 +588,8 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Email     string `json:"email"`
 		Password  string `json:"password"`
-		FirstName string `json:"firstname"`
-		LastName  string `json:"lastname"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
 	}
 
 	// Try to unmarshal the request body
@@ -634,7 +642,6 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		FirstName:        request.FirstName,
 		LastName:         request.LastName,
 		StripeCustomerId: c.ID,
-		CurrentPlan:      "starter",
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -659,7 +666,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
 	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
@@ -719,37 +726,18 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	userCache, err := s.GetUserCache(user.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache: ", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user plan from cache: ", err)
-		http.Error(w, "Plan not found.", http.StatusNotFound)
-		return
-	}
-
-	plan.Price = ""
 	response := struct {
-		Id         uuid.UUID            `json:"id"`
-		Email      string               `json:"email"`
-		FirstName  string               `json:"firstname"`
-		LastName   string               `json:"lastname"`
-		EventCount int64                `json:"eventcount"`
-		Plan       types.Plan           `json:"plan"`
-		Providers  []types.UserProvider `json:"providers"`
+		Id        uuid.UUID            `json:"id"`
+		Email     string               `json:"email"`
+		FirstName string               `json:"first_name"`
+		LastName  string               `json:"last_name"`
+		Providers []types.UserProvider `json:"providers"`
 	}{
-		Id:         user.Id,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		EventCount: user.MonthlyEventCount,
-		Plan:       plan,
-		Providers:  finalProviders,
+		Id:        user.Id,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Providers: finalProviders,
 	}
 
 	bytes, jerr := json.Marshal(response)
@@ -813,8 +801,8 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		RequestId   uuid.UUID `json:"requestid"`
-		NewPassword string    `json:"newpassword"`
+		RequestId   uuid.UUID `json:"request_id"`
+		NewPassword string    `json:"new_password"`
 	}
 
 	// Try to unmarshal the request body
@@ -915,7 +903,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": user.CurrentPlan}})
+	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -925,7 +913,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	})
 	go s.email.SendEmail(email.MailFields{
 		To:      "info@measurely.dev",
-		Subject: "Feedback Received from " + user.Email + " (" + user.CurrentPlan + ")",
+		Subject: "Feedback Received from " + user.Email,
 		Content: request.Content,
 	})
 }
@@ -945,24 +933,25 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.CurrentPlan != "starter" {
-		result := subscription.List(&stripe.SubscriptionListParams{
-			Customer: stripe.String(user.StripeCustomerId),
-		})
+	result := subscription.List(&stripe.SubscriptionListParams{
+		Customer: stripe.String(user.StripeCustomerId),
+	})
 
-		subscriptions := result.SubscriptionList()
+	subscriptions := result.SubscriptionList()
 
-		if subscriptions != nil {
-			if len(subscriptions.Data) != 0 {
-				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+	if subscriptions != nil {
+		if len(subscriptions.Data) != 0 {
+
+			for _, sub := range subscriptions.Data {
+				_, err := subscription.Cancel(sub.ID, nil)
 				if err != nil {
 					log.Println("Failed to cancel subscriptions: ", err)
 					http.Error(w, "Internal error", http.StatusInternalServerError)
 					return
 				}
 			}
-		}
 
+		}
 	}
 
 	// Delete stripe customer
@@ -994,7 +983,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": user.CurrentPlan}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
@@ -1058,7 +1047,7 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		RequestId uuid.UUID `json:"requestid"`
+		RequestId uuid.UUID `json:"request_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1222,33 +1211,6 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache: ", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user plan from cache: ", err)
-		http.Error(w, "Plan not found.", http.StatusNotFound)
-		return
-	}
-	if plan.ProjectLimit >= 0 {
-		count, cerr := s.db.GetProjectCountByUser(token.Id)
-		if cerr != nil {
-			log.Println("Error retrieving project count:", cerr)
-			http.Error(w, "Error checking project count, please try again later", http.StatusInternalServerError)
-			return
-		}
-
-		if count >= plan.ProjectLimit {
-			http.Error(w, "Project limit reached", http.StatusForbidden)
-			return
-		}
-	}
-
 	var apiKey string
 	var aerr error
 	for tries := 5; tries > 0; tries-- {
@@ -1268,10 +1230,13 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newApp, err := s.db.CreateProject(types.Project{
-		ApiKey: apiKey,
-		Name:   request.Name,
-		UserId: token.Id,
+	new_project, err := s.db.CreateProject(types.Project{
+		ApiKey:           apiKey,
+		Name:             request.Name,
+		UserId:           token.Id,
+		CurrentPlan:      "starter",
+		SubscriptionType: types.SUBSCRIPTION_MONTHLY,
+		MaxEventPerMonth: s.plans["starter"].MaxEventPerMonth,
 	})
 	if err != nil {
 		log.Println("Error creating project:", err)
@@ -1279,8 +1244,19 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newApp.UserRole = types.TEAM_OWNER
-	bytes, jerr := json.Marshal(newApp)
+	new_project.UserRole = types.TEAM_OWNER
+
+	type ProjectResponse struct {
+		types.Project
+		Plan types.Plan `json:"plan"`
+	}
+
+	response := ProjectResponse{
+		Project: new_project,
+		Plan:    s.plans[new_project.CurrentPlan],
+	}
+
+	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
 		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
 		return
@@ -1301,7 +1277,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"projectid"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Attempt to decode the request body into the `request` struct
@@ -1371,12 +1347,35 @@ func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"project"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Try to unmarshal the request body
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println("Error fetching project:", err)
+			http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = subscription.Cancel(project.StripeSubscriptionId, nil)
+	if err != nil {
+		log.Println("Failed to cancel subscriptions: ", err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -1400,7 +1399,7 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		NewName   string    `json:"new_name"`
-		ProjectId uuid.UUID `json:"projectid"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1446,6 +1445,11 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type ProjectResponse struct {
+		types.Project
+		Plan types.Plan `json:"plan"`
+	}
+
 	// Fetch Projects
 	projects, err := s.db.GetProjects(token.Id)
 	if err == sql.ErrNoRows {
@@ -1456,13 +1460,23 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	projects_response := []ProjectResponse{}
+
 	for i, project := range projects {
+		projects[i].StripeSubscriptionId = ""
 		if project.UserRole == types.TEAM_GUEST {
 			projects[i].ApiKey = ""
 		}
+
+		response := ProjectResponse{
+			Project: project,
+			Plan:    s.plans[project.CurrentPlan],
+		}
+
+		projects_response = append(projects_response, response)
 	}
 
-	bytes, err := json.Marshal(projects)
+	bytes, err := json.Marshal(projects_response)
 	if err != nil {
 		http.Error(w, "Failed to marshal projects data: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -1481,13 +1495,13 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		Name           string     `json:"name"`
-		ProjectId      uuid.UUID  `json:"projectid"`
+		ProjectId      uuid.UUID  `json:"project_id"`
 		Type           int        `json:"type"`
-		BaseValue      int64      `json:"basevalue"`
-		NamePos        string     `json:"namepos"`
-		NameNeg        string     `json:"nameneg"`
-		ParentMetricId *uuid.UUID `json:"parentmetricid,omitempty"`
-		FilterCategory string     `json:"filtercategory"`
+		BaseValue      int64      `json:"base_value"`
+		NamePos        string     `json:"name_pos"`
+		NameNeg        string     `json:"name_neg"`
+		ParentMetricId *uuid.UUID `json:"parent_metric_id,omitempty"`
+		FilterCategory string     `json:"filter_category"`
 	}
 
 	// Try to unmarshal the request body
@@ -1545,21 +1559,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	if count >= plan.MetricPerProjectLimit {
+	if count > s.plans[project.CurrentPlan].MetricLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}
@@ -1633,8 +1633,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MetricId  uuid.UUID `json:"metricid"`
-		ProjectId uuid.UUID `json:"projectid"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Try to unmarshal the request body
@@ -1670,8 +1670,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Remove the metric from the cache
-	s.cache.metrics[0].Delete(request.MetricId)
-	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
+	s.metricsCache.Delete(request.MetricId)
+	s.metricsCache.Delete(project.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
 	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: -1})
@@ -1712,7 +1712,7 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := range metrics {
-		metrics[i].StripeAccount.V = ""
+		metrics[i].StripeApiKey.V = ""
 	}
 
 	bytes, err := json.Marshal(metrics)
@@ -1733,11 +1733,11 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"projectid"`
-		MetricId  uuid.UUID `json:"metricid"`
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
 		Name      string    `json:"name"`
-		NamePos   string    `json:"namepos"`
-		NameNeg   string    `json:"nameneg"`
+		NamePos   string    `json:"name_pos"`
+		NameNeg   string    `json:"name_neg"`
 	}
 
 	// Try to unmarshal the request body
@@ -1779,7 +1779,7 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
+	s.metricsCache.Delete(project.ApiKey + metric.Name)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -1792,8 +1792,8 @@ func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parentmetricid"`
-		ProjectId      uuid.UUID `json:"projectid"`
+		ParentMetricId uuid.UUID `json:"parent_metric_id"`
+		ProjectId      uuid.UUID `json:"project_id"`
 		Category       string    `json:"category"`
 	}
 
@@ -1835,10 +1835,10 @@ func (s *Service) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parentmetricid"`
-		ProjectId      uuid.UUID `json:"projectid"`
-		OldName        string    `json:"oldname"`
-		NewName        string    `json:"newname"`
+		ParentMetricId uuid.UUID `json:"parent_metric_id"`
+		ProjectId      uuid.UUID `json:"project_id"`
+		OldName        string    `json:"old_name"`
+		NewName        string    `json:"new_name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1888,9 +1888,6 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		users[i].Password = ""
 		users[i].StripeCustomerId = ""
-		users[i].MonthlyEventCount = 0
-		users[i].StartCountDate = time.Now().UTC()
-		users[i].CurrentPlan = ""
 	}
 
 	body, err := json.Marshal(users)
@@ -1911,8 +1908,8 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberEmail string    `json:"memberemail"`
-		ProjectId   uuid.UUID `json:"projectid"`
+		MemberEmail string    `json:"member_email"`
+		ProjectId   uuid.UUID `json:"project_id"`
 		Role        int       `json:"role"`
 	}
 
@@ -1953,6 +1950,17 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	count, err := s.db.GetTeamMembersCount(request.ProjectId)
+	if err != nil {
+		http.Error(w, "Failed to add team member", http.StatusInternalServerError)
+		return
+	}
+
+	if count > s.plans[project.CurrentPlan].TeamMemberLimit {
+		http.Error(w, "Team limit reached for this project", http.StatusForbidden)
+		return
+	}
+
 	err = s.db.CreateTeamRelation(types.TeamRelation{
 		UserId:    member.Id,
 		ProjectId: request.ProjectId,
@@ -1968,10 +1976,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	member.CurrentPlan = ""
 	member.Password = ""
-	member.MonthlyEventCount = 0
-	member.StartCountDate = time.Now().UTC()
 	member.StripeCustomerId = ""
 	member.UserRole = request.Role
 
@@ -2000,8 +2005,8 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
+		MemberId  uuid.UUID `json:"member_id"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -2062,9 +2067,9 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
-		NewRole   int       `json:"NewRole"`
+		MemberId  uuid.UUID `json:"member_id"`
+		ProjectId uuid.UUID `json:"project_id"`
+		NewRole   int       `json:"new_role"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -2141,7 +2146,7 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
+	projectid, err := uuid.Parse(chi.URLParam(r, "project_id"))
 	if err != nil {
 		http.Error(w, "Invalid app id", http.StatusBadRequest)
 		return
@@ -2166,9 +2171,6 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		users[i].Password = ""
 		users[i].StripeCustomerId = ""
-		users[i].MonthlyEventCount = 0
-		users[i].StartCountDate = time.Now().UTC()
-		users[i].CurrentPlan = ""
 	}
 
 	body, err := json.Marshal(users)
@@ -2188,7 +2190,7 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectid, err := uuid.Parse(chi.URLParam(r, "projectid"))
+	projectid, err := uuid.Parse(chi.URLParam(r, "project_id"))
 	if err != nil {
 		http.Error(w, "Invalid project Id", http.StatusBadRequest)
 		return
@@ -2269,9 +2271,9 @@ func (s *Service) UpdateBlocks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		NewLayout []types.Block `json:"newlayout"`
-		NewLabels []types.Label `json:"newlabels"`
-		ProjectId uuid.UUID     `json:"projectid"`
+		NewLayout []types.Block `json:"new_layout"`
+		NewLabels []types.Label `json:"new_labels"`
+		ProjectId uuid.UUID     `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

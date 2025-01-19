@@ -36,7 +36,7 @@ export default function EditAppDialogContent(props: {
         credentials: 'include',
         body: JSON.stringify({
           new_name: name,
-          projectid: props.project?.id,
+          project_id: props.project?.id,
         }),
       }).then((res) => {
         if (!res.ok) {

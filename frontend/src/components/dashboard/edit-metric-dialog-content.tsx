@@ -21,8 +21,8 @@ export default function EditMetricDialogContent(props: {
   onUpdate?: (new_name: string) => void;
 }) {
   const [name, setName] = useState<string>(props.metric?.name ?? '');
-  const [posName, setPosName] = useState<string>(props.metric?.namepos ?? '');
-  const [negName, setNegName] = useState<string>(props.metric?.nameneg ?? '');
+  const [posName, setPosName] = useState<string>(props.metric?.name_pos ?? '');
+  const [negName, setNegName] = useState<string>(props.metric?.name_neg ?? '');
   const [loading, setLoading] = useState<boolean>(false);
   const { projects, setProjects } = useContext(ProjectsContext);
 
@@ -62,8 +62,8 @@ export default function EditMetricDialogContent(props: {
 
           if (
             name !== props.metric?.name ||
-            posName !== props.metric.namepos ||
-            negName !== props.metric.nameneg
+            posName !== props.metric.name_pos ||
+            negName !== props.metric.name_neg
           ) {
             res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'PATCH',
@@ -71,8 +71,8 @@ export default function EditMetricDialogContent(props: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                projectid: props.metric?.projectid,
-                metricid: props.metric?.id,
+                project_id: props.metric?.project_id,
+                metric_id: props.metric?.id,
                 name: name,
                 namepos: posName,
                 nameneg: negName,
@@ -92,7 +92,7 @@ export default function EditMetricDialogContent(props: {
           if (projects !== null) {
             setProjects(
               projects.map((v: Project) =>
-                v.id === props.metric?.projectid
+                v.id === props.metric?.project_id
                   ? Object.assign({}, v, {
                       metrics: v.metrics?.map((m) =>
                         m.id === props.metric?.id
@@ -161,8 +161,8 @@ export default function EditMetricDialogContent(props: {
               className='w-full rounded-[12px]'
               onClick={() => {
                 setName(props.metric?.name ?? '');
-                setPosName(props.metric?.namepos ?? '');
-                setNegName(props.metric?.nameneg ?? '');
+                setPosName(props.metric?.name_pos ?? '');
+                setNegName(props.metric?.name_neg ?? '');
               }}
             >
               Cancel
@@ -175,8 +175,8 @@ export default function EditMetricDialogContent(props: {
             loading={loading}
             disabled={
               (name === props.metric?.name &&
-                props.metric?.namepos === posName &&
-                props.metric?.nameneg === negName) ||
+                props.metric?.name_pos === posName &&
+                props.metric?.name_neg === negName) ||
               loading
             }
           >

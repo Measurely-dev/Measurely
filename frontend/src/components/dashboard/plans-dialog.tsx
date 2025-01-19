@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import WebPricingCard from '@/components/website/pricing-card';
-import { UserContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import { plans } from '@/plans';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { DialogTitle } from '@radix-ui/react-dialog';
@@ -18,7 +18,7 @@ import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function PlansDialog(props: { children: ReactNode }) {
-  const { user } = useContext(UserContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
@@ -117,12 +117,16 @@ export default function PlansDialog(props: { children: ReactNode }) {
                 target={plan.target}
                 list={plan.list}
                 button={
-                  user?.plan.identifier === plan.identifier
+                  projects[activeProject].plan.name.toLowerCase() ===
+                  plan.identifier
                     ? 'Current plan'
                     : 'Switch to ' + plan.name
                 }
                 loading={loading && selectedPlan === plan.identifier}
-                disabled={user?.plan.identifier === plan.identifier || loading}
+                disabled={
+                  projects[activeProject].plan.name.toLowerCase() ===
+                    plan.identifier || loading
+                }
                 onSelect={() => {
                   subscribe(plan.identifier);
                 }}
