@@ -65,10 +65,13 @@ import {
 } from '@/utils';
 import { Dialog } from '@/components/ui/dialog';
 import {
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
   ArrowUpCircle,
   Calendar,
+  ChevronDown,
   ChevronsUpDown,
   CircleOff,
   Copy,
@@ -92,6 +95,7 @@ import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import FilterManagerDialog from './filter-manager';
 import { PushValueDialog } from '../../push-value';
+import { UnitSelect } from '@/components/ui/unit-select';
 
 type AllowedColors =
   | 'blue'
@@ -281,6 +285,10 @@ export default function DashboardMetricPage() {
   const [negDaily, setNegDaily] = useState<number>(0);
   const [average, setAverage] = useState<number>(0);
 
+  const handleUnitChange = (value: string) => {
+    console.log('Selected unit:', value);
+  };
+
   const loadDailyValues = async (metric: Metric) => {
     const variation = await fetchEventVariation(metric.projectid, metric.id);
 
@@ -427,9 +435,9 @@ export default function DashboardMetricPage() {
         pushValueOpen={pushValueOpen}
         setPushValueOpen={setPushValueOpen}
       />
-      <Card className='mt-5 rounded-[12px] border-none bg-accent p-2'>
+      <Card className='mt-5 rounded-[12px] border-none bg-background'>
         <CardContent className='p-0'>
-          <div className='grid grid-cols-4 gap-5 rounded-[10px] bg-background p-2 max-lg:grid-cols-2 max-md:grid-cols-1'>
+          <div className='grid grid-cols-4 gap-5 rounded-[10px] max-lg:grid-cols-2 max-md:grid-cols-1'>
             {[
               {
                 label: 'Filter Manager',
@@ -483,7 +491,7 @@ export default function DashboardMetricPage() {
                     opacity: isDisabled ? 0.5 : 1,
                     pointerEvents: isDisabled ? 'none' : 'auto',
                   }}
-                  className={`group flex cursor-pointer select-none overflow-hidden rounded-[8px] border p-1 transition-all duration-150 active:scale-[.98]`}
+                  className={`group flex cursor-pointer select-none overflow-hidden rounded-[12px] border p-1 transition-all duration-150 active:scale-[.98]`}
                 >
                   <div
                     style={{ backgroundColor: `${color}0F` }}
@@ -520,16 +528,38 @@ export default function DashboardMetricPage() {
                 {metric?.name ?? 'Unknown'}
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
-                {metric?.type === MetricType.Average ? (
-                  <>{valueFormatter(average)}</>
-                ) : (
-                  <>
-                    {valueFormatter(
-                      (metric?.totalpos ?? 0) - (metric?.totalneg ?? 0),
-                    )}
-                  </>
-                )}
-                {metric?.type === MetricType.Dual ? (
+                <div className='flex items-center gap-3'>
+                  {metric?.type === MetricType.Average ? (
+                    <>{valueFormatter(average)}</>
+                  ) : (
+                    <>
+                      {valueFormatter(
+                        (metric?.totalpos ?? 0) - (metric?.totalneg ?? 0),
+                      )}
+                    </>
+                  )}
+                  <UnitSelect onValueChange={handleUnitChange} />
+                  <Separator
+                    orientation='vertical'
+                    className='my-auto ml-1 h-4'
+                  />
+                </div>
+                <div>
+                  <div className='flex flex-wrap justify-center gap-4'>
+                    <span className='inline-flex items-center gap-x-1 rounded-md bg-green-100 px-2 py-1 text-sm font-semibold text-green-600'>
+                      <ArrowUp className='-ml-0.5 size-4' aria-hidden={true} />
+                      9.3%
+                    </span>
+                    <span className='inline-flex items-center gap-x-1 rounded-md bg-red-100 px-2 py-1 text-sm font-semibold text-red-600'>
+                      <ArrowDown
+                        className='-ml-0.5 size-4'
+                        aria-hidden={true}
+                      />
+                      1.9%
+                    </span>
+                  </div>
+                </div>
+                {/* {metric?.type === MetricType.Dual ? (
                   <>
                     <div className='flex flex-col gap-1'>
                       <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
@@ -555,7 +585,7 @@ export default function DashboardMetricPage() {
                       </div>
                     </div>
                   </>
-                )}
+                )} */}
               </div>
             </div>
           </div>
