@@ -1,14 +1,13 @@
 'use client';
-import React, { FormEvent, useContext, useMemo, useState } from 'react';
+import React, { FormEvent, useContext, useState } from 'react';
 import SettingCard from '../setting-card';
 import { Button } from '@/components/ui/button';
 import PlansDialog from '../plans-dialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { ProjectsContext, UserContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
 import { Rocket } from 'lucide-react';
-import { UserRole } from '@/types';
 
 const valueFormatter = (number: number) =>
   Intl.NumberFormat('us').format(number).toString();
@@ -16,7 +15,6 @@ const valueFormatter = (number: number) =>
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
-  const { user } = useContext(UserContext);
   const { projects, activeProject } = useContext(ProjectsContext);
 
   const handleManageBilling = async (e: FormEvent<HTMLFormElement>) => {
@@ -43,17 +41,7 @@ export default function SettingPaymentPage() {
     }
   };
 
-  const MetricLimitStat = useMemo(() => {
-    let project = projects[activeProject];
-    if (project.userrole !== UserRole.Owner) {
-      project = projects.filter((proj) => proj.userrole === UserRole.Owner)[0];
-    }
-
-    return {
-      metricsLength: project.metrics?.length ?? 0,
-      projectName: project.name,
-    };
-  }, [activeProject]);
+  console.log(projects[activeProject]);
 
   return (
     <div className='flex flex-col gap-5'>
@@ -63,38 +51,24 @@ export default function SettingPaymentPage() {
         stats={[
           {
             title: `Metrics limit`,
-            used: MetricLimitStat.metricsLength,
-            total: user?.plan.metric_per_project_limit,
-            description: `For '${
-              MetricLimitStat.projectName?.charAt(0).toUpperCase() +
-                MetricLimitStat.projectName.slice(1).toLowerCase() || ''
-            }'`,
-          },
-          {
-            title: 'Projects limit',
             used:
-              projects?.filter((proj) => proj.userrole === UserRole.Owner)
-                .length || 0,
-            total: user?.plan.projectlimit,
-            description: 'On this plan',
+              projects[activeProject].metrics === null
+                ? 0
+                : projects[activeProject].metrics.length,
+            total: projects[activeProject].plan.metric_limit,
+            description: `For '${projects[activeProject].name}'`,
           },
           {
-            title: 'Update limit',
-            description: 'Per API key',
-            value: `${user?.plan.requestlimit} per minute`,
-          },
-          {
-            title: 'Event limit',
-            description: 'On this plan',
-            value: `${valueFormatter(user?.eventcount || 0)}/${valueFormatter(
-              user?.plan.monthlyeventlimit || 0,
-            )} per month`,
+            title: 'Event limit per month',
+            used: projects[activeProject].monthly_event_count,
+            total: projects[activeProject].max_event_per_month,
+            description: `For '${projects[activeProject].name}'`,
           },
         ]}
       />
       <div
         className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${
-          user?.plan.identifier === 'starter'
+          projects[activeProject].plan.name.toLowerCase() === 'starter'
             ? 'bg-accent'
             : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'
         }`}
@@ -103,10 +77,11 @@ export default function SettingPaymentPage() {
           <div className='flex flex-row items-center gap-3'>
             <Rocket className='size-5' />
             <div className='text-md font-semibold'>
-              You&apos;re using the {user?.plan.name} plan
+              You&apos;re using the{' '}
+              {projects[activeProject].plan.name.toLowerCase()} plan
             </div>
           </div>
-          {user?.plan.identifier === 'starter' && (
+          {projects[activeProject].plan.name.toLowerCase() === 'starter' && (
             <div className='text-sm text-secondary'>
               Unlock more features by upgrading your plan.
             </div>
@@ -115,17 +90,19 @@ export default function SettingPaymentPage() {
         <PlansDialog>
           <Button
             className={`rounded-[10px] max-md:w-full ${
-              user?.plan.identifier === 'starter'
+              projects[activeProject].plan.name.toLowerCase() === 'starter'
                 ? ''
                 : 'bg-background text-primary hover:bg-background hover:text-primary/80'
             }`}
             variant={
-              user?.plan.identifier === 'starter' ? 'default' : 'outline'
+              projects[activeProject].plan.name.toLowerCase() === 'starter'
+                ? 'default'
+                : 'outline'
             }
           >
-            {user?.plan.identifier === 'starter'
+            {projects[activeProject].plan.name.toLowerCase() === 'starter'
               ? 'Upgrade plan'
-              : user?.plan.identifier === 'pro'
+              : projects[activeProject].plan.name.toLowerCase() === 'pro'
                 ? 'Downgrade plan'
                 : 'Switch plan'}
           </Button>

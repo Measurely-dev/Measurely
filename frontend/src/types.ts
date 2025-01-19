@@ -51,6 +51,7 @@ export interface User {
   email: string;
   user_role: UserRole;
   invoice_status: InvoiceStatus;
+  providers: UserProvider[];
 }
 
 export interface UserProvider {

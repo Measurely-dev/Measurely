@@ -62,7 +62,7 @@ func (db *DB) GetProjectByName(userId uuid.UUID, name string) (types.Project, er
 func (db *DB) CreateProject(project types.Project) (types.Project, error) {
 	var newProject types.Project
 	rows, err := db.Conn.NamedQuery(
-		"INSERT INTO projects (user_id, api_key, name, current_plan) VALUES (:user_id, :api_key, :name, :current_plan) RETURNING *",
+		"INSERT INTO projects (user_id, api_key, name, current_plan, max_event_per_month) VALUES (:user_id, :api_key, :name, :current_plan, :max_event_per_month) RETURNING *",
 		project,
 	)
 	if err != nil {

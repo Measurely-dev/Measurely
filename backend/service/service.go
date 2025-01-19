@@ -1559,17 +1559,17 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if count > s.plans[project.CurrentPlan].MetricLimit {
+	if count >= s.plans[project.CurrentPlan].MetricLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}
 
-	var parentMetricId sql.Null[uuid.UUID]
+	var parentMetricId sql.Null[string]
 	if request.ParentMetricId == nil {
 		parentMetricId.Valid = false
 	} else {
 		parentMetricId.Valid = true
-		parentMetricId.V = *request.ParentMetricId
+		parentMetricId.V = request.ParentMetricId.String()
 	}
 
 	// Create the metric
@@ -1684,7 +1684,7 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectid, perr := uuid.Parse(r.URL.Query().Get("projectid"))
+	projectid, perr := uuid.Parse(r.URL.Query().Get("project_id"))
 	if perr != nil {
 		http.Error(w, "Invalid app ID format", http.StatusBadRequest)
 		return
@@ -2204,14 +2204,14 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 	} else if err == sql.ErrNoRows {
 		project, err := s.db.GetProject(projectid, token.Id)
 		if err == nil {
-			teamrelationid := sql.Null[uuid.UUID]{
+			teamrelationid := sql.Null[string]{
 				Valid: false,
 			}
 			if project.UserRole != types.TEAM_OWNER {
 				team_relation, err := s.db.GetTeamRelation(token.Id, projectid)
 				if err == nil {
 					teamrelationid.Valid = true
-					teamrelationid.V = team_relation.Id
+					teamrelationid.V = team_relation.Id.String()
 				}
 			}
 

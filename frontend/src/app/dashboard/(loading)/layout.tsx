@@ -27,7 +27,7 @@ export default function DashboardContentLayout({
 
   useEffect(() => {
     if (
-      projects.filter((proj) => proj.userrole === UserRole.Owner).length ===
+      projects.filter((proj) => proj.user_role === UserRole.Owner).length ===
         0 &&
       !projectsLoading
     ) {

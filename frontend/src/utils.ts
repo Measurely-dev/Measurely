@@ -416,7 +416,7 @@ export const fetchEventVariation = async (
   end.setSeconds(59);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?project_id=${
+    `${process.env.NEXT_PUBLIC_API_URL}/daily_variation?project_id=${
       project_id
     }&metric_id=${metric_id}&start=${start.toISOString()}&end=${end.toISOString()}`,
     {

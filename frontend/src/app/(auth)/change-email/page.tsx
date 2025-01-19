@@ -13,7 +13,7 @@ export default function PasswordReset() {
 
   useEffect(() => {
     if (searchParams.get('code') !== null) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/changeemail`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/change_email`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestid: searchParams.get('code') }),

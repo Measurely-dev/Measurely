@@ -28,7 +28,7 @@ export default function EditAppDialogContent(props: {
 
   async function updateProject() {
     if (name !== '' && name !== props.project?.name) {
-      await fetch(process.env.NEXT_PUBLIC_API_URL + '/project-name', {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + '/project_name', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export default function EditAppDialogContent(props: {
       formData.append('file', file);
 
       await fetch(
-        process.env.NEXT_PUBLIC_API_URL + '/project-image/' + props.project?.id,
+        process.env.NEXT_PUBLIC_API_URL + '/project_image/' + props.project?.id,
         {
           method: 'POST',
           credentials: 'include',

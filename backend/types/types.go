@@ -81,7 +81,7 @@ type Metric struct {
 	Id                 uuid.UUID           `db:"id" json:"id"`
 	ProjectId          uuid.UUID           `db:"project_id" json:"project_id"`
 	FilterCategory     string              `db:"filter_category" json:"filter_category"`
-	ParentMetricId     sql.Null[uuid.UUID] `db:"parent_metric_id" json:"-"`
+	ParentMetricId     sql.Null[string]    `db:"parent_metric_id" json:"-"`
 	Name               string              `db:"name" json:"name"`
 	Type               int                 `db:"type" json:"type"`
 	EventCount         int64               `db:"event_count" json:"event_count"`
@@ -143,11 +143,11 @@ type TeamRelation struct {
 }
 
 type Blocks struct {
-	TeamRelationId sql.Null[uuid.UUID] `db:"team_relation_id"`
-	UserId         uuid.UUID           `db:"user_id"`
-	ProjectId      uuid.UUID           `db:"project_id"`
-	Layout         []Block             `db:"layout" json:"layout"`
-	Labels         []Label             `db:"labels" json:"labels"`
+	TeamRelationId sql.Null[string] `db:"team_relation_id"`
+	UserId         uuid.UUID        `db:"user_id"`
+	ProjectId      uuid.UUID        `db:"project_id"`
+	Layout         []Block          `db:"layout" json:"layout"`
+	Labels         []Label          `db:"labels" json:"labels"`
 }
 
 type Block struct {
@@ -166,4 +166,9 @@ type Block struct {
 type Label struct {
 	Name         string `json:"name"`
 	DefaultColor string `json:"default_color"`
+}
+
+type NullUUID struct {
+	UUID  uuid.UUID
+	Valid bool
 }

@@ -543,10 +543,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
               value: value,
               metadata: {
                 value: data.pos - data.neg,
-                eventcount: data.event_count,
-                relativetotal:
+                event_count: data.event_count,
+                relative_total:
                   data.relative_total_pos - data.relative_total_neg,
-                relativeeventcount: data.relative_event_count,
+                relative_event_count: data.relative_event_count,
                 date: startDate,
               },
             };
@@ -634,15 +634,16 @@ function BlockContent(props: Block & { groupkey?: string }) {
   };
 
   const calculateCompactBlockPourcentage = (data: any[]) => {
+    if (metrics.length === 0) return;
     let categoryTotal = 0;
     let categoryEventCount = 0;
     let categoryVariation = 0;
     let categoryEventCountVariation = 0;
     for (let i = 0; i < (data?.length ?? 0); i++) {
-      categoryTotal += data[i].metadata.relativetotal ?? 0;
+      categoryTotal += data[i].metadata.relative_total ?? 0;
       categoryVariation += data[i][metrics[0].name] ?? 0;
-      categoryEventCount += data[i].metadata.relativeeventcount ?? 0;
-      categoryEventCountVariation += data[i].metadata.eventcount ?? 0;
+      categoryEventCount += data[i].metadata.relative_event_count ?? 0;
+      categoryEventCountVariation += data[i].metadata.event_count ?? 0;
     }
 
     const calculateAverage = (numerator: number, denominator: number) => {
@@ -830,7 +831,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
             this month <TrendingUp className='h-4 w-4' />
           </div>
           <div className='leading-none text-muted-foreground'>
-            Showing total {metrics[0].name.toLowerCase()} for the last month
+            Showing total{' '}
+            {metrics.length === 0 ? 'Not Found' : metrics[0].name.toLowerCase()}{' '}
+            for the last month
           </div>
         </CardFooter>
       )}
@@ -967,12 +970,14 @@ function Charts(props: {
           index='date'
           enableBiaxial
           barSeries={{
-            categories: [props.metrics[0].name],
+            categories: [
+              props.metrics.length === 0 ? '' : props.metrics[0].name,
+            ],
             showYAxis: true,
             colors: [chartColors[0]],
           }}
           lineSeries={{
-            categories: [props.metrics[1].name],
+            categories: [props.metrics.length < 2 ? '' : props.metrics[1].name],
             showYAxis: true,
             colors: [chartColors[2]],
           }}
@@ -1023,7 +1028,9 @@ function Charts(props: {
                 />
                 <Pie
                   data={props.data ?? []}
-                  dataKey={props.metrics[0].name}
+                  dataKey={
+                    props.metrics.length === 0 ? '' : props.metrics[0].name
+                  }
                   nameKey={props.categories?.[0]}
                   innerRadius={60}
                   strokeWidth={5}
@@ -1047,7 +1054,12 @@ function Charts(props: {
                             >
                               {props.data?.reduce(
                                 (sum, item) =>
-                                  sum + item[props.metrics[0].name],
+                                  sum +
+                                  item[
+                                    props.metrics.length === 0
+                                      ? ''
+                                      : props.metrics[0].name
+                                  ],
                                 0,
                               )}
                             </tspan>
@@ -1136,7 +1148,7 @@ function Charts(props: {
             />
             <PolarAngleAxis dataKey={props.categories?.[0]} />
             <Radar
-              dataKey={props.metrics[0].name}
+              dataKey={props.metrics.length === 0 ? '' : props.metrics[0].name}
               fill={compactChartColor}
               fillOpacity={0.5}
             />

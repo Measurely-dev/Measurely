@@ -63,7 +63,7 @@ export default function PasswordReset() {
                 setLoading(false);
                 return;
               }
-              fetch(process.env.NEXT_PUBLIC_API_URL + '/forgot-password', {
+              fetch(process.env.NEXT_PUBLIC_API_URL + '/forgot_password', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

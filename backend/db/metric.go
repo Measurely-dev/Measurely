@@ -210,7 +210,7 @@ func (db *DB) UpdateMetric(id, projectId uuid.UUID, name, namePos, nameNeg strin
 }
 
 func (db *DB) GetMetrics(projectId uuid.UUID) ([]types.Metric, error) {
-	rows, err := db.Conn.Query(`
+	rows, err := db.Conn.Queryx(`
 		SELECT * FROM metrics
 		WHERE project_id = $1`, projectId)
 	if err != nil {
@@ -218,12 +218,12 @@ func (db *DB) GetMetrics(projectId uuid.UUID) ([]types.Metric, error) {
 	}
 	defer rows.Close()
 
-	metricsMap := make(map[uuid.UUID]map[string][]types.Metric)
+	metricsMap := make(map[string]map[string][]types.Metric)
 	var metrics []types.Metric
 
 	for rows.Next() {
 		var metric types.Metric
-		err := rows.Scan(&metric)
+		err := rows.StructScan(&metric)
 		if err != nil {
 			return nil, err
 		}
@@ -242,7 +242,7 @@ func (db *DB) GetMetrics(projectId uuid.UUID) ([]types.Metric, error) {
 	}
 
 	for i, metric := range metrics {
-		metrics[i].Filters = metricsMap[metric.Id]
+		metrics[i].Filters = metricsMap[metric.Id.String()]
 	}
 
 	return metrics, nil
@@ -255,7 +255,7 @@ func (db *DB) GetAllIntegrationMetrics() ([]types.Metric, error) {
 	}
 	defer rows.Close()
 
-	metricsMap := make(map[uuid.UUID]map[string][]types.Metric)
+	metricsMap := make(map[string]map[string][]types.Metric)
 	var metrics []types.Metric
 
 	for rows.Next() {
@@ -276,7 +276,7 @@ func (db *DB) GetAllIntegrationMetrics() ([]types.Metric, error) {
 	}
 
 	for i, metric := range metrics {
-		metrics[i].Filters = metricsMap[metric.Id]
+		metrics[i].Filters = metricsMap[metric.Id.String()]
 	}
 
 	return metrics, nil

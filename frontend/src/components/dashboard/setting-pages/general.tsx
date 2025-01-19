@@ -20,8 +20,8 @@ export default function SettingGeneralPage() {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
-  const [firstName, setFirstName] = useState(user?.firstname);
-  const [lastName, setLastName] = useState(user?.lastname);
+  const [firstName, setFirstName] = useState(user?.first_name);
+  const [lastName, setLastName] = useState(user?.last_name);
   const [email, setEmail] = useState(user?.email);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -49,14 +49,14 @@ export default function SettingGeneralPage() {
 
     setLoadingProfile(true);
     const updated = {
-      firstname: user.firstname,
-      lastname: user.lastname,
+      firstname: user.first_name,
+      lastname: user.last_name,
       image: user.image,
     };
 
     if (
-      firstName.toLowerCase() !== user.firstname ||
-      lastName.toLowerCase() !== user.lastname
+      firstName.toLowerCase() !== user.first_name ||
+      lastName.toLowerCase() !== user.last_name
     ) {
       const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
         method: 'PATCH',
@@ -81,7 +81,7 @@ export default function SettingGeneralPage() {
       const formData = new FormData();
       formData.append('file', file);
       const response2 = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user-image`,
+        `${process.env.NEXT_PUBLIC_API_URL}/user_image`,
         {
           method: 'POST',
           credentials: 'include',
@@ -109,7 +109,7 @@ export default function SettingGeneralPage() {
       return;
     }
     setLoadingEmail(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/requestemailchange`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/request_email_change`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -216,8 +216,8 @@ export default function SettingGeneralPage() {
         btn_loading={loadingProfile}
         btn_disabled={
           firstName === '' ||
-          (firstName === user.firstname &&
-            lastName === user.lastname &&
+          (firstName === user.first_name &&
+            lastName === user.last_name &&
             file === null)
         }
         action={handleFirstLastNameSubmit}

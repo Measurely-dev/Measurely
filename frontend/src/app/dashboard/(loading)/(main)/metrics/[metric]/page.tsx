@@ -71,7 +71,6 @@ import {
   ArrowUp,
   ArrowUpCircle,
   Calendar,
-  ChevronDown,
   ChevronsUpDown,
   CircleOff,
   Copy,
@@ -526,7 +525,7 @@ export default function DashboardMetricPage() {
                   ) : (
                     <>
                       {valueFormatter(
-                        (metric?.totalpos ?? 0) - (metric?.totalneg ?? 0),
+                        (metric?.total_pos ?? 0) - (metric?.total_neg ?? 0),
                       )}
                     </>
                   )}
@@ -552,6 +551,18 @@ export default function DashboardMetricPage() {
                   </div>
                 </div>
                 {/* {metric?.type === MetricType.Dual ? (
+=======
+                {metric?.type === MetricType.Average ? (
+                  <>{valueFormatter(average)}</>
+                ) : (
+                  <>
+                    {valueFormatter(
+                      (metric?.total_pos ?? 0) - (metric?.total_neg ?? 0),
+                    )}
+                  </>
+                )}
+                {metric?.type === MetricType.Dual ? (
+>>>>>>> feat-planperproject
                   <>
                     <div className='flex flex-col gap-1'>
                       <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>

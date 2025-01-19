@@ -129,7 +129,7 @@ export default function FilterManagerDialog(props: {
               name_neg: '',
               base_value: 0,
               project_id: props.metric.project_id,
-              parentmetricid: props.metric.id,
+              parent_metric_id: props.metric.id,
               filter_category: category,
             }),
           },
