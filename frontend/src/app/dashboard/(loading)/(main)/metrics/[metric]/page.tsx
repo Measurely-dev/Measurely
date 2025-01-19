@@ -95,7 +95,7 @@ import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import FilterManagerDialog from './filter-manager';
 import { PushValueDialog } from '../../push-value';
-import { UnitSelect } from '@/components/ui/unit-select';
+import { UnitCombobox } from '@/components/ui/unit-select';
 
 type AllowedColors =
   | 'blue'
@@ -538,7 +538,7 @@ export default function DashboardMetricPage() {
                       )}
                     </>
                   )}
-                  <UnitSelect onValueChange={handleUnitChange} />
+                  <UnitCombobox />
                   <Separator
                     orientation='vertical'
                     className='my-auto ml-1 h-4'
