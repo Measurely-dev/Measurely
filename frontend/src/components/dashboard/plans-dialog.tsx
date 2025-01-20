@@ -16,6 +16,7 @@ import { ArrowBigDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';
+import { PricingOptions } from './pricing-options';
 
 export default function PlansDialog(props: { children: ReactNode }) {
   const { projects, activeProject } = useContext(ProjectsContext);
@@ -23,6 +24,38 @@ export default function PlansDialog(props: { children: ReactNode }) {
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
   const confirm = useConfirm();
+  const [sliderValue, setSliderValue] = useState<number[]>([0]);
+  const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
+
+  function getEventAmount(value: number): string {
+    const valueMap: Record<number, string> = {
+      0: '10K',
+      10: '50K',
+      20: '100K',
+      30: '250K',
+      40: '500K',
+      50: '1M',
+      60: '2M',
+      70: '4M',
+      80: '6M',
+      90: '8M',
+      100: '10M+',
+    };
+
+    return valueMap[value] || 'N/A';
+  }
+
+  function calculatePrice(basePrice: number): number {
+    const additionalCostPerStep = 5;
+    const sliderSteps = sliderValue[0] / 10;
+    let totalPrice = basePrice + additionalCostPerStep * sliderSteps;
+
+    if (billingPeriod === 'year') {
+      totalPrice = totalPrice * 12 * 0.8;
+    }
+
+    return Math.round(totalPrice);
+  }
 
   const subscribe = async (plan: string) => {
     setSelectedPlan(plan);
@@ -105,28 +138,34 @@ export default function PlansDialog(props: { children: ReactNode }) {
             </Button>
           </DialogClose>
         </DialogHeader>
+        <PricingOptions
+          billingPeriod={billingPeriod}
+          getEventAmount={getEventAmount}
+          setBillingPeriod={setBillingPeriod}
+          setSliderValue={setSliderValue}
+          sliderValue={sliderValue}
+          type='dialog'
+        />
         <div className='grid grid-cols-3 gap-5 overflow-y-scroll max-lg:gap-1 max-md:grid-cols-1 max-md:gap-5'>
           {plans.map((plan, i) => {
+            const isStarter = plan.name === 'Starter';
             return (
               <WebPricingCard
                 key={i}
+                sliderValue={getEventAmount(sliderValue[0])}
                 name={plan.name}
                 description={plan.description}
-                price={plan.price}
-                recurrence={plan.reccurence}
+                price={isStarter ? plan.price : calculatePrice(plan.price)}
+                recurrence={plan.name === 'Starter' ? 'forever' : billingPeriod}
                 target={plan.target}
                 list={plan.list}
                 button={
-                  projects[activeProject].plan.name.toLowerCase() ===
-                  plan.identifier
-                    ? 'Current plan'
-                    : 'Switch to ' + plan.name
+                  plan.identifier === 'starter'
+                    ? 'Get started'
+                    : 'Continue with ' + plan.name
                 }
                 loading={loading && selectedPlan === plan.identifier}
-                disabled={
-                  projects[activeProject].plan.name.toLowerCase() ===
-                    plan.identifier || loading
-                }
+                disabled={loading}
                 onSelect={() => {
                   subscribe(plan.identifier);
                 }}

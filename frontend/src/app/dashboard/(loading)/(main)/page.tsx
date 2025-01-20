@@ -388,7 +388,7 @@ function Blocks() {
           title='No blocks available'
           description='You have no blocks available in this project. Create a new block or group to get started.'
           icons={[Cuboid, Plus, BlocksIcon]}
-          className='flex !size-full max-h-[300px] flex-col items-center justify-center bg-transparent'
+          className='flex !size-full min-h-[400px] flex-col items-center justify-center bg-transparent'
         />
       ) : projects[activeProject].blocks === null ? (
         <div className='flex flex-col gap-5'>
