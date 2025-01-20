@@ -15,9 +15,13 @@ export default function LandingSection(props: {
   return (
     <>
       <DotPattern
+        width={25}
+        height={25}
+        cx={1}
+        cy={1}
+        cr={1}
         className={cn(
-          '[mask-image:radial-gradient(70vw_circle_at_center,white,transparent)]',
-          'opacity-50',
+          'opacity-80 [mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)]',
         )}
       />
       <div className='relative flex h-screen min-h-[700px] w-screen flex-col items-center justify-between pt-[18vh] max-md:pt-[100px]'>
