@@ -122,7 +122,14 @@ export default function PlansDialog(props: { children: ReactNode }) {
   };
 
   return (
-    <Dialog>
+    <Dialog
+      onOpenChange={(e) => {
+        if (!e) {
+          setSliderValue([0]);
+          setBillingPeriod('month');
+        }
+      }}
+    >
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className='max-h-[95%] w-[95%] !max-w-[1100px] overflow-y-scroll rounded-sm shadow-sm max-lg:min-w-[95%]'>
         <DialogHeader className='!m-0 flex flex-row items-center justify-between !p-0'>
