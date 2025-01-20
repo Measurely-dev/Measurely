@@ -2,11 +2,9 @@
 import { plans } from '@/plans';
 import WebPageHeader from '../page-header';
 import WebPricingCard from '../pricing-card';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { Slider } from '@/components/ui/slider';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { PricingOptions } from '@/components/dashboard/pricing-options';
 
 export default function PricingCardsSection(props: {
@@ -17,6 +15,7 @@ export default function PricingCardsSection(props: {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [sliderValue, setSliderValue] = useState<number[]>([0]);
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
+  const [window_width, set_window_width] = useState(window.innerWidth);
   const router = useRouter();
 
   function getEventAmount(value: number): string {
@@ -87,6 +86,19 @@ export default function PricingCardsSection(props: {
     }
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      set_window_width(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const optionType = window_width > 768 ? 'dialog' : 'page';
+
   return (
     <>
       <WebPageHeader
@@ -97,7 +109,7 @@ export default function PricingCardsSection(props: {
         }
         description='Use Measurely for free to track your metrics. Upgrade to enable unlimited team members, more events, and additional features.'
         className='mx-auto mb-8 max-w-[650px]'
-        descriptionClassName='!text-lg text-muted-foreground'
+        descriptionClassName='!text-lg text-primary'
       />
       <PricingOptions
         billingPeriod={billingPeriod}
@@ -105,9 +117,11 @@ export default function PricingCardsSection(props: {
         setBillingPeriod={setBillingPeriod}
         setSliderValue={setSliderValue}
         sliderValue={sliderValue}
-        type='dialog'
+        type={optionType}
       />
-      <div className='mt-5 grid grid-cols-3 gap-[10px] max-lg:grid-cols-1'>
+      <div
+        className={`grid grid-cols-3 gap-[10px] max-lg:grid-cols-1 ${window_width > 768 ? 'mt-5' : ''}`}
+      >
         {plans.map((plan, i) => {
           const isStarter = plan.name === 'Starter';
           return (
