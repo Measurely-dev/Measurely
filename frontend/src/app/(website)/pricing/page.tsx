@@ -19,7 +19,7 @@ export default function Pricing() {
   const is_authentificated = headersList.get('is-authentificated');
   return (
     <WebContainer className='w-full max-w-full'>
-      <ContentContainer type='page' className='w-[90%] max-w-[90%]'>
+      <ContentContainer type='page' className='w-[90%] pt-[150px] max-w-[90%]'>
         <PricingCardsSection
           type='waitlist'
           isAuthentificated={is_authentificated}

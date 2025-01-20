@@ -96,7 +96,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
                 <div className='flex flex-row items-center gap-[10px]'>
                   <div className='text-sm font-medium text-secondary'>
                     Up to{' '}
-                    <span className='mx-1 animate-gradient rounded-[6px] border bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text px-2 py-1 font-mono text-base font-bold text-transparent'>
+                    <span className='mx-1 rounded-[6px] bg-background px-2 py-1 font-mono text-base font-bold text-primary'>
                       {sliderValue}
                     </span>{' '}
                     events per month

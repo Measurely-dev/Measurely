@@ -91,14 +91,13 @@ export default function PricingCardsSection(props: {
     <>
       <WebPageHeader
         title={
-          <span>
-            <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
-              Pricing
-            </span>
-            that fits your needs
+          <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+            Pricing
           </span>
         }
-        description=''
+        description='Use Measurely for free to track your metrics. Upgrade to enable unlimited team members, more events, and additional features.'
+        className='mx-auto mb-8 max-w-[650px]'
+        descriptionClassName='!text-lg text-muted-foreground'
       />
       <PricingOptions
         billingPeriod={billingPeriod}
@@ -106,21 +105,17 @@ export default function PricingCardsSection(props: {
         setBillingPeriod={setBillingPeriod}
         setSliderValue={setSliderValue}
         sliderValue={sliderValue}
+        type='dialog'
       />
-      <div className='grid grid-cols-3 gap-[10px] max-lg:grid-cols-1'>
+      <div className='mt-5 grid grid-cols-3 gap-[10px] max-lg:grid-cols-1'>
         {plans.map((plan, i) => {
           const isStarter = plan.name === 'Starter';
           return (
             <WebPricingCard
-              className={
-                plan.name === 'Plus'
-                  ? 'border-4 border-blue-300 ring-4 ring-purple-200'
-                  : 'lg:scale-95'
-              }
+              className={plan.name === 'Plus' ? '' : 'lg:scale-95'}
               key={i}
               sliderValue={getEventAmount(sliderValue[0])}
               name={plan.name}
-              popular={plan.name === 'Plus' ? true : false}
               description={plan.description}
               price={isStarter ? plan.price : calculatePrice(plan.price)}
               recurrence={plan.name === 'Starter' ? 'forever' : billingPeriod}
