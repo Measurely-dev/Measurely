@@ -1,5 +1,12 @@
 'use client';
-import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from 'react';
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useMemo,
+  useState,
+  useEffect,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { useContext } from 'react';
 import { ProjectsContext } from '@/dash-context';
@@ -260,9 +267,11 @@ const blockCompactType: BlockShowcaseType[] = [
 ];
 
 export default function BlocksDialog(props: {
-  children: ReactNode;
+  children?: ReactNode;
   type: 'compact' | 'wide';
   groupkey?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const [value, setValue] = useState<number>(-1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -289,7 +298,16 @@ export default function BlocksDialog(props: {
       }
     }
     setIsDialogOpen(open);
+    if (props.onOpenChange) {
+      props.onOpenChange(open);
+    }
   };
+
+  useEffect(() => {
+    if (props.open !== undefined) {
+      setIsDialogOpen(props.open);
+    }
+  }, [props.open]);
 
   return (
     <DialogStack>

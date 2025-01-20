@@ -146,7 +146,7 @@ export default function DashboardHomePage() {
         description='Visual blocks for showcasing metric data and insights on your overview.'
         titleClassName='!text-2xl font-semibold'
       >
-        <div className='flex gap-2 max-sm:grid max-sm:grid-cols-2'>
+        <div className='flex gap-2 rounded-[14px] bg-accent p-1 max-sm:grid max-sm:grid-cols-2'>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <div
               onClick={() => {
@@ -161,7 +161,7 @@ export default function DashboardHomePage() {
                 <Button
                   disabled={projects[activeProject].metrics?.length === 0}
                   variant={'secondary'}
-                  className='rounded-[12px]'
+                  className='rounded-[12px] bg-background hover:bg-background'
                 >
                   <Group className='mr-2 size-4' />
                   Create group
@@ -336,6 +336,7 @@ const valueFormatter = (number: number) =>
 
 function Blocks() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (projects[activeProject]) {
@@ -389,6 +390,11 @@ function Blocks() {
           description='You have no blocks available in this project. Create a new block or group to get started.'
           icons={[Cuboid, Plus, BlocksIcon]}
           className='flex !size-full min-h-[400px] flex-col items-center justify-center bg-transparent'
+          action={{
+            label: 'Create new block',
+            onClick: () => setIsDialogOpen(true),
+            disabled: projects[activeProject].metrics?.length === 0,
+          }}
         />
       ) : projects[activeProject].blocks === null ? (
         <div className='flex flex-col gap-5'>
@@ -423,6 +429,11 @@ function Blocks() {
           </div>
         </Sortable>
       )}
+      <BlocksDialog
+        type='wide'
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </div>
   );
 }
