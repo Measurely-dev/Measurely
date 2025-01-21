@@ -33,6 +33,7 @@ import { ConfettiButton } from '@/components/ui/confetti';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Box, CircleX, ClipboardList, Loader, Ruler } from 'lucide-react';
 import { UnitCombobox } from '@/components/ui/unit-select';
+import confetti from 'canvas-confetti';
 
 const forbidden = [
   'average',
@@ -104,7 +105,13 @@ export default function NewMetric() {
     switch (value) {
       case MetricType.Base:
       case MetricType.Average:
-        return <BasicAverageStep type={value} setMetricData={setMetricData} setTab={setTab} />;
+        return (
+          <BasicAverageStep
+            type={value}
+            setMetricData={setMetricData}
+            setTab={setTab}
+          />
+        );
       case MetricType.Dual:
         return <DualStep setMetricData={setMetricData} setTab={setTab} />;
       case MetricType.Stripe:
@@ -132,7 +139,11 @@ export default function NewMetric() {
   }, [projects, activeProject, router]);
 
   useEffect(() => {
-    if (value === MetricType.Stripe || value === MetricType.Google || value === MetricType.AWS) {
+    if (
+      value === MetricType.Stripe ||
+      value === MetricType.Google ||
+      value === MetricType.AWS
+    ) {
       setTab('integrations');
     } else {
       setTab('metrics');
@@ -234,7 +245,7 @@ function Step1({
 }
 
 function Step3({ metricData }: { metricData: any }) {
-  const {  prevStep } = useStepper();
+  const { prevStep } = useStepper();
   const [loading, setLoading] = useState(false);
   const [unit, setUnit] = useState('');
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
@@ -251,6 +262,28 @@ function Step3({ metricData }: { metricData: any }) {
       setLoading(false);
       return;
     }
+    const end = Date.now() + 1 * 1000;
+
+    const frame = () => {
+      if (Date.now() > end) return;
+
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 0, y: 0.5 },
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 1, y: 0.5 },
+      });
+
+      requestAnimationFrame(frame);
+    };
 
     const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
       method: 'POST',
@@ -270,6 +303,7 @@ function Step3({ metricData }: { metricData: any }) {
     });
 
     if (response.ok) {
+      frame();
       const data = await response.json();
       setProjects(
         projects.map((v, i) =>
@@ -310,18 +344,16 @@ function Step3({ metricData }: { metricData: any }) {
         >
           Back
         </Button>
-        <ConfettiButton asChild>
-          <Button
-            type='button'
-            variant='default'
-            loading={loading}
-            className='w-full rounded-[12px]'
-            onClick={handleSubmit}
-            disabled={!unit}
-          >
-            Create
-          </Button>
-        </ConfettiButton>
+        <Button
+          type='button'
+          variant='default'
+          loading={loading}
+          className='w-full rounded-[12px]'
+          onClick={handleSubmit}
+          disabled={!unit}
+        >
+          Create
+        </Button>
       </div>
     </div>
   );
@@ -447,7 +479,11 @@ function BasicAverageStep(props: {
   };
 
   const handlePrev = () => {
-    if (props.type === MetricType.Stripe || props.type === MetricType.Google || props.type === MetricType.AWS) {
+    if (
+      props.type === MetricType.Stripe ||
+      props.type === MetricType.Google ||
+      props.type === MetricType.AWS
+    ) {
       props.setTab('integrations');
     } else {
       props.setTab('metrics');
@@ -532,7 +568,10 @@ function BasicAverageStep(props: {
   );
 }
 
-function DualStep(props: { setMetricData: Dispatch<SetStateAction<any>>; setTab: Dispatch<SetStateAction<string>> }) {
+function DualStep(props: {
+  setMetricData: Dispatch<SetStateAction<any>>;
+  setTab: Dispatch<SetStateAction<string>>;
+}) {
   const [name, setName] = useState('');
   const [namePos, setNamePos] = useState('added');
   const [nameNeg, setNameNeg] = useState('removed');
@@ -572,6 +611,7 @@ function DualStep(props: { setMetricData: Dispatch<SetStateAction<any>>; setTab:
                 placeholder='Users, Transfers, Projects'
                 maxLength={30}
                 type='text'
+                className='h-11 rounded-[12px]'
                 value={name}
                 onChange={(e) => setName(e.target.value.trimStart())}
               />
@@ -689,7 +729,10 @@ function DualStep(props: { setMetricData: Dispatch<SetStateAction<any>>; setTab:
   );
 }
 
-function StripeStep(props: { setMetricData: Dispatch<SetStateAction<any>>; setTab: Dispatch<SetStateAction<string>> }) {
+function StripeStep(props: {
+  setMetricData: Dispatch<SetStateAction<any>>;
+  setTab: Dispatch<SetStateAction<string>>;
+}) {
   const [name, setName] = useState('');
   const { nextStep, prevStep } = useStepper();
 
