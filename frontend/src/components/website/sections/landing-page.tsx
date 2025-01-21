@@ -42,7 +42,7 @@ export default function LandingSection(props: {
           }
         />
         <div className='mt-5 flex h-fit flex-col items-center justify-center gap-4'>
-          <h1 className='animate-appear relative z-10 max-w-[85%] inline-block bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-center text-5xl font-semibold leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-8xl md:leading-tight'>
+          <h1 className='animate-appear relative z-10 inline-block max-w-[85%] bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-center text-5xl font-semibold leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-8xl md:leading-tight'>
             <BlurIn
               duration={0.4}
               word={
@@ -64,7 +64,7 @@ export default function LandingSection(props: {
               props.type === 'waitlist' ? (
                 <Link href='/waitlist'>
                   <WebButton className='group mt-5 px-3.5 py-2'>
-                    <div className='duAll Your Metrics200 flex items-center gap-2 text-base transition-all group-hover:gap-3'>
+                    <div className='flex items-center gap-2 text-base transition-all group-hover:gap-3'>
                       Join waitlist
                     </div>
                   </WebButton>
@@ -89,7 +89,7 @@ export default function LandingSection(props: {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, ease: 'anticipate' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             className='absolute top-2 z-[-11] h-[80%] w-[100%] animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 max-sm:h-[100%]'
           />
           <motion.div
