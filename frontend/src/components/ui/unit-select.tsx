@@ -84,7 +84,10 @@ const unitCategories = [
   },
 ];
 
-export function UnitCombobox() {
+interface UnitComboboxProps {
+  type?: 'lg' | 'sm';
+}
+export function UnitCombobox({ type = 'sm' }: UnitComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -107,21 +110,39 @@ export function UnitCombobox() {
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant='outline'
-            role='combobox'
-            aria-expanded={open}
-            className='h-fit justify-between rounded-[8px] border-none bg-accent px-3 py-1 font-normal text-muted-foreground hover:text-primary'
-          >
-            {value
-              ? customUnits
-                  .concat(...unitCategories.map((cat) => cat.units))
-                  .find((unit) => unit.value === value)?.label
-              : 'Unit'}
-            <ChevronDown className='ml-1 size-4' />
-          </Button>
-        </PopoverTrigger>
+        {type === 'lg' ? (
+          <PopoverTrigger asChild>
+            <Button
+              variant='outline'
+              role='combobox'
+              aria-expanded={open}
+              className='h-11 w-full justify-between rounded-[12px]'
+            >
+              {value
+                ? customUnits
+                    .concat(...unitCategories.map((cat) => cat.units))
+                    .find((unit) => unit.value === value)?.label
+                : 'Select Unit'}
+              <ChevronDown className='ml-1 size-4' />
+            </Button>
+          </PopoverTrigger>
+        ) : (
+          <PopoverTrigger asChild>
+            <Button
+              variant='outline'
+              role='combobox'
+              aria-expanded={open}
+              className='h-fit justify-between rounded-[8px] border-none bg-accent px-3 py-1 font-normal text-muted-foreground hover:text-primary'
+            >
+              {value
+                ? customUnits
+                    .concat(...unitCategories.map((cat) => cat.units))
+                    .find((unit) => unit.value === value)?.label
+                : 'Unit'}
+              <ChevronDown className='ml-1 size-4' />
+            </Button>
+          </PopoverTrigger>
+        )}
         <PopoverContent className='w-[300px] overflow-hidden rounded-[12px] p-0 shadow-md'>
           <Command>
             <CommandInput

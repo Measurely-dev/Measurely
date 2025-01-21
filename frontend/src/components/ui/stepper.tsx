@@ -778,10 +778,10 @@ function StepButtonContainer({
         'stepper__step-button-container',
         'pointer-events-none rounded-full p-0',
         'size-[var(--step-icon-size)]',
-        'flex items-center justify-center rounded-full border-2',
+        'flex items-center justify-center rounded-full border-[1.5px]',
         'data-[clickable=true]:pointer-events-auto',
         'data-[active=true]:border-primary data-[active=true]:bg-primary data-[active=true]:text-primary-foreground',
-        'data-[current=true]:border-black data-[current=true]:border-input data-[current=true]:bg-accent',
+        'data-[current=true]:border-black data-[current=true]:bg-accent',
         'data-[invalid=true]:border-destructive data-[invalid=true]:bg-destructive data-[invalid=true]:text-destructive-foreground',
         styles?.['step-button-container'],
       )}

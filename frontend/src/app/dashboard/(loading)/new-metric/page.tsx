@@ -31,7 +31,17 @@ import { TabsContent } from '@radix-ui/react-tabs';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
 import { ConfettiButton } from '@/components/ui/confetti';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CircleX, ClipboardList, Info, List, Loader, User } from 'lucide-react';
+import {
+  Box,
+  CircleX,
+  ClipboardList,
+  Info,
+  List,
+  Loader,
+  Ruler,
+  User,
+} from 'lucide-react';
+import { UnitCombobox } from '@/components/ui/unit-select';
 
 const forbidden = [
   'average',
@@ -116,9 +126,10 @@ export default function NewMetric() {
     return type === MetricType.Google || type === MetricType.AWS;
   };
 
-  const stepLabels = [
+  const steps = [
     { label: 'Step 1' },
     { label: 'Step 2' },
+    { label: 'Step 3' },
   ] satisfies StepItem[];
 
   useEffect(() => {
@@ -136,13 +147,13 @@ export default function NewMetric() {
 
   return (
     <div className='flex flex-col'>
-      <WebContainer className='h-[100vh] min-h-[700px] w-[100vw]'>
+      <WebContainer className='h-[100vh] min-h-[900px] w-[100vw]'>
         <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
-        <ContentContainer className='flex h-full items-center justify-center'>
-          <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6'>
-            <Stepper initialStep={0} steps={stepLabels} size='sm'>
-              <Step label='Step 1' icon={List}>
-                <div className='flex flex-col gap-[5px]'>
+        <ContentContainer className='flex pt-[140px]'>
+          <div className='mx-auto flex w-full max-w-[600px] flex-col'>
+            <Stepper initialStep={0} steps={steps} size='sm'>
+              <Step label='Step 1' icon={Box}>
+                <div className='flex flex-col gap-[5px] md:mt-5'>
                   <div className='text-xl font-medium'>Choose metric type </div>
                   <div className='text-sm text-secondary'>
                     Select the type of metric you want to create
@@ -150,7 +161,7 @@ export default function NewMetric() {
                 </div>
                 <Tabs
                   defaultValue='metrics'
-                  className='flex flex-col gap-5'
+                  className='mt-5 flex flex-col gap-5 px-1 pb-1'
                   onValueChange={(value) => setTab(value)}
                 >
                   <TabsList className='mb-0 grid w-full grid-cols-2 rounded-[12px] border-0 font-sans font-medium'>
@@ -186,7 +197,18 @@ export default function NewMetric() {
                 </Tabs>
               </Step>
               <Step label='Step 2' icon={ClipboardList}>
-                {renderStep()}
+                <div className='md:mt-5'>{renderStep()}</div>
+              </Step>
+              <Step label='Step 3' icon={Ruler}>
+                <div className='flex flex-col gap-[5px] md:mt-5'>
+                  <div className='text-xl font-medium'>Choose metric unit</div>
+                  <div className='text-sm text-secondary'>
+                    Select the unit that will be used to measure your metric.
+                  </div>
+                </div>
+                <div className='mt-5'>
+                  <UnitCombobox type='lg' />
+                </div>
               </Step>
               <StepperFooter />
             </Stepper>
@@ -214,7 +236,7 @@ function StepperFooter() {
       {hasCompletedAllSteps &&
         (isFailed ? (
           <>
-            <div className='flex h-40 flex-col items-center justify-center gap-2 rounded-[12px] border border-destructive bg-destructive/5 text-destructive'>
+            <div className='flex h-40 mt-5 flex-col items-center justify-center gap-2 rounded-[12px] border border-destructive bg-destructive/5 text-destructive'>
               <div className='flex items-center gap-2'>
                 <CircleX className='size-4' />
                 <div className='text-sm font-medium'>
@@ -233,14 +255,14 @@ function StepperFooter() {
             </div>
           </>
         ) : (
-          <Skeleton className='flex h-40 items-center justify-center gap-2 rounded-[12px] border'>
+          <Skeleton className='flex h-40 mt-5 items-center justify-center gap-2 rounded-[12px] border'>
             <div className='text-sm font-medium text-muted-foreground'>
               Creating metric{' '}
             </div>{' '}
             <Loader className='size-4 animate-spin' />
           </Skeleton>
         ))}
-      <div className='flex w-full justify-end gap-2'>
+      <div className='mt-5 flex w-full justify-end gap-2'>
         {!hasCompletedAllSteps ? (
           <>
             {!isDisabledStep ? (
