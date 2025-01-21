@@ -176,7 +176,6 @@ export default function NewMetric() {
               <Step label='Step 3' icon={Ruler}>
                 <Step3 metricData={metricData} />
               </Step>
-              <StepperFooter />
             </Stepper>
           </div>
         </ContentContainer>
@@ -199,6 +198,7 @@ function Step1({
   setTab: Dispatch<SetStateAction<string>>;
   isComingSoon: (type: MetricType) => boolean;
 }) {
+  const { nextStep } = useStepper();
   return (
     <>
       <div className='flex flex-col gap-[5px] md:mt-5'>
@@ -239,6 +239,14 @@ function Step1({
             ))}
           </TabsContent>
         ))}
+        <Button
+          className='w-full rounded-[12px]'
+          onClick={() => {
+            nextStep();
+          }}
+        >
+          Next
+        </Button>
       </Tabs>
     </>
   );
@@ -356,69 +364,6 @@ function Step3({ metricData }: { metricData: any }) {
         </Button>
       </div>
     </div>
-  );
-}
-
-function StepperFooter() {
-  const {
-    nextStep,
-    hasCompletedAllSteps,
-    activeStep,
-    resetSteps,
-    isOptionalStep,
-  } = useStepper();
-  const isFailed = false;
-  return (
-    <>
-      {hasCompletedAllSteps &&
-        (isFailed ? (
-          <>
-            <div className='mt-5 flex h-40 flex-col items-center justify-center gap-2 rounded-[12px] border border-destructive bg-destructive/5 text-destructive'>
-              <div className='flex items-center gap-2'>
-                <CircleX className='size-4' />
-                <div className='text-sm font-medium'>
-                  Failed to create metric
-                </div>
-              </div>
-              <Button
-                className='mt-2 w-fit rounded-[12px] border border-destructive bg-transparent text-destructive hover:bg-destructive/10'
-                variant='destructive'
-                onClick={() => {
-                  resetSteps();
-                }}
-              >
-                Retry
-              </Button>
-            </div>
-          </>
-        ) : (
-          <Skeleton className='mt-5 flex h-40 items-center justify-center gap-2 rounded-[12px] border'>
-            <div className='text-sm font-medium text-muted-foreground'>
-              Creating metric{' '}
-            </div>{' '}
-            <Loader className='size-4 animate-spin' />
-          </Skeleton>
-        ))}
-
-      <div className='mt-5 flex w-full justify-end gap-2'>
-        {!hasCompletedAllSteps ? (
-          <>
-            {activeStep === 0 && (
-              <Button
-                className='w-full rounded-[12px]'
-                onClick={() => {
-                  nextStep();
-                }}
-              >
-                {isOptionalStep ? 'Skip' : 'Next'}
-              </Button>
-            )}
-          </>
-        ) : (
-          <></>
-        )}
-      </div>
-    </>
   );
 }
 
