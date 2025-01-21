@@ -89,6 +89,9 @@ importers:
       '@tabler/icons-react':
         specifier: ^3.28.1
         version: 3.28.1(react@18.3.1)
+      canvas-confetti:
+        specifier: ^1.9.3
+        version: 1.9.3
       chroma-js:
         specifier: ^3.1.2
         version: 3.1.2
@@ -183,6 +186,9 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
+      '@types/canvas-confetti':
+        specifier: ^1.9.0
+        version: 1.9.0
       '@types/chroma-js':
         specifier: ^3.1.0
         version: 3.1.0
@@ -1560,6 +1566,9 @@ packages:
   '@types/acorn@4.0.6':
     resolution: {integrity: sha512-veQTnWP+1D/xbxVrPC3zHnCZRjSrKfhbMUlEA43iMZLu7EsnTtkJklIuwrCPbOi8YkvDQAiW05VQQFvvz9oieQ==}
 
+  '@types/canvas-confetti@1.9.0':
+    resolution: {integrity: sha512-aBGj/dULrimR1XDZLtG9JwxX1b4HPRF6CX9Yfwh3NvstZEm1ZL7RBnel4keCPSqs1ANRu1u2Aoz9R+VmtjYuTg==}
+
   '@types/chroma-js@3.1.0':
     resolution: {integrity: sha512-Uwl3SOtUkbQ6Ye6ZYu4q4xdLGBzmY839sEHYtOT7i691neeyd+7fXWT5VIkcUSfNwIFrIjQutNYQn9h4q5HFvg==}
 
@@ -1932,6 +1941,9 @@ packages:
 
   caniuse-lite@1.0.30001692:
     resolution: {integrity: sha512-A95VKan0kdtrsnMubMKxEKUKImOPSuCpYgxSQBo036P5YYgVIcOYJEgt/txJWqObiRQeISNCfef9nvlQ0vbV7A==}
+
+  canvas-confetti@1.9.3:
+    resolution: {integrity: sha512-rFfTURMvmVEX1gyXFgn5QMn81bYk70qa0HLzcIOSVEyl57n6o9ItHeBtUSWdvKAPY0xlvBHno4/v3QPrT83q9g==}
 
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
@@ -5560,6 +5572,8 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.6
 
+  '@types/canvas-confetti@1.9.0': {}
+
   '@types/chroma-js@3.1.0': {}
 
   '@types/d3-array@3.2.1': {}
@@ -5980,6 +5994,8 @@ snapshots:
   camelcase@6.3.0: {}
 
   caniuse-lite@1.0.30001692: {}
+
+  canvas-confetti@1.9.3: {}
 
   ccount@2.0.1: {}
 

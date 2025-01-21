@@ -14,7 +14,7 @@ export default function LandingSection(props: {
 }) {
   return (
     <>
-      <DotPattern
+      {/* <DotPattern
         width={25}
         height={25}
         cx={1}
@@ -23,7 +23,7 @@ export default function LandingSection(props: {
         className={cn(
           'opacity-80 [mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)]',
         )}
-      />
+      /> */}
       <div className='relative flex h-screen min-h-[700px] w-screen flex-col items-center justify-between pt-[18vh] max-md:pt-[100px]'>
         <BlurIn
           duration={0.4}
@@ -41,8 +41,8 @@ export default function LandingSection(props: {
             </Link>
           }
         />
-        <div className='flex h-fit flex-col items-center justify-center gap-4'>
-          <h1 className='mt-5 w-[90%] max-w-[900px] text-center text-6xl font-semibold leading-[1.15] tracking-normal max-lg:px-0 max-lg:text-5xl max-md:text-5xl'>
+        <div className='mt-5 flex h-fit flex-col items-center justify-center gap-4'>
+          <h1 className='animate-appear relative z-10 max-w-[85%] inline-block bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-center text-5xl font-semibold leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-8xl md:leading-tight'>
             <BlurIn
               duration={0.4}
               word={
@@ -51,8 +51,12 @@ export default function LandingSection(props: {
                 </span>
               }
             />{' '}
-            <BlurIn duration={0.4} word='All Your Metrics' />
-            <BlurIn duration={0.4} word='in One Place.' />
+            <BlurIn duration={0.4} word='All' />{' '}
+            <BlurIn duration={0.4} word='Your' />{' '}
+            <BlurIn duration={0.4} word='Metrics' />{' '}
+            <BlurIn duration={0.4} word='in' />{' '}
+            <BlurIn duration={0.4} word='One' />{' '}
+            <BlurIn duration={0.4} word='Place.' />{' '}
           </h1>
           <BlurIn
             duration={0.4}

@@ -28,6 +28,10 @@ import { toast } from 'sonner';
 import { ProjectsContext } from '@/dash-context';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
+import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
+import { ConfettiButton } from '@/components/ui/confetti';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CircleX, ClipboardList, Info, List, Loader, User } from 'lucide-react';
 
 const forbidden = [
   'average',
@@ -112,6 +116,11 @@ export default function NewMetric() {
     return type === MetricType.Google || type === MetricType.AWS;
   };
 
+  const stepLabels = [
+    { label: 'Step 1' },
+    { label: 'Step 2' },
+  ] satisfies StepItem[];
+
   useEffect(() => {
     if (
       projects[activeProject].user_role !== UserRole.Admin &&
@@ -130,9 +139,9 @@ export default function NewMetric() {
       <WebContainer className='h-[100vh] min-h-[700px] w-[100vw]'>
         <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
         <ContentContainer className='flex h-full items-center justify-center'>
-          {step === 1 ? (
-            <>
-              <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6'>
+          <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6'>
+            <Stepper initialStep={0} steps={stepLabels} size='sm'>
+              <Step label='Step 1' icon={List}>
                 <div className='flex flex-col gap-[5px]'>
                   <div className='text-xl font-medium'>Choose metric type </div>
                   <div className='text-sm text-secondary'>
@@ -144,9 +153,16 @@ export default function NewMetric() {
                   className='flex flex-col gap-5'
                   onValueChange={(value) => setTab(value)}
                 >
-                  <TabsList className='mb-0 grid w-full grid-cols-2 border-0'>
-                    <TabsTrigger value='metrics'>Metrics</TabsTrigger>
-                    <TabsTrigger value='integrations'>Integrations</TabsTrigger>
+                  <TabsList className='mb-0 grid w-full grid-cols-2 rounded-[12px] border-0 font-sans font-medium'>
+                    <TabsTrigger value='metrics' className='rounded-[10px]'>
+                      Metrics
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value='integrations'
+                      className='rounded-[10px]'
+                    >
+                      Integrations
+                    </TabsTrigger>
                   </TabsList>
                   {metricTypes.map((metric) => (
                     <TabsContent
@@ -168,17 +184,13 @@ export default function NewMetric() {
                     </TabsContent>
                   ))}
                 </Tabs>
-                <Button
-                  className='w-full rounded-[12px]'
-                  onClick={() => setStep(2)}
-                >
-                  Next
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className='h-fit w-full max-w-[500px]'>{renderStep()}</div>
-          )}
+              </Step>
+              <Step label='Step 2' icon={ClipboardList}>
+                {renderStep()}
+              </Step>
+              <StepperFooter />
+            </Stepper>
+          </div>
         </ContentContainer>
       </WebContainer>
       <Footer type='waitlist' border bg='secondary' isHome />
@@ -186,6 +198,92 @@ export default function NewMetric() {
   );
 }
 
+function StepperFooter() {
+  const {
+    nextStep,
+    prevStep,
+    hasCompletedAllSteps,
+    isLastStep,
+    resetSteps,
+    isOptionalStep,
+    isDisabledStep,
+  } = useStepper();
+  const isFailed = false;
+  return (
+    <>
+      {hasCompletedAllSteps &&
+        (isFailed ? (
+          <>
+            <div className='flex h-40 flex-col items-center justify-center gap-2 rounded-[12px] border border-destructive bg-destructive/5 text-destructive'>
+              <div className='flex items-center gap-2'>
+                <CircleX className='size-4' />
+                <div className='text-sm font-medium'>
+                  Failed to create metric
+                </div>
+              </div>
+              <Button
+                className='mt-2 w-fit rounded-[12px] border border-destructive bg-transparent text-destructive hover:bg-destructive/10'
+                variant='destructive'
+                onClick={() => {
+                  resetSteps();
+                }}
+              >
+                Retry
+              </Button>
+            </div>
+          </>
+        ) : (
+          <Skeleton className='flex h-40 items-center justify-center gap-2 rounded-[12px] border'>
+            <div className='text-sm font-medium text-muted-foreground'>
+              Creating metric{' '}
+            </div>{' '}
+            <Loader className='size-4 animate-spin' />
+          </Skeleton>
+        ))}
+      <div className='flex w-full justify-end gap-2'>
+        {!hasCompletedAllSteps ? (
+          <>
+            {!isDisabledStep ? (
+              <Button
+                onClick={prevStep}
+                className='w-full rounded-[12px]'
+                variant='secondary'
+              >
+                Previous
+              </Button>
+            ) : null}
+
+            {!isLastStep ? (
+              <Button
+                className='w-full rounded-[12px]'
+                onClick={() => {
+                  nextStep();
+                }}
+              >
+                {isOptionalStep ? 'Skip' : 'Next'}
+              </Button>
+            ) : (
+              <div className='relative w-full'>
+                <ConfettiButton asChild disableConfetti={isFailed}>
+                  <Button
+                    className='w-full rounded-[12px]'
+                    onClick={() => {
+                      nextStep();
+                    }}
+                  >
+                    Create
+                  </Button>
+                </ConfettiButton>
+              </div>
+            )}
+          </>
+        ) : (
+          <></>
+        )}
+      </div>
+    </>
+  );
+}
 function Metric(props: {
   name: string;
   value: number;
@@ -351,7 +449,7 @@ function BasicAverageStep(props: {
               </div>
             </div>
           </div>
-
+          {/* 
           <div className='flex w-full flex-row gap-2 max-md:flex-col'>
             <Button
               type='button'
@@ -370,7 +468,7 @@ function BasicAverageStep(props: {
             >
               Create
             </Button>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>
@@ -581,7 +679,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             </div>
           </div>
 
-          <div className='flex w-full flex-row gap-2 max-md:flex-col'>
+          {/* <div className='flex w-full flex-row gap-2 max-md:flex-col'>
             <Button
               type='button'
               variant='secondary'
@@ -601,7 +699,7 @@ function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             >
               Create
             </Button>
-          </div>
+          </div> */}
         </div>
       </form>
     </div>
@@ -710,7 +808,7 @@ function StripeStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
               </div>
             </div>
           </div>
-
+          {/* 
           <div className='flex w-full flex-row gap-2 max-md:flex-col'>
             <Button
               type='button'
@@ -729,7 +827,7 @@ function StripeStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
             >
               Create
             </Button>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>
