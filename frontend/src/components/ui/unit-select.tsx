@@ -86,8 +86,9 @@ const unitCategories = [
 
 interface UnitComboboxProps {
   type?: 'lg' | 'sm';
+  onChange?: (value: string) => void;
 }
-export function UnitCombobox({ type = 'sm' }: UnitComboboxProps) {
+export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -105,6 +106,14 @@ export function UnitCombobox({ type = 'sm' }: UnitComboboxProps) {
     setNewUnitName('');
     setNewUnitSymbol('');
     setIsDialogOpen(false);
+  };
+
+  const handleSelectUnit = (currentValue: string) => {
+    setValue(currentValue === value ? '' : currentValue);
+    setOpen(false);
+    if (onChange) {
+      onChange(currentValue === value ? '' : currentValue);
+    }
   };
 
   return (
@@ -174,10 +183,7 @@ export function UnitCombobox({ type = 'sm' }: UnitComboboxProps) {
                         className='cursor-pointer rounded-[10px] py-2 font-normal'
                         key={unit.value}
                         value={unit.value}
-                        onSelect={(currentValue) => {
-                          setValue(currentValue === value ? '' : currentValue);
-                          setOpen(false);
-                        }}
+                        onSelect={handleSelectUnit}
                       >
                         {unit.label}
                         <Check
@@ -206,12 +212,7 @@ export function UnitCombobox({ type = 'sm' }: UnitComboboxProps) {
                             className='cursor-pointer rounded-[10px] py-2 font-normal'
                             key={unit.value}
                             value={unit.value}
-                            onSelect={(currentValue) => {
-                              setValue(
-                                currentValue === value ? '' : currentValue,
-                              );
-                              setOpen(false);
-                            }}
+                            onSelect={handleSelectUnit}
                           >
                             {unit.label}
                             <Check

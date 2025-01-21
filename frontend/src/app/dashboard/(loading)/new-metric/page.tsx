@@ -31,13 +31,7 @@ import { TabsContent } from '@radix-ui/react-tabs';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
 import { ConfettiButton } from '@/components/ui/confetti';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Box,
-  CircleX,
-  ClipboardList,
-  Loader,
-  Ruler,
-} from 'lucide-react';
+import { Box, CircleX, ClipboardList, Loader, Ruler } from 'lucide-react';
 import { UnitCombobox } from '@/components/ui/unit-select';
 
 const forbidden = [
@@ -49,11 +43,11 @@ const forbidden = [
 ];
 
 export default function NewMetric() {
-  const [step, setStep] = useState(1);
   const [tab, setTab] = useState('metrics');
   const [value, setValue] = useState<MetricType>(
     tab === 'metrics' ? MetricType.Base : MetricType.Stripe,
   );
+  const [metricData, setMetricData] = useState({});
   const router = useRouter();
   const { projects, activeProject } = useContext(ProjectsContext);
 
@@ -109,13 +103,12 @@ export default function NewMetric() {
   const renderStep = () => {
     switch (value) {
       case MetricType.Base:
-        return <BasicAverageStep setStep={setStep} type={value} />;
       case MetricType.Average:
-        return <BasicAverageStep setStep={setStep} type={value} />;
+        return <BasicAverageStep type={value} setMetricData={setMetricData} setTab={setTab} />;
       case MetricType.Dual:
-        return <DualStep setStep={setStep} />;
+        return <DualStep setMetricData={setMetricData} setTab={setTab} />;
       case MetricType.Stripe:
-        return <StripeStep setStep={setStep} />;
+        return <StripeStep setMetricData={setMetricData} setTab={setTab} />;
     }
   };
 
@@ -136,7 +129,15 @@ export default function NewMetric() {
     ) {
       router.push('/dashboard');
     }
-  }, []);
+  }, [projects, activeProject, router]);
+
+  useEffect(() => {
+    if (value === MetricType.Stripe || value === MetricType.Google || value === MetricType.AWS) {
+      setTab('integrations');
+    } else {
+      setTab('metrics');
+    }
+  }, [value]);
 
   useEffect(() => {
     setValue(tab === 'metrics' ? MetricType.Base : MetricType.Stripe);
@@ -150,62 +151,19 @@ export default function NewMetric() {
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>
             <Stepper initialStep={0} steps={steps} size='sm'>
               <Step label='Step 1' icon={Box}>
-                <div className='flex flex-col gap-[5px] md:mt-5'>
-                  <div className='text-xl font-medium'>Choose metric type </div>
-                  <div className='text-sm text-secondary'>
-                    Select the type of metric you want to create
-                  </div>
-                </div>
-                <Tabs
-                  defaultValue='metrics'
-                  className='mt-5 flex flex-col gap-5 px-1 pb-1'
-                  onValueChange={(value) => setTab(value)}
-                >
-                  <TabsList className='mb-0 grid w-full grid-cols-2 rounded-[12px] border-0 font-sans font-medium'>
-                    <TabsTrigger value='metrics' className='rounded-[10px]'>
-                      Metrics
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value='integrations'
-                      className='rounded-[10px]'
-                    >
-                      Integrations
-                    </TabsTrigger>
-                  </TabsList>
-                  {metricTypes.map((metric) => (
-                    <TabsContent
-                      className='space-y-3'
-                      value={metric.label}
-                      key={metric.label}
-                    >
-                      {metric.types.map((type, j) => (
-                        <Metric
-                          key={j}
-                          name={type.name}
-                          value={type.value}
-                          description={type.description}
-                          state={value}
-                          setState={setValue}
-                          comingSoon={isComingSoon(type.value)}
-                        />
-                      ))}
-                    </TabsContent>
-                  ))}
-                </Tabs>
+                <Step1
+                  metricTypes={metricTypes}
+                  value={value}
+                  setValue={setValue}
+                  setTab={setTab}
+                  isComingSoon={isComingSoon}
+                />
               </Step>
               <Step label='Step 2' icon={ClipboardList}>
                 <div className='md:mt-5'>{renderStep()}</div>
               </Step>
               <Step label='Step 3' icon={Ruler}>
-                <div className='flex flex-col gap-[5px] md:mt-5'>
-                  <div className='text-xl font-medium'>Choose metric unit</div>
-                  <div className='text-sm text-secondary'>
-                    Select the unit that will be used to measure your metric.
-                  </div>
-                </div>
-                <div className='mt-5'>
-                  <UnitCombobox type='lg' />
-                </div>
+                <Step3 metricData={metricData} />
               </Step>
               <StepperFooter />
             </Stepper>
@@ -217,15 +175,165 @@ export default function NewMetric() {
   );
 }
 
+function Step1({
+  metricTypes,
+  value,
+  setValue,
+  setTab,
+  isComingSoon,
+}: {
+  metricTypes: any;
+  value: MetricType;
+  setValue: Dispatch<SetStateAction<MetricType>>;
+  setTab: Dispatch<SetStateAction<string>>;
+  isComingSoon: (type: MetricType) => boolean;
+}) {
+  return (
+    <>
+      <div className='flex flex-col gap-[5px] md:mt-5'>
+        <div className='text-xl font-medium'>Choose metric type </div>
+        <div className='text-sm text-secondary'>
+          Select the type of metric you want to create
+        </div>
+      </div>
+      <Tabs
+        defaultValue='metrics'
+        className='mt-5 flex flex-col gap-5 px-1 pb-1'
+        onValueChange={(value) => setTab(value)}
+      >
+        <TabsList className='mb-0 grid w-full grid-cols-2 rounded-[12px] border-0 font-sans font-medium'>
+          <TabsTrigger value='metrics' className='rounded-[10px]'>
+            Metrics
+          </TabsTrigger>
+          <TabsTrigger value='integrations' className='rounded-[10px]'>
+            Integrations
+          </TabsTrigger>
+        </TabsList>
+        {metricTypes.map((metric: any) => (
+          <TabsContent
+            className='space-y-3'
+            value={metric.label}
+            key={metric.label}
+          >
+            {metric.types.map((type: any, j: number) => (
+              <Metric
+                key={j}
+                name={type.name}
+                value={type.value}
+                description={type.description}
+                state={value}
+                setState={setValue}
+                comingSoon={isComingSoon(type.value)}
+              />
+            ))}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </>
+  );
+}
+
+function Step3({ metricData }: { metricData: any }) {
+  const {  prevStep } = useStepper();
+  const [loading, setLoading] = useState(false);
+  const [unit, setUnit] = useState('');
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
+  const router = useRouter();
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    const { name, baseValue, type, namePos, nameNeg } = metricData;
+
+    if (forbidden.includes(name.toLowerCase())) {
+      toast.error(
+        'The variable names you have chosen are used internally, please choose something else.',
+      );
+      setLoading(false);
+      return;
+    }
+
+    const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name,
+        project_id: projects[activeProject].id,
+        base_value: baseValue,
+        type,
+        name_pos: namePos,
+        nameneg: nameNeg,
+        unit,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setProjects(
+        projects.map((v, i) =>
+          i === activeProject
+            ? Object.assign({}, v, {
+                metrics: [...(projects[activeProject].metrics ?? []), data],
+              })
+            : v,
+        ),
+      );
+      toast.success('Metric was successfully created');
+      router.push(`/dashboard/metrics/${name}`);
+    } else {
+      response.text().then((text) => {
+        toast.error(text);
+        setLoading(false);
+      });
+    }
+  };
+
+  return (
+    <div className='flex flex-col gap-[5px] md:mt-5'>
+      <div className='text-xl font-medium'>Choose metric unit</div>
+      <div className='text-sm text-secondary'>
+        Select the unit that will be used to measure your metric.
+      </div>
+      <div className='mt-5'>
+        <UnitCombobox type='lg' onChange={(value: any) => setUnit(value)} />
+      </div>
+      <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+        <Button
+          type='button'
+          variant='secondary'
+          className='w-full rounded-[12px]'
+          onClick={() => {
+            prevStep();
+          }}
+        >
+          Back
+        </Button>
+        <ConfettiButton asChild>
+          <Button
+            type='button'
+            variant='default'
+            loading={loading}
+            className='w-full rounded-[12px]'
+            onClick={handleSubmit}
+            disabled={!unit}
+          >
+            Create
+          </Button>
+        </ConfettiButton>
+      </div>
+    </div>
+  );
+}
+
 function StepperFooter() {
   const {
     nextStep,
-    prevStep,
     hasCompletedAllSteps,
-    isLastStep,
+    activeStep,
     resetSteps,
     isOptionalStep,
-    isDisabledStep,
   } = useStepper();
   const isFailed = false;
   return (
@@ -233,7 +341,7 @@ function StepperFooter() {
       {hasCompletedAllSteps &&
         (isFailed ? (
           <>
-            <div className='flex h-40 mt-5 flex-col items-center justify-center gap-2 rounded-[12px] border border-destructive bg-destructive/5 text-destructive'>
+            <div className='mt-5 flex h-40 flex-col items-center justify-center gap-2 rounded-[12px] border border-destructive bg-destructive/5 text-destructive'>
               <div className='flex items-center gap-2'>
                 <CircleX className='size-4' />
                 <div className='text-sm font-medium'>
@@ -252,27 +360,18 @@ function StepperFooter() {
             </div>
           </>
         ) : (
-          <Skeleton className='flex h-40 mt-5 items-center justify-center gap-2 rounded-[12px] border'>
+          <Skeleton className='mt-5 flex h-40 items-center justify-center gap-2 rounded-[12px] border'>
             <div className='text-sm font-medium text-muted-foreground'>
               Creating metric{' '}
             </div>{' '}
             <Loader className='size-4 animate-spin' />
           </Skeleton>
         ))}
+
       <div className='mt-5 flex w-full justify-end gap-2'>
         {!hasCompletedAllSteps ? (
           <>
-            {!isDisabledStep ? (
-              <Button
-                onClick={prevStep}
-                className='w-full rounded-[12px]'
-                variant='secondary'
-              >
-                Previous
-              </Button>
-            ) : null}
-
-            {!isLastStep ? (
+            {activeStep === 0 && (
               <Button
                 className='w-full rounded-[12px]'
                 onClick={() => {
@@ -281,19 +380,6 @@ function StepperFooter() {
               >
                 {isOptionalStep ? 'Skip' : 'Next'}
               </Button>
-            ) : (
-              <div className='relative w-full'>
-                <ConfettiButton asChild disableConfetti={isFailed}>
-                  <Button
-                    className='w-full rounded-[12px]'
-                    onClick={() => {
-                      nextStep();
-                    }}
-                  >
-                    Create
-                  </Button>
-                </ConfettiButton>
-              </div>
             )}
           </>
         ) : (
@@ -303,6 +389,7 @@ function StepperFooter() {
     </>
   );
 }
+
 function Metric(props: {
   name: string;
   value: number;
@@ -340,14 +427,33 @@ function Metric(props: {
 }
 
 function BasicAverageStep(props: {
-  setStep: Dispatch<SetStateAction<number>>;
-  type: MetricType.Base | MetricType.Average;
+  type: MetricType;
+  setMetricData: Dispatch<SetStateAction<any>>;
+  setTab: Dispatch<SetStateAction<string>>;
 }) {
   const [name, setName] = useState('');
   const [baseValue, setBaseValue] = useState<number | string>(0);
-  const [loading, setLoading] = useState(false);
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
-  const router = useRouter();
+  const { nextStep, prevStep } = useStepper();
+
+  const handleNext = () => {
+    props.setMetricData({
+      name,
+      baseValue,
+      type: props.type,
+      namePos: 'added',
+      nameNeg: 'removed',
+    });
+    nextStep();
+  };
+
+  const handlePrev = () => {
+    if (props.type === MetricType.Stripe || props.type === MetricType.Google || props.type === MetricType.AWS) {
+      props.setTab('integrations');
+    } else {
+      props.setTab('metrics');
+    }
+    prevStep();
+  };
 
   return (
     <div className='mx-auto flex flex-col gap-6'>
@@ -360,375 +466,253 @@ function BasicAverageStep(props: {
             ? 'Track a single value for straightforward metrics, ideal for simple counts or totals.'
             : 'Analyze trends with average metrics, perfect for monitoring performance over time.'}
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setLoading(true);
-            if (name === '') {
-              toast.error('Please enter a name');
-              setLoading(false);
-              return;
-            }
-
-            if (forbidden.includes(name.toLowerCase())) {
-              toast.error(
-                'The variable names you have chosen are used internally, please choose something else.',
-              );
-              setLoading(false);
-              return;
-            }
-
-            fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              credentials: 'include',
-              body: JSON.stringify({
-                name: name,
-                project_id: projects[activeProject].id,
-                base_value: baseValue,
-                type: props.type,
-                name_pos: 'added',
-                nameneg: 'removed',
-              }),
-            })
-              .then((res) => {
-                if (!res.ok) {
-                  res.text().then((text) => {
-                    toast.error(text);
-                    setLoading(false);
-                  });
-                } else {
-                  return res.json();
+        <div className='flex w-full flex-col gap-3'>
+          <div className='my-2 flex flex-col gap-4'>
+            <div className='flex w-full flex-col gap-3'>
+              <Label>Metric name</Label>
+              <Input
+                placeholder={
+                  props.type === MetricType.Base
+                    ? `New users, Deleted projects, Suspended accounts`
+                    : 'Session duration, Ratings, Load time'
                 }
-              })
-              .then((json) => {
-                if (json === null || json === undefined) {
-                  return;
-                }
-                setProjects(
-                  projects.map((v, i) =>
-                    i === activeProject
-                      ? Object.assign({}, v, {
-                          metrics: [
-                            ...(projects[activeProject].metrics ?? []),
-                            json,
-                          ],
-                        })
-                      : v,
-                  ),
-                );
-
-                toast.success('Metric was succesfully created');
-                router.push(`/dashboard/metrics/${name}`);
-              });
-          }}
-        >
-          <div className='flex w-full flex-col gap-3'>
-            <div className='my-2 flex flex-col gap-4'>
-              <div className='flex w-full flex-col gap-3'>
-                <Label>Metric name</Label>
+                type='text'
+                maxLength={30}
+                className='h-11 rounded-[12px]'
+                value={name}
+                onChange={(e) => setName(e.target.value.trimStart())}
+              />
+            </div>
+            <div className='flex w-full flex-col gap-3'>
+              <Label>Base value</Label>
+              <div className='flex flex-col gap-1'>
                 <Input
-                  placeholder={
-                    props.type === MetricType.Base
-                      ? `New users, Deleted projects, Suspended accounts`
-                      : 'Session duration, Ratings, Load time'
+                  placeholder='Optional'
+                  type='number'
+                  min={0}
+                  max={1000000000}
+                  value={baseValue === 0 && !Number(baseValue) ? '' : baseValue}
+                  onChange={(e) =>
+                    setBaseValue(
+                      e.target.value === '' ? '' : Number(e.target.value),
+                    )
                   }
-                  type='text'
-                  maxLength={30}
                   className='h-11 rounded-[12px]'
-                  value={name}
-                  onChange={(e) => setName(e.target.value.trimStart())}
                 />
-              </div>
-              <div className='flex w-full flex-col gap-3'>
-                <Label>Base value</Label>
-                <div className='flex flex-col gap-1'>
-                  <Input
-                    placeholder='Optional'
-                    type='number'
-                    min={0}
-                    max={1000000000}
-                    value={
-                      baseValue === 0 && !Number(baseValue) ? '' : baseValue
-                    }
-                    onChange={(e) =>
-                      setBaseValue(
-                        e.target.value === '' ? '' : Number(e.target.value),
-                      )
-                    }
-                    className='h-11 rounded-[12px]'
-                  />
-                  <Label className='text-xs font-normal leading-tight text-secondary'>
-                    Base value stands for the value of the metric before using
-                    Measurely to measure the metric
-                  </Label>
-                </div>
+                <Label className='text-xs font-normal leading-tight text-secondary'>
+                  Base value stands for the value of the metric before using
+                  Measurely to measure the metric
+                </Label>
               </div>
             </div>
           </div>
-          {/* 
-          <div className='flex w-full flex-row gap-2 max-md:flex-col'>
-            <Button
-              type='button'
-              variant='secondary'
-              className='w-full rounded-[12px]'
-              onClick={() => props.setStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              type='submit'
-              variant='default'
-              loading={loading}
-              disabled={name === '' || loading}
-              className='w-full rounded-[12px]'
-            >
-              Create
-            </Button>
-          </div> */}
-        </form>
+        </div>
+
+        <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+          <Button
+            type='button'
+            variant='secondary'
+            className='w-full rounded-[12px]'
+            onClick={handlePrev}
+          >
+            Back
+          </Button>
+          <Button
+            type='button'
+            variant='default'
+            className='w-full rounded-[12px]'
+            onClick={handleNext}
+            disabled={name === ''}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-function DualStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
+function DualStep(props: { setMetricData: Dispatch<SetStateAction<any>>; setTab: Dispatch<SetStateAction<string>> }) {
   const [name, setName] = useState('');
   const [namePos, setNamePos] = useState('added');
   const [nameNeg, setNameNeg] = useState('removed');
   const [namingType, setNamingType] = useState('auto');
-
   const [baseValue, setBaseValue] = useState<number | string>(0);
+  const { nextStep, prevStep } = useStepper();
 
-  const [loading, setLoading] = useState(false);
+  const handleNext = () => {
+    props.setMetricData({
+      name,
+      baseValue,
+      type: MetricType.Dual,
+      namePos,
+      nameNeg,
+    });
+    nextStep();
+  };
 
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
-  const router = useRouter();
+  const handlePrev = () => {
+    props.setTab('metrics');
+    prevStep();
+  };
 
   return (
     <div className='mx-auto flex flex-col gap-6'>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setLoading(true);
-          if (name === '') {
-            toast.error('Please enter a name');
-            setLoading(false);
-            return;
-          }
+      <div className='flex flex-col gap-[5px]'>
+        <div className='text-xl font-medium'>Dual metric</div>
+        <div className='text-sm text-secondary'>
+          Track metrics with positive and negative values, perfect for scenarios
+          like gains and losses or approvals and rejections.
+        </div>
+        <div className='flex w-full flex-col gap-3'>
+          <div className='my-2 flex flex-col gap-4'>
+            <div className='flex w-full flex-col gap-3'>
+              <Label>Metric name</Label>
+              <Input
+                placeholder='Users, Transfers, Projects'
+                maxLength={30}
+                type='text'
+                value={name}
+                onChange={(e) => setName(e.target.value.trimStart())}
+              />
+            </div>
 
-          if (namePos === '' || nameNeg === '') {
-            toast.error('You cannot have empty variable names');
-            setLoading(false);
-            return;
-          }
-
-          if (
-            forbidden.includes(namePos.toLowerCase()) ||
-            forbidden.includes(nameNeg.toLowerCase())
-          ) {
-            toast.error(
-              'The variable names you have chosen are used internally, please choose something else.',
-            );
-            setLoading(false);
-            return;
-          }
-
-          fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              name: name,
-              project_id: projects[activeProject].id,
-              base_value: baseValue,
-              type: MetricType.Dual,
-              name_pos: namePos,
-              nameneg: nameNeg,
-            }),
-          })
-            .then((res) => {
-              if (!res.ok) {
-                res.text().then((text) => {
-                  toast.error(text);
-                  setLoading(false);
-                });
-              } else {
-                return res.json();
-              }
-            })
-            .then((json) => {
-              if (
-                json === null ||
-                json === undefined ||
-                projects[activeProject].metrics === null
-              ) {
-                return;
-              }
-
-              setProjects(
-                projects.map((v, i) =>
-                  i === activeProject
-                    ? Object.assign({}, v, {
-                        metrics: [
-                          ...(projects[activeProject].metrics ?? []),
-                          json,
-                        ],
-                      })
-                    : v,
-                ),
-              );
-
-              toast.success('Metric was succesfully created');
-              router.push(`/dashboard/metrics/${name}`);
-            });
-        }}
-      >
-        <div className='flex flex-col gap-[5px]'>
-          <div className='text-xl font-medium'>Dual metric</div>
-          <div className='text-sm text-secondary'>
-            Track metrics with positive and negative values, perfect for
-            scenarios like gains and losses or approvals and rejections.
-          </div>
-          <div className='flex w-full flex-col gap-3'>
-            <div className='my-2 flex flex-col gap-4'>
-              <div className='flex w-full flex-col gap-3'>
-                <Label>Metric name</Label>
+            <Label className='flex flex-col gap-3'>
+              Variable names
+              <Select
+                defaultValue={'auto'}
+                onValueChange={(e) => {
+                  setNamingType(e);
+                  if (e === 'manual') {
+                    setNamePos('');
+                    setNameNeg('');
+                  } else {
+                    setNamePos('added');
+                    setNameNeg('removed');
+                  }
+                }}
+              >
+                <SelectTrigger className='h-11 border'>
+                  <SelectValue placeholder='Select a type of naming' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={'auto'}>Automatic</SelectItem>
+                    <SelectItem value={'manual'}>Manual</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Label className='text-xs font-normal leading-tight text-secondary'>
+                Customize the names for positive and negative values to match
+                your specific use case and improve clarity.
+              </Label>
+            </Label>
+            <div className='flex w-full flex-col gap-3'>
+              <Label>Base value</Label>
+              <div className='flex flex-col gap-1'>
                 <Input
-                  placeholder='Users, Transfers, Projects'
-                  maxLength={30}
-                  type='text'
-                  value={name}
-                  onChange={(e) => setName(e.target.value.trimStart())}
+                  placeholder='Optional'
+                  type='number'
+                  min={-1000000000}
+                  max={1000000000}
+                  value={baseValue === 0 && !Number(baseValue) ? '' : baseValue}
+                  onChange={(e) =>
+                    setBaseValue(
+                      e.target.value === '' ? '' : Number(e.target.value),
+                    )
+                  }
                   className='h-11 rounded-[12px]'
                 />
-              </div>
-
-              <Label className='flex flex-col gap-3'>
-                Variable names
-                <Select
-                  defaultValue={'auto'}
-                  onValueChange={(e) => {
-                    setNamingType(e);
-                    if (e === 'manual') {
-                      setNamePos('');
-                      setNameNeg('');
-                    } else {
-                      setNamePos('added');
-                      setNameNeg('removed');
-                    }
-                  }}
-                >
-                  <SelectTrigger className='h-11 border'>
-                    <SelectValue placeholder='Select a type of naming' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value={'auto'}>Automatic</SelectItem>
-                      <SelectItem value={'manual'}>Manual</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
                 <Label className='text-xs font-normal leading-tight text-secondary'>
-                  Customize the names for positive and negative values to match
-                  your specific use case and improve clarity.
+                  Base value stands for the value of the metric before using
+                  Measurely to measure the metric
                 </Label>
-              </Label>
-              <div className='flex w-full flex-col gap-3'>
-                <Label>Base value</Label>
-                <div className='flex flex-col gap-1'>
-                  <Input
-                    placeholder='Optional'
-                    type='number'
-                    min={-1000000000}
-                    max={1000000000}
-                    value={
-                      baseValue === 0 && !Number(baseValue) ? '' : baseValue
-                    }
-                    onChange={(e) =>
-                      setBaseValue(
-                        e.target.value === '' ? '' : Number(e.target.value),
-                      )
-                    }
-                    className='h-11 rounded-[12px]'
-                  />
-                  <Label className='text-xs font-normal leading-tight text-secondary'>
-                    Base value stands for the value of the metric before using
-                    Measurely to measure the metric
-                  </Label>
-                </div>
               </div>
-
-              {namingType === 'auto' ? (
-                <></>
-              ) : (
-                <>
-                  <Separator className='my-2' />
-                  <div className='flex w-full flex-col gap-3'>
-                    <Label>Positive variable name</Label>
-                    <Input
-                      placeholder='Account created, transfer sent'
-                      type='text'
-                      className='h-11 rounded-[12px]'
-                      value={namePos}
-                      onChange={(e) => {
-                        setNamePos(e.target.value.trimStart());
-                      }}
-                    />
-                  </div>
-
-                  <div className='flex w-full flex-col gap-3'>
-                    <Label>Negative variable name</Label>
-                    <Input
-                      placeholder='Account deleted, transfer kept'
-                      type='text'
-                      className='h-11 rounded-[12px]'
-                      value={nameNeg}
-                      onChange={(e) => {
-                        setNameNeg(e.target.value.trimStart());
-                      }}
-                    />
-                  </div>
-                </>
-              )}
             </div>
-          </div>
 
-          {/* <div className='flex w-full flex-row gap-2 max-md:flex-col'>
-            <Button
-              type='button'
-              variant='secondary'
-              className='w-full rounded-[12px]'
-              onClick={() => props.setStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              type='submit'
-              variant='default'
-              loading={loading}
-              disabled={
-                loading || name === '' || namePos === '' || nameNeg === ''
-              }
-              className='w-full rounded-[12px]'
-            >
-              Create
-            </Button>
-          </div> */}
+            {namingType === 'auto' ? (
+              <></>
+            ) : (
+              <>
+                <Separator className='my-2' />
+                <div className='flex w-full flex-col gap-3'>
+                  <Label>Positive variable name</Label>
+                  <Input
+                    placeholder='Account created, transfer sent'
+                    type='text'
+                    className='h-11 rounded-[12px]'
+                    value={namePos}
+                    onChange={(e) => {
+                      setNamePos(e.target.value.trimStart());
+                    }}
+                  />
+                </div>
+
+                <div className='flex w-full flex-col gap-3'>
+                  <Label>Negative variable name</Label>
+                  <Input
+                    placeholder='Account deleted, transfer kept'
+                    type='text'
+                    className='h-11 rounded-[12px]'
+                    value={nameNeg}
+                    onChange={(e) => {
+                      setNameNeg(e.target.value.trimStart());
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </form>
+
+        <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+          <Button
+            type='button'
+            variant='secondary'
+            className='w-full rounded-[12px]'
+            onClick={handlePrev}
+          >
+            Back
+          </Button>
+          <Button
+            type='button'
+            variant='default'
+            className='w-full rounded-[12px]'
+            onClick={handleNext}
+            disabled={name === '' || namePos === '' || nameNeg === ''}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function StripeStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
+function StripeStep(props: { setMetricData: Dispatch<SetStateAction<any>>; setTab: Dispatch<SetStateAction<string>> }) {
   const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { projects, activeProject } = useContext(ProjectsContext);
+  const { nextStep, prevStep } = useStepper();
+
+  const handleNext = () => {
+    if (name === '') {
+      toast.error('Please enter a name');
+      return;
+    }
+
+    props.setMetricData({
+      name,
+      baseValue: 0,
+      type: MetricType.Stripe,
+      namePos: 'income',
+      nameNeg: 'outcome',
+    });
+    nextStep();
+  };
+
+  const handlePrev = () => {
+    props.setTab('integrations');
+    prevStep();
+  };
 
   return (
     <div className='mx-auto flex flex-col gap-6'>
@@ -738,116 +722,41 @@ function StripeStep(props: { setStep: Dispatch<SetStateAction<number>> }) {
           Tracks revenue, subscriptions, refunds, and more via Stripe for
           financial insights.
         </div>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setLoading(true);
-            if (name === '') {
-              toast.error('Please enter a name');
-              setLoading(false);
-              return;
-            }
-
-            if (forbidden.includes(name.toLowerCase())) {
-              toast.error(
-                'The variable names you have chosen are used internally, please choose something else.',
-              );
-              setLoading(false);
-              return;
-            }
-
-            const response = await fetch(
-              process.env.NEXT_PUBLIC_API_URL + '/metric',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  name: name,
-                  project_id: projects[activeProject].id,
-                  base_value: 0,
-                  type: MetricType.Stripe,
-                  name_pos: 'income',
-                  nameneg: 'outcome',
-                }),
-              },
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-
-              fetch(`${process.env.NEXT_PUBLIC_API_URL}/integrations/stripe`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  project_id: data.projectid,
-                  metric_id: data.id,
-                }),
-              })
-                .then((res) => {
-                  if (res.ok) {
-                    return res.json();
-                  } else {
-                    res.text().then((text) => {
-                      toast.error(text);
-                      setLoading(false);
-                    });
-                  }
-                })
-                .then((data) => {
-                  if (data !== undefined && data !== null) {
-                    window.location.replace(data.url);
-                  }
-                });
-            } else {
-              response.text().then((text) => {
-                toast.error(text);
-                setLoading(false);
-              });
-            }
-          }}
-        >
-          <div className='flex w-full flex-col gap-3'>
-            <div className='my-2 flex flex-col gap-4'>
-              <div className='flex w-full flex-col gap-3'>
-                <Label>Metric name</Label>
-                <Input
-                  placeholder={'Revenue, Earnings, Sales, Profit'}
-                  type='text'
-                  maxLength={30}
-                  className='h-11 rounded-[12px]'
-                  value={name}
-                  onChange={(e) => setName(e.target.value.trimStart())}
-                />
-              </div>
+        <div className='flex w-full flex-col gap-3'>
+          <div className='my-2 flex flex-col gap-4'>
+            <div className='flex w-full flex-col gap-3'>
+              <Label>Metric name</Label>
+              <Input
+                placeholder={'Revenue, Earnings, Sales, Profit'}
+                type='text'
+                maxLength={30}
+                className='h-11 rounded-[12px]'
+                value={name}
+                onChange={(e) => setName(e.target.value.trimStart())}
+              />
             </div>
           </div>
-          {/* 
-          <div className='flex w-full flex-row gap-2 max-md:flex-col'>
-            <Button
-              type='button'
-              variant='secondary'
-              className='w-full rounded-[12px]'
-              onClick={() => props.setStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              type='submit'
-              variant='default'
-              loading={loading}
-              disabled={name === '' || loading}
-              className='w-full rounded-[12px]'
-            >
-              Create
-            </Button>
-          </div> */}
-        </form>
+        </div>
+
+        <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+          <Button
+            type='button'
+            variant='secondary'
+            className='w-full rounded-[12px]'
+            onClick={handlePrev}
+          >
+            Back
+          </Button>
+          <Button
+            type='button'
+            variant='default'
+            className='w-full rounded-[12px]'
+            onClick={handleNext}
+            disabled={name === ''}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
