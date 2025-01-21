@@ -35,11 +35,8 @@ import {
   Box,
   CircleX,
   ClipboardList,
-  Info,
-  List,
   Loader,
   Ruler,
-  User,
 } from 'lucide-react';
 import { UnitCombobox } from '@/components/ui/unit-select';
 
