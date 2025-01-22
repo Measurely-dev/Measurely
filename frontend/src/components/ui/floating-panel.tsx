@@ -105,9 +105,8 @@ export function FloatingPanelTrigger({
   className,
   title,
 }: FloatingPanelTriggerProps) {
-  const { openFloatingPanel, uniqueId, setTitle } = useFloatingPanel();
+  const { openFloatingPanel, uniqueId, setTitle, isOpen } = useFloatingPanel();
   const triggerRef = useRef<HTMLButtonElement>(null);
-
   const handleClick = () => {
     if (triggerRef.current) {
       openFloatingPanel(triggerRef.current.getBoundingClientRect());
@@ -119,12 +118,16 @@ export function FloatingPanelTrigger({
     <motion.button
       ref={triggerRef}
       layoutId={`floating-panel-trigger-${uniqueId}`}
-      className={cn(className)}
+      className={cn('relative overflow-hidden', className)}
       style={{ borderRadius: 8 }}
       onClick={handleClick}
       aria-haspopup='dialog'
       aria-expanded={false}
     >
+      <div
+        className='absolute left-0 top-0 z-10 size-full'
+        style={{ backgroundColor: isOpen ? '#f4f4f5' : '' }}
+      />
       <motion.div
         layoutId={`floating-panel-label-container-${uniqueId}`}
         className='flex items-center'
@@ -282,7 +285,6 @@ export function FloatingPanelLabel({
   htmlFor,
   className,
 }: FloatingPanelLabelProps) {
-
   return (
     <motion.label
       htmlFor={htmlFor}

@@ -37,7 +37,10 @@ function FloatingPanelInput(props: { children: ReactNode }) {
 
   return (
     <FloatingPanelRoot>
-      <FloatingPanelTrigger title='Send feedback'>
+      <FloatingPanelTrigger
+        className='flex h-9 flex-row items-center gap-2 !rounded-[12px] bg-accent px-3 text-muted-foreground transition-all duration-200 hover:text-primary'
+        title='Send feedback'
+      >
         {props.children}
       </FloatingPanelTrigger>
       <FloatingPanelContent className='mr-40 w-80'>
