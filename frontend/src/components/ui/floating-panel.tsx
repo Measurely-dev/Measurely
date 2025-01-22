@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -167,7 +168,6 @@ interface FloatingPanelContentProps {
   className?: string;
   side?: 'left' | 'right'; // Only left and right are supported
 }
-
 export function FloatingPanelContent({
   children,
   className,
@@ -182,14 +182,14 @@ export function FloatingPanelContent({
     description,
   } = useFloatingPanel();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [panelWidth, setPanelWidth] = useState(0); // Track panel width
+  const [panelWidth, setPanelWidth] = useState(0);
 
-  // Update panel width after the panel mounts
-  useEffect(() => {
+  // Use layout effect for immediate measurement
+  useLayoutEffect(() => {
     if (contentRef.current) {
       setPanelWidth(contentRef.current.offsetWidth);
     }
-  }, [isOpen]); // Recalculate when the panel opens
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -217,20 +217,21 @@ export function FloatingPanelContent({
     visible: { opacity: 1, scale: 1, y: 0 },
   };
 
-  // Calculate position based on the `side` prop
   const getPositionStyle = () => {
     if (!triggerRect) return { left: '50%', top: '50%' };
 
     switch (side) {
       case 'left':
         return {
-          left: triggerRect.left, // Align left side of panel with left side of button
-          top: triggerRect.bottom + 8, // Position below the button
+          left: triggerRect.left,
+          top: triggerRect.bottom + 8,
         };
       case 'right':
         return {
-          left: triggerRect.right - panelWidth, // Align right side of panel with right side of button
-          top: triggerRect.bottom + 8, // Position below the button
+          left: panelWidth > 0 
+            ? triggerRect.right - panelWidth 
+            : triggerRect.left, // Fallback to left position
+          top: triggerRect.bottom + 8,
         };
       default:
         return { left: '50%', top: '50%' };
@@ -256,8 +257,9 @@ export function FloatingPanelContent({
             )}
             style={{
               borderRadius: 12,
-              ...getPositionStyle(), // Apply dynamic positioning
+              ...getPositionStyle(),
               transformOrigin: 'top left',
+              minWidth: 200, // Prevent panelWidth=0 on initial render
             }}
             initial='hidden'
             animate='visible'
@@ -275,7 +277,6 @@ export function FloatingPanelContent({
     </AnimatePresence>
   );
 }
-
 function FloatingPanelTitle(props: { title: string; description: string }) {
   const { uniqueId } = useFloatingPanel();
 
