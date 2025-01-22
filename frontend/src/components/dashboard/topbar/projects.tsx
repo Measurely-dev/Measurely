@@ -2,18 +2,18 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 import { loadMetrics, roleToString } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
-
+import {
+  FloatingPanelBody,
+  FloatingPanelContent,
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
+} from '@/components/ui/floating-panel';
 export default function ProjectsChip() {
   const [open, setOpen] = useState(false);
   const { projects, activeProject, setActiveProject, setProjects } =
@@ -56,17 +56,14 @@ export default function ProjectsChip() {
     Guest:
       'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
   };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          role='combobox'
-          aria-expanded={open}
-          className={`w-fit gap-2 rounded-[12px] border-none px-2 text-[14px] capitalize ${
-            open ? 'bg-accent' : ''
-          }`}
-        >
+    <FloatingPanelRoot>
+      <FloatingPanelTrigger
+        className={`h-10 w-fit gap-2 !rounded-[12px] border-none px-4 text-[14px] capitalize transition-all duration-200 hover:bg-accent`}
+        title='Select Project'
+      >
+        <div className='flex h-9 flex-row items-center gap-2'>
           <Avatar className='size-6 border bg-accent'>
             <AvatarImage src={projects[activeProject].image} />
             <AvatarFallback>
@@ -77,21 +74,15 @@ export default function ProjectsChip() {
           </Avatar>
           {projects[activeProject] ? projects[activeProject].name : ''}
           <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className='flex w-[300px] flex-col gap-1 rounded-2xl p-1.5 shadow-sm'
-        side='bottom'
-        align='start'
-      >
-        {ownedProjects.map((app) => {
-          return (
+        </div>
+      </FloatingPanelTrigger>
+      <FloatingPanelContent className='w-[300px]' side='left'>
+        <FloatingPanelBody className='flex flex-col gap-2 p-2'>
+          {ownedProjects.map((app) => (
             <div
               key={app.id}
-              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75`}
-              onClick={() => {
-                handleAppSelect(app.id);
-              }}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-[10px] p-2 py-1.5 capitalize hover:bg-accent/75`}
+              onClick={() => handleAppSelect(app.id)}
             >
               <div className='flex flex-row items-center justify-center gap-2'>
                 <Avatar className='size-6 border bg-accent'>
@@ -113,16 +104,12 @@ export default function ProjectsChip() {
                 className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
               />
             </div>
-          );
-        })}
-        {joinedProjects.map((app, _) => {
-          return (
+          ))}
+          {joinedProjects.map((app) => (
             <div
               key={app.id}
-              className={`'' flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75`}
-              onClick={() => {
-                handleAppSelect(app.id);
-              }}
+              className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-xl p-2 py-1.5 capitalize hover:bg-accent/75`}
+              onClick={() => handleAppSelect(app.id)}
             >
               <div className='flex flex-row items-center justify-center gap-2'>
                 <Avatar className='size-6 border bg-accent'>
@@ -137,18 +124,18 @@ export default function ProjectsChip() {
                 className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
               />
             </div>
-          );
-        })}
-        <Link href={'/dashboard/new-project'}>
-          <Button
-            variant={'default'}
-            className='mt-1 flex w-full items-center gap-1 rounded-[12px] text-[14px] font-medium'
-          >
-            <PlusIcon className='size-4' />
-            Create project
-          </Button>
-        </Link>
-      </PopoverContent>
-    </Popover>
+          ))}
+          <Link href={'/dashboard/new-project'}>
+            <Button
+              variant={'default'}
+              className='flex h-fit w-full items-center gap-1 rounded-[10px] p-2 py-1.5 font-medium'
+            >
+              <PlusIcon className='size-4' />
+              Create project
+            </Button>
+          </Link>
+        </FloatingPanelBody>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

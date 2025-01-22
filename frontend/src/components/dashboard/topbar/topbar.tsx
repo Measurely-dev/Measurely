@@ -58,10 +58,12 @@ export default function DashboardTopbar() {
           </Link>
           <div className='max-lg:hidden'>
             <FeedbackPopover>
-              <span className='inline-flex gap-2 items-center font-medium'>
-              <MessageSquare className='size-[16px]' />
-              Feedback
-              </span>
+              <Button className='rounded-[12px]' variant={'secondary'}>
+                <span className='inline-flex items-center gap-2 font-medium'>
+                  <MessageSquare className='size-[16px]' />
+                  Feedback
+                </span>
+              </Button>
             </FeedbackPopover>
           </div>
           <AvatarDropdown>
