@@ -46,7 +46,7 @@ function FloatingPanelInput(props: { children: ReactNode }) {
       <FloatingPanelContent className='mr-40 w-80'>
         <FloatingPanelForm onSubmit={handleSubmit}>
           <FloatingPanelBody>
-            <FloatingPanelTextarea className='min-h-[100px]' />
+            <FloatingPanelTextarea max={1000} className='min-h-[100px]' />
           </FloatingPanelBody>
           <FloatingPanelFooter>
             <FloatingPanelCloseButton />

@@ -301,17 +301,23 @@ export function FloatingPanelLabel({
 interface FloatingPanelTextareaProps {
   className?: string;
   id?: string;
+  min?: number;
+  max?: number;
 }
 
 export function FloatingPanelTextarea({
   className,
   id,
+  min,
+  max,
 }: FloatingPanelTextareaProps) {
   const { note, setNote } = useFloatingPanel();
 
   return (
     <textarea
       id={id}
+      minLength={min}
+      maxLength={max}
       className={cn(
         'h-full w-full resize-none rounded-md bg-transparent px-4 py-3 text-sm outline-none',
         className,
