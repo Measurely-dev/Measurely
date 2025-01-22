@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/popover';
 import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
-import { loadMetrics } from '@/utils';
+import { loadMetrics, roleToString } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
@@ -46,6 +46,16 @@ export default function ProjectsChip() {
     return projects.filter((proj) => proj.user_role !== UserRole.Owner);
   }, [projects]);
 
+  const badgeClasses: { [key: string]: string } = {
+    Owner:
+      'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+    Admin:
+      'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
+    Developer:
+      'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
+    Guest:
+      'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
+  };
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -70,7 +80,7 @@ export default function ProjectsChip() {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className='flex w-[250px] flex-col gap-1 rounded-2xl p-1.5 shadow-sm'
+        className='flex w-[300px] flex-col gap-1 rounded-2xl p-1.5 shadow-sm'
         side='bottom'
         align='start'
       >
@@ -91,6 +101,13 @@ export default function ProjectsChip() {
                   </AvatarFallback>
                 </Avatar>
                 <div className='text-[14px] font-medium'>{app.name}</div>
+                <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
+                  <span
+                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClasses[roleToString(app.user_role)]}`}
+                  >
+                    {roleToString(app.user_role)}
+                  </span>
+                </div>
               </div>
               <CheckIcon
                 className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}

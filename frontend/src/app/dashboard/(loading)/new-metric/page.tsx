@@ -29,9 +29,7 @@ import { ProjectsContext } from '@/dash-context';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
-import { ConfettiButton } from '@/components/ui/confetti';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Box, CircleX, ClipboardList, Loader, Ruler } from 'lucide-react';
+import { Box, ClipboardList, Ruler } from 'lucide-react';
 import { UnitCombobox } from '@/components/ui/unit-select';
 import confetti from 'canvas-confetti';
 

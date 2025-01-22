@@ -109,7 +109,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                   >
                     Daily update
                   </TableHead>
-                  <TableHead className='min-w-[140px]'>Created</TableHead>
+                  <TableHead className='min-w-[140px]'>Last updated</TableHead>
                   <TableHead className='w-[50px] text-right'>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -284,7 +284,9 @@ const Item = (props: { metric: Metric; index: number }) => {
         </TableCell>
         {/* Created */}
         <TableCell className='text-nowrap text-secondary'>
-          {formattedDate(props.metric.created)}
+          {formattedDate(
+            props.metric.last_event_timestamp?.V ?? props.metric.created,
+          )}
         </TableCell>
         {/* Actions */}
         <TableCell>

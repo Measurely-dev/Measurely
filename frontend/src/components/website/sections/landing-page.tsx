@@ -71,11 +71,10 @@ export default function LandingSection(props: {
                 </Link>
               ) : (
                 <Link href='/register'>
-                  <WebButton className='group mt-5 px-3.5 py-2'>
-                    <div className='flex items-center gap-2 text-base transition-all duration-200 group-hover:gap-3 max-sm:hidden'>
-                      Start tracking for free
+                  <WebButton className='group mt-5 !rounded-[12px] px-4 py-2.5'>
+                    <div className='text-base md:text-xl'>
+                      Get started for free
                     </div>
-                    <div className='text-base sm:hidden'>Get started</div>
                   </WebButton>
                 </Link>
               )
