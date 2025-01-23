@@ -8,7 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import {
   Sortable,
   SortableDragHandle,
@@ -107,11 +107,32 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-
+import { useCharacterLimit } from '@/lib/character-limit';
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [groupInput, setGroupInput] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const maxLength = 25;
+  const id = useId();
+
+  // Use the useCharacterLimit hook
+  const {
+    value,
+    characterCount,
+    handleChange: handleCharacterLimitChange,
+    maxLength: limit,
+  } = useCharacterLimit({ maxLength });
+
+  // Synchronize groupInput with the value from useCharacterLimit
+  useEffect(() => {
+    setGroupInput(value);
+  }, [value]);
+
+  // Combined change handler
+  const handleInputChange = (e: any) => {
+    handleCharacterLimitChange(e); // Update character limit
+    setGroupInput(e.target.value); // Update groupInput state
+  };
 
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
@@ -176,15 +197,28 @@ export default function DashboardHomePage() {
                   category, making it easier to manage and view related data.
                 </DialogDescription>
               </DialogHeader>
-              <div className='flex flex-col gap-2'>
-                <Label>Group name</Label>
-                <Input
-                  placeholder='Group name...'
-                  className='h-11 rounded-[12px]'
-                  value={groupInput}
-                  onChange={(e) => setGroupInput(e.target.value.trimStart())}
-                  maxLength={25}
-                />
+              <div className='space-y-2'>
+                <Label htmlFor={id}>Group name</Label>
+                <div className='relative'>
+                  <Input
+                    id={id}
+                    className='peer h-11 rounded-[12px] pe-14'
+                    type='text'
+                    placeholder='Group name...'
+                    value={groupInput} // Use groupInput here
+                    maxLength={maxLength}
+                    onChange={handleInputChange} // Use the combined handler
+                    aria-describedby={`${id}-description`}
+                  />
+                  <div
+                    id={`${id}-description`}
+                    className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                    aria-live='polite'
+                    role='status'
+                  >
+                    {characterCount}/{limit}
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <DialogClose>
@@ -197,7 +231,7 @@ export default function DashboardHomePage() {
                     const project = projects[activeProject];
                     const newBlock: Block = {
                       id: 0,
-                      name: groupInput,
+                      name: groupInput, // Use groupInput here
                       type: BlockType.Group,
                       nested: [],
                       metric_ids: [],
@@ -213,7 +247,7 @@ export default function DashboardHomePage() {
                       layoutCopy[i].id = i;
                     }
                     setIsDialogOpen(false);
-                    setGroupInput('');
+                    setGroupInput(''); // Reset groupInput
                     setProjects(
                       projects.map((proj, i) =>
                         i === activeProject
@@ -259,7 +293,6 @@ export default function DashboardHomePage() {
     </DashboardContentContainer>
   );
 }
-
 function UpgradeCard() {
   const { user } = useContext(UserContext);
   const { projects, activeProject } = useContext(ProjectsContext);

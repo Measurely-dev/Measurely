@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -11,31 +10,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { EyeClosedIcon } from '@radix-ui/react-icons';
-import { ReactNode, useContext, useEffect, useState } from 'react';
-import { Eye } from 'react-feather';
+import { Eye, EyeOff } from 'lucide-react';
+import {
+  ReactNode,
+  useContext,
+  useEffect,
+  useId,
+  useState,
+  useRef,
+} from 'react';
 import { ProjectsContext } from '@/dash-context';
-import { Loader, Shuffle, X } from 'lucide-react';
+import { Shuffle } from 'lucide-react';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
   projectid: string;
 }) {
-  const [view, setView] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null); // Ref for the input element
 
   useEffect(() => {
     if (projects !== null) {
       setApiIndex(projects.findIndex((proj) => proj.id === props.projectid));
     }
-  }, []);
+  }, [projects, props.projectid]);
+
   const RandomizeAPI = async () => {
     const isConfirmed = await confirm({
       title: 'Randomize API Key',
@@ -59,6 +67,7 @@ export default function ApiDialog(props: {
         className: '!rounded-[12px]',
       },
     });
+
     if (isConfirmed) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/rand-apikey', {
         method: 'PATCH',
@@ -79,7 +88,7 @@ export default function ApiDialog(props: {
         })
         .then((data) => {
           if (data !== null && data !== undefined && projects !== null) {
-            toast.success('API key succesfully randomized');
+            toast.success('API key successfully randomized');
             setProjects(
               projects?.map((v, i) =>
                 i === apiIndex
@@ -89,6 +98,7 @@ export default function ApiDialog(props: {
                   : v,
               ),
             );
+            setApiKey(data);
           }
         });
     }
@@ -101,83 +111,79 @@ export default function ApiDialog(props: {
         setApiKey(projects[appIndex].api_key);
       }
     }
-  }, [activeProject, projects]);
+  }, [activeProject, projects, props.projectid]);
+
+  const toggleVisibility = () => {
+    setIsVisible((prevState) => !prevState);
+    if (isVisible && inputRef.current) {
+      inputRef.current.select(); // Auto-select text when visible
+    }
+  };
 
   return (
-    <Dialog onOpenChange={() => setView(false)}>
+    <Dialog
+      onOpenChange={(e) => {
+        if (!e) {
+          setIsVisible(false);
+        }
+      }}
+    >
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='rounded-xl border border-input shadow-none max-md:max-w-[95%] max-sm:w-full max-sm:max-w-full max-sm:rounded-none max-sm:px-2 max-sm:py-4'>
-        <DialogHeader className='max-md:text-start'>
-          <DialogTitle>API KEY</DialogTitle>
-          <DialogDescription>
+      <DialogContent className='rounded-xl border border-input p-4 shadow-none max-md:max-w-[95%] max-sm:w-full max-sm:max-w-full max-sm:rounded-none'>
+        <DialogHeader className='hidden'>
+          <DialogTitle className='sr-only'>API KEY</DialogTitle>
+          <DialogDescription className='sr-only'>
             Anyone who has this key will be able to use it.
           </DialogDescription>
-          <DialogClose className='absolute right-5 top-3 max-sm:hidden'>
-            <Button
-              type='button'
-              size={'icon'}
-              variant='secondary'
-              className='rounded-[12px]'
-            >
-              <X />
-            </Button>
-          </DialogClose>
         </DialogHeader>
-        <div className='flex max-w-full items-center'>
-          <div className='flex w-full max-w-full flex-row gap-2'>
-            <Label htmlFor='link' className='sr-only'>
-              Link
-            </Label>
-            <Button
-              id='link'
-              className={`w-full overflow-x-scroll rounded-[8px] rounded-r-none border-r-0 max-sm:max-w-[calc(100vw-16px-40px)] max-sm:text-xs ${
-                view ? '' : 'text-secondary'
-              }`}
-              variant={'outline'}
-              onClick={() => {
-                if (apiKey !== null) {
-                  navigator.clipboard.writeText(apiKey);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1000);
-                }
-              }}
-            >
-              {copied ? (
-                'Copied!'
-              ) : apiKey !== null ? (
-                view ? (
-                  apiKey
-                ) : (
-                  'Click to copy'
-                )
-              ) : (
-                <Loader className='size-4 animate-spin' />
+        <div className='space-y-2'>
+          <Label htmlFor={id} className='flex w-full flex-col gap-2'>
+            API Key
+            <div className='flex w-full items-center gap-2'>
+              <div className='relative w-full'>
+                <Input
+                  id={id}
+                  ref={inputRef}
+                  className='w-full rounded-[12px] pe-9 text-sm'
+                  placeholder='API Key'
+                  type={isVisible ? 'text' : 'password'}
+                  value={apiKey || ''}
+                  readOnly
+                  onClick={() => {
+                    if (apiKey && isVisible) {
+                      navigator.clipboard.writeText(apiKey);
+                      toast.success('API key copied to clipboard!');
+                    }
+                  }}
+                />
+                <button
+                  className='absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                  type='button'
+                  onClick={toggleVisibility}
+                  aria-label={isVisible ? 'Hide API key' : 'Show API key'}
+                  aria-pressed={isVisible}
+                  aria-controls={id}
+                >
+                  {isVisible ? (
+                    <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
+                  ) : (
+                    <Eye size={16} strokeWidth={2} aria-hidden='true' />
+                  )}
+                </button>
+              </div>
+              {props.randomize && (
+                <Button
+                  onClick={RandomizeAPI}
+                  size={'icon'}
+                  className='size-9 min-w-9 rounded-[12px]'
+                  variant={'destructiveOutline'}
+                >
+                  <Shuffle className='size-4' />
+                </Button>
               )}
-            </Button>
-          </div>
-          <Button
-            onClick={() => setView(!view)}
-            size='sm'
-            variant={'secondary'}
-            className='h-full rounded-[8px] rounded-l-none border border-l-0 px-3'
-          >
-            <span className='sr-only'>View</span>
-            {view ? (
-              <EyeClosedIcon className='h-4 w-4' />
-            ) : (
-              <Eye className='h-4 w-4' />
-            )}
-          </Button>
+            </div>
+          </Label>
         </div>
-        {props.randomize ? (
-          <Button
-            onClick={RandomizeAPI}
-            className='rounded-[12px]'
-            variant={'destructiveOutline'}
-          >
-            Randomize key
-          </Button>
-        ) : undefined}
       </DialogContent>
     </Dialog>
   );

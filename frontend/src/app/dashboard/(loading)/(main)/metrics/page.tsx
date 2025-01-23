@@ -157,10 +157,10 @@ function SearchComponent(props: {
   setSearch: Dispatch<SetStateAction<string>>;
 }) {
   return (
-    <div className='flex w-full flex-row items-center gap-2 rounded-[12px] bg-accent pl-[12px]'>
+    <div className='flex w-full shadow-sm shadow-black/5 flex-row items-center gap-2 rounded-[12px] bg-accent pl-[12px]'>
       <Search className='size-[18px] text-secondary' />
       <Input
-        className='h-[40px] w-full rounded-none border-none bg-transparent px-0 !ring-0'
+        className='h-[40px] w-full rounded-none shadow-none border-none bg-transparent px-0 !ring-0'
         placeholder='Search metric...'
         value={props.search}
         onChange={(e) => props.setSearch(e.target.value)}

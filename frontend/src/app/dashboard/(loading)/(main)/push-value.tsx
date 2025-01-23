@@ -1,4 +1,10 @@
 import {
+  Button as AriaButton,
+  Group,
+  Input as AriaInput,
+  NumberField,
+} from 'react-aria-components';
+import {
   Dialog,
   DialogContent,
   DialogTitle,
@@ -7,8 +13,6 @@ import {
   DialogFooter,
   DialogHeader,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useContext, useState } from 'react';
 import { Metric, UserRole } from '@/types';
@@ -24,6 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Minus, Plus } from 'lucide-react'; // Icons for increment/decrement
+import { Button } from '@/components/ui/button';
 
 export const PushValueDialog = (props: {
   pushValueOpen: boolean;
@@ -31,20 +37,17 @@ export const PushValueDialog = (props: {
   metric: Metric;
 }) => {
   const { projects, activeProject } = useContext(ProjectsContext);
-  const [pushValue, setPushValue] = useState<number | string>(0);
   const [selectedFilterCategory, setSelectedFilterCategory] =
     useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<string>('');
 
+  // State for the number input
+  const [numberValue, setNumberValue] = useState<number>(0);
+
   const handlePushValue = () => {
-    if (
-      pushValue !== null &&
-      props.metric &&
-      Number(pushValue) &&
-      projects[activeProject].user_role !== UserRole.Guest
-    ) {
+    if (props.metric && projects[activeProject].user_role !== UserRole.Guest) {
       const body: any = {
-        value: pushValue,
+        value: numberValue, // Use the number value
       };
 
       if (selectedFilter !== '' && selectedFilterCategory !== '') {
@@ -83,7 +86,7 @@ export const PushValueDialog = (props: {
       open={props.pushValueOpen}
       onOpenChange={(e) => {
         props.setPushValueOpen(e);
-        setPushValue(0);
+        setNumberValue(0); // Reset number value
         setSelectedFilterCategory('');
         setSelectedFilter('');
       }}
@@ -98,18 +101,37 @@ export const PushValueDialog = (props: {
         </DialogHeader>
 
         <div className='flex flex-col gap-2'>
-          <Label>Value</Label>
-          <Input
-            type='number'
-            min={0}
-            max={1000000000}
-            value={pushValue === 0 && !Number(pushValue) ? '' : pushValue}
-            onChange={(e) =>
-              setPushValue(e.target.value === '' ? '' : Number(e.target.value))
-            }
-            placeholder='Enter value...'
-            className='h-11 rounded-[12px]'
-          />
+          <Label>Number Value</Label>
+          <NumberField
+            defaultValue={0}
+            className='h-11 w-full rounded-[12px]'
+            minValue={-1000000000}
+            maxValue={1000000000}
+            value={numberValue}
+            onChange={(e) => setNumberValue(e)}
+          >
+            <div className='space-y-2'>
+              <Group className='relative inline-flex h-11 w-full items-center overflow-hidden whitespace-nowrap rounded-[12px] border border-input text-sm shadow-sm shadow-black/5 transition-shadow data-[focus-within]:border-input data-[disabled]:opacity-50 data-[focus-within]:outline-none data-[focus-within]:ring-[3px] data-[focus-within]:ring-input/80'>
+                <AriaButton
+                  slot='decrement'
+                  className='-ms-px flex aspect-square h-[inherit] items-center justify-center rounded-s-lg border border-input bg-background text-sm text-muted-foreground/80 transition-shadow hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                >
+                  <Minus
+                    className='size-4'
+                    strokeWidth={2}
+                    aria-hidden='true'
+                  />
+                </AriaButton>
+                <AriaInput className='w-full grow bg-background px-3 py-2 text-center tabular-nums text-foreground focus:outline-none' />
+                <AriaButton
+                  slot='increment'
+                  className='-me-px flex aspect-square h-[inherit] items-center justify-center rounded-e-lg border border-input bg-background text-sm text-muted-foreground/80 transition-shadow hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                >
+                  <Plus className='size-4' strokeWidth={2} aria-hidden='true' />
+                </AriaButton>
+              </Group>
+            </div>
+          </NumberField>
         </div>
 
         <div className='flex flex-col gap-2'>
@@ -187,8 +209,7 @@ export const PushValueDialog = (props: {
               (selectedFilterCategory !== 'no_category_selected' &&
                 selectedFilterCategory !== '' &&
                 selectedFilter === '') ||
-              !Number(pushValue) ||
-              pushValue === ''
+              numberValue === 0 // Disable if numberValue is 0
             }
             className='w-fit rounded-[12px]'
             onClick={handlePushValue}

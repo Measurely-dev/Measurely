@@ -1,6 +1,5 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,79 +8,66 @@ import ContentContainer from '@/components/website/content';
 import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
 import { ProjectsContext } from '@/dash-context';
-import { ArrowRight, ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Dispatch, useContext, useState } from 'react';
+import { Dispatch, useContext, useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
-import { loadMetrics, MAXFILESIZE } from '@/utils';
-import { Separator } from '@/components/ui/separator';
+import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
+import { useCharacterLimit } from '@/lib/character-limit';
 
 export default function NewProject() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
-  const [file, setFile] = useState<File | null>(null);
-
-  const router = useRouter();
-
   const { setActiveProject, projects, setProjects } =
     useContext(ProjectsContext);
+  const router = useRouter();
 
-  function createApp() {
+  const steps = [
+    { label: 'Step 1' },
+    { label: 'Step 2' },
+    { label: 'Step 3' },
+    { label: 'Step 4' },
+  ] satisfies StepItem[];
+
+  const handleCreateProject = async () => {
     if (name === '') {
       toast.error('Please choose a valid name');
-      setLoading(false);
       return;
     }
 
-    fetch(process.env.NEXT_PUBLIC_API_URL + '/project', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        name: name.toLowerCase(),
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          res.text().then((text) => {
-            toast.error(text);
-            setLoading(false);
-          });
-        } else {
-          return res.json();
-        }
-      })
-      .then(async (json) => {
-        if (file !== null) {
-          const formData = new FormData();
-          formData.append('file', file);
+    setLoading(true);
 
-          fetch(process.env.NEXT_PUBLIC_API_URL + '/app-image/' + json.id, {
-            method: 'POST',
-            credentials: 'include',
-            body: formData,
-          })
-            .then((res) => {
-              if (res.ok) {
-                return res.json();
-              }
-            })
-            .then((url) => {
-              if (url !== undefined) {
-                json.image = url;
-              }
-            });
-        }
+    try {
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL + '/project',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: name.toLowerCase(),
+          }),
+        },
+      );
 
-        json.metrics = await loadMetrics(json.id);
-        setActiveProject(projects.length);
-        localStorage.setItem('activeProject', projects.length.toString());
-        setProjects((apps) => [...apps, json]);
-        router.push('/dashboard');
-      });
-  }
+      if (!response.ok) {
+        const errorText = await response.text();
+        toast.error(errorText);
+        setLoading(false);
+        return;
+      }
+
+      const newProject = await response.json();
+      setActiveProject(projects.length);
+      localStorage.setItem('activeProject', projects.length.toString());
+      setProjects((prevProjects) => [...prevProjects, newProject]);
+      router.push('/dashboard');
+    } catch (err) {
+      toast.error('An error occurred while creating the project');
+      setLoading(false);
+    }
+  };
 
   return (
     <div className='flex flex-col'>
@@ -92,54 +78,26 @@ export default function NewProject() {
           <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
         )}
         <ContentContainer className='flex h-full items-center justify-center'>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setLoading(true);
-
-              if (file !== null) {
-                if (file.size > MAXFILESIZE) {
-                  toast.error('The image is too large, MAX 500KB');
-                  setLoading(false);
-                  return;
-                }
-              }
-
-              createApp();
-            }}
-          >
-            <div className='mx-auto flex w-full max-w-[500px] flex-col gap-6 rounded-3xl bg-accent max-md:max-w-[95%]'>
-              <div className='flex flex-col gap-[5px] border-b p-6'>
-                <div className='text-xl font-medium'>
-                  {projects === null
-                    ? 'Start your first project'
-                    : 'Start a new project'}
-                </div>
-                <div className='text-sm text-muted-foreground'>
-                  Set up a new project to start tracking metrics and managing
-                  your data efficiently
-                </div>
-              </div>
-              <Inputs
-                name={name}
-                setName={setName}
-                file={file}
-                setFile={setFile}
-              />
-              <Separator />
-              <div className='flex w-full justify-end p-6 pt-0'>
-                <Button
-                  className='group w-fit rounded-[12px]'
-                  type='submit'
+          <div className='mx-auto flex w-full max-w-[600px] flex-col'>
+            <Stepper initialStep={0} steps={steps} size='sm'>
+              <Step label='Step 1'>
+                <Step1 setName={setName} />
+              </Step>
+              <Step label='Step 2'>
+                <Step2 />
+              </Step>
+              <Step label='Step 3'>
+                <Step3 />
+              </Step>
+              <Step label='Step 4'>
+                <Step4
+                  name={name}
+                  onCreate={handleCreateProject}
                   loading={loading}
-                  disabled={loading || name === ''}
-                >
-                  Create project{' '}
-                  <ArrowRight className='ml-2 size-4 transition-all duration-200 group-hover:ml-4' />
-                </Button>
-              </div>
-            </div>
-          </form>
+                />
+              </Step>
+            </Stepper>
+          </div>
         </ContentContainer>
       </WebContainer>
       <Footer type='waitlist' border bg='secondary' isHome />
@@ -147,61 +105,162 @@ export default function NewProject() {
   );
 }
 
-function Inputs(props: {
-  name: string;
+function Step1({
+  setName,
+}: {
   setName: Dispatch<React.SetStateAction<string>>;
-  file: any;
-  setFile: Dispatch<React.SetStateAction<any>>;
 }) {
-  const [reader, setReader] = useState<any>(null);
+  const { nextStep } = useStepper();
+  const maxLength = 20; // Character limit for the project name
+  const id = useId(); // Unique ID for accessibility
+  const {
+    value,
+    characterCount,
+    handleChange: handleCharacterLimitChange,
+    maxLength: limit,
+  } = useCharacterLimit({ maxLength });
+
+  // Synchronize name with value from useCharacterLimit
+  useEffect(() => {
+    setName(value);
+  }, [value]);
+
+  // Combined change handler
+  const handleInputChange = (e: any) => {
+    handleCharacterLimitChange(e); // Update character limit
+    setName(e.target.value); // Update name state
+  };
 
   return (
-    <div className='flex flex-col gap-[15px] px-6'>
-      <div className='flex w-full items-center gap-5'>
-        <Avatar className='relative size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-background'>
-          <Label className='relative h-full w-full cursor-pointer'>
-            <AvatarImage
-              className='rounded-full'
-              src={reader}
-              alt='Project image'
-            />
-            <AvatarFallback className='h-full w-full !rounded-full bg-background'>
-              <ImageIcon className='text-secondary' />
-            </AvatarFallback>
-            <Input
-              onChange={(event) => {
-                const selectedFile = event.target.files?.[0];
-
-                if (!selectedFile) {
-                  return;
-                }
-
-                const r = new FileReader();
-
-                r.onload = (e) => {
-                  setReader(e.target?.result);
-                };
-
-                r.readAsDataURL(selectedFile);
-                props.setFile(event.target.files?.[0]);
-              }}
-              type='file'
-              accept='.jpg, .jpeg, .png, .webp .svg'
-              className='absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0'
-            />
-          </Label>
-        </Avatar>
-        <Label className='flex w-full flex-col gap-2'>
-          Project name
+    <div className='flex flex-col gap-[5px] md:mt-5'>
+      <div className='text-xl font-medium'>Project Name</div>
+      <div className='text-sm text-secondary'>
+        Choose a name for your project. This will be used to identify it in your
+        dashboard.
+      </div>
+      <div className='mt-5 flex w-full flex-col gap-3'>
+        <Label htmlFor={id}>Project name</Label>
+        <div className='relative'>
           <Input
-            value={props.name}
+            id={id}
+            className='peer h-[40px] rounded-[12px] pe-14'
             type='text'
-            maxLength={20}
-            onChange={(e) => props.setName(e.target.value.trimStart())}
-            className='h-[40px] rounded-[12px] border-none bg-background'
             placeholder='Name...'
+            value={value} // Use value from useCharacterLimit
+            maxLength={maxLength}
+            onChange={handleInputChange} // Use combined handler
+            aria-describedby={`${id}-description`}
           />
-        </Label>
+          <div
+            id={`${id}-description`}
+            className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+            aria-live='polite'
+            role='status'
+          >
+            {characterCount}/{limit}
+          </div>
+        </div>
+      </div>
+      <div className='mt-5 flex w-full justify-end'>
+        <Button
+          className='w-fit rounded-[12px]'
+          onClick={nextStep}
+          disabled={value === ''} 
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Step2() {
+  const { nextStep, prevStep } = useStepper();
+
+  return (
+    <div className='flex flex-col gap-[5px] md:mt-5'>
+      <div className='text-xl font-medium'>Choose Plan</div>
+      <div className='text-sm text-secondary'>
+        Select a plan for your project. (Placeholder for plan selection)
+      </div>
+      <div className='mt-5 flex w-full justify-between'>
+        <Button
+          className='w-fit rounded-[12px]'
+          variant='secondary'
+          onClick={prevStep}
+        >
+          Back
+        </Button>
+        <Button className='w-fit rounded-[12px]' onClick={nextStep}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Step3() {
+  const { nextStep, prevStep } = useStepper();
+
+  return (
+    <div className='flex flex-col gap-[5px] md:mt-5'>
+      <div className='text-xl font-medium'>Additional Settings</div>
+      <div className='text-sm text-secondary'>
+        Configure additional settings for your project. (Placeholder for
+        settings)
+      </div>
+      <div className='mt-5 flex w-full justify-between'>
+        <Button
+          className='w-fit rounded-[12px]'
+          variant='secondary'
+          onClick={prevStep}
+        >
+          Back
+        </Button>
+        <Button className='w-fit rounded-[12px]' onClick={nextStep}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Step4({
+  name,
+  onCreate,
+  loading,
+}: {
+  name: string;
+  onCreate: () => void;
+  loading: boolean;
+}) {
+  const { prevStep } = useStepper();
+
+  return (
+    <div className='flex flex-col gap-[5px] md:mt-5'>
+      <div className='text-xl font-medium'>Overview</div>
+      <div className='text-sm text-secondary'>
+        Review your project details before creating it.
+      </div>
+      <div className='mt-5 flex w-full flex-col gap-3'>
+        <Label>Project Name</Label>
+        <div className='rounded-[12px] bg-background p-3'>{name}</div>
+      </div>
+      <div className='mt-5 flex w-full justify-between'>
+        <Button
+          className='w-fit rounded-[12px]'
+          variant='secondary'
+          onClick={prevStep}
+        >
+          Back
+        </Button>
+        <Button
+          className='w-fit rounded-[12px]'
+          onClick={onCreate}
+          loading={loading}
+        >
+          Create Project
+        </Button>
       </div>
     </div>
   );

@@ -54,25 +54,20 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, UserRole } from '@/types';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { formatFullName, roleToString } from '@/utils';
+import {
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
+  FloatingPanelContent,
+  FloatingPanelButton,
+  FloatingPanelBody,
+  FloatingPanelSubMenu,
+} from '@/components/ui/floating-panel'; // Import your FloatingPanel components
 
 export const TeamTable = (props: { members: User[] }) => {
   const [search, setSearch] = useState('');
@@ -131,10 +126,10 @@ export const TeamTable = (props: { members: User[] }) => {
   return (
     <>
       <div className='flex flex-row items-center gap-4'>
-        <div className='flex w-full flex-row items-center gap-2 rounded-[12px] bg-accent pl-[12px]'>
+        <div className='flex w-full flex-row items-center gap-2 rounded-[12px] bg-accent pl-[12px] shadow-sm shadow-black/5'>
           <Search className='size-[18px] text-secondary' />
           <Input
-            className='h-[40px] w-full rounded-none border-none bg-transparent px-0 !ring-0'
+            className='h-[40px] w-full rounded-none border-none bg-transparent px-0 shadow-none !ring-0'
             placeholder='Search member...'
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -294,7 +289,7 @@ const Item = (props: { member: User }) => {
               <Button
                 variant={'ghost'}
                 size={'icon'}
-                className='size-fit py-2 pl-2 hover:bg-transparent'
+                className='size-9 hover:bg-transparent'
               >
                 <MoreHorizontal className='size-5' />
               </Button>
@@ -364,6 +359,7 @@ function MemberOption({
   const { user } = useContext(UserContext);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
+
   const handleCopyEmail = async () => {
     try {
       await navigator.clipboard.writeText(member.email);
@@ -512,75 +508,72 @@ function MemberOption({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent className='mr-8 w-56 rounded-[12px] shadow-md'>
-        <DropdownMenuLabel>
-          {formatFullName(member.first_name, member.last_name)}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          {member.id === user.id ||
-          (projects[activeProject].user_role !== UserRole.Admin &&
-            projects[activeProject].user_role !== UserRole.Owner) ? (
-            <></>
-          ) : (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className={`rounded-[10px]`}>
-                Change role
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent className='rounded-[12px]'>
-                  {[UserRole.Admin, UserRole.Developer, UserRole.Guest].map(
-                    (role, i) => {
-                      return (
-                        <DropdownMenuItem
-                          key={i}
-                          className='rounded-[10px]'
-                          disabled={member.user_role === role}
-                          onClick={() => switchRole(member, role)}
-                        >
-                          <span
-                            className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(role)]}`}
-                          >
-                            {roleToString(role)}
-                          </span>
-                        </DropdownMenuItem>
-                      );
-                    },
-                  )}
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          )}
+    <FloatingPanelRoot>
+      <FloatingPanelTrigger
+        title={formatFullName(member.first_name, member.last_name)}
+        className='relative'
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        {children}
+      </FloatingPanelTrigger>
+      <FloatingPanelContent
+        className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
+        side='right'
+      >
+        <FloatingPanelBody className='p-1'>
+          <FloatingPanelSubMenu title='Change Role'>
+            <FloatingPanelButton
+              className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+              onClick={() => switchRole(member, UserRole.Admin)}
+            >
+              <span>Admin</span>
+            </FloatingPanelButton>
+            <FloatingPanelButton
+              className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+              onClick={() => switchRole(member, UserRole.Developer)}
+            >
+              <span>Developer</span>
+            </FloatingPanelButton>
+            <FloatingPanelButton
+              className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+              onClick={() => switchRole(member, UserRole.Guest)}
+            >
+              <span>Guest</span>
+            </FloatingPanelButton>
+          </FloatingPanelSubMenu>
 
-          <DropdownMenuItem
-            onClick={handleCopyEmail}
-            className='rounded-[10px]'
+          <FloatingPanelButton
+            className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+            onClick={(e: React.MouseEvent) => {
+              handleCopyEmail();
+              e.stopPropagation();
+            }}
           >
-            Copy email
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        {projects[activeProject].user_role === UserRole.Admin ||
-        (projects[activeProject].user_role === UserRole.Owner &&
-          member.id !== user.id) ||
-        (projects[activeProject].user_role !== UserRole.Owner &&
-          member.id === user.id) ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                className='rounded-[10px] hover:!text-destructive'
-                onClick={() => {
+            <span>Copy email</span>
+          </FloatingPanelButton>
+
+          {(projects[activeProject].user_role === UserRole.Admin ||
+            (projects[activeProject].user_role === UserRole.Owner &&
+              member.id !== user.id) ||
+            (projects[activeProject].user_role !== UserRole.Owner &&
+              member.id === user.id)) && (
+            <>
+              <div className='my-1 h-px bg-zinc-950/10 dark:bg-zinc-50/10' />
+              <FloatingPanelButton
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left text-red-500 transition-colors hover:bg-red-500/20'
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
                   deleteMember(member);
                 }}
               >
-                Remove member
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </>
-        ) : undefined}
-      </DropdownMenuContent>
-    </DropdownMenu>
+                <span>Remove member</span>
+              </FloatingPanelButton>
+            </>
+          )}
+        </FloatingPanelBody>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

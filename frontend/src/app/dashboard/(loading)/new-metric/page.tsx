@@ -18,10 +18,17 @@ import Footer from '@/components/website/footer';
 import { MetricType, UserRole } from '@/types';
 import { useRouter } from 'next/navigation';
 import {
+  Button as AriaButton,
+  Group,
+  Input as AriaInput,
+  NumberField,
+} from 'react-aria-components';
+import {
   Dispatch,
   SetStateAction,
   useContext,
   useEffect,
+  useId,
   useState,
 } from 'react';
 import { toast } from 'sonner';
@@ -29,9 +36,10 @@ import { ProjectsContext } from '@/dash-context';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
-import { Box, ClipboardList, Ruler } from 'lucide-react';
+import { Box, ClipboardList, Minus, Plus, Ruler } from 'lucide-react';
 import { UnitCombobox } from '@/components/ui/unit-select';
 import confetti from 'canvas-confetti';
+import { useCharacterLimit } from '@/lib/character-limit';
 
 const forbidden = [
   'average',
@@ -197,6 +205,7 @@ function Step1({
   isComingSoon: (type: MetricType) => boolean;
 }) {
   const { nextStep } = useStepper();
+  const router = useRouter();
   return (
     <>
       <div className='flex flex-col gap-[5px] md:mt-5'>
@@ -237,14 +246,25 @@ function Step1({
             ))}
           </TabsContent>
         ))}
-        <Button
-          className='w-full rounded-[12px]'
-          onClick={() => {
-            nextStep();
-          }}
-        >
-          Next
-        </Button>
+        <div className='flex w-full flex-row justify-between gap-2 max-md:flex-col'>
+          <Button
+            className='w-fit rounded-[12px]'
+            variant={'secondary'}
+            onClick={() => {
+              router.push('/dashboard/');
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            className='w-fit rounded-[12px]'
+            onClick={() => {
+              nextStep();
+            }}
+          >
+            Next
+          </Button>
+        </div>
       </Tabs>
     </>
   );
@@ -339,11 +359,11 @@ function Step3({ metricData }: { metricData: any }) {
       <div className='mt-5'>
         <UnitCombobox type='lg' onChange={(value: any) => setUnit(value)} />
       </div>
-      <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+      <div className='mt-5 flex w-full flex-row justify-between gap-2 max-md:flex-col'>
         <Button
           type='button'
           variant='secondary'
-          className='w-full rounded-[12px]'
+          className='w-fit rounded-[12px]'
           onClick={() => {
             prevStep();
           }}
@@ -354,7 +374,7 @@ function Step3({ metricData }: { metricData: any }) {
           type='button'
           variant='default'
           loading={loading}
-          className='w-full rounded-[12px]'
+          className='w-fit rounded-[12px]'
           onClick={handleSubmit}
           disabled={!unit}
         >
@@ -400,19 +420,37 @@ function Metric(props: {
     </div>
   );
 }
-
 function BasicAverageStep(props: {
   type: MetricType;
   setMetricData: Dispatch<SetStateAction<any>>;
   setTab: Dispatch<SetStateAction<string>>;
 }) {
   const [name, setName] = useState('');
-  const [baseValue, setBaseValue] = useState<number | string>(0);
+  const [baseValue, setBaseValue] = useState<number>(0);
   const { nextStep, prevStep } = useStepper();
+  const maxLength = 30;
+  const id = useId();
+  const {
+    value,
+    characterCount,
+    handleChange: handleCharacterLimitChange,
+    maxLength: limit,
+  } = useCharacterLimit({ maxLength });
+
+  // Synchronize name with value from useCharacterLimit
+  useEffect(() => {
+    setName(value);
+  }, [value]);
+
+  // Combined change handler
+  const handleInputChange = (e: any) => {
+    handleCharacterLimitChange(e); // Update character limit
+    setName(e.target.value); // Update name state
+  };
 
   const handleNext = () => {
     props.setMetricData({
-      name,
+      name: value, // Use value from useCharacterLimit
       baseValue,
       type: props.type,
       namePos: 'added',
@@ -447,51 +485,82 @@ function BasicAverageStep(props: {
         </div>
         <div className='flex w-full flex-col gap-3'>
           <div className='my-2 flex flex-col gap-4'>
-            <div className='flex w-full flex-col gap-3'>
-              <Label>Metric name</Label>
-              <Input
-                placeholder={
-                  props.type === MetricType.Base
-                    ? `New users, Deleted projects, Suspended accounts`
-                    : 'Session duration, Ratings, Load time'
-                }
-                type='text'
-                maxLength={30}
-                className='h-11 rounded-[12px]'
-                value={name}
-                onChange={(e) => setName(e.target.value.trimStart())}
-              />
+            <div className='min-w-[300px] space-y-2'>
+              <Label htmlFor={id}>Metric name</Label>
+              <div className='relative'>
+                <Input
+                  id={id}
+                  className='peer h-11 rounded-[12px] pe-14'
+                  type='text'
+                  placeholder={
+                    props.type === MetricType.Base
+                      ? `New users, Deleted projects, Suspended accounts`
+                      : 'Session duration, Ratings, Load time'
+                  }
+                  value={value} // Use value from useCharacterLimit
+                  maxLength={maxLength}
+                  onChange={handleInputChange} // Use combined handler
+                  aria-describedby={`${id}-description`}
+                />
+                <div
+                  id={`${id}-description`}
+                  className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                  aria-live='polite'
+                  role='status'
+                >
+                  {characterCount}/{limit}
+                </div>
+              </div>
             </div>
             <div className='flex w-full flex-col gap-3'>
               <Label>Base value</Label>
-              <div className='flex flex-col gap-1'>
-                <Input
-                  placeholder='Optional'
-                  type='number'
-                  min={0}
-                  max={1000000000}
-                  value={baseValue === 0 && !Number(baseValue) ? '' : baseValue}
-                  onChange={(e) =>
-                    setBaseValue(
-                      e.target.value === '' ? '' : Number(e.target.value),
-                    )
-                  }
-                  className='h-11 rounded-[12px]'
-                />
-                <Label className='text-xs font-normal leading-tight text-secondary'>
-                  Base value stands for the value of the metric before using
-                  Measurely to measure the metric
-                </Label>
-              </div>
+              <NumberField
+                defaultValue={0}
+                className='h-11 w-full rounded-[12px]'
+                minValue={-1000000000}
+                maxValue={1000000000}
+                value={baseValue}
+                onChange={(e) => setBaseValue(e)}
+              >
+                <div className='space-y-2'>
+                  <Group className='relative inline-flex h-11 w-full items-center overflow-hidden whitespace-nowrap rounded-[12px] border border-input text-sm shadow-sm shadow-black/5 transition-shadow data-[focus-within]:border-input data-[disabled]:opacity-50 data-[focus-within]:outline-none data-[focus-within]:ring-[3px] data-[focus-within]:ring-input/80'>
+                    <AriaButton
+                      slot='decrement'
+                      className='-ms-px flex aspect-square h-[inherit] items-center justify-center rounded-s-lg border border-input bg-background text-sm text-muted-foreground/80 transition-shadow hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                      <Minus
+                        className='size-4'
+                        strokeWidth={2}
+                        aria-hidden='true'
+                      />
+                    </AriaButton>
+                    <AriaInput className='w-full grow bg-background px-3 py-2 text-center tabular-nums text-foreground focus:outline-none' />
+                    <AriaButton
+                      slot='increment'
+                      className='-me-px flex aspect-square h-[inherit] items-center justify-center rounded-e-lg border border-input bg-background text-sm text-muted-foreground/80 transition-shadow hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                      <Plus
+                        className='size-4'
+                        strokeWidth={2}
+                        aria-hidden='true'
+                      />
+                    </AriaButton>
+                  </Group>
+                </div>
+              </NumberField>
+              <Label className='text-xs font-normal leading-tight text-secondary'>
+                Base value stands for the value of the metric before using
+                Measurely to measure the metric
+              </Label>
             </div>
           </div>
         </div>
 
-        <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+        <div className='mt-5 flex w-full flex-row justify-between gap-2 max-md:flex-col'>
           <Button
             type='button'
             variant='secondary'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             onClick={handlePrev}
           >
             Back
@@ -499,9 +568,9 @@ function BasicAverageStep(props: {
           <Button
             type='button'
             variant='default'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             onClick={handleNext}
-            disabled={name === ''}
+            disabled={value === ''}
           >
             Next
           </Button>
@@ -510,7 +579,6 @@ function BasicAverageStep(props: {
     </div>
   );
 }
-
 function DualStep(props: {
   setMetricData: Dispatch<SetStateAction<any>>;
   setTab: Dispatch<SetStateAction<string>>;
@@ -519,8 +587,29 @@ function DualStep(props: {
   const [namePos, setNamePos] = useState('added');
   const [nameNeg, setNameNeg] = useState('removed');
   const [namingType, setNamingType] = useState('auto');
-  const [baseValue, setBaseValue] = useState<number | string>(0);
+  const [baseValue, setBaseValue] = useState<number>(0);
   const { nextStep, prevStep } = useStepper();
+
+  // Add useCharacterLimit for the metric name
+  const maxLength = 30;
+  const id = useId();
+  const {
+    value,
+    characterCount,
+    handleChange: handleCharacterLimitChange,
+    maxLength: limit,
+  } = useCharacterLimit({ maxLength });
+
+  // Synchronize name with value from useCharacterLimit
+  useEffect(() => {
+    setName(value);
+  }, [value]);
+
+  // Combined change handler
+  const handleInputChange = (e: any) => {
+    handleCharacterLimitChange(e); // Update character limit
+    setName(e.target.value); // Update name state
+  };
 
   const handleNext = () => {
     props.setMetricData({
@@ -550,14 +639,26 @@ function DualStep(props: {
           <div className='my-2 flex flex-col gap-4'>
             <div className='flex w-full flex-col gap-3'>
               <Label>Metric name</Label>
-              <Input
-                placeholder='Users, Transfers, Projects'
-                maxLength={30}
-                type='text'
-                className='h-11 rounded-[12px]'
-                value={name}
-                onChange={(e) => setName(e.target.value.trimStart())}
-              />
+              <div className='relative'>
+                <Input
+                  id={id}
+                  className='peer h-11 rounded-[12px] pe-14'
+                  type='text'
+                  placeholder='Users, Transfers, Projects'
+                  value={value} // Use value from useCharacterLimit
+                  maxLength={maxLength}
+                  onChange={handleInputChange} // Use combined handler
+                  aria-describedby={`${id}-description`}
+                />
+                <div
+                  id={`${id}-description`}
+                  className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                  aria-live='polite'
+                  role='status'
+                >
+                  {characterCount}/{limit}
+                </div>
+              </div>
             </div>
 
             <Label className='flex flex-col gap-3'>
@@ -592,25 +693,44 @@ function DualStep(props: {
             </Label>
             <div className='flex w-full flex-col gap-3'>
               <Label>Base value</Label>
-              <div className='flex flex-col gap-1'>
-                <Input
-                  placeholder='Optional'
-                  type='number'
-                  min={-1000000000}
-                  max={1000000000}
-                  value={baseValue === 0 && !Number(baseValue) ? '' : baseValue}
-                  onChange={(e) =>
-                    setBaseValue(
-                      e.target.value === '' ? '' : Number(e.target.value),
-                    )
-                  }
-                  className='h-11 rounded-[12px]'
-                />
-                <Label className='text-xs font-normal leading-tight text-secondary'>
-                  Base value stands for the value of the metric before using
-                  Measurely to measure the metric
-                </Label>
-              </div>
+              <NumberField
+                defaultValue={0}
+                className='h-11 w-full rounded-[12px]'
+                minValue={-1000000000}
+                maxValue={1000000000}
+                value={baseValue}
+                onChange={(e) => setBaseValue(e)}
+              >
+                <div className='space-y-2'>
+                  <Group className='relative inline-flex h-11 w-full items-center overflow-hidden whitespace-nowrap rounded-[12px] border border-input text-sm shadow-sm shadow-black/5 transition-shadow data-[focus-within]:border-input data-[disabled]:opacity-50 data-[focus-within]:outline-none data-[focus-within]:ring-[3px] data-[focus-within]:ring-input/80'>
+                    <AriaButton
+                      slot='decrement'
+                      className='-ms-px flex aspect-square h-[inherit] items-center justify-center rounded-s-lg border border-input bg-background text-sm text-muted-foreground/80 transition-shadow hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                      <Minus
+                        className='size-4'
+                        strokeWidth={2}
+                        aria-hidden='true'
+                      />
+                    </AriaButton>
+                    <AriaInput className='w-full grow bg-background px-3 py-2 text-center tabular-nums text-foreground focus:outline-none' />
+                    <AriaButton
+                      slot='increment'
+                      className='-me-px flex aspect-square h-[inherit] items-center justify-center rounded-e-lg border border-input bg-background text-sm text-muted-foreground/80 transition-shadow hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                      <Plus
+                        className='size-4'
+                        strokeWidth={2}
+                        aria-hidden='true'
+                      />
+                    </AriaButton>
+                  </Group>
+                </div>
+              </NumberField>
+              <Label className='text-xs font-normal leading-tight text-secondary'>
+                Base value stands for the value of the metric before using
+                Measurely to measure the metric
+              </Label>
             </div>
 
             {namingType === 'auto' ? (
@@ -648,11 +768,11 @@ function DualStep(props: {
           </div>
         </div>
 
-        <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+        <div className='mt-5 flex w-full flex-row justify-between gap-2 max-md:flex-col'>
           <Button
             type='button'
             variant='secondary'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             onClick={handlePrev}
           >
             Back
@@ -660,7 +780,7 @@ function DualStep(props: {
           <Button
             type='button'
             variant='default'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             onClick={handleNext}
             disabled={name === '' || namePos === '' || nameNeg === ''}
           >
@@ -678,6 +798,27 @@ function StripeStep(props: {
 }) {
   const [name, setName] = useState('');
   const { nextStep, prevStep } = useStepper();
+
+  // Add useCharacterLimit for the metric name
+  const maxLength = 30;
+  const id = useId();
+  const {
+    value,
+    characterCount,
+    handleChange: handleCharacterLimitChange,
+    maxLength: limit,
+  } = useCharacterLimit({ maxLength });
+
+  // Synchronize name with value from useCharacterLimit
+  useEffect(() => {
+    setName(value);
+  }, [value]);
+
+  // Combined change handler
+  const handleInputChange = (e: any) => {
+    handleCharacterLimitChange(e); // Update character limit
+    setName(e.target.value); // Update name state
+  };
 
   const handleNext = () => {
     if (name === '') {
@@ -712,23 +853,35 @@ function StripeStep(props: {
           <div className='my-2 flex flex-col gap-4'>
             <div className='flex w-full flex-col gap-3'>
               <Label>Metric name</Label>
-              <Input
-                placeholder={'Revenue, Earnings, Sales, Profit'}
-                type='text'
-                maxLength={30}
-                className='h-11 rounded-[12px]'
-                value={name}
-                onChange={(e) => setName(e.target.value.trimStart())}
-              />
+              <div className='relative'>
+                <Input
+                  id={id}
+                  className='peer h-11 rounded-[12px] pe-14'
+                  type='text'
+                  placeholder={'Revenue, Earnings, Sales, Profit'}
+                  value={value} // Use value from useCharacterLimit
+                  maxLength={maxLength}
+                  onChange={handleInputChange} // Use combined handler
+                  aria-describedby={`${id}-description`}
+                />
+                <div
+                  id={`${id}-description`}
+                  className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                  aria-live='polite'
+                  role='status'
+                >
+                  {characterCount}/{limit}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className='mt-5 flex w-full flex-row gap-2 max-md:flex-col'>
+        <div className='mt-5 flex w-full flex-row justify-between gap-2 max-md:flex-col'>
           <Button
             type='button'
             variant='secondary'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             onClick={handlePrev}
           >
             Back
@@ -736,7 +889,7 @@ function StripeStep(props: {
           <Button
             type='button'
             variant='default'
-            className='w-full rounded-[12px]'
+            className='w-fit rounded-[12px]'
             onClick={handleNext}
             disabled={name === ''}
           >

@@ -12,19 +12,53 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProjectsContext } from '@/dash-context';
 import { Metric, MetricType, Project } from '@/types';
-import { Dispatch, SetStateAction, useContext, useState } from 'react';
+import { Dispatch, SetStateAction, useContext, useState, useId } from 'react';
 import { toast } from 'sonner';
+import { useCharacterLimit } from '@/lib/character-limit'; // Assuming this hook exists
 
 export default function EditMetricDialogContent(props: {
   metric: Metric | null | undefined;
   setOpen: Dispatch<SetStateAction<boolean>>;
   onUpdate?: (new_name: string) => void;
 }) {
-  const [name, setName] = useState<string>(props.metric?.name ?? '');
-  const [posName, setPosName] = useState<string>(props.metric?.name_pos ?? '');
-  const [negName, setNegName] = useState<string>(props.metric?.name_neg ?? '');
   const [loading, setLoading] = useState<boolean>(false);
   const { projects, setProjects } = useContext(ProjectsContext);
+
+  // Character limit for inputs
+  const maxLength = 30; // Adjust as needed
+  const nameId = useId(); // Unique ID for metric name
+  const posNameId = useId(); // Unique ID for positive name
+  const negNameId = useId(); // Unique ID for negative name
+
+  // Metric name input
+  const {
+    value: name,
+    characterCount: nameCharacterCount,
+    handleChange: handleNameChange,
+    maxLength: nameLimit,
+  } = useCharacterLimit({ maxLength, initialValue: props.metric?.name ?? '' });
+
+  // Positive name input
+  const {
+    value: posName,
+    characterCount: posNameCharacterCount,
+    handleChange: handlePosNameChange,
+    maxLength: posNameLimit,
+  } = useCharacterLimit({
+    maxLength,
+    initialValue: props.metric?.name_pos ?? '',
+  });
+
+  // Negative name input
+  const {
+    value: negName,
+    characterCount: negNameCharacterCount,
+    handleChange: handleNegNameChange,
+    maxLength: negNameLimit,
+  } = useCharacterLimit({
+    maxLength,
+    initialValue: props.metric?.name_neg ?? '',
+  });
 
   return (
     <DialogContent className='rounded-sm shadow-sm'>
@@ -106,7 +140,7 @@ export default function EditMetricDialogContent(props: {
           }
           setLoading(false);
           props.setOpen(false);
-          toast.success('Metric succesfully edited');
+          toast.success('Metric successfully edited');
           if (props.onUpdate) {
             props.onUpdate(name);
           }
@@ -115,41 +149,83 @@ export default function EditMetricDialogContent(props: {
       >
         <div className='flex w-full flex-col gap-3'>
           <div className='flex flex-col gap-4'>
-            <div className='flex w-full flex-col gap-3'>
-              <Label>Metric name</Label>
-              <Input
-                placeholder='New users, Deleted projects, Suspended accounts'
-                type='text'
-                className='h-11 rounded-[12px]'
-                value={name}
-                onChange={(e) => setName(e.target.value.trimStart())}
-              />
+            {/* Metric Name Input */}
+            <div className='min-w-[300px] space-y-2'>
+              <Label htmlFor={nameId}>Metric name</Label>
+              <div className='relative'>
+                <Input
+                  id={nameId}
+                  className='peer h-11 rounded-[12px] pe-14'
+                  type='text'
+                  placeholder='New users, Deleted projects, Suspended accounts'
+                  value={name}
+                  maxLength={maxLength}
+                  onChange={handleNameChange}
+                  aria-describedby={`${nameId}-description`}
+                />
+                <div
+                  id={`${nameId}-description`}
+                  className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                  aria-live='polite'
+                  role='status'
+                >
+                  {nameCharacterCount}/{nameLimit}
+                </div>
+              </div>
             </div>
-            {props.metric?.type === MetricType.Dual ? (
-              <>
-                <div className='flex w-full flex-col gap-3'>
-                  <Label>Positive name</Label>
+
+            {/* Positive Name Input (for Dual Metrics) */}
+            {props.metric?.type === MetricType.Dual && (
+              <div className='min-w-[300px] space-y-2'>
+                <Label htmlFor={posNameId}>Positive name</Label>
+                <div className='relative'>
                   <Input
-                    placeholder='New users, Deleted projects, Suspended accounts'
+                    id={posNameId}
+                    className='peer h-11 rounded-[12px] pe-14'
                     type='text'
-                    className='h-11 rounded-[12px]'
+                    placeholder='New users, Deleted projects, Suspended accounts'
                     value={posName}
-                    onChange={(e) => setPosName(e.target.value.trimStart())}
+                    maxLength={maxLength}
+                    onChange={handlePosNameChange}
+                    aria-describedby={`${posNameId}-description`}
                   />
+                  <div
+                    id={`${posNameId}-description`}
+                    className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                    aria-live='polite'
+                    role='status'
+                  >
+                    {posNameCharacterCount}/{posNameLimit}
+                  </div>
                 </div>
-                <div className='flex w-full flex-col gap-3'>
-                  <Label>Negative name</Label>
+              </div>
+            )}
+
+            {/* Negative Name Input (for Dual Metrics) */}
+            {props.metric?.type === MetricType.Dual && (
+              <div className='min-w-[300px] space-y-2'>
+                <Label htmlFor={negNameId}>Negative name</Label>
+                <div className='relative'>
                   <Input
-                    placeholder='New users, Deleted projects, Suspended accounts'
+                    id={negNameId}
+                    className='peer h-11 rounded-[12px] pe-14'
                     type='text'
-                    className='h-11 rounded-[12px]'
+                    placeholder='New users, Deleted projects, Suspended accounts'
                     value={negName}
-                    onChange={(e) => setNegName(e.target.value.trimStart())}
+                    maxLength={maxLength}
+                    onChange={handleNegNameChange}
+                    aria-describedby={`${negNameId}-description`}
                   />
+                  <div
+                    id={`${negNameId}-description`}
+                    className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50'
+                    aria-live='polite'
+                    role='status'
+                  >
+                    {negNameCharacterCount}/{negNameLimit}
+                  </div>
                 </div>
-              </>
-            ) : (
-              <></>
+              </div>
             )}
           </div>
         </div>
@@ -160,9 +236,20 @@ export default function EditMetricDialogContent(props: {
               variant='secondary'
               className='w-full rounded-[12px]'
               onClick={() => {
-                setName(props.metric?.name ?? '');
-                setPosName(props.metric?.name_pos ?? '');
-                setNegName(props.metric?.name_neg ?? '');
+                // Create synthetic event-like objects to reset values
+                const nameEvent = {
+                  target: { value: props.metric?.name ?? '' },
+                } as React.ChangeEvent<HTMLInputElement>;
+                const posNameEvent = {
+                  target: { value: props.metric?.name_pos ?? '' },
+                } as React.ChangeEvent<HTMLInputElement>;
+                const negNameEvent = {
+                  target: { value: props.metric?.name_neg ?? '' },
+                } as React.ChangeEvent<HTMLInputElement>;
+
+                handleNameChange(nameEvent);
+                handlePosNameChange(posNameEvent);
+                handleNegNameChange(negNameEvent);
               }}
             >
               Cancel

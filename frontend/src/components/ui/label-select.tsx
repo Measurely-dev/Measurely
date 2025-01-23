@@ -79,7 +79,7 @@ export function LabelSelect(props: {
                   ...(proj.blocks?.labels || []),
                   { name: newLabel, defaultcolor: '' },
                 ],
-                userid: proj.blocks?.userid || '',
+                userid: proj.blocks?.user_id || '',
               },
             }
           : proj,
@@ -107,7 +107,7 @@ export function LabelSelect(props: {
                 blocks: {
                   ...proj.blocks,
                   labels,
-                  userid: proj.blocks?.userid || '',
+                  userid: proj.blocks?.user_id || '',
                 },
               }
             : proj,
@@ -126,7 +126,7 @@ export function LabelSelect(props: {
               blocks: {
                 ...proj.blocks,
                 labels: proj.blocks?.labels.filter((l) => l.name !== label),
-                userid: proj.blocks?.userid || '',
+                userid: proj.blocks?.user_id || '',
               },
             }
           : proj,
@@ -136,13 +136,7 @@ export function LabelSelect(props: {
       props.setSelectedLabel('');
     }
   };
-
-  const getColorByLabel = (label: string): string => {
-    const labels = projects[activeProject]?.blocks?.labels || [];
-    const index = labels.findIndex((l) => l.name === label);
-    return index !== -1 ? labels[index].defaultcolor || '' : '';
-  };
-
+  
   const getAllLabels = (): LabelType[] => {
     return projects[activeProject]?.blocks?.labels || [];
   };
@@ -164,11 +158,6 @@ export function LabelSelect(props: {
                 <Badge
                   variant='outline'
                   className='group relative w-fit select-none truncate rounded-full border border-input bg-accent/80 px-3 text-sm font-medium capitalize text-muted-foreground shadow-none'
-                  style={{
-                    backgroundColor: `${getColorByLabel(props.selectedLabel)}1A`,
-                    borderColor: `${getColorByLabel(props.selectedLabel)}33`,
-                    color: getColorByLabel(props.selectedLabel),
-                  }}
                 >
                   {props.selectedLabel}
                 </Badge>
@@ -204,7 +193,6 @@ export function LabelSelect(props: {
                     <div className='flex-1 capitalize'>{label.name}</div>
                     <div
                       className='h-4 w-4 rounded-full'
-                      style={{ backgroundColor: label.defaultcolor }}
                     />
                   </CommandItem>
                 ))}
@@ -246,7 +234,7 @@ export function LabelSelect(props: {
           setOpenDialog(open);
         }}
       >
-        <DialogContent className='flex max-h-[90vh] flex-col'>
+        <DialogContent className='flex max-h-[90vh] z-[120] flex-col'>
           <DialogHeader>
             <DialogTitle>Edit Labels</DialogTitle>
             <DialogDescription>
@@ -263,11 +251,6 @@ export function LabelSelect(props: {
                       <Badge
                         variant='outline'
                         className='capitalize'
-                        style={{
-                          backgroundColor: `${label.defaultcolor}1A`,
-                          borderColor: `${label.defaultcolor}33`,
-                          color: label.defaultcolor,
-                        }}
                       >
                         {label.name}
                       </Badge>

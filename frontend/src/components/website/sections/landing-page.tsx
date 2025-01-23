@@ -6,24 +6,12 @@ import Image from 'next/image';
 import Preview from '../../../../public/preview.png';
 import { MoveRight } from 'lucide-react';
 import BlurIn from '@/components/ui/blur-in';
-import DotPattern from '@/components/ui/dot-pattern';
-import { cn } from '@/lib/utils';
 
 export default function LandingSection(props: {
   type: 'default' | 'waitlist';
 }) {
   return (
     <>
-      {/* <DotPattern
-        width={25}
-        height={25}
-        cx={1}
-        cy={1}
-        cr={1}
-        className={cn(
-          'opacity-80 [mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)]',
-        )}
-      /> */}
       <div className='relative flex h-screen min-h-[700px] w-screen flex-col items-center justify-between pt-[18vh] max-md:pt-[100px]'>
         <BlurIn
           duration={0.4}

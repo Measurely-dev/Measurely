@@ -102,7 +102,7 @@ function useStepper() {
   if (context === undefined)
     throw new Error('useStepper must be used within a StepperProvider');
 
-  const { children, className, ...rest } = context;
+  const { ...rest } = context;
 
   const isLastStep = context.activeStep === context.steps.length - 1;
   const hasCompletedAllSteps = context.activeStep === context.steps.length;
@@ -308,7 +308,7 @@ const Stepper = React.forwardRef<HTMLDivElement, StepperProps>(
     );
   },
 );
-
+Stepper.displayName = 'Stepper';
 Stepper.defaultProps = {
   size: 'md',
   orientation: 'horizontal',
@@ -368,7 +368,6 @@ function HorizontalContent({ children }: { children: React.ReactNode }) {
 }
 
 // <---------- STEP ---------->
-
 interface StepProps extends React.HTMLAttributes<HTMLLIElement> {
   label?: string | React.ReactNode;
   description?: string;
@@ -458,6 +457,7 @@ const Step = React.forwardRef<HTMLLIElement, StepProps>(
   },
 );
 
+Step.displayName = 'Step';
 // <---------- VERTICAL STEP ---------->
 
 type VerticalStepProps = StepSharedProps & {
@@ -636,7 +636,7 @@ const VerticalStep = React.forwardRef<HTMLDivElement, VerticalStepProps>(
     );
   },
 );
-
+VerticalStep.displayName = 'VerticalStep';
 // <---------- HORIZONTAL STEP ---------->
 
 const HorizontalStep = React.forwardRef<HTMLDivElement, StepSharedProps>(
@@ -742,7 +742,7 @@ const HorizontalStep = React.forwardRef<HTMLDivElement, StepSharedProps>(
     );
   },
 );
-
+HorizontalStep.displayName = 'HorizontalStep';
 // <---------- STEP BUTTON CONTAINER ---------->
 
 type StepButtonContainerProps = StepSharedProps & {
@@ -921,7 +921,7 @@ const StepIcon = React.forwardRef<HTMLDivElement, StepIconProps>(
     ]);
   },
 );
-
+StepIcon.displayName = 'StepIcon';
 // <---------- STEP LABEL ---------->
 
 interface StepLabelProps {

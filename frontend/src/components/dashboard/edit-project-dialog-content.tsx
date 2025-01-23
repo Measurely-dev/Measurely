@@ -13,21 +13,43 @@ import { ProjectsContext } from '@/dash-context';
 import { Project } from '@/types';
 import { MAXFILESIZE } from '@/utils';
 import { ImageIcon } from 'lucide-react';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useId } from 'react';
 import { toast } from 'sonner';
+import { useCharacterLimit } from '@/lib/character-limit'; // Assuming this hook exists
 
 export default function EditAppDialogContent(props: {
   project: Project | null;
 }) {
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState<string>('');
   const [file, setFile] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
-
   const { projects, setProjects } = useContext(ProjectsContext);
 
+  // Character limit for project name
+  const maxLength = 20; // Adjust as needed
+  const id = useId(); // Unique ID for accessibility
+  const {
+    value,
+    characterCount,
+    handleChange: handleCharacterLimitChange,
+    maxLength: limit,
+  } = useCharacterLimit({ maxLength });
+
+  // Synchronize name with value from useCharacterLimit
+  useEffect(() => {
+    if (props.project?.name) {
+      // Create a synthetic event-like object to pass to handleCharacterLimitChange
+      const syntheticEvent = {
+        target: {
+          value: props.project.name,
+        },
+      } as React.ChangeEvent<HTMLInputElement>;
+      handleCharacterLimitChange(syntheticEvent);
+    }
+  }, [props.project]);
+
   async function updateProject() {
-    if (name !== '' && name !== props.project?.name) {
+    if (value !== '' && value !== props.project?.name) {
       await fetch(process.env.NEXT_PUBLIC_API_URL + '/project_name', {
         method: 'PATCH',
         headers: {
@@ -35,7 +57,7 @@ export default function EditAppDialogContent(props: {
         },
         credentials: 'include',
         body: JSON.stringify({
-          new_name: name,
+          new_name: value,
           project_id: props.project?.id,
         }),
       }).then((res) => {
@@ -48,7 +70,7 @@ export default function EditAppDialogContent(props: {
           setProjects(
             projects?.map((proj) =>
               proj.id === props.project?.id
-                ? Object.assign({}, proj, { name: name })
+                ? Object.assign({}, proj, { name: value })
                 : proj,
             ) ?? [],
           );
@@ -94,7 +116,6 @@ export default function EditAppDialogContent(props: {
   }
 
   useEffect(() => {
-    setName(props.project?.name ?? '');
     setFile(null);
     setReader(null);
   }, [props.project]);
@@ -123,14 +144,14 @@ export default function EditAppDialogContent(props: {
         }}
       >
         <div className='flex flex-row items-center justify-center gap-4'>
-          <Avatar className='relative size-[70px] cursor-pointer items-center justify-center overflow-visible !rounded-[16px]'>
+          <Avatar className='relative size-[70px] cursor-pointer items-center justify-center overflow-visible'>
             <Label className='relative h-full w-full cursor-pointer'>
               <AvatarImage
                 className='rounded-[16px]'
                 src={reader === null ? props.project?.image : reader}
                 alt='Project image'
               />
-              <AvatarFallback className='h-full w-full !rounded-[16px]'>
+              <AvatarFallback className='h-full w-full'>
                 <ImageIcon className='text-secondary' />
               </AvatarFallback>
               <Input
@@ -157,14 +178,27 @@ export default function EditAppDialogContent(props: {
             </Label>
           </Avatar>
           <div className='flex w-full flex-col gap-3'>
-            <Label>Project name</Label>
-            <Input
-              placeholder='Project Name'
-              type='text'
-              className='h-11 rounded-[12px]'
-              value={name}
-              onChange={(e) => setName(e.target.value.trimStart())}
-            />
+            <Label htmlFor={id}>Project name</Label>
+            <div className='relative'>
+              <Input
+                id={id}
+                placeholder='Project Name'
+                type='text'
+                className='h-11 rounded-[12px] pe-14'
+                value={value}
+                maxLength={maxLength}
+                onChange={handleCharacterLimitChange}
+                aria-describedby={`${id}-description`}
+              />
+              <div
+                id={`${id}-description`}
+                className='pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground'
+                aria-live='polite'
+                role='status'
+              >
+                {characterCount}/{limit}
+              </div>
+            </div>
           </div>
         </div>
         <div className='flex w-full flex-row gap-2'>
@@ -187,7 +221,7 @@ export default function EditAppDialogContent(props: {
             loading={loading}
             disabled={
               loading ||
-              ((name === '' || name === props.project?.name) && file === null)
+              ((value === '' || value === props.project?.name) && file === null)
             }
           >
             Update

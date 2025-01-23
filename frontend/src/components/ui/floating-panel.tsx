@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { AnimatePresence, MotionConfig, Variants, motion } from 'framer-motion';
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, ChevronRight, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -539,6 +539,64 @@ export function FloatingPanelButton({
   );
 }
 
+interface FloatingPanelSubMenuProps {
+  children: React.ReactNode;
+  className?: string;
+  title: string;
+}
+
+export function FloatingPanelSubMenu({
+  children,
+  className,
+  title,
+}: FloatingPanelSubMenuProps) {
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+
+  return (
+    <div className={cn('relative', className)}>
+      <FloatingPanelButton
+        className='flex w-full items-center justify-between rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsSubMenuOpen(!isSubMenuOpen);
+        }}
+      >
+        <span>{title}</span>
+        <ChevronRight className='size-4' />
+      </FloatingPanelButton>
+
+      <AnimatePresence>
+        {isSubMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.2 }}
+            className='absolute left-full top-0 ml-1'
+          >
+            <FloatingPanelContent
+              className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
+              side='right'
+            >
+              {/* Close Button */}
+              <button
+                className='absolute right-1 top-1 z-50 rounded-full p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSubMenuOpen(false);
+                }}
+              >
+                <X className='size-4' />
+              </button>
+
+              <FloatingPanelBody className='p-1'>{children}</FloatingPanelBody>
+            </FloatingPanelContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 export {
   FloatingPanelRoot as Root,
   FloatingPanelTrigger as Trigger,
@@ -552,4 +610,5 @@ export {
   FloatingPanelCloseButton as CloseButton,
   FloatingPanelSubmitButton as SubmitButton,
   FloatingPanelButton as Button,
+  FloatingPanelButton as SubMenu,
 };
