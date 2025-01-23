@@ -63,7 +63,7 @@ export default function Password() {
               label: 'Retype password',
               placeholder: 'Password',
               name: 'retyped_password',
-              type: 'password',
+              type: 'password-normal',
             },
           ]}
           button='Continue'

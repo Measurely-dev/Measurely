@@ -7,6 +7,7 @@ import { Label } from '../ui/label';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { providers } from '@/providers';
+import { AtSign, Eye, EyeOff, Check, X, User } from 'lucide-react'; // Import required icons
 
 export default function AuthForm(props: {
   title: string;
@@ -22,6 +23,10 @@ export default function AuthForm(props: {
   const router = useRouter();
   const [isDisabled, setIsDisabled] = useState(true);
   const ref = useRef<HTMLFormElement | null>(null);
+
+  // State for password input
+  const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   // Function to check if any form fields are empty
   function checkFormValidity() {
@@ -59,6 +64,42 @@ export default function AuthForm(props: {
       });
     };
   }, []);
+
+  // Function to check password strength
+  const checkPasswordStrength = (pass: string) => {
+    const requirements = [
+      { regex: /.{8,}/, text: 'At least 8 characters' },
+      { regex: /[0-9]/, text: 'At least 1 number' },
+      { regex: /[a-z]/, text: 'At least 1 lowercase letter' },
+      { regex: /[A-Z]/, text: 'At least 1 uppercase letter' },
+    ];
+
+    return requirements.map((req) => ({
+      met: req.regex.test(pass),
+      text: req.text,
+    }));
+  };
+
+  const passwordStrength = checkPasswordStrength(password);
+
+  const passwordStrengthScore = passwordStrength.filter(
+    (req) => req.met,
+  ).length;
+
+  const getPasswordStrengthColor = (score: number) => {
+    if (score === 0) return 'bg-border';
+    if (score <= 1) return 'bg-red-500';
+    if (score <= 2) return 'bg-orange-500';
+    if (score === 3) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  };
+
+  const getPasswordStrengthText = (score: number) => {
+    if (score === 0) return 'Enter a password';
+    if (score <= 2) return 'Weak password';
+    if (score === 3) return 'Medium password';
+    return 'Strong password';
+  };
 
   return (
     <form
@@ -106,21 +147,182 @@ export default function AuthForm(props: {
 
         <div className='flex flex-col gap-[20px]'>
           {props.form.map((input, i) => {
-            return (
-              <div className='flex flex-col gap-[5px]' key={i}>
-                <Label className='text-sm'>{input.label}</Label>
-                <Input
-                  type={input.type}
-                  name={input.name}
-                  defaultValue={input.default}
-                  placeholder={input.placeholder}
-                  className='rounded-[8px] bg-background py-2'
-                />
-              </div>
-            );
+            if (input.type === 'email') {
+              return (
+                <div className='flex w-full flex-col gap-3' key={i}>
+                  <Label htmlFor={input.name}>Email</Label>
+                  <div className='relative'>
+                    <Input
+                      id={input.name}
+                      placeholder='Email'
+                      type='email'
+                      name={input.name}
+                      defaultValue={input.default}
+                      className='peer h-11 w-full rounded-[12px] ps-9'
+                    />
+                    <div className='pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50'>
+                      <AtSign size={16} strokeWidth={2} aria-hidden='true' />
+                    </div>
+                  </div>
+                </div>
+              );
+            } else if (input.type === 'password') {
+              return (
+                <div className='flex w-full flex-col gap-3' key={i}>
+                  <Label htmlFor={input.name}>Password</Label>
+                  <div className='relative'>
+                    <Input
+                      id={input.name}
+                      placeholder='Password'
+                      type={isPasswordVisible ? 'text' : 'password'}
+                      name={input.name}
+                      defaultValue={input.default}
+                      className='peer h-11 w-full rounded-[12px] pe-9'
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      className='absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                      type='button'
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      aria-label={
+                        isPasswordVisible ? 'Hide password' : 'Show password'
+                      }
+                      aria-pressed={isPasswordVisible}
+                      aria-controls='password'
+                    >
+                      {isPasswordVisible ? (
+                        <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
+                      ) : (
+                        <Eye size={16} strokeWidth={2} aria-hidden='true' />
+                      )}
+                    </button>
+                  </div>
+                  <div
+                    className='mb-4 mt-3 h-1 w-full overflow-hidden rounded-full bg-border'
+                    role='progressbar'
+                    aria-valuenow={passwordStrengthScore}
+                    aria-valuemin={0}
+                    aria-valuemax={4}
+                    aria-label='Password strength'
+                  >
+                    <div
+                      className={`h-full ${getPasswordStrengthColor(
+                        passwordStrengthScore,
+                      )} transition-all duration-500 ease-out`}
+                      style={{ width: `${(passwordStrengthScore / 4) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className='mb-2 text-sm font-medium text-foreground'>
+                    {getPasswordStrengthText(passwordStrengthScore)}. Must
+                    contain:
+                  </p>
+                  <ul
+                    className='space-y-1.5'
+                    aria-label='Password requirements'
+                  >
+                    {passwordStrength.map((req, index) => (
+                      <li key={index} className='flex items-center gap-2'>
+                        {req.met ? (
+                          <Check
+                            size={16}
+                            className='text-emerald-500'
+                            aria-hidden='true'
+                          />
+                        ) : (
+                          <X
+                            size={16}
+                            className='text-muted-foreground/80'
+                            aria-hidden='true'
+                          />
+                        )}
+                        <span
+                          className={`text-xs ${
+                            req.met
+                              ? 'text-emerald-600'
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          {req.text}
+                          <span className='sr-only'>
+                            {req.met
+                              ? ' - Requirement met'
+                              : ' - Requirement not met'}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            } else if (input.type === 'password-normal') {
+              return (
+                <div className='flex w-full flex-col gap-3' key={i}>
+                  <Label htmlFor={input.name}>Password</Label>
+                  <div className='relative'>
+                    <Input
+                      id={input.name}
+                      placeholder='Password'
+                      type={isPasswordVisible ? 'text' : 'password'}
+                      name={input.name}
+                      defaultValue={input.default}
+                      className='peer h-11 w-full rounded-[12px] pe-9'
+                    />
+                    <button
+                      className='absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
+                      type='button'
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      aria-label={
+                        isPasswordVisible ? 'Hide password' : 'Show password'
+                      }
+                      aria-pressed={isPasswordVisible}
+                      aria-controls='password'
+                    >
+                      {isPasswordVisible ? (
+                        <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
+                      ) : (
+                        <Eye size={16} strokeWidth={2} aria-hidden='true' />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            } else if (input.type === 'name') {
+              return (
+                <div className='flex w-full flex-col gap-3' key={i}>
+                  <Label htmlFor={input.name}>Name</Label>
+                  <div className='relative'>
+                    <Input
+                      id={input.name}
+                      placeholder='Name'
+                      type='text'
+                      name={input.name}
+                      defaultValue={input.default}
+                      className='peer h-11 w-full rounded-[12px] ps-9'
+                    />
+                    <div className='pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50'>
+                      <User size={16} strokeWidth={2} aria-hidden='true' />
+                    </div>
+                  </div>
+                </div>
+              );
+            } else {
+              return (
+                <div className='flex flex-col gap-[5px]' key={i}>
+                  <Label className='text-sm'>{input.label}</Label>
+                  <Input
+                    type={input.type}
+                    name={input.name}
+                    defaultValue={input.default}
+                    placeholder={input.placeholder}
+                    className='h-11 rounded-[12px] bg-background py-2'
+                  />
+                </div>
+              );
+            }
           })}
           <Button
-            className='rounded-[8px]'
+            className='h-11 rounded-[12px]'
             type='submit'
             disabled={isDisabled || props.btn_loading}
             loading={props.btn_loading}

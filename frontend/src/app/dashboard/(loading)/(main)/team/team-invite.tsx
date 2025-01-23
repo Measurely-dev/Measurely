@@ -91,7 +91,7 @@ export default function TeamInvite(props: {
           <div className='flex w-full flex-row items-end gap-5'>
             <div className='flex w-full flex-row gap-5 max-sm:flex-col'>
               <div className='flex w-full flex-col gap-3'>
-                <Label htmlFor={id}>Input with start icon</Label>
+                <Label htmlFor={id}>Email</Label>
                 <div className='relative'>
                   <Input
                     id={id}

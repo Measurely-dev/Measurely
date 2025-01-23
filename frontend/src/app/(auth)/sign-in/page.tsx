@@ -47,7 +47,7 @@ export default function SignIn() {
       <div className='mb-[150px]'>
         <AuthNavbar href='/waitlist' button='Join waitlist' />
       </div>
-      <ContentContainer>
+      <ContentContainer className='pb-20'>
         <AuthForm
           title='Hey friend! Welcome back'
           providers={true}
@@ -62,7 +62,7 @@ export default function SignIn() {
               label: 'Password',
               name: 'password',
               placeholder: 'Password',
-              type: 'password',
+              type: 'password-normal',
             },
           ]}
           button='Sign in'

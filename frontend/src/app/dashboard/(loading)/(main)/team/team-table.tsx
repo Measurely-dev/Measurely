@@ -54,9 +54,11 @@ import {
   ArrowBigDown,
   ArrowBigUp,
   FileQuestion,
+  Mail,
   MoreHorizontal,
   Search,
   Trash2,
+  UserCog,
 } from 'lucide-react';
 import {
   Dispatch,
@@ -67,6 +69,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { Trash, UserCheck, UserX } from 'react-feather';
 import { toast } from 'sonner';
 
 export const TeamTable = (props: { members: User[] }) => {
@@ -506,7 +509,6 @@ function MemberOption({
       });
     }
   }
-
   return (
     <FloatingPanelRoot open={open} onOpenChange={setOpen}>
       <FloatingPanelTrigger
@@ -537,6 +539,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
+                <UserCog className='size-4' /> {/* Admin icon */}
                 <span>Admin</span>
               </FloatingPanelButton>
               <FloatingPanelButton
@@ -547,6 +550,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
+                <UserCheck className='size-4' /> {/* Developer icon */}
                 <span>Developer</span>
               </FloatingPanelButton>
               <FloatingPanelButton
@@ -557,6 +561,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
+                <UserX className='size-4' /> {/* Guest icon */}
                 <span>Guest</span>
               </FloatingPanelButton>
             </FloatingPanelSubMenu>
@@ -569,6 +574,7 @@ function MemberOption({
               setOpen(false);
             }}
           >
+            <Mail className='size-4' /> {/* Copy email icon */}
             <span>Copy email</span>
           </FloatingPanelButton>
 
@@ -587,6 +593,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
+                <Trash className='size-4' /> {/* Delete icon */}
                 <span>Remove member</span>
               </FloatingPanelButton>
             </>

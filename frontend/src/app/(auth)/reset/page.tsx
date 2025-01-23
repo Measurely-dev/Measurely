@@ -105,7 +105,7 @@ export default function PasswordReset() {
                 label: 'Retype password',
                 placeholder: 'Password',
                 name: 'retype',
-                type: 'password',
+                type: 'password-normal',
               },
             ]}
             button='Reset'

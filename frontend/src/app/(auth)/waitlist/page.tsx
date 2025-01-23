@@ -24,7 +24,7 @@ const Waitlist = () => {
               label: 'Name',
               name: 'name',
               placeholder: 'name',
-              type: 'text',
+              type: 'name',
             },
             {
               label: 'Email',
