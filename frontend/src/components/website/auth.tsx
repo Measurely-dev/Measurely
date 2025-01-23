@@ -331,7 +331,7 @@ export default function AuthForm(props: {
           </Button>
 
           {props.forgot_password && (
-            <Link className='text-sm text-secondary' href={'/reset'}>
+            <Link className='w-fit text-sm text-secondary' href={'/reset'}>
               Forgot password?
             </Link>
           )}
