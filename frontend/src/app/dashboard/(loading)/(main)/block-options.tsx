@@ -443,7 +443,7 @@ export default function BlockOptions(
                               n.unique_key === props.unique_key
                                 ? {
                                     ...n,
-                                    metricIds: newMetrics.map(
+                                    metric_ids: newMetrics.map(
                                       (metric) => metric.id,
                                     ),
                                     filtercategories: [selectFilterCategory],
@@ -455,7 +455,7 @@ export default function BlockOptions(
                       : l.unique_key === props.unique_key
                         ? {
                             ...l,
-                            metricIds: newMetrics.map((metric) => metric.id),
+                            metric_ids: newMetrics.map((metric) => metric.id),
                             filtercategories: [selectFilterCategory],
                           }
                         : l,

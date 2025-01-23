@@ -89,18 +89,12 @@ export default function DashboardContentLayout({
           );
           if (savedActiveProject > json.length - 1 || savedActiveProject < 0) {
             savedActiveProject = 0;
-            localStorage.setItem(
-              'activeProject',
-              savedActiveProject.toString(),
-            );
           }
           for (let i = 0; i < json.length; i++) {
             if (
               i === savedActiveProject &&
               json.length >= savedActiveProject + 1
             ) {
-              setProjectsLoading(true);
-              setActiveProjectName(json[savedActiveProject].name);
               json[i].metrics = await loadMetrics(json[savedActiveProject].id);
             } else {
               json[i].metrics = null;
@@ -128,6 +122,7 @@ export default function DashboardContentLayout({
     setTimeout(() => {
       setProjectsLoading(false);
     }, 200);
+    localStorage.setItem('activeProject', activeProject.toString());
   }, [activeProject]);
 
   return (

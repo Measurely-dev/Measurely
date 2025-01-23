@@ -60,10 +60,9 @@ export default function NewProject() {
 
       const newProject = await response.json();
       setActiveProject(projects.length);
-      localStorage.setItem('activeProject', projects.length.toString());
       setProjects((prevProjects) => [...prevProjects, newProject]);
       router.push('/dashboard');
-    } catch (err) {
+    } catch {
       toast.error('An error occurred while creating the project');
       setLoading(false);
     }
@@ -165,7 +164,7 @@ function Step1({
         <Button
           className='w-fit rounded-[12px]'
           onClick={nextStep}
-          disabled={value === ''} 
+          disabled={value === ''}
         >
           Next
         </Button>

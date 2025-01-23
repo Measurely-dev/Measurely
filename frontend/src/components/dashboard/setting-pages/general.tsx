@@ -49,8 +49,8 @@ export default function SettingGeneralPage() {
 
     setLoadingProfile(true);
     const updated = {
-      firstname: user.first_name,
-      lastname: user.last_name,
+      first_name: user.first_name,
+      last_name: user.last_name,
       image: user.image,
     };
 
@@ -72,8 +72,8 @@ export default function SettingGeneralPage() {
 
       if (response1.ok) {
         toast.success('Successfully updated first name and/or last name.');
-        updated['firstname'] = firstName.toLowerCase();
-        updated['lastname'] = lastName.toLowerCase();
+        updated.first_name = firstName.toLowerCase();
+        updated.last_name = lastName.toLowerCase();
       }
     }
 

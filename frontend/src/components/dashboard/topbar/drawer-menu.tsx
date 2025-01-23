@@ -50,8 +50,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
             </AvatarFallback>
           </Avatar>
           <div className='flex gap-1'>
-            <div>{Capitalize(user?.firstname ?? 'Unknown')}</div>
-            {Capitalize(user?.lastname ?? '')}
+            <div>{Capitalize(user?.first_name ?? 'Unknown')}</div>
+            {Capitalize(user?.last_name ?? '')}
           </div>
         </Label>
         <Separator className='my-2' orientation='horizontal' />

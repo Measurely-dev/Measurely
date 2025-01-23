@@ -111,8 +111,6 @@ export default function SettingProjectPage() {
           }
 
           setActiveProject(newActiveProject);
-          localStorage.setItem('activeProject', newActiveProject.toString());
-
           setProjects(projects?.filter((proj) => proj.id !== project.id) ?? []);
         } else {
           resp.text().then((text) => {

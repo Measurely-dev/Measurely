@@ -9,9 +9,6 @@ import { ProjectsContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
 import { Rocket } from 'lucide-react';
 
-const valueFormatter = (number: number) =>
-  Intl.NumberFormat('us').format(number).toString();
-
 export default function SettingPaymentPage() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();

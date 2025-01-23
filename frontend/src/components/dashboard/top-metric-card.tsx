@@ -22,7 +22,7 @@ export const TopMetricCard = () => {
     let addedMetrics = 0;
     for (let i = 0; i < projects[activeProject].metrics.length; i++) {
       const metric = projects[activeProject].metrics[i];
-      const total = metric.totalpos - metric.totalneg;
+      const total = metric.total_pos - metric.total_neg;
 
       if (total !== 0) {
         data.push({

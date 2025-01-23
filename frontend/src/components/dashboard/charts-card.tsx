@@ -63,7 +63,7 @@ export function ChartsCard() {
   const metricList = useMemo(() => {
     return projects[activeProject].metrics
       ? projects[activeProject].metrics.sort(
-          (a, b) => b.totalpos - b.totalneg - (a.totalpos - a.totalneg),
+          (a, b) => b.total_pos - b.total_neg - (a.total_pos - a.total_neg),
         )
       : null;
   }, [activeProject, projects]);
@@ -85,7 +85,7 @@ export function ChartsCard() {
       from,
       nbrDaysInMonth,
       metricData,
-      metricData.projectid,
+      metricData.project_id,
       'trend',
     );
 
@@ -97,16 +97,20 @@ export function ChartsCard() {
     const metricData = metricList?.[activeMetric] ?? null;
     if (!metricData) return;
 
-    const { relativetotalpos, relativetotalneg, relativeeventcount, results } =
-      await fetchEventVariation(
-        metricData.projectid ?? '',
-        metricData.id ?? '',
-      );
+    const {
+      relative_total_pos,
+      relative_total_neg,
+      relative_event_count,
+      results,
+    } = await fetchEventVariation(
+      metricData.project_id ?? '',
+      metricData.id ?? '',
+    );
 
     if (
-      (metricData.totalpos !== relativetotalpos ||
-        metricData.totalneg !== relativetotalneg ||
-        metricData.eventcount !== relativeeventcount) &&
+      (metricData.total_pos !== relative_total_pos ||
+        metricData.total_neg !== relative_total_neg ||
+        metricData.event_count !== relative_event_count) &&
       results !== 0
     ) {
       setProjects(
@@ -116,9 +120,9 @@ export function ChartsCard() {
                 metrics: metricList?.map((m: Metric, j: number) =>
                   j === activeMetric
                     ? Object.assign({}, m, {
-                        totalpos: relativetotalpos,
-                        totalneg: relativetotalneg,
-                        eventcount: relativeeventcount,
+                        total_pos: relative_total_pos,
+                        total_neg: relative_total_neg,
+                        event_count: relative_event_count,
                       })
                     : m,
                 ),
@@ -197,7 +201,7 @@ export function ChartsCard() {
             metrics={metricList ?? []}
           />
           <CardContent className='flex flex-col'>
-            {(metric?.totalpos ?? 0) - (metric?.totalneg ?? 0) === 0 ? (
+            {(metric?.total_pos ?? 0) - (metric?.total_neg ?? 0) === 0 ? (
               <EmptyState
                 className='py-14'
                 title='Nothing Here Yet. Check Back Soon!'
@@ -219,12 +223,12 @@ export function ChartsCard() {
                           data={calculateTrend(
                             chartData,
                             metric,
-                            metric?.totalpos ?? 0,
-                            metric?.totalneg ?? 0,
-                            metric.eventcount === 0
+                            metric?.total_pos ?? 0,
+                            metric?.total_neg ?? 0,
+                            metric.event_count === 0
                               ? 0
-                              : (metric.totalpos - metric.totalneg) /
-                                  metric.eventcount,
+                              : (metric.total_pos - metric.total_neg) /
+                                  metric.event_count,
                           )}
                           index='date'
                           color='blue'
@@ -273,14 +277,14 @@ function Header(props: {
         <CardTitle>
           {props.metrics[props.activeMetric].type === MetricType.Average ? (
             <>
-              {props.metrics[props.activeMetric].eventcount === 0 ? (
+              {props.metrics[props.activeMetric].event_count === 0 ? (
                 '0'
               ) : (
                 <>
                   {valueFormatter(
-                    (props.metrics[props.activeMetric].totalpos -
-                      props.metrics[props.activeMetric].totalneg) /
-                      props.metrics[props.activeMetric].eventcount,
+                    (props.metrics[props.activeMetric].total_pos -
+                      props.metrics[props.activeMetric].total_neg) /
+                      props.metrics[props.activeMetric].event_count,
                   )}
                 </>
               )}
@@ -288,8 +292,8 @@ function Header(props: {
           ) : (
             <>
               {valueFormatter(
-                props.metrics[props.activeMetric].totalpos -
-                  props.metrics[props.activeMetric].totalneg,
+                props.metrics[props.activeMetric].total_pos -
+                  props.metrics[props.activeMetric].total_neg,
               )}
             </>
           )}

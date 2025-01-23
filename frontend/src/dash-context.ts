@@ -1,22 +1,14 @@
 import React, { createContext, Dispatch } from 'react';
-import { Project, User, UserRole } from './types';
+import { InvoiceStatus, Project, User, UserRole } from './types';
 
 export const defaultUser: User = {
-  firstname: '',
-  lastname: '',
+  first_name: '',
+  last_name: '',
   email: '',
   id: '',
   image: '',
-  plan: {
-    name: '',
-    requestlimit: 0,
-    projectlimit: 0,
-    metric_per_project_limit: 0,
-    identifier: '',
-    monthlyeventlimit: 0,
-  },
-  userrole: UserRole.Owner,
-  eventcount: 0,
+  user_role: UserRole.Owner,
+  invoice_status: InvoiceStatus.ACTIVE,
   providers: [],
 };
 

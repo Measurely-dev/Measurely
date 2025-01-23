@@ -32,7 +32,6 @@ export default function ProjectsChip() {
         );
       }
       setActiveProject(index);
-      localStorage.setItem('activeProject', index.toString());
     }
 
     setOpen(false);
