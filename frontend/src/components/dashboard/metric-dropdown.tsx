@@ -1,27 +1,28 @@
 'use client';
 import { DialogTrigger } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Metric, Project, UserRole } from '@/types';
 import { useContext } from 'react';
 import { toast } from 'sonner';
 import { useConfirm } from '@omit/react-confirm-dialog';
-import { Trash } from 'lucide-react';
+import { Trash, Copy, Edit } from 'lucide-react'; // Import icons
 import { ProjectsContext } from '@/dash-context';
+import {
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
+  FloatingPanelContent,
+  FloatingPanelBody,
+  FloatingPanelButton,
+  useFloatingPanel,
+} from '@/components/ui/floating-panel';
 
 export default function MetricDropdown(props: {
-  children: any;
+  children: React.ReactNode;
   metric: Metric;
-  isOpen: boolean | false;
-  setIsOpen: (state: any) => void;
 }) {
   const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   const confirm = useConfirm();
+  const { closeFloatingPanel } = useFloatingPanel(); // Access closeFloatingPanel from context
+
   const DeleteMetric = async () => {
     const isConfirmed = await confirm({
       title:
@@ -32,7 +33,7 @@ export default function MetricDropdown(props: {
         "'",
       icon: <Trash className='size-6 text-destructive' />,
       description:
-        'Are you sure you want to delete this metric? You will loose all the data linked to this metric forever.',
+        'Are you sure you want to delete this metric? You will lose all the data linked to this metric forever.',
       confirmText: 'Yes, Delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -63,13 +64,16 @@ export default function MetricDropdown(props: {
         credentials: 'include',
       }).then((res) => {
         if (res.ok && projects !== null) {
-          toast.success('Metric succesfully deleted');
+          toast.success('Metric successfully deleted');
           setProjects(
-            projects?.map((v: Project) =>
+            projects.map((v: Project) =>
               v.id === props.metric.project_id
-                ? Object.assign({}, v, {
-                    metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
-                  })
+                ? {
+                    ...v,
+                    metrics:
+                      v.metrics?.filter((m) => m.id !== props.metric.id) ??
+                      null,
+                  }
                 : v,
             ),
           );
@@ -79,52 +83,65 @@ export default function MetricDropdown(props: {
       });
     }
   };
+
   return (
-    <>
-      <DropdownMenu
-        open={props.isOpen}
-        onOpenChange={(e) => {
-          if (projects[activeProject].user_role !== UserRole.Guest) {
-            props.setIsOpen(e);
-          }
+    <FloatingPanelRoot>
+      <FloatingPanelTrigger
+        title={props.metric.name} // Use metric name as the title
+        className='relative'
+        onClick={(e) => {
+          e.stopPropagation(); // Stop event propagation
         }}
       >
-        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
-        <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-          {projects[activeProject].user_role === UserRole.Owner ||
-          projects[activeProject].user_role === UserRole.Admin ? (
+        {props.children}
+      </FloatingPanelTrigger>
+      <FloatingPanelContent
+        className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
+        side='right'
+      >
+        <FloatingPanelBody className='p-1'>
+          {(projects[activeProject].user_role === UserRole.Owner ||
+            projects[activeProject].user_role === UserRole.Admin) && (
             <DialogTrigger asChild>
-              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                Edit
-              </DropdownMenuItem>
+              <FloatingPanelButton
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              >
+                <Edit className='size-4' /> {/* Edit icon */}
+                <span>Edit</span>
+              </FloatingPanelButton>
             </DialogTrigger>
-          ) : undefined}
-          <DropdownMenuItem
-            onClick={(e) => {
+          )}
+          <FloatingPanelButton
+            className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+            onClick={(e: React.MouseEvent) => {
               navigator.clipboard.writeText(props.metric.id);
-              toast.success('Succefully copied metric ID');
+              toast.success('Successfully copied metric ID');
               e.stopPropagation();
+              closeFloatingPanel(); // Close the panel after copying
             }}
           >
-            Copy ID
-          </DropdownMenuItem>
-          {projects[activeProject].user_role === UserRole.Owner ||
-          projects[activeProject].user_role === UserRole.Admin ? (
+            <Copy className='size-4' /> {/* Copy icon */}
+            <span>Copy ID</span>
+          </FloatingPanelButton>
+          {(projects[activeProject].user_role === UserRole.Owner ||
+            projects[activeProject].user_role === UserRole.Admin) && (
             <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={(e) => {
+              <div className='my-1 h-px bg-zinc-950/10 dark:bg-zinc-50/10' />
+              <FloatingPanelButton
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left text-red-500 transition-colors hover:bg-red-500/20'
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   DeleteMetric();
                 }}
-                className={`bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20`}
               >
-                Delete
-              </DropdownMenuItem>
+                <Trash className='size-4' /> {/* Delete icon */}
+                <span>Delete</span>
+              </FloatingPanelButton>
             </>
-          ) : undefined}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
+          )}
+        </FloatingPanelBody>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

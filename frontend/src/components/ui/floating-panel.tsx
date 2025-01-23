@@ -38,7 +38,7 @@ const FloatingPanelContext = createContext<
   FloatingPanelContextType | undefined
 >(undefined);
 
-function useFloatingPanel() {
+export function useFloatingPanel() {
   const context = useContext(FloatingPanelContext);
   if (!context) {
     throw new Error(
@@ -103,25 +103,28 @@ export function FloatingPanelRoot({
 interface FloatingPanelTriggerProps {
   children: React.ReactNode;
   className?: string;
-  title: string;
+  title: string; // Required prop
   description?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }
 export function FloatingPanelTrigger({
   children,
   className,
   title,
   description,
+  onClick, // Destructure onClick prop
 }: FloatingPanelTriggerProps) {
   const { openFloatingPanel, uniqueId, setTitle, setDescription, isOpen } =
     useFloatingPanel();
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     if (triggerRef.current) {
       openFloatingPanel(triggerRef.current.getBoundingClientRect());
       setTitle(title);
       setDescription(description ?? '');
     }
+    onClick?.(e); // Pass the event to the onClick handler
   };
 
   return (
@@ -129,15 +132,18 @@ export function FloatingPanelTrigger({
       ref={triggerRef}
       layoutId={`floating-panel-trigger-${uniqueId}`}
       className={cn('relative overflow-hidden', className)}
-      style={{ borderRadius: 8 }} // Set the border-radius here
-      onClick={handleClick}
+      style={{ borderRadius: 8 }}
+      onClick={(e) => {
+        handleClick(e);
+        e.stopPropagation();
+      }} // Pass handleClick to onClick
       aria-haspopup='dialog'
       aria-expanded={false}
     >
       {/* Dashed border when panel is open */}
       <motion.div
         className='absolute left-0 top-0 z-10 size-full'
-        style={{ borderRadius: 'inherit' }} // Inherit border-radius from the parent
+        style={{ borderRadius: 'inherit' }}
         initial={{ border: '1.5px solid transparent' }}
         animate={{
           border: isOpen ? '1.5px dashed #e4e4e7' : '1px solid transparent',
@@ -150,7 +156,7 @@ export function FloatingPanelTrigger({
         layoutId={`floating-panel-label-container-${uniqueId}`}
         className='flex items-center'
         initial={{ opacity: 1 }}
-        animate={{ opacity: isOpen ? 0 : 1 }} // Fade out when panel is open
+        animate={{ opacity: isOpen ? 0 : 1 }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
       >
         <motion.span
@@ -228,9 +234,8 @@ export function FloatingPanelContent({
         };
       case 'right':
         return {
-          left: panelWidth > 0 
-            ? triggerRect.right - panelWidth 
-            : triggerRect.left, // Fallback to left position
+          left:
+            panelWidth > 0 ? triggerRect.right - panelWidth : triggerRect.left, // Fallback to left position
           top: triggerRect.bottom + 8,
         };
       default:
@@ -247,6 +252,7 @@ export function FloatingPanelContent({
             animate={{ backgroundColor: 'black', opacity: 0.2 }}
             exit={{ backgroundColor: 'transparent', opacity: 0 }}
             className='fixed inset-0 z-40'
+            onClick={(e) => e.stopPropagation()}
           />
           <motion.div
             ref={contentRef}
@@ -510,7 +516,7 @@ export function FloatingPanelSubmitButton({
 
 interface FloatingPanelButtonProps {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   className?: string;
 }
 
@@ -525,7 +531,7 @@ export function FloatingPanelButton({
         'flex w-full items-center gap-2 rounded-md py-2 text-left text-sm',
         className,
       )}
-      onClick={onClick}
+      onClick={onClick} // Pass onClick directly
       whileTap={{ scale: 0.98 }}
     >
       {children}

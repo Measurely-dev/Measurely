@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
 import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
+import { FloatingPanelRoot } from '@/components/ui/floating-panel';
 
 const formattedDate = (date: Date) => {
   try {
@@ -138,7 +139,6 @@ const Item = (props: { metric: Metric; index: number }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
-  const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [average, setAverage] = useState<number>(0);
   const todayBadgeColor = (v: number | null) => {
@@ -237,7 +237,7 @@ const Item = (props: { metric: Metric; index: number }) => {
             `/dashboard/metrics/${encodeURIComponent(props.metric.name)}`,
           );
         }}
-        className={`select-none ${isOpen ? '!bg-blue-500/5' : ''}`}
+        className={`select-none`}
       >
         {/* Avatar/name */}
         <TableCell className='font-medium' colSpan={2}>
@@ -290,22 +290,23 @@ const Item = (props: { metric: Metric; index: number }) => {
         </TableCell>
         {/* Actions */}
         <TableCell>
-          <MetricDropdown
-            metric={props.metric}
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-          >
-            <div className='flex w-full justify-end'>
-              <Button
-                variant={'ghost'}
-                size={'icon'}
-                className='size-fit py-2 pl-2 hover:bg-transparent'
-                disabled={projects[activeProject].user_role === UserRole.Guest}
+          <div className='flex w-full justify-end'>
+            <FloatingPanelRoot>
+              <MetricDropdown
+                metric={props.metric}
               >
-                <MoreHorizontal className='size-5' />
-              </Button>
-            </div>
-          </MetricDropdown>
+                <Button
+                  variant={'ghost'}
+                  size={'icon'}
+                  className='hover:bg-transparent'
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={projects[activeProject].user_role === UserRole.Guest}
+                >
+                  <MoreHorizontal className='size-5' />
+                </Button>
+              </MetricDropdown>
+            </FloatingPanelRoot>
+          </div>
         </TableCell>
       </TableRow>
       <EditMetricDialogContent metric={props.metric} setOpen={setIsEditOpen} />
