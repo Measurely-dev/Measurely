@@ -1,12 +1,12 @@
 'use client';
 
 import { ProjectsContext, UserContext } from '@/dash-context';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
 import { loadMetrics } from '@/utils';
 import { UserRole } from '@/types';
+import { Loader } from 'react-feather';
 
 export default function DashboardContentLayout({
   children,
@@ -19,9 +19,10 @@ export default function DashboardContentLayout({
     setActiveProject,
     projectsLoading,
     setProjectsLoading,
+    activeProject,
   } = useContext(ProjectsContext);
   const { setUser, userLoading, setUserLoading } = useContext(UserContext);
-
+  const [activeProjectName, setActiveProjectName] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -98,6 +99,8 @@ export default function DashboardContentLayout({
               i === savedActiveProject &&
               json.length >= savedActiveProject + 1
             ) {
+              setProjectsLoading(true);
+              setActiveProjectName(json[savedActiveProject].name);
               json[i].metrics = await loadMetrics(json[savedActiveProject].id);
             } else {
               json[i].metrics = null;
@@ -113,15 +116,30 @@ export default function DashboardContentLayout({
     }
   }, []);
 
+  useEffect(() => {
+    if (
+      projects === undefined ||
+      !projects.length ||
+      activeProject >= projects.length
+    )
+      return;
+    setProjectsLoading(true);
+    setActiveProjectName(projects[activeProject].name);
+    setTimeout(() => {
+      setProjectsLoading(false);
+    }, 200);
+  }, [activeProject]);
+
   return (
     <>
       {projectsLoading || userLoading ? (
-        <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-2 bg-accent'>
-          <div className='relative flex animate-spin flex-col items-center justify-center'>
-            <LogoSvg className='size-14' />
-          </div>
-          <div className='text-md inline-flex items-center font-mono text-muted-foreground'>
-            Loading Measurely
+        <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-4 bg-accent'>
+          <span className='sr-only'>Loader</span>
+          <Loader className='size-7 animate-spin text-muted-foreground' />
+          <div className='inline-flex items-center font-mono text-sm text-muted-foreground'>
+            {projectsLoading && activeProjectName
+              ? `Loading ${activeProjectName}`
+              : 'Loading Measurely'}
           </div>
         </div>
       ) : (
