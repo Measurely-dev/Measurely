@@ -1,41 +1,32 @@
 'use client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import {
+  FloatingPanelBody,
+  FloatingPanelButton,
+  FloatingPanelContent,
+  FloatingPanelRoot,
+  FloatingPanelSubMenu,
+  FloatingPanelTrigger,
+} from '@/components/ui/floating-panel'; // Import your FloatingPanel components
 import { Input } from '@/components/ui/input';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  MoreHorizontal,
-  Search,
-  FileQuestion,
-  ArrowBigDown,
-  ArrowBigUp,
-  Trash2,
-} from 'lucide-react';
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { EmptyState } from '@/components/ui/empty-state';
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import {
   Select,
   SelectContent,
@@ -47,27 +38,36 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
-import { toast } from 'sonner';
-import { useConfirm } from '@omit/react-confirm-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, UserRole } from '@/types';
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { ProjectsContext, UserContext } from '@/dash-context';
+import { User, UserRole } from '@/types';
 import { formatFullName, roleToString } from '@/utils';
+import { useConfirm } from '@omit/react-confirm-dialog';
 import {
-  FloatingPanelRoot,
-  FloatingPanelTrigger,
-  FloatingPanelContent,
-  FloatingPanelButton,
-  FloatingPanelBody,
-  FloatingPanelSubMenu,
-} from '@/components/ui/floating-panel'; // Import your FloatingPanel components
+  ArrowBigDown,
+  ArrowBigUp,
+  FileQuestion,
+  MoreHorizontal,
+  Search,
+  Trash2,
+} from 'lucide-react';
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { toast } from 'sonner';
 
 export const TeamTable = (props: { members: User[] }) => {
   const [search, setSearch] = useState('');
@@ -331,7 +331,7 @@ function FiltersComponent(props: {
         }
       }}
     >
-      <SelectTrigger className='w-[220px] min-w-[220px] bg-accent max-md:w-full'>
+      <SelectTrigger className='w-[220px] min-w-[220px] border-none bg-accent max-md:w-full'>
         <SelectValue placeholder='Select role' />
       </SelectTrigger>
       <SelectContent>
@@ -359,7 +359,7 @@ function MemberOption({
   const { user } = useContext(UserContext);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
-
+  const [open, setOpen] = useState(false);
   const handleCopyEmail = async () => {
     try {
       await navigator.clipboard.writeText(member.email);
@@ -508,7 +508,7 @@ function MemberOption({
   }
 
   return (
-    <FloatingPanelRoot>
+    <FloatingPanelRoot open={open} onOpenChange={setOpen}>
       <FloatingPanelTrigger
         title={formatFullName(member.first_name, member.last_name)}
         className='relative'
@@ -523,32 +523,50 @@ function MemberOption({
         side='right'
       >
         <FloatingPanelBody className='p-1'>
-          <FloatingPanelSubMenu title='Change Role'>
-            <FloatingPanelButton
-              className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
-              onClick={() => switchRole(member, UserRole.Admin)}
-            >
-              <span>Admin</span>
-            </FloatingPanelButton>
-            <FloatingPanelButton
-              className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
-              onClick={() => switchRole(member, UserRole.Developer)}
-            >
-              <span>Developer</span>
-            </FloatingPanelButton>
-            <FloatingPanelButton
-              className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
-              onClick={() => switchRole(member, UserRole.Guest)}
-            >
-              <span>Guest</span>
-            </FloatingPanelButton>
-          </FloatingPanelSubMenu>
-
+          {(projects[activeProject].user_role === UserRole.Admin ||
+            (projects[activeProject].user_role === UserRole.Owner &&
+              member.id !== user.id) ||
+            (projects[activeProject].user_role !== UserRole.Owner &&
+              member.id === user.id)) && (
+            <FloatingPanelSubMenu title='Change Role'>
+              <FloatingPanelButton
+                disabled={member.user_role === UserRole.Admin}
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+                onClick={() => {
+                  switchRole(member, UserRole.Admin);
+                  setOpen(false);
+                }}
+              >
+                <span>Admin</span>
+              </FloatingPanelButton>
+              <FloatingPanelButton
+                disabled={member.user_role === UserRole.Developer}
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+                onClick={() => {
+                  switchRole(member, UserRole.Developer);
+                  setOpen(false);
+                }}
+              >
+                <span>Developer</span>
+              </FloatingPanelButton>
+              <FloatingPanelButton
+                disabled={member.user_role === UserRole.Guest}
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+                onClick={() => {
+                  switchRole(member, UserRole.Guest);
+                  setOpen(false);
+                }}
+              >
+                <span>Guest</span>
+              </FloatingPanelButton>
+            </FloatingPanelSubMenu>
+          )}
           <FloatingPanelButton
             className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
             onClick={(e: React.MouseEvent) => {
               handleCopyEmail();
               e.stopPropagation();
+              setOpen(false);
             }}
           >
             <span>Copy email</span>
@@ -566,6 +584,7 @@ function MemberOption({
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   deleteMember(member);
+                  setOpen(false);
                 }}
               >
                 <span>Remove member</span>

@@ -2,18 +2,18 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ProjectsContext } from '@/dash-context';
-import { UserRole } from '@/types';
-import { loadMetrics, roleToString } from '@/utils';
-import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
-import { useContext, useMemo, useState } from 'react';
 import {
   FloatingPanelBody,
   FloatingPanelContent,
   FloatingPanelRoot,
   FloatingPanelTrigger,
 } from '@/components/ui/floating-panel';
+import { ProjectsContext } from '@/dash-context';
+import { UserRole } from '@/types';
+import { loadMetrics, roleToString } from '@/utils';
+import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
+import { useContext, useMemo, useState } from 'react';
 export default function ProjectsChip() {
   const [open, setOpen] = useState(false);
   const { projects, activeProject, setActiveProject, setProjects } =
@@ -58,9 +58,9 @@ export default function ProjectsChip() {
   };
 
   return (
-    <FloatingPanelRoot>
+    <FloatingPanelRoot onOpenChange={setOpen} open={open}>
       <FloatingPanelTrigger
-        className={`h-10 w-fit gap-2 !rounded-[12px] border-none px-4 text-[14px] capitalize transition-all duration-200 hover:bg-accent`}
+        className={`h-10 w-fit gap-2 !rounded-[12px] border-none px-4 text-[14px] capitalize transition-colors duration-200 hover:bg-accent`}
         title='Select Project'
       >
         <div className='flex h-9 flex-row items-center gap-2'>

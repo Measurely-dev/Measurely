@@ -1,7 +1,10 @@
 'use client';
 
+import { AnimatePresence, MotionConfig, Variants, motion } from 'framer-motion';
+import { ArrowLeftIcon, ChevronRight } from 'lucide-react';
 import React, {
   createContext,
+  forwardRef,
   useContext,
   useEffect,
   useId,
@@ -9,17 +12,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AnimatePresence, MotionConfig, Variants, motion } from 'framer-motion';
-import { ArrowLeftIcon, ChevronRight, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { createPortal } from 'react-dom';
 
 const TRANSITION = {
   type: 'spring',
   bounce: 0.1,
   duration: 0.4,
 };
-
 interface FloatingPanelContextType {
   isOpen: boolean;
   openFloatingPanel: (rect: DOMRect) => void;
@@ -47,8 +48,10 @@ export function useFloatingPanel() {
   }
   return context;
 }
-
-function useFloatingPanelLogic() {
+function useFloatingPanelLogic(
+  controlledOpen?: boolean, // Controlled open state
+  onOpenChange?: (isOpen: boolean) => void, // Callback for open state changes
+) {
   const uniqueId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [note, setNote] = useState('');
@@ -56,13 +59,23 @@ function useFloatingPanelLogic() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
+  // Sync internal state with controlled open state
+  useEffect(() => {
+    if (controlledOpen !== undefined) {
+      setIsOpen(controlledOpen);
+    }
+  }, [controlledOpen]);
+
   const openFloatingPanel = (rect: DOMRect) => {
     setTriggerRect(rect);
     setIsOpen(true);
+    onOpenChange?.(true); // Notify parent of open state change
   };
+
   const closeFloatingPanel = () => {
     setIsOpen(false);
     setNote('');
+    onOpenChange?.(false); // Notify parent of open state change
   };
 
   return {
@@ -83,13 +96,20 @@ function useFloatingPanelLogic() {
 interface FloatingPanelRootProps {
   children: React.ReactNode;
   className?: string;
+  open?: boolean; // Add open prop
+  onOpenChange?: (isOpen: boolean) => void; // Add onOpenChange prop
 }
 
 export function FloatingPanelRoot({
   children,
   className,
+  open: controlledOpen, // Controlled open state
+  onOpenChange, // Callback for open state changes
 }: FloatingPanelRootProps) {
-  const floatingPanelLogic = useFloatingPanelLogic();
+  const floatingPanelLogic = useFloatingPanelLogic(
+    controlledOpen,
+    onOpenChange,
+  );
 
   return (
     <FloatingPanelContext.Provider value={floatingPanelLogic}>
@@ -265,7 +285,7 @@ export function FloatingPanelContent({
               borderRadius: 12,
               ...getPositionStyle(),
               transformOrigin: 'top left',
-              minWidth: 200, // Prevent panelWidth=0 on initial render
+              minWidth: 200,
             }}
             initial='hidden'
             animate='visible'
@@ -513,31 +533,41 @@ export function FloatingPanelSubmitButton({
     </motion.button>
   );
 }
-
 interface FloatingPanelButtonProps {
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
+  disabled?: boolean; // Add disabled prop
 }
 
-export function FloatingPanelButton({
-  children,
-  onClick,
-  className,
-}: FloatingPanelButtonProps) {
+export const FloatingPanelButton = forwardRef<
+  HTMLButtonElement,
+  FloatingPanelButtonProps
+>(({ children, onClick, className, disabled = false }, ref) => {
   return (
     <motion.button
+      ref={ref}
       className={cn(
         'flex w-full items-center gap-2 rounded-md py-2 text-left text-sm',
+        {
+          'cursor-not-allowed opacity-50': disabled, // Disabled styles
+        },
         className,
       )}
-      onClick={onClick} // Pass onClick directly
-      whileTap={{ scale: 0.98 }}
+      onClick={(e) => {
+        if (!disabled && onClick) {
+          onClick(e); // Only call onClick if not disabled
+        }
+      }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }} // Disable whileTap animation if disabled
+      disabled={disabled} // Native disabled attribute
     >
       {children}
     </motion.button>
   );
-}
+});
+
+FloatingPanelButton.displayName = 'FloatingPanelButton';
 
 interface FloatingPanelSubMenuProps {
   children: React.ReactNode;
@@ -551,64 +581,84 @@ export function FloatingPanelSubMenu({
   title,
 }: FloatingPanelSubMenuProps) {
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [subMenuPosition, setSubMenuPosition] = useState({ top: 0, left: 0 });
+
+  const updateSubMenuPosition = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setSubMenuPosition({
+        top: rect.bottom - rect.height,
+        left: rect.left + window.scrollX - 200,
+      });
+    }
+  };
+
+  // Toggle submenu and update its position
+  const handleToggleSubMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateSubMenuPosition();
+    setIsSubMenuOpen((prev) => !prev);
+  };
+
+  // Close submenu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (isSubMenuOpen) {
+        setIsSubMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isSubMenuOpen]);
 
   return (
     <div className={cn('relative', className)}>
       <FloatingPanelButton
+        ref={triggerRef}
         className='flex w-full items-center justify-between rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsSubMenuOpen(!isSubMenuOpen);
-        }}
+        onClick={handleToggleSubMenu}
       >
         <span>{title}</span>
         <ChevronRight className='size-4' />
       </FloatingPanelButton>
 
-      <AnimatePresence>
-        {isSubMenuOpen && (
+      {isSubMenuOpen &&
+        createPortal(
           <motion.div
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2 }}
-            className='absolute left-full top-0 ml-1'
+            className='fixed z-50' // Use fixed positioning
+            style={{
+              top: subMenuPosition.top,
+              left: subMenuPosition.left,
+            }}
           >
-            <FloatingPanelContent
-              className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
-              side='right'
-            >
-              {/* Close Button */}
-              <button
-                className='absolute right-1 top-1 z-50 rounded-full p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700'
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsSubMenuOpen(false);
-                }}
-              >
-                <X className='size-4' />
-              </button>
-
-              <FloatingPanelBody className='p-1'>{children}</FloatingPanelBody>
-            </FloatingPanelContent>
-          </motion.div>
+            <div className='w-[200px] rounded-[12px] border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'>
+              {/* Submenu Body */}
+              <div className='p-1'>{children}</div>
+            </div>
+          </motion.div>,
+          document.body,
         )}
-      </AnimatePresence>
     </div>
   );
 }
 export {
-  FloatingPanelRoot as Root,
-  FloatingPanelTrigger as Trigger,
-  FloatingPanelContent as Content,
-  FloatingPanelForm as Form,
-  FloatingPanelLabel as Label,
-  FloatingPanelTextarea as Textarea,
-  FloatingPanelHeader as Header,
   FloatingPanelBody as Body,
-  FloatingPanelFooter as Footer,
-  FloatingPanelCloseButton as CloseButton,
-  FloatingPanelSubmitButton as SubmitButton,
   FloatingPanelButton as Button,
+  FloatingPanelCloseButton as CloseButton,
+  FloatingPanelContent as Content,
+  FloatingPanelFooter as Footer,
+  FloatingPanelForm as Form,
+  FloatingPanelHeader as Header,
+  FloatingPanelLabel as Label,
+  FloatingPanelRoot as Root,
   FloatingPanelButton as SubMenu,
+  FloatingPanelSubmitButton as SubmitButton,
+  FloatingPanelTextarea as Textarea,
+  FloatingPanelTrigger as Trigger,
 };

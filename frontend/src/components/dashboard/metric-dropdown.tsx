@@ -1,19 +1,18 @@
 'use client';
 import { DialogTrigger } from '@/components/ui/dialog';
-import { Metric, Project, UserRole } from '@/types';
-import { useContext } from 'react';
-import { toast } from 'sonner';
-import { useConfirm } from '@omit/react-confirm-dialog';
-import { Trash, Copy, Edit } from 'lucide-react'; // Import icons
-import { ProjectsContext } from '@/dash-context';
 import {
-  FloatingPanelRoot,
-  FloatingPanelTrigger,
-  FloatingPanelContent,
   FloatingPanelBody,
   FloatingPanelButton,
-  useFloatingPanel,
+  FloatingPanelContent,
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
 } from '@/components/ui/floating-panel';
+import { ProjectsContext } from '@/dash-context';
+import { Metric, Project, UserRole } from '@/types';
+import { useConfirm } from '@omit/react-confirm-dialog';
+import { Copy, Edit, Trash } from 'lucide-react'; // Import icons
+import { useContext, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function MetricDropdown(props: {
   children: React.ReactNode;
@@ -21,7 +20,7 @@ export default function MetricDropdown(props: {
 }) {
   const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   const confirm = useConfirm();
-  const { closeFloatingPanel } = useFloatingPanel(); // Access closeFloatingPanel from context
+  const [open, setOpen] = useState(false);
 
   const DeleteMetric = async () => {
     const isConfirmed = await confirm({
@@ -85,7 +84,7 @@ export default function MetricDropdown(props: {
   };
 
   return (
-    <FloatingPanelRoot>
+    <FloatingPanelRoot onOpenChange={setOpen} open={open}>
       <FloatingPanelTrigger
         title={props.metric.name} // Use metric name as the title
         className='relative'
@@ -105,7 +104,10 @@ export default function MetricDropdown(props: {
             <DialogTrigger asChild>
               <FloatingPanelButton
                 className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
-                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                onClick={(e: React.MouseEvent) => {
+                  setOpen(false);
+                  e.stopPropagation();
+                }}
               >
                 <Edit className='size-4' /> {/* Edit icon */}
                 <span>Edit</span>
@@ -118,7 +120,7 @@ export default function MetricDropdown(props: {
               navigator.clipboard.writeText(props.metric.id);
               toast.success('Successfully copied metric ID');
               e.stopPropagation();
-              closeFloatingPanel(); // Close the panel after copying
+              setOpen(false);
             }}
           >
             <Copy className='size-4' /> {/* Copy icon */}
@@ -133,6 +135,7 @@ export default function MetricDropdown(props: {
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   DeleteMetric();
+                  setOpen(false);
                 }}
               >
                 <Trash className='size-4' /> {/* Delete icon */}

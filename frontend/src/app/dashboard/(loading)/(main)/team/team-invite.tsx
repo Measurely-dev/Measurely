@@ -16,7 +16,8 @@ import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 import { roleToString } from '@/utils';
 import { UserPlus } from 'lucide-react';
-import { FormEvent, useContext, useState } from 'react';
+import { FormEvent, useContext, useId, useState } from 'react';
+import { AtSign } from 'react-feather';
 import { toast } from 'sonner';
 
 export default function TeamInvite(props: {
@@ -27,6 +28,7 @@ export default function TeamInvite(props: {
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState(UserRole.Guest);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
+  const id = useId();
 
   function inviteUser(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,18 +88,23 @@ export default function TeamInvite(props: {
         </div>
         <Separator className='my-5' />
         <form onSubmit={inviteUser}>
-          <div className='flex w-full flex-col'>
+          <div className='flex w-full flex-row items-end gap-5'>
             <div className='flex w-full flex-row gap-5 max-sm:flex-col'>
               <div className='flex w-full flex-col gap-3'>
-                <Label>Email</Label>
-                <Input
-                  placeholder='jane@exemple.com'
-                  disabled={props.disable}
-                  type='email'
-                  className='h-11 w-full rounded-[12px]'
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <Label htmlFor={id}>Input with start icon</Label>
+                <div className='relative'>
+                  <Input
+                    id={id}
+                    placeholder='Email'
+                    type='email'
+                    className='peer h-11 w-full rounded-[12px] ps-9'
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <div className='pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50'>
+                    <AtSign size={16} strokeWidth={2} aria-hidden='true' />
+                  </div>
+                </div>
               </div>
               <div className='flex flex-col gap-3'>
                 <Label htmlFor='type'>Role</Label>
@@ -138,8 +145,8 @@ export default function TeamInvite(props: {
               </>
             ) : (
               <Button
-                variant='ghost'
-                className='mt-4 w-fit rounded-[12px] !bg-background text-secondary'
+                variant='outline'
+                className='h-11 w-fit rounded-[12px] border !bg-background text-secondary'
                 disabled={
                   props.disable || email === '' || inviteLoading ? true : false
                 }
@@ -147,11 +154,11 @@ export default function TeamInvite(props: {
                 type='submit'
               >
                 {inviteLoading ? (
-                  'Add member'
+                  'Send invite'
                 ) : (
                   <>
                     <UserPlus className='mr-2 size-4' />
-                    Add member
+                    Send invite
                   </>
                 )}
               </Button>
