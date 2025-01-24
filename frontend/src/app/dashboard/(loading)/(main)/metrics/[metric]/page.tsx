@@ -274,13 +274,9 @@ export default function DashboardMetricPage() {
     return null;
   }, [activeProject, projects]);
 
-  const [posDaily, setPosDaily] = useState<number>(0);
-  const [negDaily, setNegDaily] = useState<number>(0);
+  const [daily, setDaily] = useState<number>(0);
   const [average, setAverage] = useState<number>(0);
 
-  const handleUnitChange = (value: string) => {
-    console.log('Selected unit:', value);
-  };
 
   const loadDailyValues = async (metric: Metric) => {
     if (metric === undefined) return;
@@ -303,13 +299,18 @@ export default function DashboardMetricPage() {
       }
 
       if (variation.averagepercentdiff >= 0) {
-        setPosDaily(variation.averagepercentdiff);
-      } else {
-        setNegDaily(-variation.averagepercentdiff);
+        setDaily(variation.averagepercentdiff);
       }
     } else {
-      setPosDaily(variation.pos);
-      setNegDaily(variation.neg);
+      let dailyValue;
+      const previousTotal =
+        metric.total_pos - metric.total_neg - (variation.pos - variation.neg);
+      const variationValue = variation.pos - variation.neg;
+      if (variationValue === 0) dailyValue = 0;
+      else if (previousTotal === 0)
+        dailyValue = variationValue < 0 ? -100 : 100;
+      else dailyValue = (variationValue / previousTotal) * 100;
+      setDaily(dailyValue);
     }
 
     if (
@@ -538,17 +539,23 @@ export default function DashboardMetricPage() {
                 </div>
                 <div>
                   <div className='flex flex-wrap justify-center gap-4'>
-                    <span className='inline-flex items-center gap-x-1 rounded-md bg-green-100 px-2 py-1 text-sm font-semibold text-green-600'>
-                      <ArrowUp className='-ml-0.5 size-4' aria-hidden={true} />
-                      9.3%
-                    </span>
-                    <span className='inline-flex items-center gap-x-1 rounded-md bg-red-100 px-2 py-1 text-sm font-semibold text-red-600'>
-                      <ArrowDown
-                        className='-ml-0.5 size-4'
-                        aria-hidden={true}
-                      />
-                      1.9%
-                    </span>
+                    {daily < 0 ? (
+                      <span className='inline-flex items-center gap-x-1 rounded-md bg-red-100 px-2 py-1 text-sm font-semibold text-red-600'>
+                        <ArrowDown
+                          className='-ml-0.5 size-4'
+                          aria-hidden={true}
+                        />
+                        {daily}%
+                      </span>
+                    ) : (
+                      <span className='inline-flex items-center gap-x-1 rounded-md bg-green-100 px-2 py-1 text-sm font-semibold text-green-600'>
+                        <ArrowUp
+                          className='-ml-0.5 size-4'
+                          aria-hidden={true}
+                        />
+                        {daily}%
+                      </span>
+                    )}
                   </div>
                 </div>
                 {/* {metric?.type === MetricType.Dual ? (

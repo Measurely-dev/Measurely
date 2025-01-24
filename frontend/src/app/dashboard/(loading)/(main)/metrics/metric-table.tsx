@@ -181,7 +181,6 @@ const Item = (props: { metric: Metric; index: number }) => {
       if (variation.relative_event_count === 0) {
         setAverage(0);
       } else {
-        console.log(variation.relative_total_pos, variation.relative_total_neg);
         setAverage(
           (variation.relative_total_pos - variation.relative_total_neg) /
             variation.relative_event_count,
@@ -292,15 +291,15 @@ const Item = (props: { metric: Metric; index: number }) => {
         <TableCell>
           <div className='flex w-full justify-end'>
             <FloatingPanelRoot>
-              <MetricDropdown
-                metric={props.metric}
-              >
+              <MetricDropdown metric={props.metric}>
                 <Button
                   variant={'ghost'}
                   size={'icon'}
                   className='hover:bg-transparent'
                   onClick={(e) => e.stopPropagation()}
-                  disabled={projects[activeProject].user_role === UserRole.Guest}
+                  disabled={
+                    projects[activeProject].user_role === UserRole.Guest
+                  }
                 >
                   <MoreHorizontal className='size-5' />
                 </Button>

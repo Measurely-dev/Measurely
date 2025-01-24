@@ -323,6 +323,7 @@ export const fetchNextEvent = async (
   results: number;
 }> => {
   const from = start === undefined ? new Date() : new Date(start);
+  console.log(from);
   from.setHours(0);
   from.setMinutes(0);
   from.setSeconds(0);
@@ -330,7 +331,7 @@ export const fetchNextEvent = async (
 
   const to = new Date(from);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?project_id=${project_id}&metric_id=${metric_id}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
+    `${process.env.NEXT_PUBLIC_API_URL}/events?project_id=${project_id}&metric_id=${metric_id}&start=${from.toISOString()}&end=${to.toISOString()}&use_next=1`,
     {
       method: 'GET',
       credentials: 'include',

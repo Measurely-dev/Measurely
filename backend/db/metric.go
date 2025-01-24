@@ -307,17 +307,17 @@ func (db *DB) GetMetricEvents(metricId uuid.UUID, start time.Time, end time.Time
 
 	if useNext {
 		query = `
-												SELECT * FROM metric_events
-												WHERE metric_id = $1 AND date > $2
-												ORDER BY date ASC LIMIT 1
-								`
+		SELECT * FROM metric_events
+		WHERE metric_id = $1 AND date > $2
+		ORDER BY date ASC LIMIT 1
+		`
 		rows, err = db.Conn.Query(query, metricId, end)
 	} else {
 		query = `
-												SELECT * FROM metric_events
-												WHERE metric_id = $1 AND date BETWEEN $2 AND $3
-												ORDER BY date ASC
-								`
+		SELECT * FROM metric_events
+		WHERE metric_id = $1 AND date BETWEEN $2 AND $3
+		ORDER BY date ASC
+		`
 		rows, err = db.Conn.Query(query, metricId, start, end)
 	}
 
