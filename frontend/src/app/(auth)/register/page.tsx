@@ -92,7 +92,7 @@ export default function Register() {
               return;
             }
 
-            fetch(process.env.NEXT_PUBLIC_API_URL + '/email-valid', {
+            fetch(process.env.NEXT_PUBLIC_API_URL + '/email_valid', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

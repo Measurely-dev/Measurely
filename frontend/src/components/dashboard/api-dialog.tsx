@@ -69,7 +69,7 @@ export default function ApiDialog(props: {
     });
 
     if (isConfirmed) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/rand-apikey', {
+      fetch(process.env.NEXT_PUBLIC_API_URL + '/rand_apikey', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export default function ApiDialog(props: {
               projects?.map((v, i) =>
                 i === apiIndex
                   ? Object.assign({}, v, {
-                      apikey: data,
+                      api_key: data,
                     })
                   : v,
               ),

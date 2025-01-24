@@ -50,14 +50,14 @@ func (h *Handler) setup_api() {
 	//// ROUTES THAT ARE ONLY AVAILABLE TO THE APPLICATION DOMAIN, PRIVATE CORS
 	privateRouter.Use(privateCors)
 	privateRouter.Post("/waitlist", h.service.JoinWaitlist)
-	privateRouter.Post("/email-valid", h.service.EmailValid)
+	privateRouter.Post("/email_valid", h.service.EmailValid)
 	privateRouter.Post("/login", h.service.Login)
 	privateRouter.Get("/oauth/{provider}", h.service.Oauth)
 	privateRouter.HandleFunc("/callback/{provider}", h.service.Callback)
 	privateRouter.Post("/register", h.service.Register)
 	privateRouter.Post("/logout", h.service.Logout)
-	privateRouter.Post("/forgot-password", h.service.ForgotPassword)
-	privateRouter.Post("/recover-account", h.service.RecoverAccount)
+	privateRouter.Post("/forgot_password", h.service.ForgotPassword)
+	privateRouter.Post("/recover_account", h.service.RecoverAccount)
 	privateRouter.HandleFunc("/webhook", h.service.Webhook)
 
 	// privateRouter.Post("/update-rates", h.service.UpdateRates)

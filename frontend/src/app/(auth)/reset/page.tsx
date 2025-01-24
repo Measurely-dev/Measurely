@@ -126,7 +126,7 @@ export default function PasswordReset() {
                 return;
               }
 
-              fetch(process.env.NEXT_PUBLIC_API_URL + '/recover-account', {
+              fetch(process.env.NEXT_PUBLIC_API_URL + '/recover_account', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

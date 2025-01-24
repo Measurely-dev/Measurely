@@ -406,8 +406,8 @@ function Blocks() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            new_layout: projects[activeProject].blocks.layout,
-            new_labels: projects[activeProject].blocks?.labels,
+            new_layout: projects[activeProject].blocks?.layout ?? [],
+            new_labels: projects[activeProject].blocks?.labels ?? [],
             project_id: projects[activeProject].id,
           }),
         });
@@ -438,7 +438,7 @@ function Blocks() {
       ) : (
         <Sortable
           orientation='vertical'
-          value={projects[activeProject].blocks.layout}
+          value={projects[activeProject].blocks?.layout ?? []}
           strategy={rectSortingStrategy}
           onValueChange={(value) => {
             setProjects(
@@ -456,7 +456,7 @@ function Blocks() {
           overlay={<div className='size-full rounded-[12px] bg-primary/5' />}
         >
           <div className='grid grid-cols-3 gap-4'>
-            {projects[activeProject].blocks.layout.map((block) => (
+            {projects[activeProject].blocks?.layout.map((block) => (
               <IndividualBlock key={block.unique_key} {...block} />
             ))}
           </div>
