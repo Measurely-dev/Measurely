@@ -1,9 +1,11 @@
 'use client';
+
 import DashboardContentContainer from '@/components/dashboard/container';
-import { MetricDatePicker } from '@/components/dashboard/date-picker';
 import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
 import { AreaChart } from '@/components/ui/area-chart';
 import { BarChart } from '@/components/ui/bar-chart';
+import { RangeValue } from '@react-types/shared';
+import { CalendarDate } from '@internationalized/date';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -57,7 +59,6 @@ import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
 import { Metric, MetricType, UserRole } from '@/types';
 import {
-  calculateTrend,
   fetchNextEvent,
   INTERVAL,
   fetchChartData,
@@ -70,7 +71,6 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowUpCircle,
-  Calendar,
   ChevronsUpDown,
   CircleOff,
   Copy,
@@ -95,6 +95,17 @@ import { toast } from 'sonner';
 import FilterManagerDialog from './filter-manager';
 import { PushValueDialog } from '../../push-value';
 import { UnitCombobox } from '@/components/ui/unit-select';
+import { RangeCalendar } from '@/components/ui/calendar-rac';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { DateInput, dateInputStyle } from '@/components/ui/datefield-rac';
+import {
+  DateRangePicker,
+  Group,
+  Popover as AriaPopover,
+  Dialog as AriaDialog,
+  Button as AriaButton,
+  DateValue,
+} from 'react-aria-components';
 
 type AllowedColors =
   | 'blue'
@@ -630,6 +641,7 @@ function Chart(props: {
     from: new Date(),
     to: new Date(),
   });
+
   const [chartData, setChartData] = useState<any[] | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -647,45 +659,22 @@ function Chart(props: {
 
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
-    let data = [];
+    setLoading(true);
 
-    if (activeFilter !== null) {
-      data = await fetchChartData(
-        from,
-        range,
-        activeFilter,
-        activeFilter.project_id,
-        props.type,
-      );
+    const data = await fetchChartData(
+      from,
+      range,
+      activeFilter || props.metric,
+      props.metric.project_id,
+      props.type,
+    );
 
-      const { pos, neg, average, averagepercentdiff } = await loadRangeSummary(
-        data,
-        activeFilter,
-      );
+    const { pos, neg, average, averagepercentdiff } = await loadRangeSummary(
+      data,
+      activeFilter || props.metric,
+    );
 
-      setRangeSummary({ pos, neg, average, averagepercentdiff });
-      if (props.type === 'trend') {
-        data = calculateTrend(data, activeFilter, pos, neg, average);
-      }
-    } else {
-      data = await fetchChartData(
-        from,
-        range,
-        props.metric,
-        props.metric.project_id,
-        props.type,
-      );
-
-      const { pos, neg, average, averagepercentdiff } = await loadRangeSummary(
-        data,
-        props.metric,
-      );
-      setRangeSummary({ pos, neg, average, averagepercentdiff });
-      if (props.type === 'trend') {
-        data = calculateTrend(data, props.metric, pos, neg, average);
-      }
-    }
-
+    setRangeSummary({ pos, neg, average, averagepercentdiff });
     setChartData(data);
     setLoading(false);
     setLoadingLeft(false);
@@ -884,6 +873,49 @@ function Chart(props: {
       clearInterval(interval);
     };
   }, [date?.from, range, year, activeFilter, props.metric]);
+
+  const toRangeValue = (
+    dateRange: DateRange | undefined,
+  ): RangeValue<DateValue> | null => {
+    if (!dateRange?.from || !dateRange?.to) return null;
+
+    // Convert Date to CalendarDate
+    const start = new CalendarDate(
+      dateRange.from.getFullYear(),
+      dateRange.from.getMonth() + 1, // Months are 0-indexed in JavaScript Date
+      dateRange.from.getDate(),
+    );
+
+    const end = new CalendarDate(
+      dateRange.to.getFullYear(),
+      dateRange.to.getMonth() + 1,
+      dateRange.to.getDate(),
+    );
+
+    return {
+      start,
+      end,
+    };
+  };
+
+  const toDateRange = (
+    rangeValue: RangeValue<DateValue> | null,
+  ): DateRange | undefined => {
+    if (!rangeValue?.start || !rangeValue?.end) return undefined;
+
+    return {
+      from: new Date(
+        rangeValue.start.year,
+        rangeValue.start.month - 1,
+        rangeValue.start.day,
+      ),
+      to: new Date(
+        rangeValue.end.year,
+        rangeValue.end.month - 1,
+        rangeValue.end.day,
+      ),
+    };
+  };
   return (
     <>
       <CardHeader className='p-0'>
@@ -900,42 +932,56 @@ function Chart(props: {
         <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1'>
           <div className='flex gap-2'>
             <RangeSelector range={range} setRange={setRange} />
-            <Tooltip delayDuration={300}>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
-                      size={'icon'}
-                    >
-                      <Calendar className='size-4' />
-                    </Button>
-                  </TooltipTrigger>
-                </PopoverTrigger>
-                <PopoverContent
-                  className='w-auto rounded-[16px] p-0'
-                  align='start'
+            <DateRangePicker
+              className='h-[34px] w-fit space-y-2'
+              value={toRangeValue(date)}
+              onChange={(rangeValue) => {
+                const newDateRange = toDateRange(rangeValue);
+                setDate(newDateRange);
+                if (newDateRange?.from) {
+                  loadChart(newDateRange.from);
+                }
+              }}
+            >
+              <div className='flex'>
+                <Group
+                  className={cn(
+                    dateInputStyle,
+                    '!h-full !rounded-[12px] !border-none pe-9 shadow-sm shadow-black/5',
+                  )}
                 >
-                  <MetricDatePicker
-                    selected={date}
-                    onSelect={setDate}
-                    mode='range'
-                    autoFocus
-                    startMonth={new Date(1999, 11)}
-                    endMonth={new Date()}
-                    max={1}
-                    disabled={range >= 365}
-                  />
-                </PopoverContent>
-              </Popover>
-              <TooltipContent
-                side='bottom'
-                sideOffset={5}
-                className='rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary'
+                  <DateInput slot='start' unstyled />
+                  <span
+                    aria-hidden='true'
+                    className='px-2 text-muted-foreground/70'
+                  >
+                    -
+                  </span>
+                  <DateInput slot='end' unstyled />
+                </Group>
+                <AriaButton className='z-10 -me-px -ms-9 flex w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-ring/70'>
+                  <CalendarIcon className='size-5' strokeWidth={2} />
+                </AriaButton>
+              </div>
+              <AriaPopover
+                placement='bottom'
+                className='z-50 rounded-[12px] border border-border bg-background text-popover-foreground shadow-lg shadow-black/5 outline-none data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[entering]:zoom-in-95 data-[exiting]:zoom-out-95 data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2'
+                offset={3}
               >
-                Starting point
-              </TooltipContent>
-            </Tooltip>
+                <AriaDialog className='max-h-[inherit] overflow-auto p-2'>
+                  <RangeCalendar
+                    value={toRangeValue(date)}
+                    onChange={(rangeValue) => {
+                      const newDateRange = toDateRange(rangeValue);
+                      setDate(newDateRange);
+                      if (newDateRange?.from) {
+                        loadChart(newDateRange.from);
+                      }
+                    }}
+                  />
+                </AriaDialog>
+              </AriaPopover>
+            </DateRangePicker>
           </div>
           <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
             <Tooltip delayDuration={300}>
@@ -981,105 +1027,60 @@ function Chart(props: {
               onLeft={() => {
                 if (range >= 365) {
                   const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                  if (new_year < 1999) {
-                    return;
-                  }
+                  if (new_year < 1999) return;
                   setYear(new_year);
                   setLoadingLeft(true);
-                  return;
-                }
-                setDate((prev) => {
-                  if (
-                    prev === undefined ||
-                    prev.from === undefined ||
-                    prev.to === undefined
-                  )
-                    return prev;
-                  const from = new Date(prev.from);
-                  const to = new Date(prev.to);
-                  const toRemove = range;
-                  from.setDate(from.getDate() - toRemove);
-                  to.setDate(to.getDate() - toRemove);
-                  if (to.getFullYear() < 1999) {
-                    return;
-                  }
+                  loadChart(new Date(new_year, 0, 1));
+                } else {
+                  const newFrom = new Date(date?.from || new Date());
+                  newFrom.setDate(newFrom.getDate() - range);
+                  if (newFrom.getFullYear() < 1999) return;
+                  setDate({ from: newFrom, to: date?.to });
                   setLoadingLeft(true);
-                  return {
-                    from: from,
-                    to: prev.to,
-                  };
-                });
+                  loadChart(newFrom);
+                }
               }}
               onRight={() => {
                 if (range >= 365) {
                   const new_year = new Date(year, 1, 0).getFullYear() + 1;
                   const current_year = new Date().getFullYear();
-                  if (new_year > current_year) {
-                    return;
-                  }
+                  if (new_year > current_year) return;
                   setYear(new_year);
                   setLoadingRight(true);
-                  return;
-                }
-
-                setDate((prev) => {
-                  if (
-                    prev === undefined ||
-                    prev.from === undefined ||
-                    prev.to === undefined
-                  )
-                    return prev;
-                  const from = new Date(prev.from);
-                  const to = new Date(prev.to);
-                  const toAdd = range;
-                  from.setDate(from.getDate() + toAdd);
-                  to.setDate(to.getDate() + toAdd);
+                  loadChart(new Date(new_year, 0, 1));
+                } else {
+                  const newFrom = new Date(date?.from || new Date());
+                  newFrom.setDate(newFrom.getDate() + range);
                   const now = new Date();
-                  if (now < to) {
-                    return prev;
-                  }
+                  if (newFrom > now) return;
+                  setDate({ from: newFrom, to: date?.to });
                   setLoadingRight(true);
-                  return {
-                    from: from,
-                    to: prev.to,
-                  };
-                });
+                  loadChart(newFrom);
+                }
               }}
               isLoadingLeft={loadingLeft}
               isLoadingRight={loadingRight}
               isDisabledLeft={useMemo(() => {
                 if (range >= 365) {
-                  const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                  return new_year < 1999;
+                  return new Date(year, 1, 0).getFullYear() - 1 < 1999;
                 } else {
-                  if (date === undefined || date.to === undefined) {
-                    return false;
-                  }
-                  const to = new Date(date.to);
-                  const toAdd = range;
-                  to.setDate(to.getDate() - toAdd);
-                  const result = to.getFullYear() < 1999;
-                  return result;
+                  const newFrom = new Date(date?.from || new Date());
+                  newFrom.setDate(newFrom.getDate() - range);
+                  return newFrom.getFullYear() < 1999;
                 }
-              }, [date, year])}
+              }, [date, year, range])}
               isDisabledRight={useMemo(() => {
                 if (range >= 365) {
-                  const new_year = new Date(year, 1, 0).getFullYear() + 1;
-                  const current_year = new Date().getFullYear();
-
-                  return new_year > current_year;
+                  return (
+                    new Date(year, 1, 0).getFullYear() + 1 >
+                    new Date().getFullYear()
+                  );
                 } else {
-                  if (date === undefined || date.to === undefined) {
-                    return false;
-                  }
-                  const now = new Date();
-                  const to = new Date(date.to);
-                  const toAdd = range;
-                  to.setDate(to.getDate() + toAdd);
-                  const result = now < to;
-                  return result;
+                  const newFrom = new Date(date?.from || new Date());
+                  newFrom.setDate(newFrom.getDate() + range);
+                  return newFrom > new Date();
                 }
-              }, [date, year])}
+              }, [date, year, range])}
             />
             {loading ? (
               <div className='p-1'>
@@ -1127,9 +1128,12 @@ function Chart(props: {
               <Filters
                 metric={props.metric}
                 activeFilter={activeFilter}
-                setActiveFilter={setActiveFilter}
+                setActiveFilter={(filter) => {
+                  setActiveFilter(filter);
+                  loadChart(date?.from || new Date());
+                }}
                 range={range}
-                start={date?.to ?? new Date()}
+                start={date?.to || new Date()}
               />
             </div>
 
@@ -1157,42 +1161,38 @@ function Chart(props: {
                 onValueChange={() => {}}
               />
             ) : (
-              <>
-                <BarChart
-                  className='min-h-[40vh] w-full'
-                  data={chartData}
-                  customTooltip={customTooltip}
-                  index='date'
-                  tabIndex={0}
-                  type={chartType}
-                  colors={
-                    props.metric?.type === MetricType.Dual
-                      ? dualMetricChartConfig.colors
-                      : [chartColor]
-                  }
-                  categories={
-                    props.metric?.type !== MetricType.Dual
-                      ? [
-                          activeFilter !== null
-                            ? activeFilter.name
-                            : (props.metric?.name ?? ''),
-                        ]
-                      : [
-                          props.metric?.name_pos ?? '',
-                          props.metric?.name_neg ?? '',
-                        ]
-                  }
-                  valueFormatter={(number: number) =>
-                    `${Intl.NumberFormat('us').format(number).toString()}`
-                  }
-                  yAxisLabel='Total'
-                  onValueChange={
-                    props.metric?.type === MetricType.Dual
-                      ? () => {}
-                      : undefined
-                  }
-                />
-              </>
+              <BarChart
+                className='min-h-[40vh] w-full'
+                data={chartData}
+                customTooltip={customTooltip}
+                index='date'
+                tabIndex={0}
+                type={chartType}
+                colors={
+                  props.metric?.type === MetricType.Dual
+                    ? dualMetricChartConfig.colors
+                    : [chartColor]
+                }
+                categories={
+                  props.metric?.type !== MetricType.Dual
+                    ? [
+                        activeFilter !== null
+                          ? activeFilter.name
+                          : (props.metric?.name ?? ''),
+                      ]
+                    : [
+                        props.metric?.name_pos ?? '',
+                        props.metric?.name_neg ?? '',
+                      ]
+                }
+                valueFormatter={(number: number) =>
+                  `${Intl.NumberFormat('us').format(number).toString()}`
+                }
+                yAxisLabel='Total'
+                onValueChange={
+                  props.metric?.type === MetricType.Dual ? () => {} : undefined
+                }
+              />
             )}
           </div>
         )}
@@ -1819,18 +1819,34 @@ function RangeSelector(props: {
   setRange: Dispatch<SetStateAction<number>>;
 }) {
   const { projects, activeProject } = useContext(ProjectsContext);
+
+  const handleRangeChange = (value: string) => {
+    const range = parseInt(value);
+
+    // Check if the user is trying to select the 12M option and is on the Starter plan
+    if (
+      range === 365 &&
+      projects[activeProject].plan.name.toLowerCase() === 'starter'
+    ) {
+      toast.warning(
+        'Your current plan allows viewing up to 30 days of data. Upgrade to unlock extended date ranges.',
+      );
+      return; // Prevent changing the range
+    }
+
+    // Update the range if it's different from the current range
+    if (range !== props.range) {
+      props.setRange(range);
+    }
+  };
+
   return (
     <ToggleGroup
       type='single'
-      defaultValue='0'
+      defaultValue='1' // Set to a valid default value
       size={'sm'}
       className='h-[34px] w-fit gap-1 rounded-[10px] bg-background !p-1'
-      onValueChange={(e) => {
-        const value = parseInt(e);
-        if (value !== props.range) {
-          props.setRange(value);
-        }
-      }}
+      onValueChange={handleRangeChange}
       value={props.range.toString()}
     >
       <ToggleGroupItem
@@ -1857,25 +1873,12 @@ function RangeSelector(props: {
       >
         30D
       </ToggleGroupItem>
-      <div
-        onClick={() => {
-          if (projects[activeProject].plan.name.toLowerCase() === 'starter') {
-            toast.warning(
-              'Your current plan allows viewing up to 30 days of data. Upgrade to unlock extended date ranges.',
-            );
-          }
-        }}
+      <ToggleGroupItem
+        value='365'
+        className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
       >
-        <ToggleGroupItem
-          value='365'
-          disabled={
-            projects[activeProject].plan.name.toLowerCase() === 'starter'
-          }
-          className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
-        >
-          12M
-        </ToggleGroupItem>
-      </div>
+        12M
+      </ToggleGroupItem>
     </ToggleGroup>
   );
 }

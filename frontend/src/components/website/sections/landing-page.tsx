@@ -30,7 +30,7 @@ export default function LandingSection(props: {
           }
         />
         <div className='mt-5 flex h-fit flex-col items-center justify-center gap-4'>
-          <h1 className='animate-appear relative z-10 inline-block max-w-[85%] bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-center text-5xl font-semibold leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-8xl md:leading-tight'>
+          <h1 className='animate-appear relative z-10 inline-block w-[85%] max-w-[1150px] bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-center text-5xl font-semibold leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-8xl md:leading-tight'>
             <BlurIn
               duration={0.4}
               word={

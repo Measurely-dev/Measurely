@@ -133,7 +133,7 @@ export default function DashboardContentLayout({
           <Loader className='size-7 animate-spin text-muted-foreground' />
           <div className='inline-flex items-center font-mono text-sm text-muted-foreground'>
             {projectsLoading && activeProjectName
-              ? `Loading ${activeProjectName}`
+              ? `Loading ${activeProjectName.charAt(0).toUpperCase() + activeProjectName.slice(1).toLowerCase()}`
               : 'Loading Measurely'}
           </div>
         </div>

@@ -38,12 +38,30 @@ export default function ProjectsChip() {
   };
 
   const ownedProjects = useMemo(() => {
-    return projects.filter((proj) => proj.user_role === UserRole.Owner);
-  }, [projects]);
+    const filtered = projects.filter(
+      (proj) => proj.user_role === UserRole.Owner,
+    );
+    return filtered.sort((a, b) =>
+      a.id === projects[activeProject].id
+        ? -1
+        : b.id === projects[activeProject].id
+          ? 1
+          : 0,
+    );
+  }, [projects, activeProject]);
 
   const joinedProjects = useMemo(() => {
-    return projects.filter((proj) => proj.user_role !== UserRole.Owner);
-  }, [projects]);
+    const filtered = projects.filter(
+      (proj) => proj.user_role !== UserRole.Owner,
+    );
+    return filtered.sort((a, b) =>
+      a.id === projects[activeProject].id
+        ? -1
+        : b.id === projects[activeProject].id
+          ? 1
+          : 0,
+    );
+  }, [projects, activeProject]);
 
   const badgeClasses: { [key: string]: string } = {
     Owner:
@@ -83,15 +101,22 @@ export default function ProjectsChip() {
               className={`flex w-full cursor-pointer select-none flex-row items-center justify-between rounded-[10px] p-2 py-1.5 capitalize hover:bg-accent/75`}
               onClick={() => handleAppSelect(app.id)}
             >
-              <div className='flex flex-row items-center justify-center gap-2'>
+              <div className='w-6'>
+              <CheckIcon
+                className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
+              />
+              </div>
+              <div className='flex w-full flex-row items-center justify-center gap-2 truncate'>
                 <Avatar className='size-6 border bg-accent'>
                   <AvatarImage src={app.image} />
                   <AvatarFallback>
                     {app.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className='text-[14px] font-medium'>{app.name}</div>
-                <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
+                <div className='flex-1 truncate text-[14px] font-medium'>
+                  {app.name}
+                </div>
+                <div className='my-auto line-clamp-1 h-fit w-fit items-center font-mono text-[15px]'>
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClasses[roleToString(app.user_role)]}`}
                   >
@@ -99,9 +124,6 @@ export default function ProjectsChip() {
                   </span>
                 </div>
               </div>
-              <CheckIcon
-                className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
-              />
             </div>
           ))}
           {joinedProjects.map((app) => (

@@ -236,7 +236,7 @@ export default function SettingProjectPage() {
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </div>{' '}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
