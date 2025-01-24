@@ -9,7 +9,14 @@ import AuthNavbar from '@/components/website/auth-navbar';
 import Footer from '@/components/website/footer';
 import { ProjectsContext } from '@/dash-context';
 import { useRouter } from 'next/navigation';
-import { Dispatch, useContext, useEffect, useId, useState } from 'react';
+import {
+  Dispatch,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
 import { useCharacterLimit } from '@/lib/character-limit';
@@ -110,6 +117,7 @@ function Step1({
   setName: Dispatch<React.SetStateAction<string>>;
 }) {
   const { nextStep } = useStepper();
+  const { projects } = useContext(ProjectsContext);
   const maxLength = 20; // Character limit for the project name
   const id = useId(); // Unique ID for accessibility
   const {
@@ -129,6 +137,10 @@ function Step1({
     handleCharacterLimitChange(e); // Update character limit
     setName(e.target.value); // Update name state
   };
+
+  const exists = useMemo(() => {
+    return projects.some((project) => project.name === value.trim());
+  }, [value]);
 
   return (
     <div className='flex flex-col gap-[5px] md:mt-5'>
@@ -164,7 +176,7 @@ function Step1({
         <Button
           className='w-fit rounded-[12px]'
           onClick={nextStep}
-          disabled={value === ''}
+          disabled={value === '' || exists}
         >
           Next
         </Button>

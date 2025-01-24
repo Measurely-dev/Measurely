@@ -283,6 +283,7 @@ export default function DashboardMetricPage() {
   };
 
   const loadDailyValues = async (metric: Metric) => {
+    if (metric === undefined) return;
     const variation = await fetchEventVariation(metric.project_id, metric.id);
 
     if (metric.type === MetricType.Average) {

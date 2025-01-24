@@ -278,11 +278,6 @@ export const fetchChartData = async (
 
   for (let i = 0; i < tmpData.length; i++) {
     tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    // if ((range === 1 || range === 7) && chart_type === 'trend') {
-    //   tmpData[i].tooltiplabel +=
-    //     ' ' + parseXAxis(tmpData[i].date, range === 1 ? 0 : 1);
-    // }
-
     let matches = false;
     if (lastDate !== undefined) {
       if (range === 1) {
@@ -581,9 +576,11 @@ export const calculateTrend = (
           ] !== undefined
         ) {
           trend[i][metric.name] = total_pos;
+          trend[i]['Positive Trend'] = total_pos;
         }
         if (trend[i][metric.name_neg] !== undefined) {
           trend[i][metric.name] -= total_neg;
+          trend[i]['Negative Trend'] = total_neg;
         }
       }
     }

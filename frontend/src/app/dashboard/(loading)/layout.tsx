@@ -121,7 +121,7 @@ export default function DashboardContentLayout({
     setActiveProjectName(projects[activeProject].name);
     setTimeout(() => {
       setProjectsLoading(false);
-    }, 200);
+    }, 400);
     localStorage.setItem('activeProject', activeProject.toString());
   }, [activeProject]);
 

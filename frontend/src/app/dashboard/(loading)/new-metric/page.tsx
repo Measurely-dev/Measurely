@@ -323,7 +323,7 @@ function Step3({ metricData }: { metricData: any }) {
         base_value: baseValue,
         type,
         name_pos: namePos,
-        nameneg: nameNeg,
+        name_neg: nameNeg,
         unit,
       }),
     });
@@ -445,16 +445,15 @@ function BasicAverageStep(props: {
   // Combined change handler
   const handleInputChange = (e: any) => {
     handleCharacterLimitChange(e); // Update character limit
-    setName(e.target.value); // Update name state
   };
 
   const handleNext = () => {
     props.setMetricData({
-      name: value, // Use value from useCharacterLimit
+      name,
       baseValue,
       type: props.type,
-      namePos: 'added',
-      nameNeg: 'removed',
+      namePos: '',
+      nameNeg: '',
     });
     nextStep();
   };
