@@ -103,13 +103,13 @@ export default function PricingCardsSection(props: {
     <>
       <WebPageHeader
         title={
-          <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
+          <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-transparent'>
             Pricing
           </span>
         }
         description='Use Measurely for free to track your metrics. Upgrade to enable unlimited team members, more events, and additional features.'
-        className='mx-auto mb-8 max-w-[650px]'
-        descriptionClassName='!text-lg text-primary'
+        className='mx-auto mb-10 max-w-[650px]'
+        descriptionClassName='!text-md text-muted-foreground max-w-[500px] mx-auto'
       />
       <PricingOptions
         billingPeriod={billingPeriod}
@@ -120,13 +120,13 @@ export default function PricingCardsSection(props: {
         type={optionType}
       />
       <div
-        className={`grid grid-cols-3 gap-[10px] max-lg:grid-cols-1 ${window_width > 768 ? 'mt-5' : ''}`}
+        className={`grid grid-cols-3 max-lg:grid-cols-1 max-lg:gap-[10px] ${window_width > 768 ? 'mt-10' : ''}`}
       >
         {plans.map((plan, i) => {
           const isStarter = plan.name === 'Starter';
           return (
             <WebPricingCard
-              className={plan.name === 'Plus' ? '' : 'lg:scale-95'}
+              className={`lg:first:rounded-e-none lg:first:border-r-0 lg:last:rounded-s-none lg:last:border-l-0 ${plan.name === 'Plus' ? 'lg:z-10 lg:scale-105 lg:bg-background lg:shadow-xl' : ''}`}
               key={i}
               sliderValue={getEventAmount(sliderValue[0])}
               name={plan.name}

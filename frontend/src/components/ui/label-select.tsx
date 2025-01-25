@@ -3,12 +3,7 @@
 import * as React from 'react';
 import { Check, ChevronsUpDown, Edit, Trash } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion-base';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +45,7 @@ import { toast } from 'sonner';
 import { Dispatch, SetStateAction, useContext, useRef, useState } from 'react';
 import { ProjectsContext } from '@/dash-context';
 import { LabelType, Project } from '@/types';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './accordion';
 
 export function LabelSelect(props: {
   selectedLabel: string;

@@ -13,6 +13,7 @@ import {
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { Plus } from 'lucide-react';
 import { PricingQuestion } from '@/components/global/faq-questions';
+import PricingComparasionSection from '@/components/website/sections/pricing-comparaison-section';
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -25,11 +26,12 @@ export default function Pricing() {
   const is_authentificated = headersList.get('is-authentificated');
   return (
     <WebContainer className='w-full max-w-full'>
-      <ContentContainer type='page' className='w-[90%] max-w-[90%] pt-[150px]'>
+      <ContentContainer type='page' className='w-[90%] pt-[150px]'>
         <PricingCardsSection
           type='waitlist'
           isAuthentificated={is_authentificated}
         />
+        <PricingComparasionSection />
         <div className='mt-[145px] pt-12'>
           <WebTitle subtitle='FAQ' title={`Frequently Asked Questions`} />
           <div className='mt-[70px] flex w-full items-start justify-center'>

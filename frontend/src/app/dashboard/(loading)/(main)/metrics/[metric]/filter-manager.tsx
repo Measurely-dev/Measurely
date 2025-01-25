@@ -1,10 +1,5 @@
 'use client';
 import {
-  Accordion,
-  AccordionItem,
-  AccordionContent,
-} from '@/components/ui/accordion-base';
-import {
   Edit2,
   MoreHorizontal,
   Plus,
@@ -39,6 +34,7 @@ import { TagInput } from 'emblor';
 import { Metric } from '@/types';
 import { toast } from 'sonner';
 import { ProjectsContext } from '@/dash-context';
+import { Accordion, AccordionContent, AccordionItem } from '@/components/ui/accordion';
 
 export default function FilterManagerDialog(props: {
   open: boolean;

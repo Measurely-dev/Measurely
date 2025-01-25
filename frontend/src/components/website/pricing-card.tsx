@@ -38,7 +38,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
   return (
     <div
       {...additionalProps}
-      className={`relative flex w-full flex-col gap-[10px] rounded-[30px] bg-accent px-[30px] py-[50px] ${className} ${popular ? 'rounded-tl-2xl' : ''}`}
+      className={`relative flex w-full flex-col gap-[10px] shadow-sm shadow-black/5 rounded-[16px] border px-[30px] py-[50px] ${className} ${popular ? 'rounded-tl-2xl' : ''}`}
     >
       {popular ? (
         <div className='absolute -left-[8px] -top-[8px] flex items-center gap-2 rounded-[20px] rounded-bl-none rounded-br-[12px] rounded-tr-none border border-purple-200 bg-purple-50 px-2.5 py-1.5'>
@@ -96,7 +96,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
                 <div className='flex flex-row items-center gap-[10px]'>
                   <div className='text-sm font-medium text-secondary'>
                     Up to{' '}
-                    <span className='mx-1 rounded-[6px] bg-background px-2 py-1 font-mono text-base font-bold text-primary'>
+                    <span className='mx-1 rounded-[6px] bg-accent px-2 py-1 font-mono text-base font-bold text-primary'>
                       {sliderValue}
                     </span>{' '}
                     events per month
@@ -112,7 +112,7 @@ const WebPricingCard: React.FC<WebPricingCardProps> = ({
         {list?.map((listItem, i) => {
           return (
             <div className='flex flex-row items-center gap-[10px]' key={i}>
-              <div className='flex size-[20px] min-h-[20px] min-w-[20px] items-center justify-center rounded-[6px] bg-background'>
+              <div className='flex size-[20px] min-h-[20px] min-w-[20px] items-center justify-center rounded-[6px] bg-accent'>
                 <CheckIcon className='size-[14px] text-secondary' />
               </div>
               <div className='text-sm font-medium text-secondary'>

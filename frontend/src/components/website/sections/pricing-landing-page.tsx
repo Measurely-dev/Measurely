@@ -50,7 +50,7 @@ export default function SubscriptionUiSection(props: {
     }
   };
   return (
-    <div className='mt-[145px] border shadow-sm shadow-black/5 rounded-3xl bg-background p-8 pt-12'>
+    <div className='mt-[145px] pt-12'>
       <WebPageHeader
         title={
           <span>
@@ -64,12 +64,13 @@ export default function SubscriptionUiSection(props: {
         }
         description=''
       />
-      <div className='mt-[20px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
+      <div className='mt-[40px] grid grid-cols-3 max-md:mt-[20px] max-md:grid-cols-1 max-md:gap-3'>
         {plans.map((plan, i) => {
           return (
             <WebPricingCard
               key={i}
               name={plan.name}
+              className={`md:first:rounded-e-none md:first:border-r-0 md:last:rounded-s-none md:last:border-l-0 ${plan.name === 'Plus' ? 'md:z-10 md:scale-105 md:bg-background md:shadow-xl' : ''}`}
               description={plan.description}
               price={plan.price}
               recurrence={plan.reccurence}

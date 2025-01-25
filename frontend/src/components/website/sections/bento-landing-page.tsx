@@ -20,7 +20,6 @@ import * as AccordionPrimitive from '@radix-ui/react-accordion';
 
 import { Plus } from 'lucide-react';
 import { Question } from '@/components/global/faq-questions';
-import { CodeComparison } from '@/components/ui/code-comparaison';
 export default function BentoUiSection(props: {
   isAuthentificated: string | null;
   type: 'default' | 'waitlist';
@@ -40,53 +39,6 @@ export default function BentoUiSection(props: {
   }, []);
 
   const bentoBoxType = window_width > 768 ? 'horizontal-left' : 'vertical';
-
-  const beforeCode = `// Manually track a metric without Measurely
-  const trackMetric = async (metricIdentifier, value, filters) => {
-    const apiUrl = 'https://your-backend-api.com/metrics';
-    const payload = { metricIdentifier, value, filters };
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer your-api-key-here',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error(\`HTTP error! Status: \${response.status}\`);
-      const result = await response.json();
-      console.log('Metric captured successfully:', result.message);
-      return { success: true, message: result.message };
-    } catch (error) {
-      console.error('Failed to capture metric:', error.message);
-      return { success: false, message: error.message };
-    }
-  };
-
-  // Example usage
-  trackMetric('metric-identifier', 10, { environment: 'staging' })
-    .then((result) => {
-      if (result.success) console.log('Metric tracked successfully!');
-      else console.error('Failed to track metric.');
-    });`;
-
-  const afterCode = `import Measurely from 'measurely-js';
-
-  // Initialize Measurely
-  Measurely.init('your-api-key-here');
-
-  // Track a metric with Measurely
-  Measurely.capture('metric-identifier', {
-    value: 10,
-    filters: { environment: 'staging' },
-  }).then((result) => {
-    if (result.success) console.log('Metric captured successfully:', result.message);
-    else console.error('Failed to capture metric:', result.message);
-  });`;
-
   return (
     <div className='z-10 w-screen bg-background pb-[150px]'>
       <ContentContainer>
@@ -118,19 +70,6 @@ export default function BentoUiSection(props: {
           title='Multiple Metric Types'
           description='Track both single and dual metrics. Single metrics monitor growth, while dual metrics capture positive and negative trends for deeper analysis.'
           img={Image2}
-        />
-        <WebTitle
-          subtitle='Code Less, Track More'
-          className='mb-[70px] mt-[145px] max-md:hidden'
-          title='Save Time with Measurely'
-        />
-        <CodeComparison
-          beforeCode={beforeCode}
-          afterCode={afterCode}
-          language='typescript'
-          filename='middleware.ts'
-          lightTheme='github-light'
-          darkTheme='github-dark'
         />
         <SubscriptionUiSection
           type={props.type}

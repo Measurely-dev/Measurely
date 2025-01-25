@@ -35,8 +35,6 @@ const Slider = React.forwardRef<
       defaultValue,
       onValueChange,
     } = props;
-    const [hoveredThumbIndex, setHoveredThumbIndex] =
-      React.useState<boolean>(false);
     const numberOfSteps = Math.floor((max - min) / step);
     const stepLines = Array.from(
       { length: numberOfSteps },
@@ -105,8 +103,6 @@ const Slider = React.forwardRef<
         value={localValues}
         onValueChange={(value) => handleValueChange(value)}
         {...props}
-        onFocus={() => setHoveredThumbIndex(true)}
-        onBlur={() => setHoveredThumbIndex(false)}
       >
         <SliderPrimitive.Track
           className={cn(
@@ -117,7 +113,7 @@ const Slider = React.forwardRef<
         >
           <SliderPrimitive.Range
             className={cn(
-              'absolute animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400',
+              'absolute bg-primary',
               "data-[orientation='horizontal']:h-full",
               "data-[orientation='vertical']:w-full",
             )}
