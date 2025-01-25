@@ -111,7 +111,7 @@ export default function AuthForm(props: {
         props.action(formData);
       }}
     >
-      <div className='flex w-[500px] flex-col gap-[10px] rounded-[30px] bg-accent p-[30px]'>
+      <div className='flex w-[500px] flex-col gap-[10px] rounded-[16px] border shadow-sm shadow-black/5 bg-accent p-[30px]'>
         <div
           className={`${props.description ? '' : 'mb-5'} text-2xl font-medium`}
         >
@@ -127,7 +127,7 @@ export default function AuthForm(props: {
               return (
                 <div
                   key={provider.type}
-                  className='flex w-full cursor-pointer items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium hover:opacity-70 active:scale-[0.98] active:opacity-60'
+                  className='flex w-full cursor-pointer shadow-sm shadow-black/5 items-center justify-center gap-[10px] rounded-[12px] bg-background py-[10px] text-[14px] font-medium hover:opacity-70 active:scale-[0.98] active:opacity-60'
                   onClick={() => {
                     router.push(
                       `${process.env.NEXT_PUBLIC_API_URL}/oauth/${provider.name.toLowerCase()}?state=auth.`,
