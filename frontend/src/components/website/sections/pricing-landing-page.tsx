@@ -64,7 +64,7 @@ export default function SubscriptionUiSection(props: {
         }
         description=''
       />
-      <div className='mt-[40px] grid grid-cols-3 max-md:mt-[20px] max-md:grid-cols-1 max-md:gap-3'>
+      <div className='mt-[60px] grid grid-cols-3 max-md:mt-[20px] max-md:grid-cols-1 max-md:gap-3'>
         {plans.map((plan, i) => {
           return (
             <WebPricingCard

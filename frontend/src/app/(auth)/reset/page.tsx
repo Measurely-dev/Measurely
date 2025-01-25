@@ -42,7 +42,7 @@ export default function PasswordReset() {
       <ContentContainer type='page'>
         {view === 0 ? (
           <AuthForm
-            title='Email'
+            title='Forgot password?'
             description='Please enter the email address linked to your account'
             providers={false}
             form={[
