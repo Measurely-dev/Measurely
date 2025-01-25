@@ -96,9 +96,8 @@ export default function MetricTable(props: { search: string; filter: string }) {
           />
         ) : (
           <>
-            <Table className='overflow-hidden rounded-[16px]'>
-              <TableCaption>A list of your metrics.</TableCaption>
-              <TableHeader>
+            <Table className='overflow-hidden'>
+              <TableHeader className=''>
                 <TableRow className='bg-accent/60'>
                   <TableHead colSpan={2}>Metric</TableHead>
                   <TableHead colSpan={1.5} className='text-nowrap'>
@@ -128,6 +127,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 </TableRow>
               </TableFooter>
             </Table>
+            <TableCaption>A list of your metrics.</TableCaption>
           </>
         )}
       </div>

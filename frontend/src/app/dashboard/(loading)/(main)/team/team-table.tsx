@@ -128,8 +128,8 @@ export const TeamTable = (props: { members: User[] }) => {
   }, [currentPage, totalPages]);
   return (
     <>
-      <div className='flex flex-row items-center gap-4'>
-        <div className='flex w-full flex-row items-center gap-2 rounded-[12px] bg-accent pl-[12px] shadow-sm shadow-black/5'>
+      <div className='mb-2.5 flex flex-row items-center gap-4'>
+        <div className='flex w-full flex-row items-center gap-2 rounded-[12px] border pl-[12px] shadow-sm shadow-black/5'>
           <Search className='size-[18px] text-secondary' />
           <Input
             className='h-[40px] w-full rounded-none border-none bg-transparent px-0 shadow-none !ring-0'
@@ -144,12 +144,11 @@ export const TeamTable = (props: { members: User[] }) => {
         <EmptyState
           title='No Results Found'
           description='Try adjusting your search filters.'
-          className='mt-2.5'
           icons={[Search, FileQuestion]}
         />
       ) : (
         <>
-          <Table className='mt-2.5 overflow-hidden rounded-[16px]'>
+          <Table className='overflow-hidden rounded-[16px]'>
             <TableHeader>
               <TableRow className='bg-accent/60'>
                 <TableHead colSpan={2}>Member</TableHead>
@@ -334,7 +333,7 @@ function FiltersComponent(props: {
         }
       }}
     >
-      <SelectTrigger className='w-[220px] min-w-[220px] border-none bg-accent max-md:w-full'>
+      <SelectTrigger className='w-[220px] min-w-[220px] max-md:w-full'>
         <SelectValue placeholder='Select role' />
       </SelectTrigger>
       <SelectContent>

@@ -22,32 +22,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import customTooltip from '@/components/ui/custom-tooltip';
-import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Tooltip,
@@ -57,12 +33,20 @@ import {
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { cn } from '@/lib/utils';
-import { Metric, MetricType, UserRole } from '@/types';
+import {
+  AllowedColors,
+  ChartColors,
+  DualMetricChartColors,
+  Metric,
+  MetricType,
+  UserRole,
+} from '@/types';
 import {
   fetchNextEvent,
   INTERVAL,
   fetchChartData,
   fetchEventVariation,
+  valueFormatter,
 } from '@/utils';
 import { Dialog } from '@/components/ui/dialog';
 import {
@@ -71,8 +55,6 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowUpCircle,
-  ChevronsUpDown,
-  CircleOff,
   Copy,
   Edit,
   ListFilter,
@@ -83,7 +65,6 @@ import { useRouter, useParams } from 'next/navigation';
 import {
   cloneElement,
   Dispatch,
-  ReactNode,
   SetStateAction,
   useContext,
   useEffect,
@@ -106,99 +87,9 @@ import {
   Button as AriaButton,
   DateValue,
 } from 'react-aria-components';
-
-type AllowedColors =
-  | 'blue'
-  | 'red'
-  | 'green'
-  | 'pink'
-  | 'gray'
-  | 'fuchsia'
-  | 'cyan'
-  | 'violet'
-  | 'lime'
-  | 'purple'
-  | 'orange'
-  | 'yellow'
-  | 'indigo'
-  | 'magenta'
-  | 'teal'
-  | 'amber'
-  | 'rose'
-  | 'sky'
-  | 'emerald'
-  | 'coral'
-  | 'mint';
-
-interface ChartColors {
-  blue: string;
-  red: string;
-  green: string;
-  pink: string;
-  gray: string;
-  fuchsia: string;
-  cyan: string;
-  violet: string;
-  lime: string;
-  purple: string;
-  orange: string;
-  yellow: string;
-  indigo: string;
-  magenta: string;
-  teal: string;
-  amber: string;
-  rose: string;
-  sky: string;
-  emerald: string;
-  coral: string;
-  mint: string;
-}
-interface DualMetricChartColors {
-  default: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  cool: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  warm: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  contrast: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  soft: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  vibrant: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  neutral: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  pastel: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  sunset: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  ocean: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-  forest: {
-    positive: AllowedColors;
-    negative: AllowedColors;
-  };
-}
+import Filters from './filters';
+import AdvancedOptions from './advanced-options';
+import { Separator } from '@/components/ui/separator';
 
 const dualMetricChartColors: DualMetricChartColors = {
   default: {
@@ -255,10 +146,6 @@ function getDualMetricChartColors(
   return [selectedColors.positive, selectedColors.negative];
 }
 
-const valueFormatter = (number: number) => {
-  return Intl.NumberFormat('us').format(number).toString();
-};
-
 export default function DashboardMetricPage() {
   const router = useRouter();
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -287,7 +174,6 @@ export default function DashboardMetricPage() {
 
   const [daily, setDaily] = useState<number>(0);
   const [average, setAverage] = useState<number>(0);
-
 
   const loadDailyValues = async (metric: Metric) => {
     if (metric === undefined) return;
@@ -441,7 +327,7 @@ export default function DashboardMetricPage() {
         pushValueOpen={pushValueOpen}
         setPushValueOpen={setPushValueOpen}
       />
-      <Card className='mt-5 rounded-[12px] border-none bg-background'>
+      <Card className='mt-5 rounded-[12px] border-none bg-background shadow-none'>
         <CardContent className='p-0'>
           <div className='grid grid-cols-4 gap-5 rounded-[10px] max-lg:grid-cols-2 max-md:grid-cols-1'>
             {[
@@ -495,7 +381,7 @@ export default function DashboardMetricPage() {
                     opacity: isDisabled ? 0.5 : 1,
                     pointerEvents: isDisabled ? 'none' : 'auto',
                   }}
-                  className={`group flex cursor-pointer select-none overflow-hidden rounded-[12px] border p-1 transition-all duration-150 active:scale-[.98]`}
+                  className={`group flex cursor-pointer select-none overflow-hidden rounded-[12px] border p-1 shadow-sm shadow-black/5 transition-all duration-150 active:scale-[.98]`}
                 >
                   <div
                     style={{ backgroundColor: `${color}0F` }}
@@ -551,7 +437,7 @@ export default function DashboardMetricPage() {
                 <div>
                   <div className='flex flex-wrap justify-center gap-4'>
                     {daily < 0 ? (
-                      <span className='inline-flex items-center gap-x-1 rounded-md bg-red-100 px-2 py-1 text-sm font-semibold text-red-600'>
+                      <span className='inline-flex items-center gap-x-1 rounded-md border border-red-200 bg-red-100 px-2 py-1 text-sm font-semibold text-red-600'>
                         <ArrowDown
                           className='-ml-0.5 size-4'
                           aria-hidden={true}
@@ -559,7 +445,7 @@ export default function DashboardMetricPage() {
                         {daily}%
                       </span>
                     ) : (
-                      <span className='inline-flex items-center gap-x-1 rounded-md bg-green-100 px-2 py-1 text-sm font-semibold text-green-600'>
+                      <span className='inline-flex items-center gap-x-1 rounded-md border border-green-200 bg-green-100 px-2 py-1 text-sm font-semibold text-green-600'>
                         <ArrowUp
                           className='-ml-0.5 size-4'
                           aria-hidden={true}
@@ -569,45 +455,6 @@ export default function DashboardMetricPage() {
                     )}
                   </div>
                 </div>
-                {/* {metric?.type === MetricType.Dual ? (
-=======
-                {metric?.type === MetricType.Average ? (
-                  <>{valueFormatter(average)}</>
-                ) : (
-                  <>
-                    {valueFormatter(
-                      (metric?.total_pos ?? 0) - (metric?.total_neg ?? 0),
-                    )}
-                  </>
-                )}
-                {metric?.type === MetricType.Dual ? (
->>>>>>> feat-planperproject
-                  <>
-                    <div className='flex flex-col gap-1'>
-                      <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                        +{valueFormatter(posDaily)}
-                      </div>
-                      <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-sm text-red-500'>
-                        -{valueFormatter(negDaily)}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className='flex flex-col gap-1'>
-                      <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-sm text-green-500'>
-                        {metric?.type === MetricType.Average ? (
-                          <>
-                            {posDaily - negDaily >= 0 ? '+' : '-'}
-                            {valueFormatter(posDaily - negDaily)}%
-                          </>
-                        ) : (
-                          <>+{valueFormatter(posDaily)}</>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )} */}
               </div>
             </div>
           </div>
@@ -929,7 +776,7 @@ function Chart(props: {
         </CardDescription>
       </CardHeader>
       <div className='mb-5 overflow-x-auto'>
-        <div className='mt-5 flex w-fit flex-row items-center gap-2 rounded-[12px] bg-accent p-1'>
+        <div className='mt-5 flex w-fit flex-row items-center gap-2'>
           <div className='flex gap-2'>
             <RangeSelector range={range} setRange={setRange} />
             <DateRangePicker
@@ -947,7 +794,7 @@ function Chart(props: {
                 <Group
                   className={cn(
                     dateInputStyle,
-                    '!h-full !rounded-[12px] !border-none pe-9 shadow-sm shadow-black/5',
+                    '!h-full !rounded-[12px] pe-9 shadow-sm shadow-black/5',
                   )}
                 >
                   <DateInput slot='start' unstyled />
@@ -1008,7 +855,7 @@ function Chart(props: {
                 <TooltipTrigger asChild>
                   <Button
                     size={'icon'}
-                    className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+                    className='h-[34px] rounded-[12px] border-input !bg-background !text-primary hover:opacity-50'
                   >
                     <Sliders className='size-4' />
                   </Button>
@@ -1095,7 +942,7 @@ function Chart(props: {
         {chartData === null ? (
           <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg bg-accent' />
         ) : (
-          <div className='mt-2 w-full min-w-[600px] rounded-lg bg-accent p-5'>
+          <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent p-5 shadow-sm shadow-black/5'>
             <div className='flex w-full items-center justify-between gap-5'>
               <div className='flex flex-col'>
                 <div className='text-md text-secondary'>
@@ -1201,559 +1048,6 @@ function Chart(props: {
   );
 }
 
-function Filters(props: {
-  metric: Metric | null | undefined;
-  activeFilter: Metric | null;
-  setActiveFilter: Dispatch<SetStateAction<Metric | null>>;
-  range: number;
-  start: Date;
-}) {
-  const [filters, setFilters] = useState<{ [category: string]: any[] }>({});
-
-  const updateFilters = async () => {
-    const end = new Date(props.start);
-    end.setDate(end.getDate() + (props.range - 1));
-    const categories = Object.keys(props.metric?.filters ?? []);
-
-    const finalFilters: { [category: string]: any[] } = {};
-
-    await Promise.all(
-      categories.map(async (category) => {
-        const filters = props.metric?.filters[category] ?? [];
-        const updatedFilters = await Promise.all(
-          filters.map(async (filter: any) => {
-            const { pos, neg } = await fetchEventVariation(
-              filter.project_id,
-              filter.id,
-              props.start,
-              end,
-            );
-
-            return {
-              ...filter,
-              summary: pos - neg,
-            };
-          }),
-        );
-
-        finalFilters[category] = updatedFilters.sort(
-          (a, b) => b.summary - a.summary,
-        );
-      }),
-    );
-
-    setFilters(finalFilters);
-  };
-
-  useEffect(() => {
-    updateFilters();
-  }, [props.metric, props.range, props.start]);
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          role='combobox'
-          className='w-[250px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
-        >
-          {props.activeFilter !== null
-            ? props.activeFilter.name.charAt(0).toUpperCase() +
-              props.activeFilter.name.slice(1).toLowerCase()
-            : 'Select a filter'}
-          <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className='mr-10 w-fit min-w-[340px] max-w-[500px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
-        <Command>
-          <CommandInput placeholder='Search filters...' />
-          <CommandList>
-            <CommandEmpty className='flex w-full flex-col items-center justify-center py-5'>
-              <div className='relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500'>
-                <CircleOff className='h-6 w-6 text-muted-foreground' />
-              </div>
-              <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
-                No filter to show at the moment
-                <br />
-                <a
-                  href='/docs/features/filters'
-                  className='cursor-pointer text-blue-500 underline'
-                >
-                  How to create one
-                </a>
-              </h2>
-            </CommandEmpty>
-            {props.metric?.filters ? (
-              <CommandGroup>
-                <CommandItem
-                  className='truncate rounded-[10px]'
-                  onSelect={() => props.setActiveFilter(null)}
-                >
-                  {!props.activeFilter ? (
-                    <div
-                      className={cn(
-                        'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
-                      )}
-                    />
-                  ) : (
-                    <div
-                      className={cn(
-                        'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
-                      )}
-                    />
-                  )}
-                  None
-                </CommandItem>
-              </CommandGroup>
-            ) : null}
-
-            {Object.keys(filters).map((filterCategory: string) => {
-              return (
-                <>
-                  <CommandGroup
-                    key={filterCategory}
-                    heading={
-                      filterCategory.charAt(0).toUpperCase() +
-                      filterCategory.slice(1).toLowerCase()
-                    }
-                  >
-                    {filters[filterCategory].map((filter) => {
-                      return (
-                        <CommandItem
-                          key={filter.id}
-                          className='truncate rounded-[10px]'
-                          value={filter.name}
-                          onSelect={(value) => {
-                            if (props.activeFilter?.id === filter.id) {
-                              props.setActiveFilter(null);
-                            } else {
-                              const metric = props.metric?.filters[
-                                filterCategory
-                              ].find((m) => m.name === value);
-                              props.setActiveFilter(metric ?? null);
-                            }
-                          }}
-                        >
-                          {props.activeFilter?.id === filter.id ? (
-                            <div
-                              className={cn(
-                                'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
-                              )}
-                            />
-                          ) : (
-                            <div
-                              className={cn(
-                                'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
-                              )}
-                            />
-                          )}
-                          <div className='text-medium flex w-full gap-1 truncate capitalize'>
-                            {filter.summary === 0 ? (
-                              <div className='h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500'>
-                                0
-                              </div>
-                            ) : filter.summary > 0 ? (
-                              <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500'>
-                                +{valueFormatter(filter.summary)}
-                              </div>
-                            ) : (
-                              <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-xs text-red-500'>
-                                -{valueFormatter(filter.summary)}
-                              </div>
-                            )}
-
-                            <div className='w-full truncate'>{filter.name}</div>
-                          </div>
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                </>
-              );
-            })}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function AdvancedOptions(props: {
-  chartName: string;
-  metricId: string;
-  metricType: MetricType;
-  children: ReactNode;
-  chartType: string;
-  chartColor: string;
-  filters: {
-    [category: string]: Metric[];
-  };
-  activeFilter: Metric | null;
-  setActiveFilter: Dispatch<SetStateAction<Metric | null>>;
-  dualMetricChartColor?: string;
-  splitTrendChecked?: boolean;
-  setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;
-  setChartColor: Dispatch<SetStateAction<keyof ChartColors>>;
-  setDualMetricChartColor?: Dispatch<
-    SetStateAction<keyof DualMetricChartColors>
-  >;
-  setSplitTrendChecked?: Dispatch<SetStateAction<boolean>>;
-}) {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  useEffect(() => {
-    const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
-    let name = props.metricId + props.chartName;
-    if (props.chartName === 'trend' && props.splitTrendChecked) {
-      name += 'dual';
-    }
-    if (!settings[name]) return;
-    if (settings[name].chartType) {
-      props.setChartType(
-        settings[name].chartType as 'stacked' | 'percent' | 'default',
-      );
-    }
-
-    if (settings[name].chartColor) {
-      if (props.dualMetricChartColor && props.setDualMetricChartColor) {
-        props.setDualMetricChartColor(
-          settings[name].chartColor as keyof DualMetricChartColors,
-        );
-      } else {
-        props.setChartColor(settings[name].chartColor as keyof ChartColors);
-      }
-    }
-  }, [props.splitTrendChecked]);
-
-  useEffect(() => {
-    const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
-    let name = props.metricId + props.chartName;
-    if (props.chartName === 'trend' && props.splitTrendChecked) {
-      name += 'dual';
-    }
-    if (!settings[name])
-      settings[name] = {
-        chartType: undefined,
-        chartColor: undefined,
-      };
-
-    settings[name].chartType = props.chartType;
-
-    if (props.dualMetricChartColor && props.setDualMetricChartColor) {
-      settings[name].chartColor = props.dualMetricChartColor;
-    } else {
-      settings[name].chartColor = props.chartColor;
-    }
-
-    localStorage.setItem('chartsettings', JSON.stringify(settings));
-  }, [
-    props.chartType,
-    props.chartColor,
-    props.dualMetricChartColor,
-    props.splitTrendChecked,
-  ]);
-  return (
-    <Popover open={isOpen} onOpenChange={(e) => setIsOpen(e)}>
-      <PopoverTrigger asChild>{props.children}</PopoverTrigger>
-      <PopoverContent className='rounded-[12px] max-sm:px-2'>
-        <div className='flex w-full flex-col gap-4'>
-          {props.metricType === MetricType.Dual &&
-          props.chartName !== 'trend' ? (
-            <Label className='flex flex-col gap-2'>
-              Chart type
-              <Select
-                value={props.chartType}
-                onValueChange={(e) => {
-                  props.setChartType(e as 'stacked' | 'percent' | 'default');
-                  setIsOpen(false);
-                }}
-              >
-                <SelectTrigger className='h-11 border'>
-                  <SelectValue placeholder='Select chart type' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value={'default'}>Default</SelectItem>
-                    <SelectItem value={'stacked'}>Stacked</SelectItem>
-                    <SelectItem value={'percent'}>Percentage</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Label>
-          ) : (
-            <></>
-          )}
-
-          {(props.metricType === MetricType.Dual &&
-            props.chartName !== 'trend') ||
-          (props.chartName === 'trend' && props.splitTrendChecked) ? (
-            <Label className='flex flex-col gap-2'>
-              Chart color
-              <Select
-                value={props.dualMetricChartColor}
-                onValueChange={(e) => {
-                  if (props.setDualMetricChartColor !== undefined) {
-                    props.setDualMetricChartColor(
-                      e as keyof DualMetricChartColors,
-                    );
-                  }
-                  setIsOpen(false);
-                }}
-              >
-                <SelectTrigger className='h-11 border'>
-                  <SelectValue placeholder='Select chart color' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value='default'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-green-500' />
-                          <div className='size-2 rounded-full bg-red-500' />
-                        </div>
-                        Default
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='cool'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-cyan-500' />
-                          <div className='size-2 rounded-full bg-violet-500' />
-                        </div>
-                        Cool
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='warm'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-fuchsia-400' />
-                          <div className='size-2 rounded-full bg-red-500' />
-                        </div>
-                        Warm
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='contrast'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-lime-500' />
-                          <div className='size-2 rounded-full bg-gray-500' />
-                        </div>
-                        Contrast
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='soft'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-pink-400' />
-                          <div className='size-2 rounded-full bg-gray-500' />
-                        </div>
-                        Soft
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='vibrant'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-fuchsia-400' />
-                          <div className='size-2 rounded-full bg-blue-500' />
-                        </div>
-                        Vibrant
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='neutral'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-gray-500' />
-                          <div className='size-2 rounded-full bg-gray-500' />
-                        </div>
-                        Neutral
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='pastel'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-rose-400' />
-                          <div className='size-2 rounded-full bg-teal-500' />
-                        </div>
-                        Pastel
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='sunset'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-orange-500' />
-                          <div className='size-2 rounded-full bg-violet-500' />
-                        </div>
-                        Sunset
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='ocean'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-emerald-500' />
-                          <div className='size-2 rounded-full bg-sky-500' />
-                        </div>
-                        Ocean
-                      </div>
-                    </SelectItem>
-
-                    <SelectItem value='forest'>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='flex gap-1'>
-                          <div className='size-2 rounded-full bg-green-500' />
-                          <div className='size-2 rounded-full bg-yellow-500' />
-                        </div>
-                        Forest
-                      </div>
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Label>
-          ) : (
-            <Label className='flex flex-col gap-2'>
-              Chart color
-              <Select
-                value={props.chartColor}
-                onValueChange={(e) => {
-                  props.setChartColor(e as keyof ChartColors);
-                  setIsOpen(false);
-                }}
-              >
-                <SelectTrigger className='h-11 border'>
-                  <SelectValue placeholder='Select chart color' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value={'blue'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-blue-500' />
-                        Blue
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'red'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-red-500' />
-                        Red
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'green'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-green-400' />
-                        Green
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'pink'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-pink-400' />
-                        Pink
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'fuchsia'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-fuchsia-400' />
-                        Fuchsia
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'gray'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-zinc-400' />
-                        Gray
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'cyan'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-cyan-500' />
-                        Cyan
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'violet'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-violet-500' />
-                        Violet
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'lime'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-lime-500' />
-                        Lime
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'yellow'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-yellow-500' />
-                        Yellow
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'orange'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-orange-500' />
-                        Orange
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'teal'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-teal-500' />
-                        Teal
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'amber'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-amber-500' />
-                        Amber
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'indigo'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-indigo-500' />
-                        Indigo
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={'rose'}>
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className='size-2 rounded-full bg-rose-500' />
-                        Rose
-                      </div>
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Label>
-          )}
-
-          {props.chartName === 'trend' &&
-          props.metricType === MetricType.Dual ? (
-            <Label className='flex flex-row items-center justify-between gap-4'>
-              <div className='flex flex-col gap-1'>
-                Split trend lines
-                <div className='text-xs font-normal text-secondary'>
-                  Divide trend into separate positive and negative values
-                </div>
-              </div>
-              <Switch
-                checked={props.splitTrendChecked}
-                onCheckedChange={(e) => {
-                  if (props.setSplitTrendChecked) {
-                    props.setSplitTrendChecked(e);
-                  }
-                }}
-              />
-            </Label>
-          ) : (
-            <></>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 function OffsetBtns(props: {
   onLeft: () => void;
   onRight: () => void;
@@ -1767,7 +1061,7 @@ function OffsetBtns(props: {
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <Button
-            className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+            className='h-[34px] rounded-[12px] border-input !bg-background !text-primary hover:opacity-50'
             size={'icon'}
             onClick={props.onLeft}
             disabled={props.isDisabledLeft}
@@ -1790,7 +1084,7 @@ function OffsetBtns(props: {
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <Button
-            className='h-[34px] rounded-[10px] !bg-background !text-primary hover:opacity-50'
+            className='h-[34px] rounded-[12px] border-input !bg-background !text-primary hover:opacity-50'
             size={'icon'}
             onClick={props.onRight}
             disabled={props.isDisabledRight}
@@ -1845,7 +1139,7 @@ function RangeSelector(props: {
       type='single'
       defaultValue='1' // Set to a valid default value
       size={'sm'}
-      className='h-[34px] w-fit gap-1 rounded-[10px] bg-background !p-1'
+      className='h-[34px] max-h-[34px] w-fit gap-1 rounded-[12px] border bg-background !p-1'
       onValueChange={handleRangeChange}
       value={props.range.toString()}
     >

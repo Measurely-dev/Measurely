@@ -63,7 +63,6 @@ export default function FilterManagerDialog(props: {
   const confirm = useConfirm();
   const [tags, setTags] = useState<any[]>([]);
   const { projects, setProjects } = useContext(ProjectsContext);
-
   const handleAccordionToggle = (categoryName: string) => {
     setActiveAccordion((prev) =>
       prev === categoryName ? undefined : categoryName,

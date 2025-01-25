@@ -77,7 +77,7 @@ export default function ProjectsChip() {
   return (
     <FloatingPanelRoot onOpenChange={setOpen} open={open}>
       <FloatingPanelTrigger
-        className={`h-10 w-fit gap-2 !rounded-[12px] border-none px-4 text-[14px] capitalize transition-colors duration-200 hover:bg-accent`}
+        className={`h-10 w-fit gap-2 !rounded-[12px] border border-transparent px-4 text-[14px] capitalize transition-colors duration-200 hover:border-input hover:bg-accent`}
         title='Select Project'
       >
         <div className='flex h-9 flex-row items-center gap-2'>
@@ -102,9 +102,9 @@ export default function ProjectsChip() {
               onClick={() => handleAppSelect(app.id)}
             >
               <div className='w-6'>
-              <CheckIcon
-                className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
-              />
+                <CheckIcon
+                  className={`size-4 ${projects[activeProject].id === app.id ? '' : 'hidden'}`}
+                />
               </div>
               <div className='flex w-full flex-row items-center justify-center gap-2 truncate'>
                 <Avatar className='size-6 border bg-accent'>

@@ -24,7 +24,7 @@ export default function Help() {
   return (
     <WebContainer>
       <ContentContainer className='h-screen min-h-[600px]'>
-        <Card className='mx-auto my-auto w-full max-w-[400px] !rounded-2xl border-none px-2 !pb-20'>
+        <Card className='mx-auto my-auto w-full max-w-[400px] !rounded-2xl border-none px-2 !pb-20 shadow-none'>
           <CardHeader className='!m-0 p-0'>
             <CardTitle className='text-2xl'>Legal</CardTitle>
           </CardHeader>
@@ -34,7 +34,7 @@ export default function Help() {
                 <Link
                   key={i}
                   href={policy.link}
-                  className='group relative flex w-full cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-xl bg-accent px-4 py-2.5 pr-4 text-[15px] font-medium transition-all duration-200 hover:opacity-80'
+                  className='group relative flex w-full cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-xl border bg-accent px-4 py-2.5 pr-4 text-[15px] font-medium shadow-sm shadow-black/5 transition-all duration-200 hover:opacity-80'
                 >
                   <BookMarked className='absolute -left-5 size-5 transition-all duration-200 group-hover:left-4' />
                   <div className='transition-all duration-200 group-hover:ml-7'>

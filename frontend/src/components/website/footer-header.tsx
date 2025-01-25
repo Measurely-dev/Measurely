@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import WebButton from './button';
+import { Button } from '../ui/button';
 
 export default function WebFooterHeader(props: {
   className?: string;
@@ -17,19 +17,22 @@ export default function WebFooterHeader(props: {
         Join the teams who trust Measurely for real-time
         <br /> insights and seamless integration.
       </div>
-      {props.type === 'waitlist' ? (
-        <Link href={'/waitlist'}>
-          <WebButton className='mt-2 scale-[1.20] max-md:scale-100'>
-            Join waitlist
-          </WebButton>
+      <div className='mt-2 flex gap-2'>
+        {props.type === 'waitlist' ? (
+          <Link href={'/waitlist'}>
+            <Button className='rounded-[12px]'>Join waitlist</Button>
+          </Link>
+        ) : (
+          <Link href={'/register'}>
+            <Button className='rounded-[12px]'>Get started</Button>
+          </Link>
+        )}
+        <Link href={'/docs/getting-started/introduction'}>
+          <Button variant={'outline'} className='rounded-[12px]'>
+            Read docs
+          </Button>
         </Link>
-      ) : (
-        <Link href={'/register'}>
-          <WebButton className='mt-2 scale-[1.20] max-md:scale-100'>
-            Get started
-          </WebButton>
-        </Link>
-      )}
+      </div>
     </div>
   );
 }

@@ -147,3 +147,96 @@ export enum BlockType {
   Group,
   Nested,
 }
+
+export type AllowedColors =
+  | 'blue'
+  | 'red'
+  | 'green'
+  | 'pink'
+  | 'gray'
+  | 'fuchsia'
+  | 'cyan'
+  | 'violet'
+  | 'lime'
+  | 'purple'
+  | 'orange'
+  | 'yellow'
+  | 'indigo'
+  | 'magenta'
+  | 'teal'
+  | 'amber'
+  | 'rose'
+  | 'sky'
+  | 'emerald'
+  | 'coral'
+  | 'mint';
+
+export interface ChartColors {
+  blue: string;
+  red: string;
+  green: string;
+  pink: string;
+  gray: string;
+  fuchsia: string;
+  cyan: string;
+  violet: string;
+  lime: string;
+  purple: string;
+  orange: string;
+  yellow: string;
+  indigo: string;
+  magenta: string;
+  teal: string;
+  amber: string;
+  rose: string;
+  sky: string;
+  emerald: string;
+  coral: string;
+  mint: string;
+}
+export interface DualMetricChartColors {
+  default: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  cool: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  warm: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  contrast: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  soft: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  vibrant: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  neutral: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  pastel: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  sunset: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  ocean: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+  forest: {
+    positive: AllowedColors;
+    negative: AllowedColors;
+  };
+}

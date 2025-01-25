@@ -395,11 +395,11 @@ function Metric(props: {
 }) {
   return (
     <div
-      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
+      className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 shadow-sm shadow-black/5 transition-all duration-150 ${
         props.comingSoon
           ? 'cursor-not-allowed bg-accent'
           : props.state === props.value
-            ? 'cursor-pointer bg-blue-500/5 ring-2 ring-blue-500'
+            ? 'cursor-pointer bg-accent/50 ring-2 ring-primary'
             : 'cursor-pointer hover:bg-accent/50'
       }`}
       onClick={() => {

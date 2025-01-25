@@ -12,7 +12,7 @@ export default function WebBentoBox(props: {
       case 'horizontal-left':
         return (
           <div
-            className={`grid w-full grid-cols-[4fr,1fr] overflow-hidden rounded-[16px] bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+            className={`grid w-full grid-cols-[4fr,1fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
           >
             {/* Text box */}
             <div className='flex h-full w-full flex-col justify-between p-[30px] pr-0'>
@@ -22,17 +22,29 @@ export default function WebBentoBox(props: {
               </div>
             </div>
             <div className='min-w-[400px]'>
-              <Image src={props.img} alt='Image' width={400} height={1000} />
+              <Image
+                src={props.img}
+                draggable={false}
+                alt='Image'
+                width={400}
+                height={1000}
+              />
             </div>
           </div>
         );
       case 'horizontal-right':
         return (
           <div
-            className={`grid w-full grid-cols-[1fr,4fr] overflow-hidden rounded-[16px] bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+            className={`grid w-full grid-cols-[1fr,4fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
           >
             <div className='min-w-[400px]'>
-              <Image src={props.img} alt='Image' width={400} height={1000} />
+              <Image
+                src={props.img}
+                alt='Image'
+                draggable={false}
+                width={400}
+                height={1000}
+              />
             </div>
             {/* Text box */}
             <div className='flex h-full w-full flex-col justify-between p-[30px] pl-0'>
@@ -46,7 +58,7 @@ export default function WebBentoBox(props: {
       case 'vertical':
         return (
           <div
-            className={`grid w-full overflow-hidden rounded-[16px] bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+            className={`grid w-full overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
           >
             {/* Text box */}
             <div className='flex h-fit w-full flex-col justify-between gap-8 p-[30px]'>
@@ -60,6 +72,7 @@ export default function WebBentoBox(props: {
                 src={props.img}
                 alt='Image'
                 className='max-h-[500px]'
+                draggable={false}
                 height={340}
                 width={1000}
               />

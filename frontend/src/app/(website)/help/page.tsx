@@ -42,7 +42,7 @@ export default function Help() {
       color: '',
       text: 'black',
       icon: (
-        <div className='felx-row flex items-center gap-2 font-mono !text-[18px] font-bold text-primary'>
+        <div className='felx-row flex items-center gap-2 !text-[18px] font-medium text-primary'>
           Contact us
         </div>
       ),
@@ -52,9 +52,9 @@ export default function Help() {
   return (
     <WebContainer>
       <ContentContainer className='h-screen min-h-[600px]'>
-        <Card className='mx-auto my-auto w-full max-w-[400px] !rounded-2xl border-none px-2 !pb-20'>
+        <Card className='mx-auto my-auto w-full max-w-[400px] !rounded-2xl border-none px-2 !pb-20 shadow-none'>
           <CardHeader className='!m-0 p-0'>
-            <CardTitle className='text-2xl'> Do you need help?</CardTitle>
+            <CardTitle className='text-2xl'>Need help?</CardTitle>
           </CardHeader>
           <CardContent className='mt-5 flex w-full flex-col gap-2 !p-0'>
             {help.map((help, i) => {
@@ -62,7 +62,7 @@ export default function Help() {
                 <Link
                   key={i}
                   href={help.link}
-                  className='group flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl bg-accent px-6 py-2.5 pr-4 transition-all duration-200 hover:opacity-80'
+                  className='group flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border bg-accent px-6 py-2.5 pr-4 shadow-sm shadow-black/5 transition-all duration-200 hover:opacity-80'
                   style={{ backgroundColor: help.color }}
                 >
                   {help.icon}

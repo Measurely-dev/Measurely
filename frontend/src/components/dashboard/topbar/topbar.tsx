@@ -67,7 +67,7 @@ export default function DashboardTopbar() {
             </FeedbackPopover>
           </div>
           <AvatarDropdown>
-            <Avatar className='size-[35px] cursor-pointer text-secondary hover:text-primary'>
+            <Avatar className='size-[35px] cursor-pointer border text-secondary hover:text-primary'>
               <AvatarImage src={user.image} className='rounded-full' />
               <AvatarFallback>
                 <User className='size-1/2' />

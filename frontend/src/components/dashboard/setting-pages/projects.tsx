@@ -166,7 +166,6 @@ export default function SettingProjectPage() {
           ) : (
             <div className='flex flex-col divide-y'>
               <Table className='overflow-hidden rounded-[12px]'>
-                <TableCaption>A list of your projects.</TableCaption>
                 <TableHeader>
                   <TableRow className='bg-accent/60'>
                     <TableHead className='w-[80px] min-w-[80px]'>
@@ -251,6 +250,7 @@ export default function SettingProjectPage() {
                   </TableRow>
                 </TableFooter>
               </Table>
+              <TableCaption className='border-none'>A list of your projects.</TableCaption>
             </div>
           )}
         </div>

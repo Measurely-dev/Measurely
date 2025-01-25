@@ -50,7 +50,7 @@ export default function SubscriptionUiSection(props: {
     }
   };
   return (
-    <div className='mt-[145px] rounded-3xl bg-background p-8 pt-12'>
+    <div className='mt-[145px] border shadow-sm shadow-black/5 rounded-3xl bg-background p-8 pt-12'>
       <WebPageHeader
         title={
           <span>

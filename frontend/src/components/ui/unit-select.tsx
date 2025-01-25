@@ -141,7 +141,7 @@ export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
               variant='outline'
               role='combobox'
               aria-expanded={open}
-              className='h-fit justify-between rounded-[8px] border-none bg-accent px-3 py-1 font-normal text-muted-foreground hover:text-primary'
+              className='h-fit justify-between rounded-[8px] border bg-accent px-3 py-1 font-normal text-muted-foreground hover:text-primary'
             >
               {value
                 ? customUnits

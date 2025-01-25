@@ -79,7 +79,7 @@ export default function TeamInvite(props: {
   }
 
   return (
-    <Card className='h-fit rounded-[12px] border-none bg-accent p-5'>
+    <Card className='h-fit rounded-[12px] border bg-accent p-5'>
       <CardContent className='p-0'>
         <div className='flex flex-row items-center justify-between'>
           <div className='mt-2 text-sm text-muted-foreground'>

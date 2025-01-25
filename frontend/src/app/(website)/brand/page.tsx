@@ -55,9 +55,9 @@ export default function BrandAssetsPage() {
                 height: 100,
               },
             ].map((logo, i) => (
-              <Card key={i} className='border-none'>
+              <Card key={i} className='border-none shadow-none'>
                 <CardContent className='p-0'>
-                  <div className='mb-4 flex h-40 items-center justify-center rounded-[12px] bg-gray-100 p-4'>
+                  <div className='mb-4 flex h-40 items-center border shadow-sm shadow-black/5 justify-center rounded-[12px] bg-accent p-4'>
                     <Image
                       src={logo.src}
                       alt={`${logo.name} preview`}
@@ -98,7 +98,7 @@ export default function BrandAssetsPage() {
             ].map((item) => (
               <div key={item.name} className='flex flex-col'>
                 <div
-                  className={`h-20 rounded-[12px] border ${item.color}`}
+                  className={`h-20 rounded-[12px] border shadow-sm shadow-black/5 ${item.color}`}
                 ></div>
                 <span className='mt-2 text-sm font-medium'>{item.name}</span>
               </div>
@@ -111,7 +111,7 @@ export default function BrandAssetsPage() {
               {/* Usage Guidelines Section */}
               <div className='mt-12'>
                 <h2 className='mb-4 text-2xl font-medium'>Usage Guidelines</h2>
-                <Card className='border-none bg-accent'>
+                <Card className='bg-accent'>
                   <CardContent className='p-4'>
                     <ul className='list-disc space-y-2 pl-6'>
                       <li>

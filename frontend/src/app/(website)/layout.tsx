@@ -26,6 +26,7 @@ export default async function RootLayout({
       <div className='min-h-screen w-screen'>{children}</div>
       <Footer
         border={false}
+        bg='secondary'
         type='waitlist'
         isHome={
           is_authenticated === 'true' || pathname === '/home' ? true : false

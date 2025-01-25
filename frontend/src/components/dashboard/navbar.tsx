@@ -55,7 +55,7 @@ export default function DashboardNavbar() {
             <SettingDialog>
               <TooltipTrigger>
                 <div
-                  className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-transparent bg-background text-[20px] text-secondary hover:bg-accent/50 hover:text-primary`}
+                  className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-transparent bg-background text-[20px] text-secondary hover:border-input hover:bg-accent hover:text-primary`}
                 >
                   <Settings className='size-5' />
                 </div>

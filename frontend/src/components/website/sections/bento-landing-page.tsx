@@ -11,8 +11,16 @@ import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
 import Image5 from '../../../../public/measurely-image5.png';
-import { Accordion, Content, Tab, Trigger } from '@/components/ui/accordion';
-import { FAQQuestions } from '@/components/global/faq-questions';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+} from '@/components/ui/accordion';
+import * as AccordionPrimitive from '@radix-ui/react-accordion';
+
+import { Plus } from 'lucide-react';
+import { Question } from '@/components/global/faq-questions';
+import { CodeComparison } from '@/components/ui/code-comparaison';
 export default function BentoUiSection(props: {
   isAuthentificated: string | null;
   type: 'default' | 'waitlist';
@@ -33,16 +41,57 @@ export default function BentoUiSection(props: {
 
   const bentoBoxType = window_width > 768 ? 'horizontal-left' : 'vertical';
 
+  const beforeCode = `// Manually track a metric without Measurely
+  const trackMetric = async (metricIdentifier, value, filters) => {
+    const apiUrl = 'https://your-backend-api.com/metrics';
+    const payload = { metricIdentifier, value, filters };
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer your-api-key-here',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error(\`HTTP error! Status: \${response.status}\`);
+      const result = await response.json();
+      console.log('Metric captured successfully:', result.message);
+      return { success: true, message: result.message };
+    } catch (error) {
+      console.error('Failed to capture metric:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
+  // Example usage
+  trackMetric('metric-identifier', 10, { environment: 'staging' })
+    .then((result) => {
+      if (result.success) console.log('Metric tracked successfully!');
+      else console.error('Failed to track metric.');
+    });`;
+
+  const afterCode = `import Measurely from 'measurely-js';
+
+  // Initialize Measurely
+  Measurely.init('your-api-key-here');
+
+  // Track a metric with Measurely
+  Measurely.capture('metric-identifier', {
+    value: 10,
+    filters: { environment: 'staging' },
+  }).then((result) => {
+    if (result.success) console.log('Metric captured successfully:', result.message);
+    else console.error('Failed to capture metric:', result.message);
+  });`;
+
   return (
-    <div className='z-10 w-screen border-t bg-secondaryColor pb-[150px] pt-[150px]'>
+    <div className='z-10 w-screen bg-background pb-[150px]'>
       <ContentContainer>
-        <WebTitle
-          subtitle='Discover Measurely'
-          title='Effortless Metric Tracking for All'
-        />
         <WebBentoBox
           type={bentoBoxType}
-          className='mt-20'
           title='Simplify Your Metrics'
           description='Measurely is your all-in-one solution for tracking and analyzing key metrics. With our API integration, monitor data in real-time and access detailed insights at your fingertips.'
           img={Image1}
@@ -69,6 +118,19 @@ export default function BentoUiSection(props: {
           title='Multiple Metric Types'
           description='Track both single and dual metrics. Single metrics monitor growth, while dual metrics capture positive and negative trends for deeper analysis.'
           img={Image2}
+        />
+        <WebTitle
+          subtitle='Code Less, Track More'
+          className='mb-[70px] mt-[145px] max-md:hidden'
+          title='Save Time with Measurely'
+        />
+        <CodeComparison
+          beforeCode={beforeCode}
+          afterCode={afterCode}
+          language='typescript'
+          filename='middleware.ts'
+          lightTheme='github-light'
+          darkTheme='github-dark'
         />
         <SubscriptionUiSection
           type={props.type}
@@ -100,19 +162,37 @@ export default function BentoUiSection(props: {
             description='Connect easily with your current tools and workflows without hassle.'
           />
         </div>
-        <div className='mt-[145px] rounded-3xl bg-background p-5 py-7 pt-12'>
+        <div className='mt-[145px] rounded-3xl bg-background pt-12'>
           <WebTitle subtitle='FAQ' title='Frequently Asked Questions' />
           <div className='mt-[70px] flex w-full items-start justify-center'>
             <div className='w-full'>
-              <Accordion>
-                {FAQQuestions.map((e, i) => (
-                  <Tab
-                    key={i}
-                    className='mb-3 rounded-[12px] bg-accent p-2 px-4'
+              <Accordion
+                type='single'
+                collapsible
+                className='w-full -space-y-px rounded-[12px] shadow-sm shadow-black/5'
+                defaultValue='3'
+              >
+                {Question.map((item) => (
+                  <AccordionItem
+                    value={item.answer}
+                    key={item.id}
+                    className='border bg-background px-4 py-1 first:rounded-t-[12px] last:rounded-b-[12px]'
                   >
-                    <Trigger className='text-md'>{e.question}</Trigger>
-                    <Content>{e.answer}</Content>
-                  </Tab>
+                    <AccordionPrimitive.Header className='flex'>
+                      <AccordionPrimitive.Trigger className='flex flex-1 items-center gap-3 py-2 text-left text-[15px] font-semibold leading-6 transition-all [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&>svg]:-order-1 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 [&[data-state=open]>svg]:rotate-180'>
+                        {item.question}
+                        <Plus
+                          size={16}
+                          strokeWidth={2}
+                          className='shrink-0 opacity-60 transition-transform duration-200'
+                          aria-hidden='true'
+                        />
+                      </AccordionPrimitive.Trigger>
+                    </AccordionPrimitive.Header>
+                    <AccordionContent className='pb-2 text-muted-foreground'>
+                      {item.answer}
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
               </Accordion>
             </div>

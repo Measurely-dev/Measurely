@@ -84,6 +84,7 @@ import {
   fetchEventVariation,
   generateString,
   getMonthsFromDate,
+  valueFormatter,
 } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import BlockOptions from './block-options';
@@ -160,14 +161,14 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <UpgradeCard />
+      {/* <UpgradeCard /> */}
       <Header
-        className='mb-5 mt-10'
+        className='mt-5'
         title='Blocks'
         description='Visual blocks for showcasing metric data and insights on your overview.'
         titleClassName='!text-2xl font-semibold'
       >
-        <div className='flex gap-2 rounded-[14px] bg-accent p-1 max-sm:grid max-sm:grid-cols-2'>
+        <div className='flex gap-2 rounded-[14px]'>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <div
               onClick={() => {
@@ -360,12 +361,10 @@ const cardStyle = (color: string) => ({
 
 const buttonStyle = (color: string, isHovered: boolean, isOpen?: boolean) => ({
   backgroundColor: isHovered || isOpen ? `${color}0D` : `${color}00`,
+  borderColor: isHovered || isOpen ? `${color}33` : ``,
   color,
   transition: 'background-color 0.3s, border-color 0.3s',
 });
-
-const valueFormatter = (number: number) =>
-  Intl.NumberFormat('us').format(number).toString();
 
 function Blocks() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -484,7 +483,7 @@ function IndividualBlock(props: Block & { groupkey?: string }) {
         }}
       >
         <Card
-          className={`flex w-full min-w-[900px] flex-col rounded-[12px] border-none bg-accent ${props.type === BlockType.Group ? 'min-w-[1000px] !bg-accent/50' : ''} ${props.type === BlockType.Nested ? 'rounded[10px] min-w-[280px]' : ''}`}
+          className={`flex w-full min-w-[900px] flex-col rounded-[12px] bg-accent shadow-sm shadow-black/5 ${props.type === BlockType.Group ? 'min-w-[1000px] !bg-accent/50' : ''} ${props.type === BlockType.Nested ? 'rounded[10px] min-w-[280px]' : ''}`}
           style={cardStyle(props.color)}
         >
           <BlockContent {...props} />

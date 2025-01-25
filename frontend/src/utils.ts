@@ -601,3 +601,7 @@ export const parseXAxis = (value: Date, range: number) => {
     return getMonthsFromDate(value) + ' ' + value.getDate().toString();
   }
 };
+
+export const valueFormatter = (number: number) => {
+  return Intl.NumberFormat('us').format(number).toString();
+};

@@ -1,10 +1,10 @@
 'use client';
-import WebButton from './button';
 import LogoSvg from '@/components/global/logo-svg';
 import { usePathname } from 'next/navigation';
 import { footerData } from './footer-data';
 import FooterLink from './footer-link';
 import Link from 'next/link';
+import { Button } from '../ui/button';
 
 export default function Footer(props: {
   border: boolean;
@@ -73,11 +73,11 @@ export default function Footer(props: {
         </div>
         {props.type === 'waitlist' ? (
           <Link href={'/waitlist'}>
-            <WebButton>Join waitlist</WebButton>
+            <Button className='rounded-[12px]'>Join waitlist</Button>
           </Link>
         ) : (
           <Link href={'/register'}>
-            <WebButton>Get started</WebButton>
+            <Button className='rounded-[12px]'>Get started</Button>
           </Link>
         )}
       </div>

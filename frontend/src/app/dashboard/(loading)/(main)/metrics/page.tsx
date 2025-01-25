@@ -136,7 +136,7 @@ function FiltersComponent(props: {
 }) {
   return (
     <Select value={props.filter} onValueChange={props.setFilter}>
-      <SelectTrigger className='w-[220px] border-none min-w-[220px] bg-accent max-md:w-full'>
+      <SelectTrigger className='w-[220px] min-w-[220px] h-full max-md:w-full'>
         <SelectValue placeholder='Select filter' />
       </SelectTrigger>
       <SelectContent>
@@ -157,10 +157,10 @@ function SearchComponent(props: {
   setSearch: Dispatch<SetStateAction<string>>;
 }) {
   return (
-    <div className='flex w-full shadow-sm shadow-black/5 flex-row items-center gap-2 rounded-[12px] bg-accent pl-[12px]'>
+    <div className='flex w-full flex-row items-center gap-2 rounded-[12px] border bg-background pl-[12px] shadow-sm shadow-black/5'>
       <Search className='size-[18px] text-secondary' />
       <Input
-        className='h-[40px] w-full rounded-none shadow-none border-none bg-transparent px-0 !ring-0'
+        className='h-[40px] w-full rounded-none border-none bg-transparent px-0 shadow-none !ring-0'
         placeholder='Search metric...'
         value={props.search}
         onChange={(e) => props.setSearch(e.target.value)}

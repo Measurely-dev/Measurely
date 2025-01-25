@@ -17,7 +17,7 @@ export default function NavbarItemChip() {
     },
   ];
   return (
-    <div className='flex w-[45px] min-w-[45px] flex-col gap-[6px] rounded-[16px] bg-accent p-1'>
+    <div className='flex  w-[45px] border min-w-[45px] flex-col gap-[6px] rounded-[16px] bg-accent p-1'>
       {itemList.map((item, i) => {
         return (
           <Item label={item.label} key={i} href={item.href}>

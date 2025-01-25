@@ -278,7 +278,7 @@ export function FloatingPanelContent({
             ref={contentRef}
             layoutId={`floating-panel-${uniqueId}`}
             className={cn(
-              'fixed z-50 overflow-hidden border border-zinc-950/10 bg-white shadow-lg outline-none dark:border-zinc-50/10 dark:bg-zinc-800',
+              'fixed z-50 overflow-hidden border border-input bg-white shadow-lg outline-none dark:border-zinc-50/10 dark:bg-zinc-800',
               className,
             )}
             style={{

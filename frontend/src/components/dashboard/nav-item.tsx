@@ -38,8 +38,8 @@ export default function DashboardNavItem(props: {
             <div
               className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${
                 isActive
-                  ? 'border-input/30 bg-accent/75'
-                  : 'border-transparent bg-background text-secondary hover:bg-accent/50'
+                  ? 'border-input bg-accent/75'
+                  : 'border-transparent bg-background text-secondary hover:bg-accent'
               }`}
             >
               {props.children}
