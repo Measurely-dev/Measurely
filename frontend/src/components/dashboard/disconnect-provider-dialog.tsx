@@ -1,4 +1,6 @@
 'use client';
+
+// Import UI components and utilities
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,27 +18,27 @@ import { Provider, UserProvider } from '@/types';
 import { ReactNode, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
+// Component to handle disconnecting an authentication provider
 export default function DisconnectProviderDialog(props: {
   children: ReactNode;
   userprovider: UserProvider | null;
   providerLength: number;
 }) {
+  // State management for form fields and loading state
   const [password, setPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { user, setUser } = useContext(UserContext);
 
+  // Helper function to convert provider enum to string
   const getProviderName = (type: Provider | undefined) => {
     switch (type) {
-      case Provider.GOOGLE: {
+      case Provider.GOOGLE:
         return 'google';
-      }
-      case Provider.GITHUB: {
+      case Provider.GITHUB:
         return 'github';
-      }
-      default: {
+      default:
         return 'invalid';
-      }
     }
   };
 
@@ -55,6 +57,7 @@ export default function DisconnectProviderDialog(props: {
           onSubmit={(e) => {
             e.preventDefault();
 
+            // Validate form inputs
             if (
               (password === '' || confirmedPassword === '') &&
               props.providerLength === 1
@@ -68,6 +71,7 @@ export default function DisconnectProviderDialog(props: {
               return;
             }
 
+            // Submit disconnect request to API
             setLoading(true);
             fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/disconnect/${getProviderName(props.userprovider?.type)}`,
@@ -80,6 +84,7 @@ export default function DisconnectProviderDialog(props: {
             )
               .then((resp) => {
                 if (resp.status === 200) {
+                  // Update UI on successful disconnect
                   toast.success('Successfully diconnected the provider');
                   setUser(
                     Object.assign({}, user, {
@@ -89,6 +94,7 @@ export default function DisconnectProviderDialog(props: {
                     }),
                   );
                 } else {
+                  // Handle error response
                   resp.text().then((text) => {
                     toast.error(text);
                   });
@@ -99,6 +105,7 @@ export default function DisconnectProviderDialog(props: {
               });
           }}
         >
+          {/* Password input fields shown only when disconnecting last provider */}
           <div className='flex flex-row items-center justify-center gap-4'>
             {props.providerLength === 1 ? (
               <div className='flex w-full flex-col gap-3'>
@@ -123,6 +130,7 @@ export default function DisconnectProviderDialog(props: {
               <></>
             )}
           </div>
+          {/* Dialog action buttons */}
           <div className='flex w-full flex-row gap-2'>
             <DialogClose className='w-full'>
               <Button

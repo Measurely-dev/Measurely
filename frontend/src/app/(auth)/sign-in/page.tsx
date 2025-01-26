@@ -1,4 +1,4 @@
-
+'use client'
 // Import required components and hooks
 import AuthForm from '@/components/website/auth-form';
 import Container from '@/components/website/container';

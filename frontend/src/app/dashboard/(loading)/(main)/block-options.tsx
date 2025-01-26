@@ -1,52 +1,54 @@
 'use client';
 
-import {
-  ChangeEvent,
-  Dispatch,
-  FC,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from 'react';
-import { Edit, Trash2 } from 'lucide-react';
+// Import necessary dependencies and components
 import { Button } from '@/components/ui/button';
-import { useContext } from 'react';
-import { ProjectsContext } from '@/dash-context';
+import ColorDropdown from '@/components/ui/color-dropdown';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Block,
-  BlockType,
-  ChartType,
-  chartTypeMetricLimits,
-  Metric,
-  Project,
-} from '@/types';
-import { toast } from 'sonner';
-import { useConfirm } from '@omit/react-confirm-dialog';
-import { LabelSelect } from '@/components/ui/label-select';
-import { Input } from '@/components/ui/input';
-import { MetricSelect } from '@/components/ui/metric-select';
-import ColorDropdown from '@/components/ui/color-dropdown';
 import { FilterCategorySelect } from '@/components/ui/filter-category-select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LabelSelect } from '@/components/ui/label-select';
+import { MetricSelect } from '@/components/ui/metric-select';
+import { ProjectsContext } from '@/dash-context';
+import {
+    Block,
+    BlockType,
+    ChartType,
+    chartTypeMetricLimits,
+    Metric,
+    Project,
+} from '@/types';
+import { useConfirm } from '@omit/react-confirm-dialog';
+import { Edit, Trash2 } from 'lucide-react';
+import {
+    ChangeEvent,
+    Dispatch,
+    FC,
+    ReactNode,
+    SetStateAction,
+    useContext,
+    useEffect,
+    useState,
+} from 'react';
+import { toast } from 'sonner';
 
+// Component to handle renaming items with validation
 const RenameConfirmContent: FC<{
   onValueChange: (disabled: boolean, newValue: string) => void;
   initialValue: string;
@@ -80,6 +82,7 @@ const RenameConfirmContent: FC<{
   );
 };
 
+// Configuration for rename dialog
 const getRenameConfig = (
   initialValue: string,
   onValueChange: (disabled: boolean, newValue: string) => void,
@@ -111,6 +114,7 @@ const getRenameConfig = (
   },
 });
 
+// Component for changing labels with validation
 const ChangeLabelDialogContent: FC<{
   onLabelChange: (newLabel: string) => void;
   initialLabel: string;
@@ -141,6 +145,8 @@ const ChangeLabelDialogContent: FC<{
     </div>
   );
 };
+
+// Component for editing metrics and filters
 const MetricDialogContent: FC<{
   selectedMetrics: Metric[];
   setSelectedMetrics: React.Dispatch<React.SetStateAction<Metric[]>>;
@@ -205,6 +211,7 @@ const MetricDialogContent: FC<{
   );
 };
 
+// Main component for block options and operations
 export default function BlockOptions(
   props: Block & {
     children: ReactNode;
@@ -226,6 +233,7 @@ export default function BlockOptions(
     props.filter_categories[0] ?? '',
   );
 
+  // Initialize metrics from project data
   useEffect(() => {
     setNewMetrics(
       props.metric_ids
@@ -236,6 +244,7 @@ export default function BlockOptions(
     );
   }, [props.metric_ids, projects, activeProject]);
 
+  // Handle block/group deletion
   async function handleDelete() {
     const isConfirmed = await confirm({
       title: `Delete ${props.type === BlockType.Group ? 'Group' : 'Block'}`,
@@ -323,6 +332,7 @@ export default function BlockOptions(
     }
   }
 
+  // Handle metric changes
   async function handleMetricChange() {
     const metrics = props.metric_ids
       .map((id) =>
@@ -339,11 +349,13 @@ export default function BlockOptions(
     setIsMetricDialogOpen(true);
   }
 
+  // Handle label changes
   const handleLabelChange = async () => {
     setNewLabel(props.label);
     setIsLabelDialogOpen(true);
   };
 
+  // Handle renaming
   async function handleRename() {
     const confirmConfig = getRenameConfig(props.name, (disabled, newValue) => {
       setNewName(newValue);
@@ -360,6 +372,7 @@ export default function BlockOptions(
     }
   }
 
+  // Effect for handling rename and label changes
   useEffect(() => {
     if (isRenamed && projects[activeProject]) {
       setProjects(
@@ -425,6 +438,7 @@ export default function BlockOptions(
     }
   }, [isRenamed, newName, isLabelChanged, newLabel, projects, activeProject]);
 
+  // Effect for handling metric changes
   useEffect(() => {
     if (isMetricChanged && projects[activeProject]) {
       setProjects(
@@ -478,6 +492,7 @@ export default function BlockOptions(
     activeProject,
   ]);
 
+  // Handle color changes
   function handleColor(newcolor: string) {
     setProjects(
       projects.map((proj, i) =>

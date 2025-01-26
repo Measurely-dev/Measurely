@@ -1,4 +1,6 @@
 'use client';
+
+// Import UI components and utilities
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +19,7 @@ import {
   FloatingPanelRoot,
   FloatingPanelSubMenu,
   FloatingPanelTrigger,
-} from '@/components/ui/floating-panel'; // Import your FloatingPanel components
+} from '@/components/ui/floating-panel';
 import { Input } from '@/components/ui/input';
 import {
   Pagination,
@@ -72,44 +74,39 @@ import {
 import { Trash, UserCheck, UserX } from 'react-feather';
 import { toast } from 'sonner';
 
+// Main team table component that displays member list with filtering and pagination
 export const TeamTable = (props: { members: User[] }) => {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'All'>('All');
   const [currentPage, setCurrentPage] = useState(1);
-
   const { user } = useContext(UserContext);
-
   const itemsPerPage = 10;
 
+  // Filter and sort members based on search term and role filter
   const filteredMembers = useMemo(() => {
     if (!props.members) return [];
-    const filtered =
-      props.members.filter((member) => {
-        const matchesSearch =
-          (
-            member.first_name.toLowerCase() +
-            ' ' +
-            member.last_name.toLowerCase()
-          ).includes(search.toLowerCase()) ||
-          member.email.toLowerCase().includes(search.toLowerCase()) ||
-          roleToString(member.user_role)
-            .toLowerCase()
-            .includes(search.toLowerCase());
+    const filtered = props.members.filter((member) => {
+      const matchesSearch = (
+        member.first_name.toLowerCase() +
+        ' ' +
+        member.last_name.toLowerCase()
+      ).includes(search.toLowerCase()) ||
+        member.email.toLowerCase().includes(search.toLowerCase()) ||
+        roleToString(member.user_role).toLowerCase().includes(search.toLowerCase());
 
-        const matchesRole =
-          roleFilter === 'All' || member.user_role === roleFilter;
+      const matchesRole = roleFilter === 'All' || member.user_role === roleFilter;
 
-        return matchesSearch && matchesRole;
-      }) ?? [];
+      return matchesSearch && matchesRole;
+    });
 
     return filtered.sort((a, b) => {
       if (a.email === user.email) return -1;
       if (b.email === user.email) return 1;
-
       return a.user_role - b.user_role;
     });
   }, [search, props.members, roleFilter]);
 
+  // Get paginated members for current page
   const paginatedMembers = useMemo(() => {
     return filteredMembers.slice(
       (currentPage - 1) * itemsPerPage,
@@ -117,15 +114,18 @@ export const TeamTable = (props: { members: User[] }) => {
     );
   }, [filteredMembers]);
 
+  // Calculate total pages
   const totalPages = useMemo(() => {
     return Math.max(Math.ceil(filteredMembers.length / itemsPerPage), 1);
   }, [filteredMembers]);
 
+  // Reset current page if it exceeds total pages
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
   return (
     <>
       <div className='mb-2.5 flex flex-row items-center gap-4'>
@@ -140,6 +140,7 @@ export const TeamTable = (props: { members: User[] }) => {
         </div>
         <FiltersComponent filter={roleFilter} setFilter={setRoleFilter} />
       </div>
+
       {filteredMembers.length === 0 ? (
         <EmptyState
           title='No Results Found'
@@ -152,12 +153,8 @@ export const TeamTable = (props: { members: User[] }) => {
             <TableHeader>
               <TableRow className='bg-accent/60'>
                 <TableHead colSpan={2}>Member</TableHead>
-                <TableHead colSpan={3} className='text-nowrap'>
-                  Email
-                </TableHead>
-                <TableHead className='text-nowrap' colSpan={1.5}>
-                  Role
-                </TableHead>
+                <TableHead colSpan={3} className='text-nowrap'>Email</TableHead>
+                <TableHead className='text-nowrap' colSpan={1.5}>Role</TableHead>
                 <TableHead className='w-[50px] text-right'>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -168,36 +165,27 @@ export const TeamTable = (props: { members: User[] }) => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className='text-center text-muted-foreground'
-                  >
+                  <TableCell colSpan={7} className='text-center text-muted-foreground'>
                     No results on this page. Adjust your search or filter.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
-
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={6}>Total</TableCell>
-                <TableCell className='text-right'>
-                  {paginatedMembers.length}
-                </TableCell>
+                <TableCell className='text-right'>{paginatedMembers.length}</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
+
           <Pagination className='mt-auto w-full py-3 pt-6'>
             <PaginationContent className='flex w-full items-center justify-between'>
               <PaginationItem>
                 <PaginationPrevious
                   href='#'
                   onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-                  className={
-                    currentPage === 1
-                      ? 'pointer-events-none text-muted-foreground opacity-50'
-                      : ''
-                  }
+                  className={currentPage === 1 ? 'pointer-events-none text-muted-foreground opacity-50' : ''}
                 />
               </PaginationItem>
               <div className='flex items-center gap-2'>
@@ -216,14 +204,8 @@ export const TeamTable = (props: { members: User[] }) => {
               <PaginationItem>
                 <PaginationNext
                   href='#'
-                  onClick={() =>
-                    setCurrentPage(Math.min(currentPage + 1, totalPages))
-                  }
-                  className={
-                    currentPage === totalPages
-                      ? 'pointer-events-none opacity-50'
-                      : ''
-                  }
+                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
             </PaginationContent>
@@ -233,19 +215,20 @@ export const TeamTable = (props: { members: User[] }) => {
     </>
   );
 };
+
+// Style definitions for role badges
 const badgeClasses: { [key: string]: string } = {
-  Owner:
-    'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
-  Admin:
-    'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
-  Developer:
-    'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
-  Guest:
-    'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
+  Owner: 'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+  Admin: 'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
+  Developer: 'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
+  Guest: 'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
 };
+
+// Individual member row component
 const Item = (props: { member: User }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const { user } = useContext(UserContext);
+
   return (
     <>
       <TableRow>
@@ -264,10 +247,7 @@ const Item = (props: { member: User }) => {
             <div className='w-full truncate'>
               {user.id === props.member.id
                 ? 'You'
-                : formatFullName(
-                    props.member.first_name,
-                    props.member.last_name,
-                  )}
+                : formatFullName(props.member.first_name, props.member.last_name)}
             </div>
           </div>
         </TableCell>
@@ -278,9 +258,7 @@ const Item = (props: { member: User }) => {
         </TableCell>
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
-            <span
-              className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.user_role)]}`}
-            >
+            <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.user_role)]}`}>
               {roleToString(props.member.user_role)}
             </span>
           </div>
@@ -288,11 +266,7 @@ const Item = (props: { member: User }) => {
         <TableCell>
           <div className='flex w-full justify-end'>
             <MemberOption member={props.member}>
-              <Button
-                variant={'ghost'}
-                size={'icon'}
-                className='size-9 hover:bg-transparent'
-              >
+              <Button variant={'ghost'} size={'icon'} className='size-9 hover:bg-transparent'>
                 <MoreHorizontal className='size-5' />
               </Button>
             </MemberOption>
@@ -318,6 +292,7 @@ const Item = (props: { member: User }) => {
   );
 };
 
+// Role filter component
 function FiltersComponent(props: {
   filter: 'All' | UserRole;
   setFilter: Dispatch<SetStateAction<'All' | UserRole>>;
@@ -326,11 +301,7 @@ function FiltersComponent(props: {
     <Select
       value={props.filter === 'All' ? 'All' : props.filter.toString()}
       onValueChange={(value: string) => {
-        if (value !== 'All') {
-          props.setFilter(parseInt(value));
-        } else {
-          props.setFilter(value);
-        }
+        props.setFilter(value === 'All' ? value : parseInt(value));
       }}
     >
       <SelectTrigger className='w-[220px] min-w-[220px] max-md:w-full'>
@@ -351,6 +322,7 @@ function FiltersComponent(props: {
   );
 }
 
+// Member options menu component
 function MemberOption({
   children,
   member,
@@ -362,6 +334,8 @@ function MemberOption({
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
+
+  // Handle copying member email
   const handleCopyEmail = async () => {
     try {
       await navigator.clipboard.writeText(member.email);
@@ -372,6 +346,7 @@ function MemberOption({
     }
   };
 
+  // Handle role change for member
   async function switchRole(member: User, newRole: UserRole) {
     const isUpgrade = newRole < member.user_role;
 
@@ -382,13 +357,7 @@ function MemberOption({
       ) : (
         <ArrowBigDown className='size-6 fill-destructive text-destructive' />
       ),
-      description: `Are you sure you want to ${
-        isUpgrade ? 'upgrade' : 'downgrade'
-      } ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}? This action will ${
-        isUpgrade
-          ? 'grant additional permissions'
-          : 'limit their access and permissions'
-      }.`,
+      description: `Are you sure you want to ${isUpgrade ? 'upgrade' : 'downgrade'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}? This action will ${isUpgrade ? 'grant additional permissions' : 'limit their access and permissions'}.`,
       confirmText: `Yes, ${isUpgrade ? 'upgrade' : 'downgrade'}`,
       cancelText: 'Cancel',
       cancelButton: {
@@ -423,10 +392,7 @@ function MemberOption({
         }),
       }).then((resp) => {
         if (resp.ok) {
-          toast.success(
-            `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}`,
-          );
-
+          toast.success(`Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}`);
           setProjects(
             projects.map((proj, i) =>
               i === activeProject
@@ -449,6 +415,7 @@ function MemberOption({
     }
   }
 
+  // Handle member removal
   async function deleteMember(member: User) {
     const isConfirmed = await confirm({
       title: `Remove ${formatFullName(member.first_name, member.last_name)} from the project`,
@@ -485,17 +452,12 @@ function MemberOption({
         }),
       }).then((resp) => {
         if (resp.ok) {
-          toast.success(
-            `Successfully removed ${formatFullName(member.first_name, member.last_name)} from the project`,
-          );
-
+          toast.success(`Successfully removed ${formatFullName(member.first_name, member.last_name)} from the project`);
           setProjects(
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                    members: (proj.members ?? []).filter(
-                      (m) => m.id !== member.id,
-                    ),
+                    members: (proj.members ?? []).filter((m) => m.id !== member.id),
                   })
                 : proj,
             ),
@@ -508,6 +470,7 @@ function MemberOption({
       });
     }
   }
+
   return (
     <FloatingPanelRoot open={open} onOpenChange={setOpen}>
       <FloatingPanelTrigger
@@ -538,7 +501,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
-                <UserCog className='size-4' /> {/* Admin icon */}
+                <UserCog className='size-4' />
                 <span>Admin</span>
               </FloatingPanelButton>
               <FloatingPanelButton
@@ -549,7 +512,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
-                <UserCheck className='size-4' /> {/* Developer icon */}
+                <UserCheck className='size-4' />
                 <span>Developer</span>
               </FloatingPanelButton>
               <FloatingPanelButton
@@ -560,7 +523,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
-                <UserX className='size-4' /> {/* Guest icon */}
+                <UserX className='size-4' />
                 <span>Guest</span>
               </FloatingPanelButton>
             </FloatingPanelSubMenu>
@@ -573,7 +536,7 @@ function MemberOption({
               setOpen(false);
             }}
           >
-            <Mail className='size-4' /> {/* Copy email icon */}
+            <Mail className='size-4' />
             <span>Copy email</span>
           </FloatingPanelButton>
 
@@ -592,7 +555,7 @@ function MemberOption({
                   setOpen(false);
                 }}
               >
-                <Trash className='size-4' /> {/* Delete icon */}
+                <Trash className='size-4' />
                 <span>Remove member</span>
               </FloatingPanelButton>
             </>

@@ -1,4 +1,6 @@
 'use client';
+
+// UI Component imports
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,19 +17,21 @@ import { MAXFILESIZE } from '@/utils';
 import { ImageIcon } from 'lucide-react';
 import { useContext, useEffect, useState, useId } from 'react';
 import { toast } from 'sonner';
-import { useCharacterLimit } from '@/lib/character-limit'; // Assuming this hook exists
+import { useCharacterLimit } from '@/lib/character-limit';
 
+// Dialog content component for editing project details
 export default function EditAppDialogContent(props: {
   project: Project | null;
 }) {
+  // State management for loading, file upload and preview
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
   const { projects, setProjects } = useContext(ProjectsContext);
 
-  // Character limit for project name
-  const maxLength = 20; // Adjust as needed
-  const id = useId(); // Unique ID for accessibility
+  // Configuration for project name input
+  const maxLength = 20;
+  const id = useId();
   const {
     value,
     characterCount,
@@ -35,10 +39,9 @@ export default function EditAppDialogContent(props: {
     maxLength: limit,
   } = useCharacterLimit({ maxLength });
 
-  // Synchronize name with value from useCharacterLimit
+  // Initialize project name when project prop changes
   useEffect(() => {
     if (props.project?.name) {
-      // Create a synthetic event-like object to pass to handleCharacterLimitChange
       const syntheticEvent = {
         target: {
           value: props.project.name,
@@ -48,7 +51,9 @@ export default function EditAppDialogContent(props: {
     }
   }, [props.project]);
 
+  // Handle project updates (name and image)
   async function updateProject() {
+    // Update project name if changed
     if (value !== '' && value !== props.project?.name) {
       await fetch(process.env.NEXT_PUBLIC_API_URL + '/project_name', {
         method: 'PATCH',
@@ -78,6 +83,7 @@ export default function EditAppDialogContent(props: {
       });
     }
 
+    // Update project image if file selected
     if (file !== null) {
       const formData = new FormData();
       formData.append('file', file);
@@ -115,6 +121,7 @@ export default function EditAppDialogContent(props: {
     }
   }
 
+  // Reset file state when project changes
   useEffect(() => {
     setFile(null);
     setReader(null);
@@ -131,12 +138,10 @@ export default function EditAppDialogContent(props: {
           e.preventDefault();
           setLoading(true);
 
-          if (file !== null) {
-            if (file.size > MAXFILESIZE) {
-              toast.error('The image is too large, MAX 500KB');
-              setLoading(false);
-              return;
-            }
+          if (file !== null && file.size > MAXFILESIZE) {
+            toast.error('The image is too large, MAX 500KB');
+            setLoading(false);
+            return;
           }
 
           await updateProject();
@@ -157,17 +162,12 @@ export default function EditAppDialogContent(props: {
               <Input
                 onChange={(event) => {
                   const selectedFile = event.target.files?.[0];
-
-                  if (!selectedFile) {
-                    return;
-                  }
+                  if (!selectedFile) return;
 
                   const r = new FileReader();
-
                   r.onload = (e) => {
                     setReader(e.target?.result);
                   };
-
                   r.readAsDataURL(selectedFile);
                   setFile(event.target.files?.[0]);
                 }}

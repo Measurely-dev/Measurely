@@ -1,3 +1,4 @@
+// Import UI components and types
 import { Label } from '@/components/ui/label';
 import {
   Popover,
@@ -6,7 +7,7 @@ import {
 } from '@/components/ui/popover';
 import {
   Select,
-  SelectContent,
+  SelectContent, 
   SelectGroup,
   SelectItem,
   SelectTrigger,
@@ -15,7 +16,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   ChartColors,
-  DualMetricChartColors,
+  DualMetricChartColors, 
   Metric,
   MetricType,
 } from '@/types';
@@ -27,9 +28,13 @@ import {
   useState,
 } from 'react';
 
+/**
+ * AdvancedOptions component provides chart customization controls
+ * Allows users to modify chart type, colors and trend line display
+ */
 function AdvancedOptions(props: {
   chartName: string;
-  metricId: string;
+  metricId: string; 
   metricType: MetricType;
   children: ReactNode;
   chartType: string;
@@ -48,7 +53,10 @@ function AdvancedOptions(props: {
   >;
   setSplitTrendChecked?: Dispatch<SetStateAction<boolean>>;
 }) {
+  // Controls popover open state
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  // Load saved chart settings from localStorage on mount
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
     let name = props.metricId + props.chartName;
@@ -56,12 +64,15 @@ function AdvancedOptions(props: {
       name += 'dual';
     }
     if (!settings[name]) return;
+
+    // Apply saved chart type if exists
     if (settings[name].chartType) {
       props.setChartType(
         settings[name].chartType as 'stacked' | 'percent' | 'default',
       );
     }
 
+    // Apply saved color settings
     if (settings[name].chartColor) {
       if (props.dualMetricChartColor && props.setDualMetricChartColor) {
         props.setDualMetricChartColor(
@@ -73,6 +84,7 @@ function AdvancedOptions(props: {
     }
   }, [props.splitTrendChecked]);
 
+  // Save chart settings to localStorage when they change
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem('chartsettings') ?? '{}');
     let name = props.metricId + props.chartName;
@@ -100,11 +112,13 @@ function AdvancedOptions(props: {
     props.dualMetricChartColor,
     props.splitTrendChecked,
   ]);
+
   return (
     <Popover open={isOpen} onOpenChange={(e) => setIsOpen(e)}>
       <PopoverTrigger asChild>{props.children}</PopoverTrigger>
       <PopoverContent className='rounded-[12px] max-sm:px-2'>
         <div className='flex w-full flex-col gap-4'>
+          {/* Chart type selector for dual metrics */}
           {props.metricType === MetricType.Dual &&
           props.chartName !== 'trend' ? (
             <Label className='flex flex-col gap-2'>
@@ -132,6 +146,7 @@ function AdvancedOptions(props: {
             <></>
           )}
 
+          {/* Dual metric color selector */}
           {(props.metricType === MetricType.Dual &&
             props.chartName !== 'trend') ||
           (props.chartName === 'trend' && props.splitTrendChecked) ? (
@@ -376,6 +391,7 @@ function AdvancedOptions(props: {
             </Label>
           )}
 
+          {/* Split trend lines toggle for dual metrics */}
           {props.chartName === 'trend' &&
           props.metricType === MetricType.Dual ? (
             <Label className='flex flex-row items-center justify-between gap-4'>

@@ -1,5 +1,6 @@
 'use client';
 
+// Import required UI components and utilities
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,13 +22,14 @@ import { toast } from 'sonner';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
 import { useCharacterLimit } from '@/lib/character-limit';
 
+// Main component for creating a new project
 export default function NewProject() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
-  const { setActiveProject, projects, setProjects } =
-    useContext(ProjectsContext);
+  const { setActiveProject, projects, setProjects } = useContext(ProjectsContext);
   const router = useRouter();
 
+  // Define the steps for the project creation wizard
   const steps = [
     { label: 'Step 1' },
     { label: 'Step 2' },
@@ -35,6 +37,7 @@ export default function NewProject() {
     { label: 'Step 4' },
   ] satisfies StepItem[];
 
+  // Handle project creation submission
   const handleCreateProject = async () => {
     if (name === '') {
       toast.error('Please choose a valid name');
@@ -44,6 +47,7 @@ export default function NewProject() {
     setLoading(true);
 
     try {
+      // Make API call to create new project
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + '/project',
         {
@@ -65,6 +69,7 @@ export default function NewProject() {
         return;
       }
 
+      // Handle successful project creation
       const newProject = await response.json();
       setActiveProject(projects.length);
       setProjects((prevProjects) => [...prevProjects, newProject]);
@@ -111,6 +116,7 @@ export default function NewProject() {
   );
 }
 
+// Step 1: Project name input component
 function Step1({
   setName,
 }: {
@@ -118,8 +124,10 @@ function Step1({
 }) {
   const { nextStep } = useStepper();
   const { projects } = useContext(ProjectsContext);
-  const maxLength = 20; // Character limit for the project name
-  const id = useId(); // Unique ID for accessibility
+  const maxLength = 20;
+  const id = useId();
+
+  // Initialize character limit hook
   const {
     value,
     characterCount,
@@ -127,17 +135,17 @@ function Step1({
     maxLength: limit,
   } = useCharacterLimit({ maxLength });
 
-  // Synchronize name with value from useCharacterLimit
+  // Keep name state in sync with input value
   useEffect(() => {
     setName(value);
   }, [value]);
 
-  // Combined change handler
   const handleInputChange = (e: any) => {
-    handleCharacterLimitChange(e); // Update character limit
-    setName(e.target.value); // Update name state
+    handleCharacterLimitChange(e);
+    setName(e.target.value);
   };
 
+  // Check if project name already exists
   const exists = useMemo(() => {
     return projects.some((project) => project.name === value.trim());
   }, [value]);
@@ -157,9 +165,9 @@ function Step1({
             className='peer h-[40px] rounded-[12px] pe-14'
             type='text'
             placeholder='Name...'
-            value={value} // Use value from useCharacterLimit
+            value={value}
             maxLength={maxLength}
-            onChange={handleInputChange} // Use combined handler
+            onChange={handleInputChange}
             aria-describedby={`${id}-description`}
           />
           <div
@@ -185,6 +193,7 @@ function Step1({
   );
 }
 
+// Step 2: Plan selection component
 function Step2() {
   const { nextStep, prevStep } = useStepper();
 
@@ -210,6 +219,7 @@ function Step2() {
   );
 }
 
+// Step 3: Additional settings component
 function Step3() {
   const { nextStep, prevStep } = useStepper();
 
@@ -236,6 +246,7 @@ function Step3() {
   );
 }
 
+// Step 4: Project overview and creation component
 function Step4({
   name,
   onCreate,

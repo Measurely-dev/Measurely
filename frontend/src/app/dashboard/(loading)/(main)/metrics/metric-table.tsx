@@ -1,4 +1,5 @@
 'use client';
+// UI Component Imports
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProjectsContext } from '@/dash-context';
@@ -31,6 +32,7 @@ import { Dialog } from '@/components/ui/dialog';
 import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
 import { FloatingPanelRoot } from '@/components/ui/floating-panel';
 
+// Formats a date to relative time (e.g. "2 hours ago")
 const formattedDate = (date: Date) => {
   try {
     return formatDistanceToNow(date, { addSuffix: true });
@@ -40,33 +42,35 @@ const formattedDate = (date: Date) => {
   }
 };
 
+// Sorts metrics by creation date
 function sortbyDate(a: Metric, b: Metric, order: string): number {
   if (a.created < b.created) {
     return order === 'new' ? 1 : -1;
   } else if (a.created > b.created) {
     return order === 'new' ? -1 : 1;
-  } else {
-    return 0;
   }
+  return 0;
 }
+
+// Formats numbers with proper locale-specific formatting
 const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
 };
+
+// Sorts metrics by their total value (positive - negative)
 function sortByTotal(a: Metric, b: Metric): number {
   const aTotal = a.total_pos - a.total_neg;
   const bTotal = b.total_pos - b.total_neg;
-  if (aTotal < bTotal) {
-    return 1;
-  } else if (aTotal > bTotal) {
-    return -1;
-  } else {
-    return sortbyDate(a, b, 'new');
-  }
+  if (aTotal < bTotal) return 1;
+  if (aTotal > bTotal) return -1;
+  return sortbyDate(a, b, 'new');
 }
 
+// Main metric table component that displays all metrics
 export default function MetricTable(props: { search: string; filter: string }) {
   const { projects, activeProject } = useContext(ProjectsContext);
 
+  // Memoized filtered and sorted metrics based on search and filter props
   const filteredMetrics = useMemo(() => {
     return (
       projects[activeProject].metrics
@@ -75,9 +79,8 @@ export default function MetricTable(props: { search: string; filter: string }) {
             return sortbyDate(a, b, props.filter);
           } else if (props.filter === 'total') {
             return sortByTotal(a, b);
-          } else {
-            return 0;
           }
+          return 0;
         })
         .filter((group) =>
           group.name.toLowerCase().includes(props.search.toLowerCase()),
@@ -97,16 +100,13 @@ export default function MetricTable(props: { search: string; filter: string }) {
         ) : (
           <>
             <Table className='overflow-hidden'>
-              <TableHeader className=''>
+              <TableHeader>
                 <TableRow className='bg-accent/60'>
                   <TableHead colSpan={2}>Metric</TableHead>
                   <TableHead colSpan={1.5} className='text-nowrap'>
                     Total value
                   </TableHead>
-                  <TableHead
-                    className='min-w-[100px] text-nowrap'
-                    colSpan={1.5}
-                  >
+                  <TableHead className='min-w-[100px] text-nowrap' colSpan={1.5}>
                     Daily update
                   </TableHead>
                   <TableHead className='min-w-[140px]'>Last updated</TableHead>
@@ -114,9 +114,9 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMetrics.map((metric, i) => {
-                  return <Item key={metric.id} metric={metric} index={i} />;
-                })}
+                {filteredMetrics.map((metric, i) => (
+                  <Item key={metric.id} metric={metric} index={i} />
+                ))}
               </TableBody>
               <TableFooter>
                 <TableRow>
@@ -134,6 +134,8 @@ export default function MetricTable(props: { search: string; filter: string }) {
     </div>
   );
 }
+
+// Individual metric row component
 const Item = (props: { metric: Metric; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
@@ -141,28 +143,20 @@ const Item = (props: { metric: Metric; index: number }) => {
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [average, setAverage] = useState<number>(0);
+
+  // Determines badge color based on value
   const todayBadgeColor = (v: number | null) => {
-    if (v === null || v === 0) {
-      return '';
-    } else {
-      if (v > 0) {
-        return 'bg-green-100 text-green-600';
-      } else {
-        return 'bg-red-100 text-red-600';
-      }
-    }
+    if (v === null || v === 0) return '';
+    return v > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
   };
 
+  // Determines if a plus sign should be shown before positive values
   const todayBadgeSign = (v: number | null) => {
-    if (v === null || v === 0 || v < 0) {
-      return '';
-    } else {
-      if (v > 0) {
-        return '+';
-      }
-    }
+    if (v === null || v === 0 || v < 0) return '';
+    return v > 0 ? '+' : '';
   };
 
+  // Fetches and updates metric data
   const load = async () => {
     const variation = await fetchEventVariation(
       props.metric.project_id,
@@ -177,15 +171,12 @@ const Item = (props: { metric: Metric; index: number }) => {
 
     if (props.metric.type === MetricType.Average) {
       setDailyUpdate(variation.averagepercentdiff);
-
-      if (variation.relative_event_count === 0) {
-        setAverage(0);
-      } else {
-        setAverage(
-          (variation.relative_total_pos - variation.relative_total_neg) /
-            variation.relative_event_count,
-        );
-      }
+      setAverage(
+        variation.relative_event_count === 0
+          ? 0
+          : (variation.relative_total_pos - variation.relative_total_neg) /
+              variation.relative_event_count,
+      );
     } else {
       setDailyUpdate(variation.pos - variation.neg);
     }
@@ -216,15 +207,11 @@ const Item = (props: { metric: Metric; index: number }) => {
     }
   };
 
+  // Load data initially and set up periodic refresh
   useEffect(() => {
     load();
-    const interval = setInterval(() => {
-      load();
-    }, INTERVAL);
-
-    return () => {
-      clearInterval(interval);
-    };
+    const interval = setInterval(load, INTERVAL);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -238,7 +225,6 @@ const Item = (props: { metric: Metric; index: number }) => {
         }}
         className={`select-none`}
       >
-        {/* Avatar/name */}
         <TableCell className='font-medium' colSpan={2}>
           <div className='flex flex-row items-center gap-[10px] truncate text-[15px]'>
             <div className='rounded-full bg-accent p-2'>
@@ -253,21 +239,15 @@ const Item = (props: { metric: Metric; index: number }) => {
             <div className='w-full truncate'>{props.metric.name}</div>
           </div>
         </TableCell>
-        {/* Total value */}
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
             {props.metric.type === MetricType.Average ? (
               <>{valueFormatter(average)}</>
             ) : (
-              <>
-                {valueFormatter(
-                  props.metric.total_pos - props.metric.total_neg,
-                )}
-              </>
+              <>{valueFormatter(props.metric.total_pos - props.metric.total_neg)}</>
             )}
           </div>
         </TableCell>
-        {/* Daily update */}
         <TableCell>
           <div className='flex items-center'>
             <Badge
@@ -281,13 +261,11 @@ const Item = (props: { metric: Metric; index: number }) => {
             </Badge>
           </div>
         </TableCell>
-        {/* Created */}
         <TableCell className='text-nowrap text-secondary'>
           {formattedDate(
             props.metric.last_event_timestamp?.V ?? props.metric.created,
           )}
         </TableCell>
-        {/* Actions */}
         <TableCell>
           <div className='flex w-full justify-end'>
             <FloatingPanelRoot>
@@ -297,9 +275,7 @@ const Item = (props: { metric: Metric; index: number }) => {
                   size={'icon'}
                   className='hover:bg-transparent'
                   onClick={(e) => e.stopPropagation()}
-                  disabled={
-                    projects[activeProject].user_role === UserRole.Guest
-                  }
+                  disabled={projects[activeProject].user_role === UserRole.Guest}
                 >
                   <MoreHorizontal className='size-5' />
                 </Button>

@@ -1,8 +1,10 @@
 'use client';
+
+// Import necessary components and utilities
 import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
-  BreadcrumbItem,
+  BreadcrumbItem, 
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
@@ -16,9 +18,12 @@ import { UserRole } from '@/types';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Main team page component
 export default function TeamPage() {
+  // Get project context values
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
 
+  // Set page metadata on component mount
   useEffect(() => {
     document.title = 'Team | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -30,9 +35,11 @@ export default function TeamPage() {
     }
   }, []);
 
+  // Load team members data when active project changes
   useEffect(() => {
     const loadTeam = async () => {
       if (projects[activeProject]) {
+        // Only fetch if members haven't been loaded yet
         if (projects[activeProject].members === null) {
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/members/${projects[activeProject].id}`,
@@ -41,6 +48,7 @@ export default function TeamPage() {
 
           if (response.ok) {
             const body = await response.json();
+            // Update project with fetched members
             setProjects(
               projects.map((proj, i) =>
                 i === activeProject
@@ -57,8 +65,10 @@ export default function TeamPage() {
 
     loadTeam();
   }, [activeProject]);
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
+      {/* Navigation breadcrumb */}
       <Breadcrumb className='mb-5'>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -72,10 +82,14 @@ export default function TeamPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+
+      {/* Team invite component */}
       <TeamInvite
         loading={false}
         disable={projects[activeProject].user_role === UserRole.Guest}
       />
+
+      {/* Team table or loading skeleton */}
       <div className='mt-5 h-full'>
         {projects[activeProject].members === null ? (
           <div className='flex flex-col gap-3'>

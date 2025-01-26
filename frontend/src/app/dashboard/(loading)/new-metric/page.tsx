@@ -1,10 +1,11 @@
 'use client';
+/* Import required components and utilities */
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
-  SelectContent,
+  SelectContent, 
   SelectGroup,
   SelectItem,
   SelectTrigger,
@@ -41,14 +42,16 @@ import { UnitCombobox } from '@/components/ui/unit-select';
 import confetti from 'canvas-confetti';
 import { useCharacterLimit } from '@/lib/character-limit';
 
+/* List of reserved metric names that cannot be used */
 const forbidden = [
   'average',
   'average trend',
-  'positive trend',
+  'positive trend', 
   'negative trend',
   'event count',
 ];
 
+/* Main component for creating new metrics */
 export default function NewMetric() {
   const [tab, setTab] = useState('metrics');
   const [value, setValue] = useState<MetricType>(
@@ -58,6 +61,7 @@ export default function NewMetric() {
   const router = useRouter();
   const { projects, activeProject } = useContext(ProjectsContext);
 
+  /* Define available metric types and their descriptions */
   const metricTypes = [
     {
       label: 'metrics',
@@ -107,6 +111,7 @@ export default function NewMetric() {
     },
   ];
 
+  /* Render appropriate step component based on metric type */
   const renderStep = () => {
     switch (value) {
       case MetricType.Base:
@@ -125,6 +130,7 @@ export default function NewMetric() {
     }
   };
 
+  /* Check if metric type is not yet available */
   const isComingSoon = (type: MetricType) => {
     return type === MetricType.Google || type === MetricType.AWS;
   };
@@ -135,6 +141,7 @@ export default function NewMetric() {
     { label: 'Step 3' },
   ] satisfies StepItem[];
 
+  /* Redirect if user doesn't have required permissions */
   useEffect(() => {
     if (
       projects[activeProject].user_role !== UserRole.Admin &&
@@ -144,6 +151,7 @@ export default function NewMetric() {
     }
   }, [projects, activeProject, router]);
 
+  /* Update tab based on metric type */
   useEffect(() => {
     if (
       value === MetricType.Stripe ||
@@ -156,6 +164,7 @@ export default function NewMetric() {
     }
   }, [value]);
 
+  /* Update metric type based on selected tab */
   useEffect(() => {
     setValue(tab === 'metrics' ? MetricType.Base : MetricType.Stripe);
   }, [tab]);
@@ -191,6 +200,7 @@ export default function NewMetric() {
   );
 }
 
+/* Step 1: Select metric type */
 function Step1({
   metricTypes,
   value,
@@ -270,6 +280,7 @@ function Step1({
   );
 }
 
+/* Step 3: Configure metric unit and create metric */
 function Step3({ metricData }: { metricData: any }) {
   const { prevStep } = useStepper();
   const [loading, setLoading] = useState(false);
@@ -277,6 +288,7 @@ function Step3({ metricData }: { metricData: any }) {
   const { projects, setProjects, activeProject } = useContext(ProjectsContext);
   const router = useRouter();
 
+  /* Handle metric creation submission */
   const handleSubmit = async () => {
     setLoading(true);
     const { name, baseValue, type, namePos, nameNeg } = metricData;
@@ -290,6 +302,7 @@ function Step3({ metricData }: { metricData: any }) {
     }
     const end = Date.now() + 1 * 1000;
 
+    /* Animation function for success state */
     const frame = () => {
       if (Date.now() > end) return;
 
@@ -389,6 +402,7 @@ function Step3({ metricData }: { metricData: any }) {
   );
 }
 
+/* Individual metric type selection component */
 function Metric(props: {
   name: string;
   value: number;
@@ -424,6 +438,8 @@ function Metric(props: {
     </div>
   );
 }
+
+/* Step configuration for Basic and Average metrics */
 function BasicAverageStep(props: {
   type: MetricType;
   setMetricData: Dispatch<SetStateAction<any>>;
@@ -441,14 +457,12 @@ function BasicAverageStep(props: {
     maxLength: limit,
   } = useCharacterLimit({ maxLength });
 
-  // Synchronize name with value from useCharacterLimit
   useEffect(() => {
     setName(value);
   }, [value]);
 
-  // Combined change handler
   const handleInputChange = (e: any) => {
-    handleCharacterLimitChange(e); // Update character limit
+    handleCharacterLimitChange(e);
   };
 
   const handleNext = () => {
@@ -500,9 +514,9 @@ function BasicAverageStep(props: {
                       ? `New users, Deleted projects, Suspended accounts`
                       : 'Session duration, Ratings, Load time'
                   }
-                  value={value} // Use value from useCharacterLimit
+                  value={value}
                   maxLength={maxLength}
-                  onChange={handleInputChange} // Use combined handler
+                  onChange={handleInputChange}
                   aria-describedby={`${id}-description`}
                 />
                 <div
@@ -582,6 +596,8 @@ function BasicAverageStep(props: {
     </div>
   );
 }
+
+/* Step configuration for Dual metrics */
 function DualStep(props: {
   setMetricData: Dispatch<SetStateAction<any>>;
   setTab: Dispatch<SetStateAction<string>>;
@@ -593,7 +609,6 @@ function DualStep(props: {
   const [baseValue, setBaseValue] = useState<number>(0);
   const { nextStep, prevStep } = useStepper();
 
-  // Add useCharacterLimit for the metric name
   const maxLength = 30;
   const id = useId();
   const {
@@ -603,15 +618,13 @@ function DualStep(props: {
     maxLength: limit,
   } = useCharacterLimit({ maxLength });
 
-  // Synchronize name with value from useCharacterLimit
   useEffect(() => {
     setName(value);
   }, [value]);
 
-  // Combined change handler
   const handleInputChange = (e: any) => {
-    handleCharacterLimitChange(e); // Update character limit
-    setName(e.target.value); // Update name state
+    handleCharacterLimitChange(e);
+    setName(e.target.value);
   };
 
   const handleNext = () => {
@@ -648,9 +661,9 @@ function DualStep(props: {
                   className='peer h-11 rounded-[12px] pe-14'
                   type='text'
                   placeholder='Users, Transfers, Projects'
-                  value={value} // Use value from useCharacterLimit
+                  value={value}
                   maxLength={maxLength}
-                  onChange={handleInputChange} // Use combined handler
+                  onChange={handleInputChange}
                   aria-describedby={`${id}-description`}
                 />
                 <div
@@ -795,6 +808,10 @@ function DualStep(props: {
   );
 }
 
+/**
+ * Component for configuring Stripe metric settings in the metric creation flow
+ * Allows users to set a name for their Stripe-integrated metric
+ */
 function StripeStep(props: {
   setMetricData: Dispatch<SetStateAction<any>>;
   setTab: Dispatch<SetStateAction<string>>;
@@ -802,9 +819,11 @@ function StripeStep(props: {
   const [name, setName] = useState('');
   const { nextStep, prevStep } = useStepper();
 
-  // Add useCharacterLimit for the metric name
+  // Maximum length allowed for metric name
   const maxLength = 30;
   const id = useId();
+
+  // Character limit handling for metric name input
   const {
     value,
     characterCount,
@@ -812,17 +831,18 @@ function StripeStep(props: {
     maxLength: limit,
   } = useCharacterLimit({ maxLength });
 
-  // Synchronize name with value from useCharacterLimit
+  // Keep name state synchronized with input value
   useEffect(() => {
     setName(value);
   }, [value]);
 
-  // Combined change handler
+  // Handle input changes for metric name
   const handleInputChange = (e: any) => {
-    handleCharacterLimitChange(e); // Update character limit
-    setName(e.target.value); // Update name state
+    handleCharacterLimitChange(e);
+    setName(e.target.value);
   };
 
+  // Process form submission and advance to next step
   const handleNext = () => {
     if (name === '') {
       toast.error('Please enter a name');
@@ -839,6 +859,7 @@ function StripeStep(props: {
     nextStep();
   };
 
+  // Return to previous step
   const handlePrev = () => {
     props.setTab('integrations');
     prevStep();
@@ -862,9 +883,9 @@ function StripeStep(props: {
                   className='peer h-11 rounded-[12px] pe-14'
                   type='text'
                   placeholder={'Revenue, Earnings, Sales, Profit'}
-                  value={value} // Use value from useCharacterLimit
+                  value={value}
                   maxLength={maxLength}
-                  onChange={handleInputChange} // Use combined handler
+                  onChange={handleInputChange}
                   aria-describedby={`${id}-description`}
                 />
                 <div

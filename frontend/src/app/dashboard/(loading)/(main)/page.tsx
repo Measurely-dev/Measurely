@@ -1,4 +1,6 @@
 'use client';
+
+// Import required components and utilities
 import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
@@ -100,6 +102,8 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { useCharacterLimit } from '@/lib/character-limit';
+
+// Main dashboard component
 export default function DashboardHomePage() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [groupInput, setGroupInput] = useState('');
@@ -107,7 +111,7 @@ export default function DashboardHomePage() {
   const maxLength = 25;
   const id = useId();
 
-  // Use the useCharacterLimit hook
+  // Character limit handling
   const {
     value,
     characterCount,
@@ -115,17 +119,17 @@ export default function DashboardHomePage() {
     maxLength: limit,
   } = useCharacterLimit({ maxLength });
 
-  // Synchronize groupInput with the value from useCharacterLimit
+  // Sync groupInput with character limit value
   useEffect(() => {
     setGroupInput(value);
   }, [value]);
 
-  // Combined change handler
   const handleInputChange = (e: any) => {
-    handleCharacterLimitChange(e); // Update character limit
-    setGroupInput(e.target.value); // Update groupInput state
+    handleCharacterLimitChange(e);
+    setGroupInput(e.target.value);
   };
 
+  // Update page title and meta description
   useEffect(() => {
     document.title = 'Dashboard | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -152,7 +156,7 @@ export default function DashboardHomePage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      {/* <UpgradeCard /> */}
+
       <Header
         className='mt-5'
         title='Blocks'
@@ -197,9 +201,9 @@ export default function DashboardHomePage() {
                     className='peer h-11 rounded-[12px] pe-14'
                     type='text'
                     placeholder='Group name...'
-                    value={groupInput} // Use groupInput here
+                    value={groupInput}
                     maxLength={maxLength}
-                    onChange={handleInputChange} // Use the combined handler
+                    onChange={handleInputChange}
                     aria-describedby={`${id}-description`}
                   />
                   <div
@@ -223,7 +227,7 @@ export default function DashboardHomePage() {
                     const project = projects[activeProject];
                     const newBlock: Block = {
                       id: 0,
-                      name: groupInput, // Use groupInput here
+                      name: groupInput,
                       type: BlockType.Group,
                       nested: [],
                       metric_ids: [],
@@ -239,7 +243,7 @@ export default function DashboardHomePage() {
                       layoutCopy[i].id = i;
                     }
                     setIsDialogOpen(false);
-                    setGroupInput(''); // Reset groupInput
+                    setGroupInput('');
                     setProjects(
                       projects.map((proj, i) =>
                         i === activeProject
@@ -285,65 +289,8 @@ export default function DashboardHomePage() {
     </DashboardContentContainer>
   );
 }
-// function UpgradeCard() {
-//   const { user } = useContext(UserContext);
-//   const { projects, activeProject } = useContext(ProjectsContext);
-//   function render() {
-//     switch (projects[activeProject].plan.name.toLowerCase()) {
-//       case 'starter':
-//         return (
-//           <Card className='mt-5 rounded-[12px] border-none bg-black'>
-//             <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
-//               <div className='flex flex-col max-md:w-full'>
-//                 <div className='flex flex-row items-center gap-3'>
-//                   <Rocket className='size-5 text-white' />
-//                   <div className='text-md font-semibold text-white'>
-//                     You're using the {projects[activeProject].plan.name} plan
-//                   </div>
-//                 </div>
-//                 <div className='text-sm text-white/70'>
-//                   You can unlock your limits by upgrading to the next plan.
-//                 </div>
-//               </div>
-//               {projects[activeProject].user_role === UserRole.Owner && (
-//                 <PlansDialog>
-//                   <Button
-//                     className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
-//                     variant={'default'}
-//                   >
-//                     Upgrade
-//                   </Button>
-//                 </PlansDialog>
-//               )}
-//             </CardContent>
-//           </Card>
-//         );
-//       default:
-//         return (
-//           <Card className='mt-5 animate-gradient rounded-[12px] rounded-b-none border-none bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500'>
-//             <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
-//               <div className='flex flex-col max-md:w-full'>
-//                 <div className='flex flex-row items-center gap-3'>
-//                   <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 px-2 text-xs font-medium'>
-//                     <Sparkle className='size-3' />
-//                     {projects[activeProject].plan.name}
-//                   </div>
-//                   <div className='text-md font-semibold text-white'>
-//                     Welcome back,{' '}
-//                     <span className='font-semibold capitalize'>
-//                       {user?.first_name}
-//                     </span>
-//                   </div>
-//                 </div>
-//               </div>
-//             </CardContent>
-//           </Card>
-//         );
-//     }
-//   }
-//   return render();
-// }
 
+// Style utilities
 const cardStyle = (color: string) => ({
   borderColor: `${color}1A`,
   backgroundColor: `${color}0D`,
@@ -357,10 +304,12 @@ const buttonStyle = (color: string, isHovered: boolean, isOpen?: boolean) => ({
   transition: 'background-color 0.3s, border-color 0.3s',
 });
 
+// Blocks container component
 function Blocks() {
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Fetch and sync blocks data
   useEffect(() => {
     if (projects[activeProject]) {
       if (projects[activeProject].blocks === null) {
@@ -461,6 +410,7 @@ function Blocks() {
   );
 }
 
+// Individual block component
 function IndividualBlock(props: Block & { groupkey?: string }) {
   return (
     <SortableItem value={props.id} asChild>
@@ -484,6 +434,7 @@ function IndividualBlock(props: Block & { groupkey?: string }) {
   );
 }
 
+// Block content component
 function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
@@ -495,12 +446,14 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [disabledItem, setDisabledItem] = useState<string | null>(null);
   const [date, setDate] = useState<Date>(new Date());
 
+  // Get metrics for current block
   const metrics = useMemo(() => {
     return props.metric_ids
       .map((id) => projects[activeProject].metrics?.find((m) => m.id === id))
       .filter((m) => m !== undefined) as Metric[];
   }, [props.metric_ids, projects, activeProject]);
 
+  // Calculate summary values for metrics
   function calculateSummary(data: any[], metric: Metric): number {
     let totalpos = 0;
     let totalneg = 0;
@@ -526,6 +479,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
     return totalpos - totalneg;
   }
 
+  // Load chart data
   useEffect(() => {
     const loadData = async () => {
       if (metrics.length === 0) return;
@@ -656,6 +610,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
     loadData();
   }, [metrics, range]);
 
+  // Handle metric value copying
   const handleCopy = (metric: Metric) => {
     if (isCopying) return;
 
@@ -671,6 +626,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
     }, 1000);
   };
 
+  // Calculate percentage change for compact blocks
   const calculateCompactBlockPourcentage = (data: any[]) => {
     if (metrics.length === 0) return;
     let categoryTotal = 0;
@@ -713,6 +669,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
     }
   };
 
+  // Extract unit from metric
   const getUnit = (unit: string): string => {
     let unitValue = '';
     const symbol = unit.split('(');
@@ -889,10 +846,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
     </>
   );
 }
-
+// Type definition for available chart colors
 export type ColorKey =
   | 'pink'
-  | 'blue'
+  | 'blue' 
   | 'green'
   | 'orange'
   | 'red'
@@ -906,9 +863,10 @@ export type ColorKey =
   | 'fuchsia'
   | 'gray';
 
+// Maps hex color codes to color keys
 const hexToColorKeyMap: Record<string, ColorKey> = {
   '#ff007f': 'pink',
-  '#0033cc': 'blue',
+  '#0033cc': 'blue', 
   '#8000ff': 'purple',
   '#007f3f': 'green',
   '#ff6600': 'orange',
@@ -919,6 +877,7 @@ const hexToColorKeyMap: Record<string, ColorKey> = {
   '#cc00cc': 'magenta',
 };
 
+// Defines color palettes for each base color
 const chartColorMap: Record<ColorKey, ColorKey[]> = {
   pink: ['pink', 'fuchsia', 'blue', 'red'],
   blue: ['blue', 'cyan', 'pink', 'violet'],
@@ -936,6 +895,7 @@ const chartColorMap: Record<ColorKey, ColorKey[]> = {
   gray: ['gray', 'pink', 'blue', 'green'],
 };
 
+// Maps color keys to specific hex values for compact charts
 const CompactChartColorMap: Record<ColorKey, string> = {
   pink: '#d6336c',
   blue: '#0056b3',
@@ -953,6 +913,7 @@ const CompactChartColorMap: Record<ColorKey, string> = {
   gray: '#424242',
 };
 
+// Creates configuration for pie chart labels
 function createDynamicPieChartConfig(dataKeys: any, _: string[]) {
   return dataKeys.reduce((config: any, key: any, _: number) => {
     config[key] = {
@@ -963,6 +924,7 @@ function createDynamicPieChartConfig(dataKeys: any, _: string[]) {
   }, {});
 }
 
+// Main chart rendering component that handles different chart types
 function Charts(props: {
   chartType: ChartType | undefined;
   data: any[] | null;
@@ -975,15 +937,15 @@ function Charts(props: {
     valueFormatter,
   };
 
+  // Resolve color settings
   const resolvedColorKey = hexToColorKeyMap[props.color] || 'gray';
-  const validResolvedColorKey =
-    resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
+  const validResolvedColorKey = resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const chartColors = chartColorMap[validResolvedColorKey];
 
-  const compactValidResolvedColorKey =
-    resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
+  const compactValidResolvedColorKey = resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const compactChartColor = CompactChartColorMap[compactValidResolvedColorKey];
 
+  // Render appropriate chart based on type
   switch (props.chartType) {
     case ChartType.Area:
       return (
@@ -1019,9 +981,7 @@ function Charts(props: {
           index='date'
           enableBiaxial
           barSeries={{
-            categories: [
-              props.metrics.length === 0 ? '' : props.metrics[0].name,
-            ],
+            categories: [props.metrics.length === 0 ? '' : props.metrics[0].name],
             showYAxis: true,
             colors: [chartColors[0]],
           }}
@@ -1077,9 +1037,7 @@ function Charts(props: {
                 />
                 <Pie
                   data={props.data ?? []}
-                  dataKey={
-                    props.metrics.length === 0 ? '' : props.metrics[0].name
-                  }
+                  dataKey={props.metrics.length === 0 ? '' : props.metrics[0].name}
                   nameKey={props.categories?.[0]}
                   innerRadius={60}
                   strokeWidth={5}
@@ -1209,6 +1167,7 @@ function Charts(props: {
   }
 }
 
+// Component for handling nested block layouts
 function NestedBlocks(props: Block) {
   const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   return (

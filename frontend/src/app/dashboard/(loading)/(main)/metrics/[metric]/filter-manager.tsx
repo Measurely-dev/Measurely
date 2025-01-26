@@ -1,7 +1,9 @@
 'use client';
+
+// Import required icons and components
 import {
   Edit2,
-  MoreHorizontal,
+  MoreHorizontal, 
   Plus,
   PlusCircle,
   PlusSquare,
@@ -12,7 +14,7 @@ import { useContext, useState } from 'react';
 import {
   Dialog,
   DialogClose,
-  DialogContent,
+  DialogContent, 
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -36,22 +38,20 @@ import { toast } from 'sonner';
 import { ProjectsContext } from '@/dash-context';
 import { Accordion, AccordionContent, AccordionItem } from '@/components/ui/accordion';
 
+// Main dialog component for managing metric filters
 export default function FilterManagerDialog(props: {
   open: boolean;
   setOpen: (state: boolean) => void;
   metric: Metric;
 }) {
+  // State management
   const [activeAccordion, setActiveAccordion] = useState<string | undefined>();
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
-  const [categoryToRename, setCategoryToRename] = useState<
-    string | undefined
-  >();
+  const [categoryToRename, setCategoryToRename] = useState<string | undefined>();
   const [parentCategory, setParentCategory] = useState<string>('');
   const [renameInputValue, setRenameInputValue] = useState<string>('');
   const [creationDialogOpen, setCreationDialogOpen] = useState<boolean>(false);
-  const [creationType, setCreationType] = useState<'filter' | 'category'>(
-    'category',
-  );
+  const [creationType, setCreationType] = useState<'filter' | 'category'>('category');
   const [creationInputValue, setCreationInputValue] = useState<string>('');
   const [badgeDialogOpen, setBadgeDialogOpen] = useState<boolean>(false);
   const [filterToEdit, setFilterToEdit] = useState<Metric | undefined>();
@@ -59,18 +59,20 @@ export default function FilterManagerDialog(props: {
   const confirm = useConfirm();
   const [tags, setTags] = useState<any[]>([]);
   const { projects, setProjects } = useContext(ProjectsContext);
+
+  // Handle accordion expansion/collapse
   const handleAccordionToggle = (categoryName: string) => {
-    setActiveAccordion((prev) =>
-      prev === categoryName ? undefined : categoryName,
-    );
+    setActiveAccordion((prev) => prev === categoryName ? undefined : categoryName);
   };
 
+  // Initialize rename dialog
   const handleRename = (categoryName: string) => {
     setCategoryToRename(categoryName);
     setRenameInputValue(categoryName);
     setRenameDialogOpen(true);
   };
 
+  // Initialize creation dialog
   const handleCreate = (type: 'filter' | 'category', category?: string) => {
     setCreationType(type);
     if (category && type === 'filter') {
@@ -81,66 +83,63 @@ export default function FilterManagerDialog(props: {
     setCreationDialogOpen(true);
   };
 
+  // Reset creation dialog state
   const handleCloseCreationDialog = () => {
     setCreationDialogOpen(false);
     setCreationInputValue('');
     setTags([]);
   };
 
+  // Initialize badge edit dialog
   const handleBadgeEdit = (filter: Metric) => {
     setFilterToEdit(filter);
     setFilterInputValue(filter.name);
     setBadgeDialogOpen(true);
   };
 
+  // Handle creation of new filters/categories
   const handleCreation = async () => {
     let filterTags = tags;
     let category = creationInputValue;
     if (creationType === 'filter') {
-      filterTags = [
-        {
-          id: 0,
-          text: creationInputValue,
-        },
-      ];
-
+      filterTags = [{
+        id: 0,
+        text: creationInputValue,
+      }];
       category = parentCategory;
     }
 
-    const tagCreationPromises = filterTags.map(
-      async (tag): Promise<Metric | undefined> => {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/metric`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: tag.text,
-              type: props.metric.type,
-              name_pos: '',
-              name_neg: '',
-              base_value: 0,
-              project_id: props.metric.project_id,
-              parent_metric_id: props.metric.id,
-              filter_category: category,
-            }),
-          },
-        );
+    // Create new tags/filters via API
+    const tagCreationPromises = filterTags.map(async (tag): Promise<Metric | undefined> => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: tag.text,
+          type: props.metric.type,
+          name_pos: '',
+          name_neg: '',
+          base_value: 0,
+          project_id: props.metric.project_id,
+          parent_metric_id: props.metric.id,
+          filter_category: category,
+        }),
+      });
 
-        if (response.ok) {
-          const data = response.json();
-          return data;
-        }
+      if (response.ok) {
+        const data = response.json();
+        return data;
+      }
 
-        const error = await response.text();
-        toast.error(error);
-        return undefined;
-      },
-    );
+      const error = await response.text();
+      toast.error(error);
+      return undefined;
+    });
 
+    // Update UI with new filters
     const results = await Promise.all(tagCreationPromises);
     const filters = props.metric.filters ?? {};
 
@@ -150,7 +149,6 @@ export default function FilterManagerDialog(props: {
         if (filters[result.filter_category] === undefined) {
           filters[result.filter_category] = [];
         }
-
         filters[result.filter_category].push(result);
       }
     }
@@ -161,25 +159,23 @@ export default function FilterManagerDialog(props: {
           ? Object.assign({}, proj, {
               metrics: proj.metrics?.map((m) =>
                 m.id === props.metric.id
-                  ? Object.assign({}, m, {
-                      filters: filters,
-                    })
-                  : m,
+                  ? Object.assign({}, m, {filters: filters})
+                  : m
               ),
             })
-          : proj,
-      ),
+          : proj
+      )
     );
     setActiveAccordion(category);
     handleCloseCreationDialog();
   };
 
+  // Handle filter deletion
   const handleBadgeDelete = async () => {
     const isConfirmed = await confirm({
       title: 'Delete Filter',
       icon: <Trash2 className='size-5 text-destructive' />,
-      description:
-        'Are you sure you want to delete this filter? This action cannot be undone.',
+      description: 'Are you sure you want to delete this filter? This action cannot be undone.',
       confirmText: 'Delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -198,58 +194,53 @@ export default function FilterManagerDialog(props: {
       },
     });
 
-    if (isConfirmed) {
-      if (filterToEdit === undefined) return;
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
+    if (isConfirmed && filterToEdit) {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          metric_id: filterToEdit?.id,
+          metric_id: filterToEdit.id,
           project_id: props.metric.project_id,
         }),
-      }).then((resp) => {
-        if (resp.ok) {
-          const filters = props.metric.filters;
-
-          const newFilters = filters[filterToEdit?.filter_category].filter(
-            (m) => m.id !== filterToEdit?.id,
-          );
-
-          filters[filterToEdit.filter_category] = newFilters;
-
-          setProjects(
-            projects.map((proj) =>
-              proj.id === props.metric.id
-                ? Object.assign({}, proj, {
-                    metrics: proj.metrics?.map((m) =>
-                      m.id === props.metric.id
-                        ? Object.assign({}, m, {
-                            filters: newFilters,
-                          })
-                        : m,
-                    ),
-                  })
-                : proj,
-            ),
-          );
-        } else {
-          toast.error('Failed to delete filter.');
-        }
       });
+
+      if (response.ok) {
+        const filters = props.metric.filters;
+        const newFilters = filters[filterToEdit.filter_category].filter(
+          (m) => m.id !== filterToEdit.id
+        );
+        filters[filterToEdit.filter_category] = newFilters;
+
+        setProjects(
+          projects.map((proj) =>
+            proj.id === props.metric.id
+              ? Object.assign({}, proj, {
+                  metrics: proj.metrics?.map((m) =>
+                    m.id === props.metric.id
+                      ? Object.assign({}, m, {filters: newFilters})
+                      : m
+                  ),
+                })
+              : proj
+          )
+        );
+      } else {
+        toast.error('Failed to delete filter.');
+      }
       setBadgeDialogOpen(false);
     }
   };
 
+  // Handle category deletion
   const handlefilter_categoryDelete = async (category: string) => {
     const isConfirmed = await confirm({
       title: 'Delete Filter Category',
       icon: <Trash2 className='size-5 text-destructive' />,
-      description:
-        'Are you sure you want to delete this filter category? This action cannot be undone.',
-      confirmText: 'Delete',
+      description: 'Are you sure you want to delete this filter category? This action cannot be undone.',
+      confirmText: 'Delete', 
       cancelText: 'Cancel',
       cancelButton: {
         size: 'default',
@@ -268,7 +259,7 @@ export default function FilterManagerDialog(props: {
     });
 
     if (isConfirmed) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -279,37 +270,35 @@ export default function FilterManagerDialog(props: {
           parent_metric_id: props.metric.id,
           category: category,
         }),
-      }).then((resp) => {
-        if (resp.ok) {
-          const filters = props.metric.filters;
-          delete filters[category];
-          setProjects(
-            projects.map((proj) =>
-              proj.id === props.metric.project_id
-                ? Object.assign({}, proj, {
-                    metrics: proj.metrics?.map((m) =>
-                      m.id === props.metric.id
-                        ? Object.assign({}, m, {
-                            filters: filters,
-                          })
-                        : m,
-                    ),
-                  })
-                : proj,
-            ),
-          );
-        } else {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-        }
-        setBadgeDialogOpen(false);
       });
+
+      if (response.ok) {
+        const filters = props.metric.filters;
+        delete filters[category];
+        setProjects(
+          projects.map((proj) =>
+            proj.id === props.metric.project_id
+              ? Object.assign({}, proj, {
+                  metrics: proj.metrics?.map((m) =>
+                    m.id === props.metric.id
+                      ? Object.assign({}, m, {filters: filters})
+                      : m
+                  ),
+                })
+              : proj
+          )
+        );
+      } else {
+        const errorText = await response.text();
+        toast.error(errorText);
+      }
+      setBadgeDialogOpen(false);
     }
   };
 
+  // Handle filter renaming
   const handleFilterRename = () => {
-    if (filterToEdit === undefined) return;
+    if (!filterToEdit) return;
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
       method: 'PATCH',
@@ -319,7 +308,7 @@ export default function FilterManagerDialog(props: {
       },
       body: JSON.stringify({
         project_id: props.metric.project_id,
-        metric_id: filterToEdit?.id,
+        metric_id: filterToEdit.id,
         name: filterInputValue,
         name_pos: filterToEdit.name_pos,
         name_neg: filterToEdit.name_neg,
@@ -327,9 +316,8 @@ export default function FilterManagerDialog(props: {
     }).then((resp) => {
       if (resp.ok) {
         const filters = props.metric.filters;
-
         const index = filters[filterToEdit.filter_category].findIndex(
-          (m) => m.id === filterToEdit.id,
+          (m) => m.id === filterToEdit.id
         );
         if (index !== -1) return;
         filters[filterToEdit.filter_category][index].name = filterInputValue;
@@ -340,14 +328,12 @@ export default function FilterManagerDialog(props: {
               ? Object.assign({}, proj, {
                   metric: proj.metrics?.map((m) =>
                     m.id === props.metric.id
-                      ? Object.assign({}, m, {
-                          filters: filters,
-                        })
-                      : m,
+                      ? Object.assign({}, m, {filters: filters})
+                      : m
                   ),
                 })
-              : proj,
-          ),
+              : proj
+          )
         );
       } else {
         resp.text().then((text) => {
@@ -359,8 +345,10 @@ export default function FilterManagerDialog(props: {
     setBadgeDialogOpen(false);
   };
 
+  // Handle category renaming
   const handlefilter_categoryRename = () => {
-    if (categoryToRename === undefined) return;
+    if (!categoryToRename) return;
+
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
       method: 'PATCH',
       credentials: 'include',
@@ -384,14 +372,12 @@ export default function FilterManagerDialog(props: {
               ? Object.assign({}, proj, {
                   metric: proj.metrics?.map((m) =>
                     m.id === props.metric.id
-                      ? Object.assign({}, m, {
-                          filters: filters,
-                        })
-                      : m,
+                      ? Object.assign({}, m, {filters: filters})
+                      : m
                   ),
                 })
-              : proj,
-          ),
+              : proj
+          )
         );
       } else {
         resp.text().then((text) => {
@@ -716,6 +702,7 @@ export default function FilterManagerDialog(props: {
   );
 }
 
+// Component for handling filter tag input
 const FilterTagInput = (props: {
   tags: any[];
   setTags: (tags: any) => void;

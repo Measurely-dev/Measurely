@@ -37,13 +37,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export default function SettingProjectPage() {
+// Main component for managing project settings and displaying project list
+export default function ProjectsSettings() {
+  // Context and state management
   const { activeProject, projects, setProjects, setActiveProject } =
     useContext(ProjectsContext);
   const [sortedProjects, setSortedProjects] = useState<any>([]);
   const [selectedProject, setSelectedProject] = useState<Project>(projects[0]);
   const confirm = useConfirm();
 
+  // Handles project deletion with confirmation
   const DeleteProject = async (project: Project) => {
     const isConfirmed = await confirm({
       title: 'Delete ' + project.name,
@@ -67,7 +70,9 @@ export default function SettingProjectPage() {
         className: '!rounded-[12px]',
       },
     });
+
     if (isConfirmed) {
+      // API call to delete project
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/project`, {
         method: 'DELETE',
         credentials: 'include',
@@ -79,11 +84,13 @@ export default function SettingProjectPage() {
         if (resp.status === 200) {
           toast.success('Successfully deleted project: ' + project.name);
 
+          // Handle single project case
           if (projects?.length === 1 || projects === undefined) {
             window.location.reload();
             return;
           }
 
+          // Determine new active project after deletion
           let newActiveProject = 0;
           if (projects?.[activeProject].id === project.id) {
             newActiveProject = 0;
@@ -97,6 +104,7 @@ export default function SettingProjectPage() {
             }
           }
 
+          // Load metrics for new active project if needed
           if (projects !== null) {
             if (projects[newActiveProject].metrics === null) {
               const metrics = await loadMetrics(projects[newActiveProject].id);
@@ -121,6 +129,7 @@ export default function SettingProjectPage() {
     }
   };
 
+  // Sort projects by role and active status
   useEffect(() => {
     if (projects.length !== 0) {
       const sorted = [
@@ -132,7 +141,6 @@ export default function SettingProjectPage() {
             proj.user_role === UserRole.Owner &&
             proj.name !== projects[activeProject]?.name,
         ),
-
         ...projects.filter(
           (proj) =>
             proj.user_role !== UserRole.Owner &&

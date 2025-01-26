@@ -1,5 +1,6 @@
 'use client';
-// External and components
+
+// Import UI components and utilities
 import { Button } from '@/components/ui/button';
 import {
   DialogClose,
@@ -14,8 +15,12 @@ import { ProjectsContext } from '@/dash-context';
 import { Metric, MetricType, Project } from '@/types';
 import { Dispatch, SetStateAction, useContext, useState, useId } from 'react';
 import { toast } from 'sonner';
-import { useCharacterLimit } from '@/lib/character-limit'; // Assuming this hook exists
+import { useCharacterLimit } from '@/lib/character-limit';
 
+/**
+ * Component for editing metric properties in a dialog
+ * Handles both single metrics and dual metrics with positive/negative values
+ */
 export default function EditMetricDialogContent(props: {
   metric: Metric | null | undefined;
   setOpen: Dispatch<SetStateAction<boolean>>;
@@ -24,13 +29,13 @@ export default function EditMetricDialogContent(props: {
   const [loading, setLoading] = useState<boolean>(false);
   const { projects, setProjects } = useContext(ProjectsContext);
 
-  // Character limit for inputs
-  const maxLength = 30; // Adjust as needed
-  const nameId = useId(); // Unique ID for metric name
-  const posNameId = useId(); // Unique ID for positive name
-  const negNameId = useId(); // Unique ID for negative name
+  // Generate unique IDs for form fields
+  const maxLength = 30;
+  const nameId = useId();
+  const posNameId = useId(); 
+  const negNameId = useId();
 
-  // Metric name input
+  // Setup character-limited input handlers for metric names
   const {
     value: name,
     characterCount: nameCharacterCount,
@@ -38,7 +43,6 @@ export default function EditMetricDialogContent(props: {
     maxLength: nameLimit,
   } = useCharacterLimit({ maxLength, initialValue: props.metric?.name ?? '' });
 
-  // Positive name input
   const {
     value: posName,
     characterCount: posNameCharacterCount,
@@ -49,7 +53,6 @@ export default function EditMetricDialogContent(props: {
     initialValue: props.metric?.name_pos ?? '',
   });
 
-  // Negative name input
   const {
     value: negName,
     characterCount: negNameCharacterCount,
@@ -71,14 +74,14 @@ export default function EditMetricDialogContent(props: {
           setLoading(true);
           let metric = props.metric;
 
-          let res;
-
+          // Validate metric name
           if (name === '') {
             toast.error('A metric must have a name');
             setLoading(false);
             return;
           }
 
+          // Additional validation for dual metrics
           if (props.metric?.type === MetricType.Dual) {
             if (posName === '' || negName === '') {
               toast.error('A dual metric must have variable names');
@@ -94,12 +97,13 @@ export default function EditMetricDialogContent(props: {
             }
           }
 
+          // Only update if values have changed
           if (
             name !== props.metric?.name ||
             posName !== props.metric.name_pos ||
             negName !== props.metric.name_neg
           ) {
-            res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
+            const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
@@ -123,6 +127,7 @@ export default function EditMetricDialogContent(props: {
             }
           }
 
+          // Update local project state
           if (projects !== null) {
             setProjects(
               projects.map((v: Project) =>
@@ -138,6 +143,7 @@ export default function EditMetricDialogContent(props: {
               ),
             );
           }
+
           setLoading(false);
           props.setOpen(false);
           toast.success('Metric successfully edited');
@@ -149,7 +155,6 @@ export default function EditMetricDialogContent(props: {
       >
         <div className='flex w-full flex-col gap-3'>
           <div className='flex flex-col gap-4'>
-            {/* Metric Name Input */}
             <div className='min-w-[300px] space-y-2'>
               <Label htmlFor={nameId}>Metric name</Label>
               <div className='relative'>
@@ -174,7 +179,6 @@ export default function EditMetricDialogContent(props: {
               </div>
             </div>
 
-            {/* Positive Name Input (for Dual Metrics) */}
             {props.metric?.type === MetricType.Dual && (
               <div className='min-w-[300px] space-y-2'>
                 <Label htmlFor={posNameId}>Positive name</Label>
@@ -201,7 +205,6 @@ export default function EditMetricDialogContent(props: {
               </div>
             )}
 
-            {/* Negative Name Input (for Dual Metrics) */}
             {props.metric?.type === MetricType.Dual && (
               <div className='min-w-[300px] space-y-2'>
                 <Label htmlFor={negNameId}>Negative name</Label>
@@ -236,7 +239,6 @@ export default function EditMetricDialogContent(props: {
               variant='secondary'
               className='w-full rounded-[12px]'
               onClick={() => {
-                // Create synthetic event-like objects to reset values
                 const nameEvent = {
                   target: { value: props.metric?.name ?? '' },
                 } as React.ChangeEvent<HTMLInputElement>;

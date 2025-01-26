@@ -1,12 +1,13 @@
 'use client';
 
+// Import required dependencies for user interface and navigation
 import { UserContext } from '@/dash-context';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useContext } from 'react';
 import { motion } from 'framer-motion';
 import {
   FloatingPanelBody,
-  FloatingPanelButton,
+  FloatingPanelButton, 
   FloatingPanelContent,
   FloatingPanelRoot,
   FloatingPanelTrigger,
@@ -14,19 +15,24 @@ import {
 import { AnimatePresence } from 'framer-motion';
 import { LogOut, MessageCircleDashed } from 'lucide-react';
 
+// Helper function to capitalize first letter of a string
 function Capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// Main avatar dropdown component that wraps the floating panel
 export default function AvatarDropdown(props: { children: ReactNode }) {
   return (
     <QuickActionsFloatingPanel>{props.children}</QuickActionsFloatingPanel>
   );
 }
 
+// Component that handles the floating panel UI and actions
 const QuickActionsFloatingPanel = (props: { children: ReactNode }) => {
   const router = useRouter();
   const { user } = useContext(UserContext);
+
+  // Define available actions in the dropdown menu
   const actions = [
     {
       icon: <MessageCircleDashed className='h-4 w-4' />,

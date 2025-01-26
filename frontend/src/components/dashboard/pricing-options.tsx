@@ -1,16 +1,19 @@
+// Import required UI components and React types
 import { Slider } from '../ui/slider';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { Dispatch, SetStateAction } from 'react';
 
+// Interface defining props for the PricingOptions component
 interface PricingOptionsProps {
-  sliderValue: number[];
-  setSliderValue: (value: number[]) => void;
-  billingPeriod: 'month' | 'year';
-  setBillingPeriod: Dispatch<SetStateAction<'month' | 'year'>>;
-  getEventAmount: (value: number) => string;
-  type?: 'page' | 'dialog';
+  sliderValue: number[];            // Current value of slider
+  setSliderValue: (value: number[]) => void;  // Function to update slider value
+  billingPeriod: 'month' | 'year'; // Current billing period selection
+  setBillingPeriod: Dispatch<SetStateAction<'month' | 'year'>>; // Function to update billing period
+  getEventAmount: (value: number) => string;  // Function to format event amounts
+  type?: 'page' | 'dialog';        // Display type of the component
 }
 
+// Component for displaying and managing pricing options
 export const PricingOptions = ({
   sliderValue,
   setSliderValue,
@@ -27,6 +30,7 @@ export const PricingOptions = ({
           : ''
       }
     >
+      {/* Event quantity slider section */}
       <div
         className={`flex w-full max-w-[400px] flex-row items-center gap-4 ${type === 'dialog' ? 'mt-10' : 'mx-auto mt-[40px]'}`}
       >
@@ -45,6 +49,8 @@ export const PricingOptions = ({
         />
         <span className='font-mono text-sm font-medium text-primary'>10M+</span>
       </div>
+
+      {/* Billing period toggle section */}
       <ToggleGroup
         type='single'
         variant='default'

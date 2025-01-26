@@ -1,5 +1,6 @@
 'use client';
 
+// Import necessary dependencies and contexts
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,11 +9,13 @@ import { loadMetrics } from '@/utils';
 import { UserRole } from '@/types';
 import { Loader } from 'react-feather';
 
+// Dashboard layout component that handles project/user data loading and displays a loading state
 export default function DashboardContentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get project-related state and methods from context
   const {
     projects,
     setProjects,
@@ -21,19 +24,23 @@ export default function DashboardContentLayout({
     setProjectsLoading,
     activeProject,
   } = useContext(ProjectsContext);
+
+  // Get user-related state and methods from context
   const { setUser, userLoading, setUserLoading } = useContext(UserContext);
   const [activeProjectName, setActiveProjectName] = useState('');
   const router = useRouter();
 
+  // Initial data loading effect
   useEffect(() => {
+    // Redirect to new project page if user has no owned projects
     if (
-      projects.filter((proj) => proj.user_role === UserRole.Owner).length ===
-        0 &&
+      projects.filter((proj) => proj.user_role === UserRole.Owner).length === 0 &&
       !projectsLoading
     ) {
       router.push('/dashboard/new-project');
     }
 
+    // Load user data if not already loaded
     if (userLoading) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/user', {
         method: 'GET',
@@ -60,6 +67,7 @@ export default function DashboardContentLayout({
         });
     }
 
+    // Load projects data if not already loaded
     if (projectsLoading) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/projects', {
         method: 'GET',
@@ -84,12 +92,16 @@ export default function DashboardContentLayout({
             router.push('/dashboard/new-project');
             return;
           }
+
+          // Get saved active project from localStorage or default to 0
           let savedActiveProject = parseInt(
             localStorage.getItem('activeProject') ?? '0',
           );
           if (savedActiveProject > json.length - 1 || savedActiveProject < 0) {
             savedActiveProject = 0;
           }
+
+          // Load metrics only for active project
           for (let i = 0; i < json.length; i++) {
             if (
               i === savedActiveProject &&
@@ -110,6 +122,7 @@ export default function DashboardContentLayout({
     }
   }, []);
 
+  // Handle active project changes
   useEffect(() => {
     if (
       projects === undefined ||
@@ -125,6 +138,7 @@ export default function DashboardContentLayout({
     localStorage.setItem('activeProject', activeProject.toString());
   }, [activeProject]);
 
+  // Render loading state or children components
   return (
     <>
       {projectsLoading || userLoading ? (

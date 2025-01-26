@@ -1,4 +1,6 @@
 'use client';
+
+// Import required React and UI components
 import {
   Dispatch,
   ReactNode,
@@ -18,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogOverlay,
-  DialogTitle,
+  DialogTitle, 
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AreaChart } from '@/components/ui/area-chart';
@@ -78,6 +80,7 @@ import { LabelSelect } from '@/components/ui/label-select';
 import { FilterCategorySelect } from '@/components/ui/filter-category-select';
 import { useRouter } from 'next/navigation';
 
+// Interface for block showcase items
 interface BlockShowcaseType {
   name: string;
   value: number;
@@ -85,6 +88,7 @@ interface BlockShowcaseType {
   chart: ReactNode;
 }
 
+// Chart configuration objects
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -93,38 +97,20 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const pieChartConfig = {
-  visitors: {
-    label: 'Visitors',
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'blue',
-  },
-  safari: {
-    label: 'Safari',
-    color: 'lightblue',
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'purple',
-  },
-  edge: {
-    label: 'Edge',
-    color: 'violet',
-  },
-  other: {
-    label: 'Other',
-    color: 'pink',
-  },
+  visitors: { label: 'Visitors' },
+  chrome: { label: 'Chrome', color: 'blue' },
+  safari: { label: 'Safari', color: 'lightblue' },
+  firefox: { label: 'Firefox', color: 'purple' },
+  edge: { label: 'Edge', color: 'violet' },
+  other: { label: 'Other', color: 'pink' },
 } satisfies ChartConfig;
 
-// DIALOG BLOCK
+// Wide block type configurations
 const blockWideType: BlockShowcaseType[] = [
   {
     name: 'Area Chart',
     value: ChartType.Area,
-    description:
-      'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
+    description: 'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
     chart: (
       <AreaChart
         className='h-40'
@@ -142,8 +128,7 @@ const blockWideType: BlockShowcaseType[] = [
   {
     name: 'Bar Chart',
     value: ChartType.Bar,
-    description:
-      'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
+    description: 'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
     chart: (
       <BarChart
         className='h-40'
@@ -159,10 +144,9 @@ const blockWideType: BlockShowcaseType[] = [
     ),
   },
   {
-    name: 'Combo Chart',
+    name: 'Combo Chart', 
     value: ChartType.Combo,
-    description:
-      'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
+    description: 'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
     chart: (
       <ComboChart
         className='h-40'
@@ -184,12 +168,12 @@ const blockWideType: BlockShowcaseType[] = [
   },
 ];
 
+// Compact block type configurations
 const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Pie Chart',
     value: ChartType.Pie,
-    description:
-      'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
+    description: 'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
     chart: (
       <ChartContainer
         config={pieChartConfig}
@@ -240,8 +224,7 @@ const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Radar Chart',
     value: ChartType.Radar,
-    description:
-      'Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.',
+    description: 'Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.',
     chart: (
       <ChartContainer config={chartConfig} className='mx-auto h-[250px] w-full'>
         <RadarChart data={RadarChartData}>
@@ -260,12 +243,12 @@ const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Bar List',
     value: ChartType.BarList,
-    description:
-      'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
+    description: 'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
     chart: <BarList data={BarListData} />,
   },
 ];
 
+// Main dialog component for block selection
 export default function BlocksDialog(props: {
   children?: ReactNode;
   type: 'compact' | 'wide';
@@ -277,6 +260,8 @@ export default function BlocksDialog(props: {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { projects, activeProject } = useContext(ProjectsContext);
   const router = useRouter();
+
+  // Handle dialog open/close
   const handleOpenChange = (open: boolean) => {
     if (open && props.type === 'compact') {
       const project = projects[activeProject];
@@ -368,7 +353,7 @@ export default function BlocksDialog(props: {
             >
               <Button
                 className='w-fit rounded-[12px] max-md:mb-2'
-                disabled={value === -1 ? true : false}
+                disabled={value === -1}
               >
                 Next
               </Button>
@@ -380,6 +365,7 @@ export default function BlocksDialog(props: {
   );
 }
 
+// Individual block item component
 function BlockItem(props: {
   name: string;
   value: number;
@@ -399,6 +385,7 @@ function BlockItem(props: {
     : { min: 0, max: 0 };
   const min = chartLimits.min;
 
+  // Handle block selection
   const handleClick = () => {
     const project = projects[activeProject];
     const totalMetrics = project.metrics?.length || 0;
@@ -437,22 +424,18 @@ function BlockItem(props: {
   );
 }
 
+// Helper function to find block configuration by value
 const findBlockByValue = (value: number) => {
   for (const block of blockWideType) {
-    if (block.value === value) {
-      return block;
-    }
+    if (block.value === value) return block;
   }
-
   for (const block of blockCompactType) {
-    if (block.value === value) {
-      return block;
-    }
+    if (block.value === value) return block;
   }
-
   return null;
 };
 
+// Dialog stack component for block configuration
 function BlocksDialogStack(props: {
   children: ReactNode;
   setIsDialogOpen: Dispatch<SetStateAction<boolean>>;
@@ -483,10 +466,10 @@ function BlocksDialogStack(props: {
     (block) => block.value === props.type,
   );
 
-  if (!dialogStackContext) {
-    return null;
-  }
+  if (!dialogStackContext) return null;
+
   const { closeDialog } = dialogStackContext;
+
   return (
     <>
       <DialogStackOverlay
@@ -542,7 +525,7 @@ function BlocksDialogStack(props: {
             <DialogStackNext asChild>
               <Button
                 className='rounded-[12px]'
-                disabled={nameInputValue ? false : true}
+                disabled={!nameInputValue}
               >
                 Next
               </Button>
@@ -587,7 +570,6 @@ function BlocksDialogStack(props: {
         <DialogStackContent>
           <DialogHeader>
             <DialogStackTitle>Select metric(s)</DialogStackTitle>
-
             <DialogStackDescription>
               You can select multiple metrics or a single one, to compare or
               track various data points.

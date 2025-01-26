@@ -28,34 +28,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Minus, Plus } from 'lucide-react'; // Icons for increment/decrement
+import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// Dialog component for pushing numeric values to a metric with optional filters
 export const PushValueDialog = (props: {
   pushValueOpen: boolean;
   setPushValueOpen: (open: boolean) => void;
   metric: Metric;
 }) => {
+  // Access project context for API key and user role
   const { projects, activeProject } = useContext(ProjectsContext);
-  const [selectedFilterCategory, setSelectedFilterCategory] =
-    useState<string>('');
-  const [selectedFilter, setSelectedFilter] = useState<string>('');
 
-  // State for the number input
+  // State for managing filter selection
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState<string>('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('');
   const [numberValue, setNumberValue] = useState<number>(0);
 
+  // Handler for submitting the value to the API
   const handlePushValue = () => {
     if (props.metric && projects[activeProject].user_role !== UserRole.Guest) {
       const body: any = {
-        value: numberValue, // Use the number value
+        value: numberValue,
       };
 
+      // Add filters to request body if selected
       if (selectedFilter !== '' && selectedFilterCategory !== '') {
         body.filters = {
           [selectedFilterCategory]: selectedFilter,
         };
       }
 
+      // Make API request to push the value
       fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/event/v1/${props.metric.name}`,
         {
@@ -86,7 +90,7 @@ export const PushValueDialog = (props: {
       open={props.pushValueOpen}
       onOpenChange={(e) => {
         props.setPushValueOpen(e);
-        setNumberValue(0); // Reset number value
+        setNumberValue(0);
         setSelectedFilterCategory('');
         setSelectedFilter('');
       }}
@@ -100,6 +104,7 @@ export const PushValueDialog = (props: {
           </DialogDescription>
         </DialogHeader>
 
+        {/* Number input section */}
         <div className='flex flex-col gap-2'>
           <Label>Number Value</Label>
           <NumberField
@@ -134,6 +139,7 @@ export const PushValueDialog = (props: {
           </NumberField>
         </div>
 
+        {/* Filter selection section */}
         <div className='flex flex-col gap-2'>
           <Label>Select filter category</Label>
           <Select
@@ -168,6 +174,7 @@ export const PushValueDialog = (props: {
             </SelectContent>
           </Select>
 
+          {/* Render filter selection if category is selected */}
           {selectedFilterCategory &&
           selectedFilterCategory !== 'no_category_selected' ? (
             <>
@@ -198,6 +205,7 @@ export const PushValueDialog = (props: {
           </Label>
         </div>
 
+        {/* Dialog footer with action buttons */}
         <DialogFooter>
           <DialogClose asChild>
             <Button className='w-fit rounded-[12px]' variant='secondary'>
@@ -209,7 +217,7 @@ export const PushValueDialog = (props: {
               (selectedFilterCategory !== 'no_category_selected' &&
                 selectedFilterCategory !== '' &&
                 selectedFilter === '') ||
-              numberValue === 0 // Disable if numberValue is 0
+              numberValue === 0
             }
             className='w-fit rounded-[12px]'
             onClick={handlePushValue}

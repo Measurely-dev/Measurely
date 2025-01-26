@@ -1,4 +1,6 @@
 'use client';
+
+// Import necessary dependencies
 import React, { FormEvent, useContext, useState } from 'react';
 import SettingCard from '../setting-card';
 import { Button } from '@/components/ui/button';
@@ -9,15 +11,19 @@ import { ProjectsContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
 import { Rocket } from 'lucide-react';
 
-export default function SettingPaymentPage() {
+// Component for managing payment settings and billing
+export default function PaymentSettings() {
+  // State for tracking billing form submission
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
   const { projects, activeProject } = useContext(ProjectsContext);
 
+  // Handler for managing billing portal redirect
   const handleManageBilling = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoadingBilling(true);
     try {
+      // Fetch billing portal URL from API
       const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -38,20 +44,16 @@ export default function SettingPaymentPage() {
     }
   };
 
-  console.log(projects[activeProject]);
-
   return (
     <div className='flex flex-col gap-5'>
+      {/* Display metrics and usage statistics */}
       <MetricStats
         differ
         className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
         stats={[
           {
             title: `Metrics limit`,
-            used:
-              projects[activeProject].metrics === null
-                ? 0
-                : projects[activeProject].metrics.length,
+            used: projects[activeProject].metrics === null ? 0 : projects[activeProject].metrics.length,
             total: projects[activeProject].plan.metric_limit,
             description: `For '${projects[activeProject].name}'`,
           },
@@ -63,6 +65,8 @@ export default function SettingPaymentPage() {
           },
         ]}
       />
+
+      {/* Current plan display and upgrade/downgrade button */}
       <div
         className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${
           projects[activeProject].plan.name.toLowerCase() === 'starter'
@@ -74,8 +78,7 @@ export default function SettingPaymentPage() {
           <div className='flex flex-row items-center gap-3'>
             <Rocket className='size-5' />
             <div className='text-md font-semibold'>
-              You&apos;re using the{' '}
-              {projects[activeProject].plan.name.toLowerCase()} plan
+              You&apos;re using the {projects[activeProject].plan.name.toLowerCase()} plan
             </div>
           </div>
           {projects[activeProject].plan.name.toLowerCase() === 'starter' && (
@@ -91,11 +94,7 @@ export default function SettingPaymentPage() {
                 ? ''
                 : 'bg-background text-primary hover:bg-background hover:text-primary/80'
             }`}
-            variant={
-              projects[activeProject].plan.name.toLowerCase() === 'starter'
-                ? 'default'
-                : 'outline'
-            }
+            variant={projects[activeProject].plan.name.toLowerCase() === 'starter' ? 'default' : 'outline'}
           >
             {projects[activeProject].plan.name.toLowerCase() === 'starter'
               ? 'Upgrade plan'
@@ -105,6 +104,8 @@ export default function SettingPaymentPage() {
           </Button>
         </PlansDialog>
       </div>
+
+      {/* Billing management card */}
       <SettingCard
         title='Manage'
         btn_loading={loadingBilling}

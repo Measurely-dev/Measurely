@@ -1,4 +1,6 @@
 'use client';
+
+// UI Component Imports
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,28 +14,36 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// Context and Type Imports
 import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 import { roleToString } from '@/utils';
+
+// Icon and Utility Imports
 import { UserPlus } from 'lucide-react';
 import { FormEvent, useContext, useId, useState } from 'react';
 import { AtSign } from 'react-feather';
 import { toast } from 'sonner';
 
+// TeamInvite Component - Handles inviting new members to a project
 export default function TeamInvite(props: {
   loading: boolean;
   disable?: boolean | false;
 }) {
+  // Component state
   const [inviteLoading, setInviteLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState(UserRole.Guest);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const id = useId();
 
+  // Handles form submission to invite a new user
   function inviteUser(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setInviteLoading(true);
 
+    // API call to add member to project
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/member`, {
       method: 'POST',
       credentials: 'include',
@@ -61,6 +71,7 @@ export default function TeamInvite(props: {
         }
       })
       .then((data) => {
+        // Update projects context with new member if successful
         if (data !== null && data !== undefined) {
           setProjects(
             projects.map((proj, i) =>
@@ -90,6 +101,7 @@ export default function TeamInvite(props: {
         <form onSubmit={inviteUser}>
           <div className='flex w-full flex-row items-end gap-5'>
             <div className='flex w-full flex-row gap-5 max-sm:flex-col'>
+              {/* Email Input Field */}
               <div className='flex w-full flex-col gap-3'>
                 <Label htmlFor={id}>Email</Label>
                 <div className='relative'>
@@ -106,6 +118,7 @@ export default function TeamInvite(props: {
                   </div>
                 </div>
               </div>
+              {/* Role Selection Dropdown */}
               <div className='flex flex-col gap-3'>
                 <Label htmlFor='type'>Role</Label>
                 <Select
@@ -136,6 +149,7 @@ export default function TeamInvite(props: {
                 </Select>
               </div>
             </div>
+            {/* Submit Button or Loading Skeleton */}
             {props.loading ? (
               <>
                 <Skeleton className='mt-4 flex h-9 w-fit items-center px-3 !text-transparent'>

@@ -8,18 +8,17 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import PricingCard from '@/components/website/pricing-card';
-import { ProjectsContext } from '@/dash-context';
 import { plans } from '@/plans';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { ArrowBigDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useContext, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { PricingOptions } from './pricing-options';
 
+// PlansDialog component handles the subscription plan selection and management
 export default function PlansDialog(props: { children: ReactNode }) {
-  const { projects, activeProject } = useContext(ProjectsContext);
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const router = useRouter();
@@ -27,6 +26,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
   const [sliderValue, setSliderValue] = useState<number[]>([0]);
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
 
+  // Maps slider values to event amount strings
   function getEventAmount(value: number): string {
     const valueMap: Record<number, string> = {
       0: '10K',
@@ -41,28 +41,29 @@ export default function PlansDialog(props: { children: ReactNode }) {
       90: '8M',
       100: '10M+',
     };
-
     return valueMap[value] || 'N/A';
   }
 
+  // Calculates the price based on base price, slider value and billing period
   function calculatePrice(basePrice: number): number {
     const additionalCostPerStep = 5;
     const sliderSteps = sliderValue[0] / 10;
     let totalPrice = basePrice + additionalCostPerStep * sliderSteps;
 
     if (billingPeriod === 'year') {
-      totalPrice = totalPrice * 12 * 0.8;
+      totalPrice = totalPrice * 12 * 0.8; // 20% discount for yearly billing
     }
-
     return Math.round(totalPrice);
   }
 
+  // Handles the subscription process for a selected plan
   const subscribe = async (plan: string) => {
     setSelectedPlan(plan);
     setLoading(true);
 
     let isConfirmed = true;
 
+    // Show confirmation dialog for downgrading to starter plan
     if (plan === 'starter') {
       isConfirmed = await confirm({
         title: 'Downgrade Plan',
@@ -86,6 +87,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
     }
 
     if (isConfirmed) {
+      // Make API call to subscribe to selected plan
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
         method: 'POST',
         credentials: 'include',

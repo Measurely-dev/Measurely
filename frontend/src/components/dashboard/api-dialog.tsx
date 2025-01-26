@@ -1,5 +1,6 @@
 'use client';
 
+// Import UI components and utilities
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,25 +26,29 @@ import { useConfirm } from '@omit/react-confirm-dialog';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 
+// ApiDialog component for displaying and managing API keys
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
   projectid: string;
 }) {
+  // State management
   const [apiKey, setApiKey] = useState<string | null>(null);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const id = useId();
-  const inputRef = useRef<HTMLInputElement>(null); // Ref for the input element
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Update apiIndex when projects or projectid changes
   useEffect(() => {
     if (projects !== null) {
       setApiIndex(projects.findIndex((proj) => proj.id === props.projectid));
     }
   }, [projects, props.projectid]);
 
+  // Handle API key randomization with confirmation
   const RandomizeAPI = async () => {
     const isConfirmed = await confirm({
       title: 'Randomize API Key',
@@ -69,6 +74,7 @@ export default function ApiDialog(props: {
     });
 
     if (isConfirmed) {
+      // Make API call to randomize the key
       fetch(process.env.NEXT_PUBLIC_API_URL + '/rand_apikey', {
         method: 'PATCH',
         headers: {
@@ -104,6 +110,7 @@ export default function ApiDialog(props: {
     }
   };
 
+  // Initialize API key from projects when component mounts
   useEffect(() => {
     if (projects !== null && projects.length > 0) {
       const appIndex = projects.findIndex((app) => app.id === props.projectid);
@@ -113,10 +120,11 @@ export default function ApiDialog(props: {
     }
   }, [activeProject, projects, props.projectid]);
 
+  // Toggle API key visibility and handle text selection
   const toggleVisibility = () => {
     setIsVisible((prevState) => !prevState);
     if (isVisible && inputRef.current) {
-      inputRef.current.select(); // Auto-select text when visible
+      inputRef.current.select();
     }
   };
 

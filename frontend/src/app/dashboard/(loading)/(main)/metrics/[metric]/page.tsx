@@ -1,5 +1,6 @@
 'use client';
 
+// Import necessary components and libraries
 import DashboardContentContainer from '@/components/dashboard/container';
 import EditMetricDialogContent from '@/components/dashboard/edit-metric-dialog-content';
 import { AreaChart } from '@/components/ui/area-chart';
@@ -88,57 +89,26 @@ import {
   Button as AriaButton,
   DateValue,
 } from 'react-aria-components';
-import Filters from './filters';
+import Filters from './filter-selector';
 import AdvancedOptions from './advanced-options';
 import { Separator } from '@/components/ui/separator';
 
+// Define color configurations for dual metric charts
 const dualMetricChartColors: DualMetricChartColors = {
-  default: {
-    positive: 'green',
-    negative: 'red',
-  },
-  cool: {
-    positive: 'cyan',
-    negative: 'violet',
-  },
-  warm: {
-    positive: 'fuchsia',
-    negative: 'red',
-  },
-  contrast: {
-    positive: 'lime',
-    negative: 'gray',
-  },
-  soft: {
-    positive: 'pink',
-    negative: 'gray',
-  },
-  vibrant: {
-    positive: 'fuchsia',
-    negative: 'blue',
-  },
-  neutral: {
-    positive: 'gray',
-    negative: 'gray',
-  },
-  pastel: {
-    positive: 'rose',
-    negative: 'teal',
-  },
-  sunset: {
-    positive: 'orange',
-    negative: 'violet',
-  },
-  ocean: {
-    positive: 'emerald',
-    negative: 'sky',
-  },
-  forest: {
-    positive: 'green',
-    negative: 'yellow',
-  },
+  default: { positive: 'green', negative: 'red' },
+  cool: { positive: 'cyan', negative: 'violet' },
+  warm: { positive: 'fuchsia', negative: 'red' },
+  contrast: { positive: 'lime', negative: 'gray' },
+  soft: { positive: 'pink', negative: 'gray' },
+  vibrant: { positive: 'fuchsia', negative: 'blue' },
+  neutral: { positive: 'gray', negative: 'gray' },
+  pastel: { positive: 'rose', negative: 'teal' },
+  sunset: { positive: 'orange', negative: 'violet' },
+  ocean: { positive: 'emerald', negative: 'sky' },
+  forest: { positive: 'green', negative: 'yellow' },
 };
 
+// Helper function to get dual metric chart colors based on theme
 function getDualMetricChartColors(
   colorsConfig: DualMetricChartColors,
   theme: keyof DualMetricChartColors,
@@ -147,6 +117,7 @@ function getDualMetricChartColors(
   return [selectedColors.positive, selectedColors.negative];
 }
 
+// Main component for the dashboard metric page
 export default function DashboardMetricPage() {
   const router = useRouter();
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
@@ -156,6 +127,7 @@ export default function DashboardMetricPage() {
   const [filterManagerOpen, setFilterManagerOpen] = useState(false);
   const [pushValueOpen, setPushValueOpen] = useState(false);
 
+  // Fetch the metric data based on the active project and metric name
   const metric = useMemo(() => {
     if (projects[activeProject]) {
       const index = projects[activeProject].metrics?.findIndex(
@@ -163,7 +135,6 @@ export default function DashboardMetricPage() {
       );
       if (index !== undefined && index !== -1) {
         const metricData = projects[activeProject].metrics?.[index];
-
         if (metricData !== null && metricData !== undefined) {
           return metricData;
         }
@@ -176,6 +147,7 @@ export default function DashboardMetricPage() {
   const [daily, setDaily] = useState<number>(0);
   const [average, setAverage] = useState<number>(0);
 
+  // Load daily values for the metric
   const loadDailyValues = async (metric: Metric) => {
     if (metric === undefined) return;
     const variation = await fetchEventVariation(metric.project_id, metric.id);
@@ -239,6 +211,7 @@ export default function DashboardMetricPage() {
     }
   };
 
+  // Load daily values on mount and set an interval to refresh them
   useEffect(() => {
     loadDailyValues(metric!);
     const interval = setInterval(() => {
@@ -250,6 +223,7 @@ export default function DashboardMetricPage() {
     };
   }, []);
 
+  // Update the document title and meta description based on the metric
   useEffect(() => {
     document.title = `${metric?.name} | Measurely`;
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -261,6 +235,7 @@ export default function DashboardMetricPage() {
     }
   }, []);
 
+  // Redirect to the metrics page if the metric is not found
   useEffect(() => {
     const index = projects[activeProject].metrics?.findIndex(
       (g) => g.name === metricName,
@@ -270,6 +245,7 @@ export default function DashboardMetricPage() {
     }
   }, [activeProject]);
 
+  // Helper function to generate card styles based on color
   const cardStyle = (color: string) => ({
     borderColor: `${color}1A`,
     backgroundColor: `${color}0D`,
@@ -509,6 +485,7 @@ export default function DashboardMetricPage() {
   );
 }
 
+// Chart component to display metric data
 function Chart(props: {
   metric: Metric | null | undefined;
   type: 'trend' | 'overview';
@@ -545,6 +522,7 @@ function Chart(props: {
     average: number;
   }>({ pos: 0, neg: 0, average: 0 });
 
+  // Load chart data based on the selected date range and filter
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
     let data = [];
@@ -585,6 +563,7 @@ function Chart(props: {
     setLoadingRight(false);
   };
 
+  // Calculate the summary of the range (positive, negative, and average values)
   const loadRangeSummary = async (
     data: any[],
     metric: Metric,
@@ -703,6 +682,8 @@ function Chart(props: {
       };
     }
   };
+
+  // Load chart data when the date range, range, year, or active filter changes
   useEffect(() => {
     let interval: any;
     if (range >= 365) {
@@ -740,15 +721,15 @@ function Chart(props: {
     };
   }, [date?.from, range, year, activeFilter, props.metric]);
 
+  // Helper functions to convert between DateRange and RangeValue<DateValue>
   const toRangeValue = (
     dateRange: DateRange | undefined,
   ): RangeValue<DateValue> | null => {
     if (!dateRange?.from || !dateRange?.to) return null;
 
-    // Convert Date to CalendarDate
     const start = new CalendarDate(
       dateRange.from.getFullYear(),
-      dateRange.from.getMonth() + 1, // Months are 0-indexed in JavaScript Date
+      dateRange.from.getMonth() + 1,
       dateRange.from.getDate(),
     );
 
@@ -782,10 +763,11 @@ function Chart(props: {
       ),
     };
   };
+
   return (
     <>
       <CardHeader className='p-0'>
-        <CardTitle>
+        <CardTitle className={props.type === 'overview' ? '' : 'mt-5'}>
           {props.type === 'overview' ? 'Overview' : 'Trend'}
         </CardTitle>
         <CardDescription>
@@ -1053,6 +1035,7 @@ function Chart(props: {
   );
 }
 
+// Offset buttons component for navigating left and right in the chart
 function OffsetBtns(props: {
   onLeft: () => void;
   onRight: () => void;
@@ -1113,6 +1096,7 @@ function OffsetBtns(props: {
   );
 }
 
+// Range selector component for choosing the date range
 function RangeSelector(props: {
   range: number;
   setRange: Dispatch<SetStateAction<number>>;

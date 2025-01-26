@@ -1,8 +1,10 @@
 'use client';
+
+// Import necessary components and utilities
 import DashboardContentContainer from '@/components/dashboard/container';
 import {
   Breadcrumb,
-  BreadcrumbItem,
+  BreadcrumbItem, 
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
@@ -36,13 +38,16 @@ import { useRouter } from 'next/navigation';
 import { ProjectsContext } from '@/dash-context';
 import { UserRole } from '@/types';
 
+// Main dashboard metrics component
 export default function DashboardMetrics() {
+  // Get projects context and initialize state
   const { projects, activeProject } = useContext(ProjectsContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('total');
   const router = useRouter();
   const [activeMetric, setActiveMetric] = useState(0);
 
+  // Set page title and meta description on mount
   useEffect(() => {
     document.title = 'Metrics | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -54,6 +59,7 @@ export default function DashboardMetrics() {
     }
   }, []);
 
+  // Update active metric when project changes
   useEffect(() => {
     const new_index =
       projects[activeProject].metrics === null
@@ -66,14 +72,13 @@ export default function DashboardMetrics() {
       setActiveMetric(new_index);
     }
   }, [activeProject]);
+
   return (
     <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className='pointer-events-none'>
-              Dashboard
-            </BreadcrumbLink>
+            <BreadcrumbLink className='pointer-events-none'>Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -82,12 +87,14 @@ export default function DashboardMetrics() {
         </BreadcrumbList>
       </Breadcrumb>
       <div className='mt-5 flex h-full flex-row gap-5'>
+        {/* Show loader while metrics are loading */}
         {projects[activeProject].metrics === null ? (
           <div className='flex h-[calc(100vh-50px-15px-200px)] w-full items-center justify-center'>
             <Loader className='size-5 animate-spin' />
           </div>
         ) : (
           <div className='flex w-full flex-col gap-[10px]'>
+            {/* Search, filter and add metric controls */}
             <div className='flex w-full flex-row gap-[10px] max-md:flex-col'>
               <SearchComponent search={search} setSearch={setSearch} />
               <FiltersComponent filter={filter} setFilter={setFilter} />
@@ -104,6 +111,7 @@ export default function DashboardMetrics() {
                 </Button>
               </Link>
             </div>
+            {/* Show empty state or metrics table */}
             {projects[activeProject].metrics?.length === 0 ? (
               <EmptyState
                 className='w-full'
@@ -130,6 +138,7 @@ export default function DashboardMetrics() {
   );
 }
 
+// Component for metric filtering dropdown
 function FiltersComponent(props: {
   filter: string;
   setFilter: Dispatch<SetStateAction<string>>;
@@ -152,6 +161,7 @@ function FiltersComponent(props: {
   );
 }
 
+// Component for metric search input
 function SearchComponent(props: {
   search: string;
   setSearch: Dispatch<SetStateAction<string>>;

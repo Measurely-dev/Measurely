@@ -1,27 +1,36 @@
+// UI Component imports
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Book, Code, LogOut, Plus, Settings, User } from 'react-feather';
 
+// Next.js imports
 import Link from 'next/link';
 import { ReactNode, useContext } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+
+// Context and component imports
 import { ProjectsContext, UserContext } from '@/dash-context';
 import ApiDialog from '../api-dialog';
 import { Separator } from '@/components/ui/separator';
 import { navItem } from '../navbar';
 import { DialogClose } from '@/components/ui/dialog';
-import { usePathname } from 'next/navigation';
 import SettingDialog from '../setting-dialog';
-import { useRouter } from 'next/navigation';
+
+// Drawer menu component that provides navigation and user controls
 export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
   const pathname = usePathname();
   const { user } = useContext(UserContext);
   const router = useRouter();
   const { projects, activeProject } = useContext(ProjectsContext);
+
+  // Helper function to capitalize first letter of strings
   function Capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+
+  // Handles user logout process
   const handleLogout = () => {
     fetch(process.env.NEXT_PUBLIC_API_URL + '/logout', {
       method: 'POST',
@@ -38,10 +47,13 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         console.error('Logout failed:', error);
       });
   };
+
   return (
     <Drawer>
+      {/* Drawer trigger only visible on mobile */}
       <DrawerTrigger className='md:hidden'>{props.children}</DrawerTrigger>
       <DrawerContent className='flex flex-col gap-2 p-10 !pt-0 max-sm:p-2'>
+        {/* User profile section */}
         <Label className='flex flex-row items-center gap-4 rounded-[12px] p-2'>
           <Avatar className='size-[35px] cursor-pointer border text-secondary hover:text-primary'>
             <AvatarImage src={props.image} className='rounded-full' />
@@ -56,6 +68,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         </Label>
         <Separator className='my-2' orientation='horizontal' />
 
+        {/* Navigation items */}
         {navItem?.map((item, i) => {
           return (
             <DialogClose asChild key={i}>
@@ -74,12 +87,16 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         })}
 
         <Separator className='my-2' orientation='horizontal' />
+
+        {/* Action buttons section */}
         <Link href={'/dashboard/new-metric'}>
           <Button className='h-[35px] w-full gap-[8px] rounded-[12px]'>
             <Plus className='size-[16px]' />
             Create metric
           </Button>
         </Link>
+
+        {/* Mobile-only API key button */}
         <div className='sm:hidden'>
           <ApiDialog projectid={projects?.[activeProject]?.id ?? ''}>
             <Button
@@ -91,6 +108,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
             </Button>
           </ApiDialog>
         </div>
+
+        {/* Documentation link */}
         <Link href={'/docs/getting-started/introduction'}>
           <Button
             className='h-[35px] w-full gap-[8px] rounded-[12px] text-secondary hover:text-primary'
@@ -100,6 +119,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
             Documentation
           </Button>
         </Link>
+
+        {/* Settings dialog */}
         <SettingDialog>
           <Button
             className='h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary'
@@ -109,6 +130,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
             Settings
           </Button>
         </SettingDialog>
+
+        {/* Logout button */}
         <Button
           className='h-[35px] gap-[8px] rounded-[12px] bg-red-500/5 !text-red-500 transition-all hover:!bg-red-500/20'
           variant='default'

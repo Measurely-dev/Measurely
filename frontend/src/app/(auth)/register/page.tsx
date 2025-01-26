@@ -1,3 +1,4 @@
+'use client'
 
 // Import required components and dependencies
 import AuthForm from '@/components/website/auth-form';

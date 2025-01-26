@@ -1,4 +1,6 @@
 'use client';
+
+// UI Component imports
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SettingCard from '../setting-card';
@@ -15,31 +17,36 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ImageIcon } from '@radix-ui/react-icons';
 import { MAXFILESIZE } from '@/utils';
 
-export default function SettingGeneralPage() {
+export default function GeneralSettings() {
+  // User context and router setup
   const { user, setUser } = useContext(UserContext);
+  const router = useRouter();
+  const confirm = useConfirm();
+
+  // Loading state management
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
+
+  // Form field states
   const [firstName, setFirstName] = useState(user?.first_name);
   const [lastName, setLastName] = useState(user?.last_name);
   const [email, setEmail] = useState(user?.email);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
-  const router = useRouter();
-  const confirm = useConfirm();
 
+  // Profile image states
   const [file, setFile] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
 
+  // Handler for updating profile information (name and image)
   const handleFirstLastNameSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (file !== null) {
-      if (file.size > MAXFILESIZE) {
-        toast.error('The image is too large, MAX 500KB');
-        return;
-      }
+    if (file !== null && file.size > MAXFILESIZE) {
+      toast.error('The image is too large, MAX 500KB');
+      return;
     }
 
     if (firstName === '') {
@@ -54,16 +61,12 @@ export default function SettingGeneralPage() {
       image: user.image,
     };
 
-    if (
-      firstName.toLowerCase() !== user.first_name ||
-      lastName.toLowerCase() !== user.last_name
-    ) {
+    // Update name if changed
+    if (firstName.toLowerCase() !== user.first_name || lastName.toLowerCase() !== user.last_name) {
       const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
         method: 'PATCH',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           first_name: firstName.toLowerCase(),
           last_name: lastName.toLowerCase(),
@@ -77,17 +80,15 @@ export default function SettingGeneralPage() {
       }
     }
 
+    // Upload new profile image if selected
     if (file !== null) {
       const formData = new FormData();
       formData.append('file', file);
-      const response2 = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user_image`,
-        {
-          method: 'POST',
-          credentials: 'include',
-          body: formData,
-        },
-      );
+      const response2 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user_image`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
 
       if (response2.ok) {
         toast.success('Successfully updated your image.');
@@ -102,6 +103,7 @@ export default function SettingGeneralPage() {
     setLoadingProfile(false);
   };
 
+  // Handler for email change request
   const handleEmailSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (email === '') {
@@ -112,9 +114,7 @@ export default function SettingGeneralPage() {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/request_email_change`, {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ new_email: email.toLowerCase() }),
     })
       .then((resp) => {
@@ -129,6 +129,7 @@ export default function SettingGeneralPage() {
       });
   };
 
+  // Handler for password update
   const handlePasswordSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (oldPassword === '' || newPassword === '' || confirmedPassword === '') {
@@ -145,9 +146,7 @@ export default function SettingGeneralPage() {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/password`, {
       method: 'PATCH',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         old_password: oldPassword,
         new_password: newPassword,
@@ -164,12 +163,13 @@ export default function SettingGeneralPage() {
         setLoadingPassword(false);
       });
   };
+
+  // Handler for account deletion
   const DeleteAccount = async () => {
     const isConfirmed = await confirm({
       title: 'Delete my account',
       icon: <UserRoundX className='size-6 text-destructive' />,
-      description:
-        'Are you sure you want to delete this account? You will loose all the data linked to this account forever.',
+      description: 'Are you sure you want to delete this account? You will loose all the data linked to this account forever.',
       confirmText: 'Yes, Delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -194,10 +194,7 @@ export default function SettingGeneralPage() {
         credentials: 'include',
       }).then((resp) => {
         if (resp.status === 200) {
-          toast.success(
-            'Successfully deleted your account. You will now be logged out.',
-          );
-
+          toast.success('Successfully deleted your account. You will now be logged out.');
           router.push('/sign-in');
         } else {
           resp.text().then((text) => {
@@ -208,6 +205,7 @@ export default function SettingGeneralPage() {
     }
   };
 
+  // Component render
   return (
     <div className='grid gap-5'>
       <SettingCard
@@ -216,9 +214,7 @@ export default function SettingGeneralPage() {
         btn_loading={loadingProfile}
         btn_disabled={
           firstName === '' ||
-          (firstName === user.first_name &&
-            lastName === user.last_name &&
-            file === null)
+          (firstName === user.first_name && lastName === user.last_name && file === null)
         }
         action={handleFirstLastNameSubmit}
         content={
@@ -240,17 +236,11 @@ export default function SettingGeneralPage() {
                     className='absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0'
                     onChange={(event) => {
                       const selectedFile = event.target.files?.[0];
-
-                      if (!selectedFile) {
-                        return;
-                      }
-
+                      if (!selectedFile) return;
                       const r = new FileReader();
-
                       r.onload = (e) => {
                         setReader(e.target?.result);
                       };
-
                       r.readAsDataURL(selectedFile);
                       setFile(event.target.files?.[0]);
                     }}
@@ -316,12 +306,8 @@ export default function SettingGeneralPage() {
       <SettingCard
         title='Password'
         btn_loading={loadingPassword}
-        btn_disabled={
-          oldPassword === '' || newPassword === '' || confirmedPassword === ''
-        }
-        disabled={
-          user.providers === null ? false : (user.providers.length ?? 0) > 0
-        }
+        btn_disabled={oldPassword === '' || newPassword === '' || confirmedPassword === ''}
+        disabled={user.providers === null ? false : (user.providers.length ?? 0) > 0}
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />

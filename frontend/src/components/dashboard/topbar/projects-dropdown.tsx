@@ -1,5 +1,6 @@
 'use client';
 
+// Import necessary components and utilities
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,15 +15,21 @@ import { loadMetrics, roleToString } from '@/utils';
 import { CaretSortIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
-export default function ProjectsChip() {
-  const [open, setOpen] = useState(false);
-  const { projects, activeProject, setActiveProject, setProjects } =
-    useContext(ProjectsContext);
 
+// Component for displaying and selecting projects in a dropdown panel
+export default function ProjectsDropdown() {
+  // State for panel open/close
+  const [open, setOpen] = useState(false);
+
+  // Get projects context
+  const { projects, activeProject, setActiveProject, setProjects } = useContext(ProjectsContext);
+
+  // Handle selection of a project
   const handleAppSelect = async (id: string) => {
     const index = projects.findIndex((proj) => proj.id === id);
 
     if (index <= projects.length - 1) {
+      // Load metrics if not already loaded
       if (projects[index].metrics === null) {
         const metrics = await loadMetrics(projects?.[index].id ?? '');
         setProjects(
@@ -33,14 +40,12 @@ export default function ProjectsChip() {
       }
       setActiveProject(index);
     }
-
     setOpen(false);
   };
 
+  // Memoized list of projects owned by user
   const ownedProjects = useMemo(() => {
-    const filtered = projects.filter(
-      (proj) => proj.user_role === UserRole.Owner,
-    );
+    const filtered = projects.filter((proj) => proj.user_role === UserRole.Owner);
     return filtered.sort((a, b) =>
       a.id === projects[activeProject].id
         ? -1
@@ -50,10 +55,9 @@ export default function ProjectsChip() {
     );
   }, [projects, activeProject]);
 
+  // Memoized list of projects user has joined but doesn't own
   const joinedProjects = useMemo(() => {
-    const filtered = projects.filter(
-      (proj) => proj.user_role !== UserRole.Owner,
-    );
+    const filtered = projects.filter((proj) => proj.user_role !== UserRole.Owner);
     return filtered.sort((a, b) =>
       a.id === projects[activeProject].id
         ? -1
@@ -63,15 +67,12 @@ export default function ProjectsChip() {
     );
   }, [projects, activeProject]);
 
+  // Style classes for different role badges
   const badgeClasses: { [key: string]: string } = {
-    Owner:
-      'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
-    Admin:
-      'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
-    Developer:
-      'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
-    Guest:
-      'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
+    Owner: 'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+    Admin: 'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
+    Developer: 'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
+    Guest: 'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
   };
 
   return (
@@ -95,6 +96,7 @@ export default function ProjectsChip() {
       </FloatingPanelTrigger>
       <FloatingPanelContent className='w-[300px]' side='left'>
         <FloatingPanelBody className='flex flex-col gap-2 p-2'>
+          {/* Render owned projects */}
           {ownedProjects.map((app) => (
             <div
               key={app.id}
@@ -126,6 +128,7 @@ export default function ProjectsChip() {
               </div>
             </div>
           ))}
+          {/* Render joined projects */}
           {joinedProjects.map((app) => (
             <div
               key={app.id}
@@ -146,6 +149,7 @@ export default function ProjectsChip() {
               />
             </div>
           ))}
+          {/* Create new project button */}
           <Link href={'/dashboard/new-project'}>
             <Button
               variant={'default'}

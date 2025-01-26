@@ -14,11 +14,14 @@ import {
 } from '@/components/ui/floating-panel';
 import { XIcon } from 'lucide-react';
 
+// Main feedback component that wraps the floating panel functionality
 export default function FeedbackPopover(props: { children: any }) {
   return <FloatingPanelInput>{props.children}</FloatingPanelInput>;
 }
 
+// Component that handles the floating panel input and submission logic
 function FloatingPanelInput(props: { children: ReactNode }) {
+  // Handles form submission by sending feedback content to the API
   const handleSubmit = (content: string) => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/feedback`, {
       method: 'POST',
@@ -48,11 +51,11 @@ function FloatingPanelInput(props: { children: ReactNode }) {
           </FloatingPanelBody>
           <FloatingPanelFooter>
             <FloatingPanelCloseButton
-              icon={<XIcon size={16} />} // Custom icon
-              ariaLabel='Close panel' // Custom aria-label
+              icon={<XIcon size={16} />}
+              ariaLabel='Close panel'
             />
             <FloatingPanelSubmitButton>
-              Send Message {/* Custom text */}
+              Send Message
             </FloatingPanelSubmitButton>
           </FloatingPanelFooter>
         </FloatingPanelForm>

@@ -9,11 +9,11 @@ import {
 } from '@/components/ui/dialog';
 import { CreditCard, Home, X } from 'lucide-react';
 import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
-import SettingGeneralPage from './setting-pages/general';
+import GeneralSettings from './setting-pages/general';
 import { Hexagon } from 'react-feather';
-import SettingPaymentPage from './setting-pages/payment';
+import PaymentSettings from './setting-pages/payment';
 import { Button } from '@/components/ui/button';
-import SettingProjectPage from './setting-pages/projects';
+import ProjectsSettings from './setting-pages/projects';
 
 interface SettingPage {
   name: string;
@@ -81,8 +81,10 @@ function Navbar(props: {
           return (
             <div
               key={i}
-              className={`flex w-full border border-transparent hover:border-input cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-input/50 ${
-                props.page === item.value ? 'bg-input/50 !border !border-input' : ''
+              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] border border-transparent px-4 py-[5px] text-sm font-medium text-primary hover:border-input hover:bg-input/50 ${
+                props.page === item.value
+                  ? '!border !border-input bg-input/50'
+                  : ''
               }`}
               onClick={() => props.setPage(item.value)}
             >
@@ -104,11 +106,11 @@ function Content(props: {
   function content() {
     switch (props.page) {
       case 'general':
-        return <SettingGeneralPage />;
+        return <GeneralSettings />;
       case 'projects':
-        return <SettingProjectPage />;
+        return <ProjectsSettings />;
       case 'payment':
-        return <SettingPaymentPage />;
+        return <PaymentSettings />;
     }
   }
   return (
