@@ -2,20 +2,11 @@
 
 // Import UI components and utilities
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
-import {
-  ReactNode,
-  useContext,
-  useEffect,
-  useId,
-  useState,
-  useRef,
-} from 'react';
 import { ProjectsContext } from '@/dash-context';
-import { Shuffle } from 'lucide-react';
 import { useConfirm } from '@omit/react-confirm-dialog';
+import { Eye, EyeOff, Shuffle } from 'lucide-react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
 import {
   FloatingPanelBody,
   FloatingPanelContent,
@@ -36,8 +27,6 @@ export default function ApiDialog(props: {
   const confirm = useConfirm();
   const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  const id = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [apiKeyDup, setApiKeyDup] = useState<string | null>(null);
   const [isCopying, setIsCopying] = useState<boolean>(false);
 
@@ -125,9 +114,6 @@ export default function ApiDialog(props: {
   // Toggle API key visibility and handle text selection
   const toggleVisibility = () => {
     setIsVisible((prevState) => !prevState);
-    if (isVisible && inputRef.current) {
-      inputRef.current.select();
-    }
   };
 
   return (
@@ -142,48 +128,38 @@ export default function ApiDialog(props: {
       <FloatingPanelContent className='w-[95%] max-w-[500px]' side='center'>
         <FloatingPanelBody className='p-4'>
           <div className='space-y-2'>
-            <div className='flex w-full items-center gap-2'>
-              <div className='relative w-full'>
-                <div
-                  onClick={() => {
-                    if (apiKey && isVisible && !isCopying) {
-                      navigator.clipboard.writeText(apiKeyDup || '');
-                      setIsCopying(true);
-                      setApiKey('Copied to clipboard!');
-                      setTimeout(() => {
-                        setApiKey(apiKeyDup);
-                        setIsCopying(false);
-                      }, 1500);
-                    }
-                  }}
-                >
-                  <Input
-                    id={id}
-                    ref={inputRef}
-                    className='user-select-none pointer-events-none w-full select-none rounded-[12px] pe-9 text-sm !ring-0'
-                    placeholder='API Key'
-                    type={isVisible ? 'text' : 'password'}
-                    value={apiKey || ''}
-                    autoFocus={false}
-                    readOnly
-                    tabIndex={-1}
-                  />
-                </div>
-                <button
-                  className='absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
-                  type='button'
-                  onClick={toggleVisibility}
-                  aria-label={isVisible ? 'Hide API key' : 'Show API key'}
-                  aria-pressed={isVisible}
-                  aria-controls={id}
-                >
-                  {isVisible ? (
-                    <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
-                  ) : (
-                    <Eye size={16} strokeWidth={2} aria-hidden='true' />
-                  )}
-                </button>
-              </div>
+            <div className='flex w-full items-center'>
+              <Button
+                onClick={() => {
+                  if (apiKey && !isCopying) {
+                    navigator.clipboard.writeText(apiKeyDup || '');
+                    setIsVisible(true);
+                    setIsCopying(true);
+                    setApiKey('Copied to clipboard!');
+                    setTimeout(() => {
+                      setApiKey(apiKeyDup);
+                      setIsVisible(false);
+                      setIsCopying(false);
+                    }, 1500);
+                  }
+                }}
+                className='w-full rounded-[12px] rounded-e-none'
+                variant='outline'
+              >
+                {isVisible ? apiKey : 'Click to copy API key'}
+              </Button>
+              <Button
+                className='size-9 min-w-9 rounded-[12px] rounded-s-none border-s-0'
+                variant='outline'
+                size={'icon'}
+                onClick={toggleVisibility}
+              >
+                {isVisible ? (
+                  <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
+                ) : (
+                  <Eye size={16} strokeWidth={2} aria-hidden='true' />
+                )}
+              </Button>
               {props.randomize && (
                 <Button
                   onClick={RandomizeAPI}
