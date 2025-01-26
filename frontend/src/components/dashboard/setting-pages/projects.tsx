@@ -24,7 +24,6 @@ import {
 import { Project, UserRole } from '@/types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useConfirm } from '@omit/react-confirm-dialog';
-import { loadMetrics } from '@/utils';
 import { toast } from 'sonner';
 import {
   Table,
@@ -101,20 +100,6 @@ export default function ProjectsSettings() {
             if (toRemove === -1 || toRemove === undefined) return;
             if (toRemove < activeProject) {
               newActiveProject = activeProject - 1;
-            }
-          }
-
-          // Load metrics for new active project if needed
-          if (projects !== null) {
-            if (projects[newActiveProject].metrics === null) {
-              const metrics = await loadMetrics(projects[newActiveProject].id);
-              setProjects(
-                projects.map((proj, id) =>
-                  id === newActiveProject
-                    ? Object.assign({}, proj, { metrics: metrics })
-                    : proj,
-                ),
-              );
             }
           }
 
@@ -258,7 +243,9 @@ export default function ProjectsSettings() {
                   </TableRow>
                 </TableFooter>
               </Table>
-              <TableCaption className='border-none'>A list of your projects.</TableCaption>
+              <TableCaption className='border-none'>
+                A list of your projects.
+              </TableCaption>
             </div>
           )}
         </div>

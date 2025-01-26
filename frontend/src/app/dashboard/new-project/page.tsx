@@ -26,7 +26,8 @@ import { useCharacterLimit } from '@/lib/character-limit';
 export default function NewProject() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState<string>('');
-  const { setActiveProject, projects, setProjects } = useContext(ProjectsContext);
+  const { setActiveProject, projects, setProjects } =
+    useContext(ProjectsContext);
   const router = useRouter();
 
   // Define the steps for the project creation wizard
@@ -71,6 +72,9 @@ export default function NewProject() {
 
       // Handle successful project creation
       const newProject = await response.json();
+      newProject.metrics = null;
+      newProject.blocks = null;
+      newProject.members = null;
       setActiveProject(projects.length);
       setProjects((prevProjects) => [...prevProjects, newProject]);
       router.push('/dashboard');
@@ -84,7 +88,7 @@ export default function NewProject() {
     <div className='flex flex-col'>
       <Container className='h-[100vh] w-[100vw]'>
         {projects.length === 0 ? (
-          <SemiNavbar isDashboard button={null} />
+          <SemiNavbar button={null} />
         ) : (
           <SemiNavbar href='/dashboard' button='Dashboard' />
         )}

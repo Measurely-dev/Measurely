@@ -34,7 +34,8 @@ export default function DashboardContentLayout({
   useEffect(() => {
     // Redirect to new project page if user has no owned projects
     if (
-      projects.filter((proj) => proj.user_role === UserRole.Owner).length === 0 &&
+      projects.filter((proj) => proj.user_role === UserRole.Owner).length ===
+        0 &&
       !projectsLoading
     ) {
       router.push('/dashboard/new-project');
@@ -103,14 +104,7 @@ export default function DashboardContentLayout({
 
           // Load metrics only for active project
           for (let i = 0; i < json.length; i++) {
-            if (
-              i === savedActiveProject &&
-              json.length >= savedActiveProject + 1
-            ) {
-              json[i].metrics = await loadMetrics(json[savedActiveProject].id);
-            } else {
-              json[i].metrics = null;
-            }
+            json[i].metrics = null;
             json[i].members = null;
             json[i].blocks = null;
           }
@@ -132,9 +126,25 @@ export default function DashboardContentLayout({
       return;
     setProjectsLoading(true);
     setActiveProjectName(projects[activeProject].name);
-    setTimeout(() => {
-      setProjectsLoading(false);
-    }, 400);
+    if (projects[activeProject].metrics === null) {
+      loadMetrics(projects[activeProject].id)
+        .then((data) => {
+          setProjects(
+            projects.map((proj, i) =>
+              i === activeProject
+                ? Object.assign({}, proj, {
+                    metrics: data,
+                  })
+                : proj,
+            ),
+          );
+        })
+        .finally(() => {
+          setProjectsLoading(false);
+        });
+    } else {
+      setTimeout(() => setProjectsLoading(false), 400);
+    }
     localStorage.setItem('activeProject', activeProject.toString());
   }, [activeProject]);
 
