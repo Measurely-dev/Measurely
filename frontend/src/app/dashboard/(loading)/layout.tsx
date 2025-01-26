@@ -104,7 +104,14 @@ export default function DashboardContentLayout({
 
           // Load metrics only for active project
           for (let i = 0; i < json.length; i++) {
-            json[i].metrics = null;
+            if (
+              i === savedActiveProject &&
+              json.length >= savedActiveProject + 1
+            ) {
+              json[i].metrics = await loadMetrics(json[savedActiveProject].id);
+            } else {
+              json[i].metrics = null;
+            }
             json[i].members = null;
             json[i].blocks = null;
           }
@@ -143,7 +150,7 @@ export default function DashboardContentLayout({
           setProjectsLoading(false);
         });
     } else {
-      setTimeout(() => setProjectsLoading(false), 400);
+      setTimeout(() => setProjectsLoading(false), 300);
     }
     localStorage.setItem('activeProject', activeProject.toString());
   }, [activeProject]);
