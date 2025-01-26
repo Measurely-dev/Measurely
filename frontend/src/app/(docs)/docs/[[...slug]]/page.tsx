@@ -1,3 +1,4 @@
+// Import required components and utilities
 import Toc from '@/components/markdown/toc';
 import { page_routes } from '@/lib/routes-config';
 import { getDocsForSlug } from '@/lib/markdown';
@@ -8,13 +9,19 @@ import Link from 'next/link';
 import Pagination from '@/components/markdown/pagination';
 import DocsBreadcrumb from '@/components/markdown/breadcrumb';
 
+// Define page props type for documentation pages
 type PageProps = {
   params: { slug: string[] };
 };
 
+// Main documentation page component
 export default async function DocsPage({ params: { slug = [] } }: PageProps) {
+  // Convert URL slug array to path string
   const pathName = slug.join('/');
+  // Fetch documentation content for the current path
   const res = await getDocsForSlug(pathName);
+
+  // Display 404 page if documentation is not found
   if (!res)
     return (
       <div className='flex h-[calc(100vh-70px)] w-full flex-col items-center justify-center gap-4'>
@@ -27,6 +34,8 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
         </Link>
       </div>
     );
+
+  // Render documentation content with navigation and table of contents
   return (
     <div className='flex items-start gap-5'>
       <div className='flex-[4.5] py-10 pt-9'>
@@ -45,6 +54,7 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
   );
 }
 
+// Generate metadata for the current documentation page
 export async function generateMetadata({ params: { slug = [] } }: PageProps) {
   const pathName = slug.join('/');
   const res = await getDocsForSlug(pathName);
@@ -56,6 +66,7 @@ export async function generateMetadata({ params: { slug = [] } }: PageProps) {
   };
 }
 
+// Generate static paths for all documentation pages
 export function generateStaticParams() {
   return page_routes.map((item) => ({
     slug: item.href.split('/').slice(1),
