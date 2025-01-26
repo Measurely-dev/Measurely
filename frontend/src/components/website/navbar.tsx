@@ -1,3 +1,4 @@
+// Import required components and dependencies
 import LogoSvg from '@/components/global/logo-svg';
 import Link from 'next/link';
 import {
@@ -9,10 +10,12 @@ import {
 import { Menu } from 'react-feather';
 import { Button } from '@/components/ui/button';
 
+// Main navigation bar component that handles different authentication states
 export default function Navbar(props: {
   type: 'default' | 'logged' | 'waitlist';
   isHome?: boolean | false;
 }) {
+  // Navigation links configuration
   const links: any = [
     {
       name: 'Docs',
@@ -27,22 +30,27 @@ export default function Navbar(props: {
       href: '/pricing',
     },
   ];
+
   return (
     <div className='fixed top-5 z-50 flex items-center gap-6 rounded-[20px] border border-background bg-accent/75 px-3 py-2 pl-4 backdrop-blur-xl max-md:w-[40%] max-md:justify-between max-sm:w-[60%]'>
-      {/* Logo */}
+      {/* Logo section with conditional home link */}
       <Link href={props.isHome ? '/home' : '/'}>
         <div className='size-8'>
           <LogoSvg />
         </div>
       </Link>
-      {/* Links */}
+
+      {/* Desktop navigation links */}
       <div className='max-md:hidden'>
         <Links links={links} />
       </div>
+
+      {/* Desktop authentication actions */}
       <div className='max-md:hidden'>
-        {/* Actions group */}
         <Actions type={props.type} />
       </div>
+
+      {/* Mobile navigation drawer */}
       <Drawer>
         <DrawerTrigger className='md:hidden'>
           <Menu className='mr-2 size-5' aria-label='Menu' />
@@ -57,6 +65,7 @@ export default function Navbar(props: {
               Home
             </Link>
           </DrawerClose>
+          {/* Mobile navigation links */}
           {links.map((link: { name: string; href: string }, i: any) => {
             return (
               <DrawerClose asChild key={i}>
@@ -69,7 +78,7 @@ export default function Navbar(props: {
               </DrawerClose>
             );
           })}
-          {/* Actions group */}
+          {/* Mobile authentication actions */}
           <Actions type={props.type} />
         </DrawerContent>
       </Drawer>
@@ -77,9 +86,11 @@ export default function Navbar(props: {
   );
 }
 
+// Component to render authentication-specific action buttons
 function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
   const render = () => {
     switch (props.type) {
+      // Default state - Sign in and Get started buttons
       case 'default':
         return (
           <div className='flex flex-row gap-2 max-md:flex-col'>
@@ -103,6 +114,7 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
             </Link>
           </div>
         );
+      // Logged in state - Dashboard button
       case 'logged':
         return (
           <div className='flex flex-row gap-2 max-md:w-full'>
@@ -117,6 +129,7 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
             </Link>
           </div>
         );
+      // Waitlist state - Sign in and Join waitlist buttons
       case 'waitlist':
         return (
           <div className='flex flex-row gap-2 max-md:flex-col'>
@@ -145,6 +158,7 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
   return render();
 }
 
+// Component to render navigation links
 function Links(props: { links: Array<any> }) {
   return (
     <div className='flex items-center gap-4'>

@@ -1,4 +1,6 @@
 'use client';
+
+// Required imports for components and assets
 import { ReactNode, useEffect, useState } from 'react';
 import FooterHeader from '../footer-header';
 import HeroTitle from '../hero-title';
@@ -15,14 +17,16 @@ import {
   AccordionItem,
 } from '@/components/ui/accordion';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
-
 import { Plus } from 'lucide-react';
 import { Question } from '@/components/global/faq-questions';
 import Image, { StaticImageData } from 'next/image';
+
+// Main Body component that handles the landing page layout
 export default function Body(props: {
   isAuthentificated: string | null;
   type: 'default' | 'waitlist';
 }) {
+  // Track window width for responsive layout
   const [window_width, set_window_width] = useState(0);
 
   useEffect(() => {
@@ -31,22 +35,25 @@ export default function Body(props: {
     };
 
     window.addEventListener('resize', handleResize);
-
     handleResize();
-
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Determine BentoBox layout based on screen width
   const bentoBoxType = window_width > 768 ? 'horizontal-left' : 'vertical';
+
   return (
     <div className='z-10 w-screen bg-background pb-[150px]'>
       <Content>
+        {/* Hero Section */}
         <BentoBox
           type={bentoBoxType}
           title='Simplify Your Metrics'
           description='Measurely is your all-in-one solution for tracking and analyzing key metrics. With our API integration, monitor data in real-time and access detailed insights at your fingertips.'
           img={Image1}
         />
+
+        {/* Feature Grid */}
         <div className='grid grid-cols-2 gap-5 max-md:grid-cols-1 max-md:grid-rows-2'>
           <BentoBox
             type='vertical'
@@ -63,6 +70,8 @@ export default function Body(props: {
             img={Image4}
           />
         </div>
+
+        {/* Additional Feature Section */}
         <BentoBox
           type={bentoBoxType}
           className='mt-5'
@@ -70,15 +79,21 @@ export default function Body(props: {
           description='Track both single and dual metrics. Single metrics monitor growth, while dual metrics capture positive and negative trends for deeper analysis.'
           img={Image2}
         />
+
+        {/* Subscription Section */}
         <SubscriptionUiSection
           type={props.type}
           isAuthentificated={props.isAuthentificated}
         />
+
+        {/* Benefits Section */}
         <HeroTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
           title='Focus on What Matters with Measurely'
         />
+
+        {/* Feature Boxes */}
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <Box
             icon={<Gauge className='size-10 stroke-[1] text-secondary' />}
@@ -86,20 +101,18 @@ export default function Body(props: {
             description='Gain real-time data insights for fast and informed decision-making.'
           />
           <Box
-            icon={
-              <SparklesIcon className='size-10 stroke-[1] text-secondary' />
-            }
+            icon={<SparklesIcon className='size-10 stroke-[1] text-secondary' />}
             title='Custom Metrics'
             description='Tailor your tracking to suit unique business needs with flexible metric options.'
           />
           <Box
-            icon={
-              <LayoutGridIcon className='size-10 stroke-[1] text-secondary' />
-            }
+            icon={<LayoutGridIcon className='size-10 stroke-[1] text-secondary' />}
             title='Effortless Integration'
             description='Connect easily with your current tools and workflows without hassle.'
           />
         </div>
+
+        {/* FAQ Section */}
         <div className='mt-[145px] rounded-3xl bg-background pt-12'>
           <HeroTitle subtitle='FAQ' title='Frequently Asked Questions' />
           <div className='mt-[70px] flex w-full items-start justify-center'>
@@ -136,12 +149,15 @@ export default function Body(props: {
             </div>
           </div>
         </div>
+
+        {/* Footer */}
         <FooterHeader className='mt-[170px]' type='waitlist' />
       </Content>
     </div>
   );
 }
 
+// BentoBox component for displaying feature sections with different layouts
 function BentoBox(props: {
   className?: string;
   type: 'horizontal-left' | 'horizontal-right' | 'vertical';
@@ -156,7 +172,6 @@ function BentoBox(props: {
           <div
             className={`grid w-full grid-cols-[4fr,1fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
           >
-            {/* Text box */}
             <div className='flex h-full w-full flex-col justify-between p-[30px] pr-0'>
               <div className='text-xl font-semibold'>{props.title}</div>
               <div className='text-base font-normal text-secondary'>
@@ -188,7 +203,6 @@ function BentoBox(props: {
                 height={1000}
               />
             </div>
-            {/* Text box */}
             <div className='flex h-full w-full flex-col justify-between p-[30px] pl-0'>
               <div className='text-xl font-semibold'>{props.title}</div>
               <div className='text-base font-normal text-secondary'>
@@ -202,7 +216,6 @@ function BentoBox(props: {
           <div
             className={`grid w-full overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
           >
-            {/* Text box */}
             <div className='flex h-fit w-full flex-col justify-between gap-8 p-[30px]'>
               <div className='text-xl font-semibold'>{props.title}</div>
               <div className='text-base font-normal text-secondary'>
@@ -226,6 +239,7 @@ function BentoBox(props: {
   return render();
 }
 
+// Box component for displaying feature highlights with icons
 function Box(props: {
   className?: string;
   title: string;

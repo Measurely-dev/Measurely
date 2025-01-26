@@ -7,8 +7,12 @@ import { Label } from '../ui/label';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { providers } from '@/providers';
-import { AtSign, Eye, EyeOff, Check, X, User } from 'lucide-react'; // Import required icons
+import { AtSign, Eye, EyeOff, Check, X, User } from 'lucide-react';
 
+/**
+ * AuthForm Component - Handles user authentication forms with various input types and validation
+ * @param props Component properties including form configuration and callbacks
+ */
 export default function AuthForm(props: {
   title: string;
   description?: string;
@@ -23,12 +27,13 @@ export default function AuthForm(props: {
   const router = useRouter();
   const [isDisabled, setIsDisabled] = useState(true);
   const ref = useRef<HTMLFormElement | null>(null);
-
-  // State for password input
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  // Function to check if any form fields are empty
+  /**
+   * Validates if all required form fields have values
+   * @returns {boolean} True if any field is empty, false if all fields are filled
+   */
   function checkFormValidity() {
     const formElement = ref.current;
     if (!formElement) return true;
@@ -42,7 +47,9 @@ export default function AuthForm(props: {
     return false;
   }
 
-  // Update the disabled state whenever the form changes
+  /**
+   * Effect hook to handle form input change events and update disabled state
+   */
   useEffect(() => {
     const formElement = ref.current;
     if (!formElement) return;
@@ -51,13 +58,11 @@ export default function AuthForm(props: {
       setIsDisabled(checkFormValidity());
     };
 
-    // Add event listeners to form inputs
     const inputs = formElement.querySelectorAll('input');
     inputs.forEach((input) => {
       input.addEventListener('input', handleInputChange);
     });
 
-    // Remove event listeners when the component unmounts
     return () => {
       inputs.forEach((input) => {
         input.removeEventListener('input', handleInputChange);
@@ -65,7 +70,11 @@ export default function AuthForm(props: {
     };
   }, []);
 
-  // Function to check password strength
+  /**
+   * Evaluates password strength against defined requirements
+   * @param {string} pass Password to evaluate
+   * @returns Array of requirement objects with met status
+   */
   const checkPasswordStrength = (pass: string) => {
     const requirements = [
       { regex: /.{8,}/, text: 'At least 8 characters' },
@@ -81,11 +90,11 @@ export default function AuthForm(props: {
   };
 
   const passwordStrength = checkPasswordStrength(password);
+  const passwordStrengthScore = passwordStrength.filter((req) => req.met).length;
 
-  const passwordStrengthScore = passwordStrength.filter(
-    (req) => req.met,
-  ).length;
-
+  /**
+   * Returns appropriate background color class based on password strength score
+   */
   const getPasswordStrengthColor = (score: number) => {
     if (score === 0) return 'bg-border';
     if (score <= 1) return 'bg-red-500';
@@ -94,6 +103,9 @@ export default function AuthForm(props: {
     return 'bg-emerald-500';
   };
 
+  /**
+   * Returns descriptive text based on password strength score
+   */
   const getPasswordStrengthText = (score: number) => {
     if (score === 0) return 'Enter a password';
     if (score <= 2) return 'Weak password';

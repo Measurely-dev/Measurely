@@ -1,9 +1,12 @@
 'use client';
+
+// Import required components and utilities
 import LogoSvg from '@/components/global/logo-svg';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
 
+// Footer navigation data structure
 const footerData = [
   {
     title: 'Company',
@@ -14,7 +17,7 @@ const footerData = [
     ],
   },
   {
-    title: 'Resources',
+    title: 'Resources', 
     links: [
       { name: 'Pricing', href: '/pricing' },
       { name: 'Basic metric', href: '/docs/features/basic-metric/' },
@@ -43,6 +46,7 @@ const footerData = [
   },
 ];
 
+// Main Footer component with customizable props for border, background, home status and type
 export default function Footer(props: {
   border: boolean;
   bg?: 'default' | 'secondary';
@@ -50,11 +54,14 @@ export default function Footer(props: {
   type: 'default' | 'waitlist';
 }) {
   const pathname = usePathname();
+
   return (
     <footer
       className={`relative z-10 flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-16 ${props.bg ? (props.bg === 'default' ? 'bg-background' : 'bg-secondaryColor') : pathname === '/' || pathname === '/home/' ? 'bg-background' : 'bg-secondaryColor'} ${props.border === true ? 'border-t' : ''} `}
     >
+      {/* Main footer content grid */}
       <div className='max-md: grid w-full max-w-[1100px] grid-cols-5 flex-col-reverse max-md:flex'>
+        {/* Navigation sections */}
         <div className='z-10 col-span-4 mx-auto grid w-full grid-cols-4 max-sm:grid-cols-2'>
           {footerData.map((section, i) => {
             return (
@@ -75,6 +82,7 @@ export default function Footer(props: {
             );
           })}
         </div>
+        {/* Logo section */}
         <div className='flex w-full flex-col items-end gap-5 max-md:mb-10 max-md:items-start'>
           <Link href={props.isHome ? '/home' : '/'}>
             <LogoSvg className='size-10' aria-hidden='true' />
@@ -83,6 +91,7 @@ export default function Footer(props: {
         </div>
       </div>
 
+      {/* Footer bottom section with social links and CTA */}
       <div className='mt-24 flex w-full max-w-[1100px] items-center justify-between text-sm text-[#666666] max-md:mt-16 max-sm:mt-6'>
         <div className='flex items-center gap-2'>
           <a
@@ -112,6 +121,7 @@ export default function Footer(props: {
           </a>
           © 2025 <span className='max-md:hidden'>Measurely.dev</span>
         </div>
+        {/* Conditional rendering of CTA button based on type prop */}
         {props.type === 'waitlist' ? (
           <Link href={'/waitlist'}>
             <Button className='rounded-[12px]'>Join waitlist</Button>
@@ -126,6 +136,7 @@ export default function Footer(props: {
   );
 }
 
+// Component for rendering individual footer links
 function IndividualLink(props: {
   name: string[] | string;
   href: string;

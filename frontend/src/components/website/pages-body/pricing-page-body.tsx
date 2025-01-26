@@ -1,4 +1,6 @@
 'use client';
+
+// Import necessary dependencies and components
 import { plans } from '@/plans';
 import PageHeader from '../page-header';
 import PricingCard from '../pricing-card';
@@ -7,10 +9,12 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { PricingOptions } from '@/components/dashboard/pricing-options';
 
+// Main pricing component that handles plan selection and display
 export default function PricingBody(props: {
   isAuthentificated: string | null;
   type: 'waitlist' | 'default';
 }) {
+  // State management for pricing interface
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const [sliderValue, setSliderValue] = useState<number[]>([0]);
@@ -18,6 +22,7 @@ export default function PricingBody(props: {
   const [window_width, set_window_width] = useState(window.innerWidth);
   const router = useRouter();
 
+  // Maps slider values to event amounts for display
   function getEventAmount(value: number): string {
     const valueMap: Record<number, string> = {
       0: '10K',
@@ -32,26 +37,29 @@ export default function PricingBody(props: {
       90: '8M',
       100: '10M+',
     };
-
     return valueMap[value] || 'N/A';
   }
 
+  // Calculates price based on selected plan and billing period
   function calculatePrice(basePrice: number): number {
     const additionalCostPerStep = 5;
     const sliderSteps = sliderValue[0] / 10;
     let totalPrice = basePrice + additionalCostPerStep * sliderSteps;
 
     if (billingPeriod === 'year') {
-      totalPrice = totalPrice * 12 * 0.8;
+      totalPrice = totalPrice * 12 * 0.8; // 20% discount for yearly billing
     }
 
     return Math.round(totalPrice);
   }
 
+  // Handles plan subscription process
   const subscribe = (plan: string) => {
     if (props.isAuthentificated === 'true') {
       setSelectedPlan(plan);
       setLoading(true);
+
+      // Make subscription API request
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
         method: 'POST',
         credentials: 'include',
@@ -86,6 +94,7 @@ export default function PricingBody(props: {
     }
   };
 
+  // Handle window resize events
   useEffect(() => {
     const handleResize = () => {
       set_window_width(window.innerWidth);
@@ -97,6 +106,7 @@ export default function PricingBody(props: {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Determine pricing options display type based on screen width
   const optionType = window_width > 768 ? 'dialog' : 'page';
 
   return (

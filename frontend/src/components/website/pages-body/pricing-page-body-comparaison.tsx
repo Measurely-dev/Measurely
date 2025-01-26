@@ -1,17 +1,20 @@
 'use client';
 
+// Import required UI components and icons
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckIcon, XIcon } from 'lucide-react';
 import HeroTitle from '../hero-title';
 
+// Component for displaying pricing plan comparison
 export default function PricingComparaison() {
+  // Define pricing plans data structure with features and options
   const pricingSection = [
     {
       label: 'Starter',
       mainFeatures: [
         { value: 2, label: 'Metric Count' },
-        { value: 1, label: 'Team Member Count' },
+        { value: 1, label: 'Team Member Count' }, 
         { value: '5K', label: 'Events (per month)' },
         { value: 2, label: 'Block Limit' },
         { value: 1, label: 'Filter Limit' },
@@ -71,20 +74,26 @@ export default function PricingComparaison() {
 
   return (
     <>
+      {/* Hero section with title */}
       <HeroTitle
         className='mt-32'
         subtitle='Plans'
         title='Find the Right Plan for You'
       />
 
+      {/* Grid container for pricing cards */}
       <div className='mt-10 grid grid-cols-3 max-lg:grid-cols-1'>
         {pricingSection.map((plan, index) => (
+          // Individual pricing card container
           <div
             key={index}
             className={`flex flex-col gap-4 rounded-[16px] border-y border-y-transparent py-4 md:py-7 ${plan.label === 'Plus' && 'md:border md:!border-input md:shadow-md'}`}
           >
+            {/* Plan name header */}
             <div className='px-7 pb-2 text-3xl font-medium'>{plan.label}</div>
             <Separator />
+
+            {/* Main features section */}
             {plan.mainFeatures.map((feature, idx) => (
               <>
                 <div key={idx} className='flex items-center gap-1 px-7 text-sm'>
@@ -94,6 +103,8 @@ export default function PricingComparaison() {
                 <Separator />
               </>
             ))}
+
+            {/* Additional features section */}
             <div
               className={`px-7 py-1 text-2xl font-medium ${plan.label !== 'Starter' && 'lg:text-transparent'}`}
             >
@@ -101,6 +112,7 @@ export default function PricingComparaison() {
             </div>
             <Separator />
 
+            {/* Feature list with checkmark indicators */}
             {plan.features.map((feature, idx) => (
               <>
                 <div className='flex items-center gap-1 px-7 text-sm' key={idx}>
@@ -118,6 +130,8 @@ export default function PricingComparaison() {
                 <Separator />
               </>
             ))}
+
+            {/* Support section */}
             <div
               className={`px-7 py-1 text-2xl font-medium ${plan.label !== 'Starter' && 'lg:text-transparent'}`}
             >
@@ -137,6 +151,8 @@ export default function PricingComparaison() {
               {plan.support.label}
             </div>
             <Separator />
+
+            {/* Action button */}
             <Button
               variant={plan.label === 'Plus' ? 'default' : 'outline'}
               className='mx-auto w-[calc(100%-56px)] rounded-[12px]'
