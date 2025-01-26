@@ -902,7 +902,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       {props.type === BlockType.Nested ? (
         <CardHeader className='items-center pb-0'>
-          <CardTitle>{props.name}</CardTitle>
+          <CardTitle>
+            {props.filter_categories[0].charAt(0).toUpperCase() +
+              props.filter_categories[0].slice(1).toLowerCase()}
+          </CardTitle>
           <CardDescription>
             {getMonthsFromDate(date)} - {date.getFullYear()}
           </CardDescription>

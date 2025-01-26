@@ -20,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogOverlay,
-  DialogTitle, 
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AreaChart } from '@/components/ui/area-chart';
@@ -110,7 +110,8 @@ const blockWideType: BlockShowcaseType[] = [
   {
     name: 'Area Chart',
     value: ChartType.Area,
-    description: 'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
+    description:
+      'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
     chart: (
       <AreaChart
         className='h-40'
@@ -128,7 +129,8 @@ const blockWideType: BlockShowcaseType[] = [
   {
     name: 'Bar Chart',
     value: ChartType.Bar,
-    description: 'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
+    description:
+      'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
     chart: (
       <BarChart
         className='h-40'
@@ -144,9 +146,10 @@ const blockWideType: BlockShowcaseType[] = [
     ),
   },
   {
-    name: 'Combo Chart', 
+    name: 'Combo Chart',
     value: ChartType.Combo,
-    description: 'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
+    description:
+      'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
     chart: (
       <ComboChart
         className='h-40'
@@ -173,7 +176,8 @@ const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Pie Chart',
     value: ChartType.Pie,
-    description: 'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
+    description:
+      'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
     chart: (
       <ChartContainer
         config={pieChartConfig}
@@ -224,7 +228,8 @@ const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Radar Chart',
     value: ChartType.Radar,
-    description: 'Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.',
+    description:
+      'Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.',
     chart: (
       <ChartContainer config={chartConfig} className='mx-auto h-[250px] w-full'>
         <RadarChart data={RadarChartData}>
@@ -243,7 +248,8 @@ const blockCompactType: BlockShowcaseType[] = [
   {
     name: 'Bar List',
     value: ChartType.BarList,
-    description: 'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
+    description:
+      'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
     chart: <BarList data={BarListData} />,
   },
 ];
@@ -523,10 +529,7 @@ function BlocksDialogStack(props: {
               Cancel
             </Button>
             <DialogStackNext asChild>
-              <Button
-                className='rounded-[12px]'
-                disabled={!nameInputValue}
-              >
+              <Button className='rounded-[12px]' disabled={!nameInputValue}>
                 Next
               </Button>
             </DialogStackNext>
