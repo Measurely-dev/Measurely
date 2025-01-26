@@ -1,9 +1,9 @@
 'use client';
 
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -43,11 +43,11 @@ export default function SignIn() {
     }
   }, []);
   return (
-    <WebContainer className='min-h-[800px]'>
+    <Container className='min-h-[800px]'>
       <div className='mb-[150px]'>
-        <AuthNavbar href='/waitlist' button='Join waitlist' />
+        <SemiNavbar href='/waitlist' button='Join waitlist' />
       </div>
-      <ContentContainer className='pb-20'>
+      <Content className='pb-20'>
         <AuthForm
           title='Hey friend! Welcome back'
           providers={true}
@@ -104,7 +104,7 @@ export default function SignIn() {
             });
           }}
         />
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

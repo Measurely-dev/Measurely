@@ -1,4 +1,4 @@
-export default function WebTitle(props: {
+export default function HeroTitle(props: {
   className?: string;
   subtitle: string;
   title: string;

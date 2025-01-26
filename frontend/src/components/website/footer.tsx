@@ -1,10 +1,47 @@
 'use client';
 import LogoSvg from '@/components/global/logo-svg';
-import { usePathname } from 'next/navigation';
-import { footerData } from './footer-data';
-import FooterLink from './footer-link';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
+
+const footerData = [
+  {
+    title: 'Company',
+    links: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Brand Assets', href: '/brand' },
+      { name: 'Blog', href: '/blog' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'Basic metric', href: '/docs/features/basic-metric/' },
+      { name: 'Dual metric', href: '/docs/features/dual-metric/' },
+      { name: 'Help', href: '/help' },
+    ],
+  },
+  {
+    title: 'Documentation',
+    links: [
+      { name: 'Getting started', href: '/docs/getting-started/introduction' },
+      {
+        name: 'JS/TS Integration',
+        href: '/docs/code-integrations/javascript-typescript/',
+      },
+      { name: 'Golang Integration', href: '/docs/code-integrations/golang/' },
+      { name: 'Python Integration', href: '/docs/code-integrations/python/' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Privacy policy', href: '/privacy' },
+      { name: 'Terms of service', href: '/terms' },
+    ],
+  },
+];
 
 export default function Footer(props: {
   border: boolean;
@@ -26,7 +63,11 @@ export default function Footer(props: {
                 <div className='flex flex-col gap-3'>
                   {section.links.map((link, i) => {
                     return (
-                      <FooterLink href={link.href} name={link.name} key={i} />
+                      <IndividualLink
+                        href={link.href}
+                        name={link.name}
+                        key={i}
+                      />
                     );
                   })}
                 </div>
@@ -69,7 +110,7 @@ export default function Footer(props: {
               />
             </svg>
           </a>
-          © 2025 <span className='max-md:hidden'>Measurely-dev</span>
+          © 2025 <span className='max-md:hidden'>Measurely.dev</span>
         </div>
         {props.type === 'waitlist' ? (
           <Link href={'/waitlist'}>
@@ -82,5 +123,21 @@ export default function Footer(props: {
         )}
       </div>
     </footer>
+  );
+}
+
+function IndividualLink(props: {
+  name: string[] | string;
+  href: string;
+  key: any;
+}) {
+  return (
+    <Link
+      href={props.href}
+      key={props.key}
+      className='w-auto max-w-fit text-sm text-[#666666] hover:text-primary max-md:mb-1 max-md:max-w-full'
+    >
+      {props.name}
+    </Link>
   );
 }

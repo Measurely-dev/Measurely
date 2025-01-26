@@ -1,36 +1,48 @@
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import PolicyWrapper from '@/components/website/policy';
-import PrivacyContent from './privacy';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon } from 'lucide-react';
+// Import necessary components and libraries
+import Container from '@/components/website/container'; // Container component for layout structure
+import Content from '@/components/website/content'; // Content component for managing content layout
+import PolicyWrapper from '@/app/(website)/(policy)/policy-wrapper'; // Wrapper component for policy pages
+import PrivacyContent from './privacy'; // Privacy-specific content component
+import { Metadata } from 'next'; // Metadata type for Next.js page metadata
+import Link from 'next/link'; // Next.js Link component for client-side navigation
+import { Button } from '@/components/ui/button'; // Button component for UI interactions
+import { ArrowLeftIcon } from 'lucide-react'; // Icon component for the back button
 
+// Define metadata for the page (used for SEO and page headers)
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Measurely',
+  title: 'Privacy Policy | Measurely', // Page title
   description:
-    'Read Measurely’s Privacy Policy to understand how we collect, use, and protect your data. We are committed to ensuring the privacy and security of your information while providing you with the best experience using our platform.',
+    'Read Measurely’s Privacy Policy to understand how we collect, use, and protect your data. We are committed to ensuring the privacy and security of your information while providing you with the best experience using our platform.', // Page description
 };
+
+// Main page component
 export default function Page() {
   return (
-    <WebContainer>
-      <ContentContainer type='page'>
+    // Use the Container component to wrap the page content
+    <Container>
+      {/* Use the Content component to structure the page content */}
+      <Content type='page'>
+        {/* Back button to navigate to the legal page */}
         <Link href='/legal' className='mb-5'>
           <Button
-            variant={'secondary'}
-            className='group relative overflow-hidden rounded-[12px] transition-all duration-200'
+            variant={'secondary'} // Set button style to secondary
+            className='group relative overflow-hidden rounded-[12px] transition-all duration-200' // Add styling and animations
           >
+            {/* Arrow icon for the back button */}
             <ArrowLeftIcon className='absolute -left-5 size-4 transition-all duration-200 group-hover:left-3' />
+            {/* Text for the back button */}
             <div className='transition-all duration-200 group-hover:ml-5'>
               Back to legal
             </div>
           </Button>
         </Link>
+
+        {/* PolicyWrapper component to structure the privacy policy content */}
         <PolicyWrapper
-          title='Privacy Policy'
-          updatedDate='December 25, 2024'
+          title='Privacy Policy' // Title of the policy
+          updatedDate='December 25, 2024' // Last updated date
           terms={
+            // List of terms and conditions for the privacy policy
             <>
               <li>
                 Measurely uses external services like Google and GitHub for
@@ -67,9 +79,10 @@ export default function Page() {
             </>
           }
         >
+          {/* Render the PrivacyContent component for additional privacy details */}
           <PrivacyContent />
         </PolicyWrapper>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

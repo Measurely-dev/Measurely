@@ -1,7 +1,5 @@
 import LogoSvg from '@/components/global/logo-svg';
 import Link from 'next/link';
-import Actions from './navbar-actions';
-import Links from './navbar-links';
 import {
   Drawer,
   DrawerClose,
@@ -9,6 +7,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Menu } from 'react-feather';
+import { Button } from '@/components/ui/button';
 
 export default function Navbar(props: {
   type: 'default' | 'logged' | 'waitlist';
@@ -74,6 +73,92 @@ export default function Navbar(props: {
           <Actions type={props.type} />
         </DrawerContent>
       </Drawer>
+    </div>
+  );
+}
+
+function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
+  const render = () => {
+    switch (props.type) {
+      case 'default':
+        return (
+          <div className='flex flex-row gap-2 max-md:flex-col'>
+            <Link href='/sign-in'>
+              <Button
+                variant='outline'
+                size={'sm'}
+                className='h-fit rounded-xl px-4 py-[10px] font-medium max-md:w-full'
+              >
+                Sign in
+              </Button>
+            </Link>
+            <Link href='/register'>
+              <Button
+                variant='default'
+                size={'sm'}
+                className='h-full rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full'
+              >
+                Get started
+              </Button>
+            </Link>
+          </div>
+        );
+      case 'logged':
+        return (
+          <div className='flex flex-row gap-2 max-md:w-full'>
+            <Link href='/dashboard' className='max-md:w-full'>
+              <Button
+                variant='default'
+                size={'sm'}
+                className='h-full rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full'
+              >
+                Dashboard
+              </Button>
+            </Link>
+          </div>
+        );
+      case 'waitlist':
+        return (
+          <div className='flex flex-row gap-2 max-md:flex-col'>
+            <Link href='/sign-in'>
+              <Button
+                variant='outline'
+                size={'sm'}
+                className='h-fit rounded-xl px-4 py-[10px] font-medium max-md:w-full'
+              >
+                Sign in
+              </Button>
+            </Link>
+            <Link href='/waitlist'>
+              <Button
+                variant='default'
+                size={'sm'}
+                className='h-full rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full'
+              >
+                Join waitlist
+              </Button>
+            </Link>
+          </div>
+        );
+    }
+  };
+  return render();
+}
+
+function Links(props: { links: Array<any> }) {
+  return (
+    <div className='flex items-center gap-4'>
+      {props.links?.map((link, i) => {
+        return (
+          <Link
+            key={i}
+            href={link.href}
+            className='text-xs font-medium transition-all duration-200 hover:opacity-70'
+          >
+            {link.name}
+          </Link>
+        );
+      })}
     </div>
   );
 }

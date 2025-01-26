@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-export default function WebContainer(props: {
+export default function Container(props: {
   children?: ReactNode;
   className?: string;
 }) {

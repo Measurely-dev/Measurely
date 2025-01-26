@@ -1,9 +1,9 @@
 'use client';
 
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -34,11 +34,11 @@ export default function Register() {
     }
   }, []);
   return (
-    <WebContainer>
+    <Container>
       <div className='mb-[150px]'>
-        <AuthNavbar href='/sign-in' button='Sign in' />
+        <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer className='pb-[100px]'>
+      <Content className='pb-[100px]'>
         <AuthForm
           title='Create an account'
           providers={true}
@@ -117,7 +117,7 @@ export default function Register() {
           }}
           policies
         />
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

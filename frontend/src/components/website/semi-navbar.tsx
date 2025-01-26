@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 
-export default function AuthNavbar(props: {
+export default function SemiNavbar(props: {
   button: string | null;
   isDashboard?: boolean | false;
   href?: any;

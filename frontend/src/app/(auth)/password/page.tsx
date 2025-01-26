@@ -1,9 +1,9 @@
 'use client';
 
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { redirect, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -46,9 +46,9 @@ export default function Password() {
   }, []);
 
   return (
-    <WebContainer>
-      <AuthNavbar href={`/register${back_query}`} button='Back' />
-      <ContentContainer type='page'>
+    <Container>
+      <SemiNavbar href={`/register${back_query}`} button='Back' />
+      <Content type='page'>
         <AuthForm
           title='Choose your password'
           providers={false}
@@ -126,7 +126,7 @@ export default function Password() {
             });
           }}
         />
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

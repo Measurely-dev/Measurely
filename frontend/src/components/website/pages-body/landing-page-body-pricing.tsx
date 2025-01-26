@@ -1,7 +1,7 @@
 'use client';
 import { plans } from '@/plans';
-import WebPageHeader from '../page-header';
-import WebPricingCard from '../pricing-card';
+import PageHeader from '../page-header';
+import PricingCard from '../pricing-card';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -51,7 +51,7 @@ export default function SubscriptionUiSection(props: {
   };
   return (
     <div className='mt-[145px] pt-12'>
-      <WebPageHeader
+      <PageHeader
         title={
           <span>
             <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
@@ -67,7 +67,7 @@ export default function SubscriptionUiSection(props: {
       <div className='mt-[60px] grid grid-cols-3 max-md:mt-[20px] max-md:grid-cols-1 max-md:gap-3'>
         {plans.map((plan, i) => {
           return (
-            <WebPricingCard
+            <PricingCard
               key={i}
               name={plan.name}
               className={`md:first:rounded-e-none md:first:border-r-0 md:last:rounded-s-none md:last:border-l-0 ${plan.name === 'Plus' ? 'md:z-10 md:scale-105 md:bg-background md:shadow-xl' : ''}`}

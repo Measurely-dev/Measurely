@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 
-export default function ContentContainer({
+export default function Content({
   children,
-  className = '',
+  className,
   type = 'default',
 }: {
   children?: ReactNode;

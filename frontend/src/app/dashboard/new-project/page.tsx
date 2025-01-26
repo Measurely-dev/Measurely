@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import Footer from '@/components/website/footer';
 import { ProjectsContext } from '@/dash-context';
 import { useRouter } from 'next/navigation';
@@ -77,13 +77,13 @@ export default function NewProject() {
 
   return (
     <div className='flex flex-col'>
-      <WebContainer className='h-[100vh] w-[100vw]'>
+      <Container className='h-[100vh] w-[100vw]'>
         {projects.length === 0 ? (
-          <AuthNavbar isDashboard button={null} />
+          <SemiNavbar isDashboard button={null} />
         ) : (
-          <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
+          <SemiNavbar isDashboard href='/dashboard' button='Dashboard' />
         )}
-        <ContentContainer className='flex h-full items-center justify-center'>
+        <Content className='flex h-full items-center justify-center'>
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>
             <Stepper initialStep={0} steps={steps} size='sm'>
               <Step label='Step 1'>
@@ -104,8 +104,8 @@ export default function NewProject() {
               </Step>
             </Stepper>
           </div>
-        </ContentContainer>
-      </WebContainer>
+        </Content>
+      </Container>
       <Footer type='waitlist' border bg='secondary' isHome />
     </div>
   );

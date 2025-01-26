@@ -1,8 +1,8 @@
 'use client';
-import AuthForm from '@/components/website/auth';
-import AuthNavbar from '@/components/website/auth-navbar';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
+import AuthForm from '@/components/website/auth-form';
+import SemiNavbar from '@/components/website/semi-navbar';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -10,11 +10,11 @@ const Waitlist = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <WebContainer className='min-h-[800px]'>
+    <Container className='min-h-[800px]'>
       <div className='mb-[150px]'>
-        <AuthNavbar href='/sign-in' button='Sign in' />
+        <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer>
+      <Content>
         <AuthForm
           title='Join our waitlist'
           description='As soon as Measurely release, you will be notified.'
@@ -66,8 +66,8 @@ const Waitlist = () => {
           }}
           policies
         />
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 };
 

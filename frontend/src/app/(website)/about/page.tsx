@@ -1,17 +1,22 @@
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
 import { Metadata } from 'next';
 
+// Define metadata for SEO and page headers
 export const metadata: Metadata = {
   title: 'About us',
   description:
     'Get to know the team behind Measurely. Learn about our mission, values, and commitment to providing developers and teams with the tools they need to track metrics, analyze data, and make better data-driven decisions.',
 };
+
+// Main page component for the "About Us" section
 export default function Pricing() {
   return (
-    <WebContainer>
-      <ContentContainer type='page'>
+    <Container>
+      <Content type='page'>
+        {/* Main content container with a max width of 600px */}
         <div className='mx-auto flex w-full max-w-[600px] flex-col'>
+          {/* Section: Our Story */}
           <div className='text-4xl font-medium'>Our story</div>
           <div className='mt-5 text-lg'>
             We’re two{' '}
@@ -22,6 +27,8 @@ export default function Pricing() {
             when <span className='font-semibold text-blue-600'>Measurely</span>{' '}
             was born.
           </div>
+
+          {/* Section: Our Mission */}
           <div className='mt-20 text-4xl font-medium'>Our mission</div>
           <div className='mt-5 text-lg'>
             Our mission is simple—make{' '}
@@ -34,6 +41,8 @@ export default function Pricing() {
             built with the dedication and curiosity of two programmers who
             believe in creating tools that truly help.
           </div>
+
+          {/* Section: Why Measurely? */}
           <div className='mt-20 text-4xl font-medium'>Why Measurely?</div>
           <div className='mt-5 text-lg'>
             The modern world runs on data, but not everyone has access to the
@@ -44,6 +53,8 @@ export default function Pricing() {
             <span className='font-semibold text-blue-600'>Measurely</span> is
             here to make metrics accessible and actionable.
           </div>
+
+          {/* Section: What’s Next? */}
           <div className='mt-20 text-4xl font-medium'>What’s Next?</div>
           <div className='mt-5 text-lg'>
             We’re just getting started.{' '}
@@ -54,6 +65,8 @@ export default function Pricing() {
             <span className='font-semibold text-blue-600'>Measurely</span> into
             something extraordinary.
           </div>
+
+          {/* Section: Join Us on Our Journey */}
           <div className='mt-20 text-4xl font-medium'>
             Join Us on Our Journey
           </div>
@@ -66,12 +79,14 @@ export default function Pricing() {
             <span className='font-semibold text-blue-600'>Measurely</span> is
             built for you. Together, we can shape the future of data tracking.
           </div>
+
+          {/* Closing statement */}
           <div className='mt-20 text-lg'>
             We’re just getting started, and we’re excited to have you along for
             the journey!
           </div>
         </div>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

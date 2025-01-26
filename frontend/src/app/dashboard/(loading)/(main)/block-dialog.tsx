@@ -29,7 +29,7 @@ import {
   ComboChartData,
   PieChartData,
   RadarChartData,
-} from '@/components/global/block-fake-data';
+} from '@/components/global/blocks-fake-data';
 import { ComboChart } from '@/components/ui/combo-chart';
 import { BarChart } from '@/components/ui/bar-chart';
 import { BarList } from '@/components/ui/bar-list';

@@ -1,12 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
-import WebBentoBox from '../bento-box';
-import WebBox from '../box';
-import WebFooterHeader from '../footer-header';
-import WebTitle from '../title';
-import ContentContainer from '../content';
+import { ReactNode, useEffect, useState } from 'react';
+import FooterHeader from '../footer-header';
+import HeroTitle from '../hero-title';
+import Content from '../content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
-import SubscriptionUiSection from './pricing-landing-page';
+import SubscriptionUiSection from './landing-page-body-pricing';
 import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
@@ -20,7 +18,8 @@ import * as AccordionPrimitive from '@radix-ui/react-accordion';
 
 import { Plus } from 'lucide-react';
 import { Question } from '@/components/global/faq-questions';
-export default function BentoUiSection(props: {
+import Image, { StaticImageData } from 'next/image';
+export default function Body(props: {
   isAuthentificated: string | null;
   type: 'default' | 'waitlist';
 }) {
@@ -41,22 +40,22 @@ export default function BentoUiSection(props: {
   const bentoBoxType = window_width > 768 ? 'horizontal-left' : 'vertical';
   return (
     <div className='z-10 w-screen bg-background pb-[150px]'>
-      <ContentContainer>
-        <WebBentoBox
+      <Content>
+        <BentoBox
           type={bentoBoxType}
           title='Simplify Your Metrics'
           description='Measurely is your all-in-one solution for tracking and analyzing key metrics. With our API integration, monitor data in real-time and access detailed insights at your fingertips.'
           img={Image1}
         />
         <div className='grid grid-cols-2 gap-5 max-md:grid-cols-1 max-md:grid-rows-2'>
-          <WebBentoBox
+          <BentoBox
             type='vertical'
             className='mt-5'
             title='Visualize Your Data, Your Way'
             description='Transform your data into clear, actionable charts with advanced customization options.'
             img={Image5}
           />
-          <WebBentoBox
+          <BentoBox
             type='vertical'
             className='mt-5 max-md:mt-0'
             title='Seamless Integration'
@@ -64,7 +63,7 @@ export default function BentoUiSection(props: {
             img={Image4}
           />
         </div>
-        <WebBentoBox
+        <BentoBox
           type={bentoBoxType}
           className='mt-5'
           title='Multiple Metric Types'
@@ -75,25 +74,25 @@ export default function BentoUiSection(props: {
           type={props.type}
           isAuthentificated={props.isAuthentificated}
         />
-        <WebTitle
+        <HeroTitle
           subtitle='Metrics Simplified'
           className='mt-[145px]'
           title='Focus on What Matters with Measurely'
         />
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
-          <WebBox
+          <Box
             icon={<Gauge className='size-10 stroke-[1] text-secondary' />}
             title='Instant Insights'
             description='Gain real-time data insights for fast and informed decision-making.'
           />
-          <WebBox
+          <Box
             icon={
               <SparklesIcon className='size-10 stroke-[1] text-secondary' />
             }
             title='Custom Metrics'
             description='Tailor your tracking to suit unique business needs with flexible metric options.'
           />
-          <WebBox
+          <Box
             icon={
               <LayoutGridIcon className='size-10 stroke-[1] text-secondary' />
             }
@@ -102,7 +101,7 @@ export default function BentoUiSection(props: {
           />
         </div>
         <div className='mt-[145px] rounded-3xl bg-background pt-12'>
-          <WebTitle subtitle='FAQ' title='Frequently Asked Questions' />
+          <HeroTitle subtitle='FAQ' title='Frequently Asked Questions' />
           <div className='mt-[70px] flex w-full items-start justify-center'>
             <div className='w-full'>
               <Accordion
@@ -137,8 +136,111 @@ export default function BentoUiSection(props: {
             </div>
           </div>
         </div>
-        <WebFooterHeader className='mt-[170px]' type='waitlist' />
-      </ContentContainer>
+        <FooterHeader className='mt-[170px]' type='waitlist' />
+      </Content>
+    </div>
+  );
+}
+
+function BentoBox(props: {
+  className?: string;
+  type: 'horizontal-left' | 'horizontal-right' | 'vertical';
+  title: string;
+  description: string;
+  img: string | StaticImageData;
+}) {
+  const render = () => {
+    switch (props.type) {
+      case 'horizontal-left':
+        return (
+          <div
+            className={`grid w-full grid-cols-[4fr,1fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+          >
+            {/* Text box */}
+            <div className='flex h-full w-full flex-col justify-between p-[30px] pr-0'>
+              <div className='text-xl font-semibold'>{props.title}</div>
+              <div className='text-base font-normal text-secondary'>
+                {props.description}
+              </div>
+            </div>
+            <div className='min-w-[400px]'>
+              <Image
+                src={props.img}
+                draggable={false}
+                alt='Image'
+                width={400}
+                height={1000}
+              />
+            </div>
+          </div>
+        );
+      case 'horizontal-right':
+        return (
+          <div
+            className={`grid w-full grid-cols-[1fr,4fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+          >
+            <div className='min-w-[400px]'>
+              <Image
+                src={props.img}
+                alt='Image'
+                draggable={false}
+                width={400}
+                height={1000}
+              />
+            </div>
+            {/* Text box */}
+            <div className='flex h-full w-full flex-col justify-between p-[30px] pl-0'>
+              <div className='text-xl font-semibold'>{props.title}</div>
+              <div className='text-base font-normal text-secondary'>
+                {props.description}
+              </div>
+            </div>
+          </div>
+        );
+      case 'vertical':
+        return (
+          <div
+            className={`grid w-full overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+          >
+            {/* Text box */}
+            <div className='flex h-fit w-full flex-col justify-between gap-8 p-[30px]'>
+              <div className='text-xl font-semibold'>{props.title}</div>
+              <div className='text-base font-normal text-secondary'>
+                {props.description}
+              </div>
+            </div>
+            <div className='min-w-none mx-auto flex h-fit max-h-[500px] max-w-[450px] items-center justify-center'>
+              <Image
+                src={props.img}
+                alt='Image'
+                className='max-h-[500px]'
+                draggable={false}
+                height={340}
+                width={1000}
+              />
+            </div>
+          </div>
+        );
+    }
+  };
+  return render();
+}
+
+function Box(props: {
+  className?: string;
+  title: string;
+  icon: ReactNode;
+  description: string;
+}) {
+  return (
+    <div className='flex h-[350px] flex-col items-center gap-[30px] rounded-[16px] border bg-white px-[25px] py-5 pt-16 shadow-sm shadow-black/5'>
+      <div className='flex size-[80px] items-center justify-center rounded-full border bg-accent/50'>
+        {props.icon}
+      </div>
+      <div className='flex flex-col gap-5 text-center'>
+        <div className='text-xl font-semibold'>{props.title}</div>
+        <div className='text-base text-secondary'>{props.description}</div>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 'use client';
 
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -35,11 +35,11 @@ export default function PasswordReset() {
   }, []);
 
   return (
-    <WebContainer>
+    <Container>
       <div className=''>
-        <AuthNavbar href='/sign-in' button='Sign in' />
+        <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer type='page'>
+      <Content type='page'>
         {view === 0 ? (
           <AuthForm
             title='Forgot password?'
@@ -215,7 +215,7 @@ export default function PasswordReset() {
             )}
           </div>
         </div>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

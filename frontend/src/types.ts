@@ -1,3 +1,4 @@
+// Main project interface defining the structure of a project entity
 export interface Project {
   id: string;
   api_key: string;
@@ -15,6 +16,7 @@ export interface Project {
   plan: Plan;
 }
 
+// Interface for metric data including counts and metadata
 export interface Metric {
   id: string;
   project_id: string;
@@ -34,6 +36,7 @@ export interface Metric {
   last_event_timestamp: { Valid: boolean; V: Date };
 }
 
+// Interface for individual metric events with relative and absolute values
 export interface MetricEvent {
   id: string;
   date: Date;
@@ -45,6 +48,7 @@ export interface MetricEvent {
   relative_event_count: number;
 }
 
+// User interface containing basic user information and authentication details
 export interface User {
   id: string;
   first_name: string;
@@ -56,11 +60,13 @@ export interface User {
   providers: UserProvider[];
 }
 
+// Interface for user authentication providers
 export interface UserProvider {
   id: string;
   type: Provider;
 }
 
+// Subscription plan interface with usage limits
 export interface Plan {
   name: string;
   metric_limit: number;
@@ -68,6 +74,7 @@ export interface Plan {
   range: number;
 }
 
+// Interface for organizing blocks of content/charts
 export interface Blocks {
   user_id: string;
   project_id: string;
@@ -75,6 +82,7 @@ export interface Blocks {
   labels: LabelType[];
 }
 
+// Individual block interface for chart/content elements
 export interface Block {
   unique_key: string;
   id: number;
@@ -88,11 +96,13 @@ export interface Block {
   color: string;
 }
 
+// Interface for block label styling
 export interface LabelType {
   name: string;
   default_color: string;
 }
 
+// Enum defining different types of metrics
 export enum MetricType {
   Base,
   Dual,
@@ -102,17 +112,21 @@ export enum MetricType {
   AWS,
 }
 
+// Authentication provider types
 export enum Provider {
   GITHUB,
   GOOGLE,
 }
 
+// User permission levels
 export enum UserRole {
   Owner,
   Admin,
   Developer,
   Guest,
 }
+
+// Available chart visualization types
 export enum ChartType {
   Bar,
   Area,
@@ -122,11 +136,13 @@ export enum ChartType {
   Radar,
 }
 
+// Subscription billing periods
 export enum SubscriptionType {
   MONTHLY,
   YEARLY,
 }
 
+// Invoice payment status
 export enum InvoiceStatus {
   ACTIVE,
   FAILED,
@@ -137,6 +153,7 @@ export interface Unit {
   symbol: string;
 }
 
+// Configuration for metric limits per chart type
 export const chartTypeMetricLimits: Record<
   ChartType,
   { min: number; max: number }
@@ -149,12 +166,14 @@ export const chartTypeMetricLimits: Record<
   [ChartType.BarList]: { min: 1, max: 1 },
 };
 
+// Block layout types
 export enum BlockType {
   Default,
   Group,
   Nested,
 }
 
+// Available color options for charts and UI elements
 export type AllowedColors =
   | 'blue'
   | 'red'
@@ -178,6 +197,7 @@ export type AllowedColors =
   | 'coral'
   | 'mint';
 
+// Interface mapping color names to their values
 export interface ChartColors {
   blue: string;
   red: string;
@@ -201,6 +221,8 @@ export interface ChartColors {
   coral: string;
   mint: string;
 }
+
+// Color palette configurations for dual metric charts
 export interface DualMetricChartColors {
   default: {
     positive: AllowedColors;

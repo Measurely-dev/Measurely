@@ -1,15 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CardContent, Card } from '@/components/ui/card';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import WebPageHeader from '@/components/website/page-header';
+import { Card, CardContent } from '@/components/ui/card';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import PageHeader from '@/components/website/page-header';
 import { Download } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect } from 'react';
 
+// BrandAssetsPage component for displaying brand assets and guidelines
 export default function BrandAssetsPage() {
+  // Update the document title and meta description on component mount
   useEffect(() => {
     document.title = 'Brand | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -22,9 +24,10 @@ export default function BrandAssetsPage() {
   }, []);
 
   return (
-    <WebContainer>
-      <ContentContainer type='page'>
-        <WebPageHeader
+    <Container>
+      <Content type='page'>
+        {/* Page header with gradient text */}
+        <PageHeader
           title={
             <span>
               <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
@@ -37,6 +40,7 @@ export default function BrandAssetsPage() {
           }
           description='Guidelines and assets for presenting the Measurely brand consistently.'
         />
+
         {/* Logos Section */}
         <div className='mb-16 mt-[120px]'>
           <h2 className='mb-4 text-2xl font-medium'>Logos</h2>
@@ -57,7 +61,8 @@ export default function BrandAssetsPage() {
             ].map((logo, i) => (
               <Card key={i} className='border-none shadow-none'>
                 <CardContent className='p-0'>
-                  <div className='mb-4 flex h-40 items-center border shadow-sm shadow-black/5 justify-center rounded-[12px] bg-accent p-4'>
+                  {/* Logo preview */}
+                  <div className='mb-4 flex h-40 items-center justify-center rounded-[12px] border bg-accent p-4 shadow-sm shadow-black/5'>
                     <Image
                       src={logo.src}
                       alt={`${logo.name} preview`}
@@ -66,6 +71,8 @@ export default function BrandAssetsPage() {
                       className='max-h-full max-w-full'
                     />
                   </div>
+
+                  {/* Logo name and download button */}
                   <div className='flex items-center justify-between'>
                     <span className='text-sm font-medium'>{logo.name}</span>
                     <a href={logo.src} download={logo.name}>
@@ -84,6 +91,7 @@ export default function BrandAssetsPage() {
             ))}
           </div>
         </div>
+
         {/* Color Palette Section */}
         <div className='mb-12'>
           <h2 className='mb-4 text-2xl font-medium'>Color Palette</h2>
@@ -97,6 +105,7 @@ export default function BrandAssetsPage() {
               { name: 'Border', color: 'bg-input' },
             ].map((item) => (
               <div key={item.name} className='flex flex-col'>
+                {/* Color swatch */}
                 <div
                   className={`h-20 rounded-[12px] border shadow-sm shadow-black/5 ${item.color}`}
                 ></div>
@@ -105,10 +114,11 @@ export default function BrandAssetsPage() {
             ))}
           </div>
         </div>
+
+        {/* Usage Guidelines Section */}
         <div>
           <div className='space-y-4'>
             <div>
-              {/* Usage Guidelines Section */}
               <div className='mt-12'>
                 <h2 className='mb-4 text-2xl font-medium'>Usage Guidelines</h2>
                 <Card className='bg-accent'>
@@ -138,7 +148,7 @@ export default function BrandAssetsPage() {
             </div>
           </div>
         </div>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

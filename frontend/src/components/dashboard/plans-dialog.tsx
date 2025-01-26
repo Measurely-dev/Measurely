@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import WebPricingCard from '@/components/website/pricing-card';
+import PricingCard from '@/components/website/pricing-card';
 import { ProjectsContext } from '@/dash-context';
 import { plans } from '@/plans';
 import { useConfirm } from '@omit/react-confirm-dialog';
@@ -157,7 +157,7 @@ export default function PlansDialog(props: { children: ReactNode }) {
           {plans.map((plan, i) => {
             const isStarter = plan.name === 'Starter';
             return (
-              <WebPricingCard
+              <PricingCard
                 key={i}
                 sliderValue={getEventAmount(sliderValue[0])}
                 name={plan.name}

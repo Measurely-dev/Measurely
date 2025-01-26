@@ -1,8 +1,8 @@
 'use client';
 
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
@@ -41,10 +41,10 @@ export default function PasswordReset() {
   }, []);
 
   return (
-    <WebContainer>
-      <AuthNavbar href='/sign-in' button='Sign in' />
+    <Container>
+      <SemiNavbar href='/sign-in' button='Sign in' />
 
-      <ContentContainer>
+      <Content>
         <div className='flex h-screen w-full items-center justify-center'>
           <div className='flex w-fit flex-col gap-[10px]'>
             {view === 0 ? (
@@ -90,7 +90,7 @@ export default function PasswordReset() {
             )}
           </div>
         </div>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

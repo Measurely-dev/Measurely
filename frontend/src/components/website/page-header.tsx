@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-export default function WebPageHeader(props: {
+export default function PageHeader(props: {
   className?: string;
   title: string | ReactNode;
   description?: string;

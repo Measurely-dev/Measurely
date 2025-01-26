@@ -1,13 +1,13 @@
 'use client';
 import { plans } from '@/plans';
-import WebPageHeader from '../page-header';
-import WebPricingCard from '../pricing-card';
+import PageHeader from '../page-header';
+import PricingCard from '../pricing-card';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { PricingOptions } from '@/components/dashboard/pricing-options';
 
-export default function PricingCardsSection(props: {
+export default function PricingBody(props: {
   isAuthentificated: string | null;
   type: 'waitlist' | 'default';
 }) {
@@ -101,7 +101,7 @@ export default function PricingCardsSection(props: {
 
   return (
     <>
-      <WebPageHeader
+      <PageHeader
         title={
           <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-transparent'>
             Pricing
@@ -125,7 +125,7 @@ export default function PricingCardsSection(props: {
         {plans.map((plan, i) => {
           const isStarter = plan.name === 'Starter';
           return (
-            <WebPricingCard
+            <PricingCard
               className={`lg:first:rounded-e-none lg:first:border-r-0 lg:last:rounded-s-none lg:last:border-l-0 ${plan.name === 'Plus' ? 'lg:z-10 lg:scale-105 lg:bg-background lg:shadow-xl' : ''}`}
               key={i}
               sliderValue={getEventAmount(sliderValue[0])}

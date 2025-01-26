@@ -11,9 +11,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import Footer from '@/components/website/footer';
 import { MetricType, UserRole } from '@/types';
 import { useRouter } from 'next/navigation';
@@ -162,9 +162,9 @@ export default function NewMetric() {
 
   return (
     <div className='flex flex-col'>
-      <WebContainer className='h-[100vh] min-h-[900px] w-[100vw]'>
-        <AuthNavbar isDashboard href='/dashboard' button='Dashboard' />
-        <ContentContainer className='flex pt-[140px]'>
+      <Container className='h-[100vh] min-h-[900px] w-[100vw]'>
+        <SemiNavbar isDashboard href='/dashboard' button='Dashboard' />
+        <Content className='flex pt-[140px]'>
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>
             <Stepper initialStep={0} steps={steps} size='sm'>
               <Step label='Step 1' icon={Box}>
@@ -184,8 +184,8 @@ export default function NewMetric() {
               </Step>
             </Stepper>
           </div>
-        </ContentContainer>
-      </WebContainer>
+        </Content>
+      </Container>
       <Footer type='waitlist' border bg='secondary' isHome />
     </div>
   );

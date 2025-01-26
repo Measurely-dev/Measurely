@@ -3,16 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckIcon, XIcon } from 'lucide-react';
-import WebTitle from '../title';
+import HeroTitle from '../hero-title';
 
-export default function PricingGrid() {
+export default function PricingComparaison() {
   const pricingSection = [
     {
       label: 'Starter',
       mainFeatures: [
         { value: 2, label: 'Metric Count' },
         { value: 1, label: 'Team Member Count' },
-        { value: "5K", label: 'Events (per month)' },
+        { value: '5K', label: 'Events (per month)' },
         { value: 2, label: 'Block Limit' },
         { value: 1, label: 'Filter Limit' },
       ],
@@ -32,7 +32,7 @@ export default function PricingGrid() {
       mainFeatures: [
         { value: 10, label: 'Metric Count' },
         { value: 5, label: 'Team Member Count' },
-        { value: "Up to 10M", label: 'Events (per month)' },
+        { value: 'Up to 10M', label: 'Events (per month)' },
         { value: 10, label: 'Block Limit' },
         { value: 5, label: 'Filter Limit' },
       ],
@@ -71,7 +71,7 @@ export default function PricingGrid() {
 
   return (
     <>
-      <WebTitle
+      <HeroTitle
         className='mt-32'
         subtitle='Plans'
         title='Find the Right Plan for You'
@@ -81,7 +81,7 @@ export default function PricingGrid() {
         {pricingSection.map((plan, index) => (
           <div
             key={index}
-            className={`flex flex-col gap-4 rounded-[16px] border-y border-y-transparent md:py-7 py-4 ${plan.label === 'Plus' && 'md:border md:!border-input md:shadow-md'}`}
+            className={`flex flex-col gap-4 rounded-[16px] border-y border-y-transparent py-4 md:py-7 ${plan.label === 'Plus' && 'md:border md:!border-input md:shadow-md'}`}
           >
             <div className='px-7 pb-2 text-3xl font-medium'>{plan.label}</div>
             <Separator />
