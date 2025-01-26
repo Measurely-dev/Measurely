@@ -21,7 +21,7 @@ export default async function RootLayout({
   const pathname = headers().get('x-request-pathname');
 
   // Determine whether the current page is the home page or user is authenticated.
-  const isHome = is_authenticated === 'true' || pathname === '/home';
+  const isHome = is_authenticated === 'true'
 
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>

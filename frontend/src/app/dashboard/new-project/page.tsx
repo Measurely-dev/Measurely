@@ -86,7 +86,7 @@ export default function NewProject() {
         {projects.length === 0 ? (
           <SemiNavbar isDashboard button={null} />
         ) : (
-          <SemiNavbar isDashboard href='/dashboard' button='Dashboard' />
+          <SemiNavbar href='/dashboard' button='Dashboard' />
         )}
         <Content className='flex h-full items-center justify-center'>
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>

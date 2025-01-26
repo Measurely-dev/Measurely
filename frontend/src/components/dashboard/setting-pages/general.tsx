@@ -29,9 +29,9 @@ export default function GeneralSettings() {
   const [loadingPassword, setLoadingPassword] = useState(false);
 
   // Form field states
-  const [firstName, setFirstName] = useState(user?.first_name);
-  const [lastName, setLastName] = useState(user?.last_name);
-  const [email, setEmail] = useState(user?.email);
+  const [firstName, setFirstName] = useState(user?.first_name?.trim());
+  const [lastName, setLastName] = useState(user?.last_name?.trim());
+  const [email, setEmail] = useState(user?.email?.trim());
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
@@ -44,12 +44,15 @@ export default function GeneralSettings() {
   const handleFirstLastNameSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const trimmedFirstName = firstName?.trim();
+    const trimmedLastName = lastName?.trim();
+
     if (file !== null && file.size > MAXFILESIZE) {
       toast.error('The image is too large, MAX 500KB');
       return;
     }
 
-    if (firstName === '') {
+    if (!trimmedFirstName) {
       toast.error('The first name field must be filled');
       return;
     }
@@ -62,21 +65,24 @@ export default function GeneralSettings() {
     };
 
     // Update name if changed
-    if (firstName.toLowerCase() !== user.first_name || lastName.toLowerCase() !== user.last_name) {
+    if (
+      trimmedFirstName.toLowerCase() !== user.first_name ||
+      trimmedLastName?.toLowerCase() !== user.last_name
+    ) {
       const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          first_name: firstName.toLowerCase(),
-          last_name: lastName.toLowerCase(),
+          first_name: trimmedFirstName.toLowerCase(),
+          last_name: trimmedLastName?.toLowerCase(),
         }),
       });
 
       if (response1.ok) {
         toast.success('Successfully updated first name and/or last name.');
-        updated.first_name = firstName.toLowerCase();
-        updated.last_name = lastName.toLowerCase();
+        updated.first_name = trimmedFirstName.toLowerCase();
+        updated.last_name = trimmedLastName?.toLowerCase();
       }
     }
 
@@ -84,11 +90,14 @@ export default function GeneralSettings() {
     if (file !== null) {
       const formData = new FormData();
       formData.append('file', file);
-      const response2 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user_image`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
+      const response2 = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/user_image`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        },
+      );
 
       if (response2.ok) {
         toast.success('Successfully updated your image.');
@@ -106,7 +115,8 @@ export default function GeneralSettings() {
   // Handler for email change request
   const handleEmailSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (email === '') {
+    const trimmedEmail = email?.trim();
+    if (!trimmedEmail) {
       toast.error('The email field cannot be empty');
       return;
     }
@@ -115,7 +125,7 @@ export default function GeneralSettings() {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ new_email: email.toLowerCase() }),
+      body: JSON.stringify({ new_email: trimmedEmail.toLowerCase() }),
     })
       .then((resp) => {
         if (resp.status === 200) {
@@ -132,12 +142,20 @@ export default function GeneralSettings() {
   // Handler for password update
   const handlePasswordSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (oldPassword === '' || newPassword === '' || confirmedPassword === '') {
-      toast.error('All fileds must be filled');
+    const trimmedOldPassword = oldPassword?.trim();
+    const trimmedNewPassword = newPassword?.trim();
+    const trimmedConfirmedPassword = confirmedPassword?.trim();
+
+    if (
+      !trimmedOldPassword ||
+      !trimmedNewPassword ||
+      !trimmedConfirmedPassword
+    ) {
+      toast.error('All fields must be filled');
       return;
     }
 
-    if (confirmedPassword !== newPassword) {
+    if (trimmedConfirmedPassword !== trimmedNewPassword) {
       toast.error('The passwords do not match');
       return;
     }
@@ -148,8 +166,8 @@ export default function GeneralSettings() {
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        old_password: oldPassword,
-        new_password: newPassword,
+        old_password: trimmedOldPassword,
+        new_password: trimmedNewPassword,
       }),
     })
       .then((resp) => {
@@ -169,7 +187,8 @@ export default function GeneralSettings() {
     const isConfirmed = await confirm({
       title: 'Delete my account',
       icon: <UserRoundX className='size-6 text-destructive' />,
-      description: 'Are you sure you want to delete this account? You will loose all the data linked to this account forever.',
+      description:
+        'Are you sure you want to delete this account? You will loose all the data linked to this account forever.',
       confirmText: 'Yes, Delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -194,7 +213,9 @@ export default function GeneralSettings() {
         credentials: 'include',
       }).then((resp) => {
         if (resp.status === 200) {
-          toast.success('Successfully deleted your account. You will now be logged out.');
+          toast.success(
+            'Successfully deleted your account. You will now be logged out.',
+          );
           router.push('/sign-in');
         } else {
           resp.text().then((text) => {
@@ -213,13 +234,15 @@ export default function GeneralSettings() {
         description='Used to identify your account.'
         btn_loading={loadingProfile}
         btn_disabled={
-          firstName === '' ||
-          (firstName === user.first_name && lastName === user.last_name && file === null)
+          !firstName?.trim() ||
+          (firstName.trim() === user.first_name &&
+            lastName?.trim() === user.last_name &&
+            file === null)
         }
         action={handleFirstLastNameSubmit}
         content={
-          <div className='flex w-full flex-row items-center gap-2 max-md:flex-col max-md:gap-4'>
-            <div className='flex w-full flex-row items-center gap-2'>
+          <div className='flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4'>
+            <div className='flex flex-row gap-2'>
               <Avatar className='relative mr-4 size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-accent'>
                 <Label className='relative h-full w-full cursor-pointer'>
                   <AvatarImage
@@ -247,25 +270,27 @@ export default function GeneralSettings() {
                   />
                 </Label>
               </Avatar>
-              <Label className='flex w-full flex-col gap-2'>
-                First Name
-                <Input
-                  placeholder='John'
-                  name='first_name'
-                  type='text'
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value.trimStart())}
-                />
-              </Label>
             </div>
+            <Label className='flex w-full flex-col gap-2'>
+              First Name
+              <Input
+                placeholder='John'
+                name='first_name'
+                className='w-full'
+                type='text'
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </Label>
             <Label className='flex w-full flex-col gap-2'>
               Last name
               <Input
                 placeholder='Doe'
                 name='last_name'
+                className='w-full'
                 type='text'
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value.trimStart())}
+                onChange={(e) => setLastName(e.target.value)}
               />
             </Label>
           </div>
@@ -276,7 +301,7 @@ export default function GeneralSettings() {
       <SettingCard
         title='Email'
         btn_loading={loadingEmail}
-        btn_disabled={email === '' || email === user.email}
+        btn_disabled={!email?.trim() || email.trim() === user.email}
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
@@ -296,7 +321,7 @@ export default function GeneralSettings() {
               type='email'
               name='email'
               value={email}
-              onChange={(e) => setEmail(e.target.value.trim())}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </Label>
         }
@@ -306,8 +331,14 @@ export default function GeneralSettings() {
       <SettingCard
         title='Password'
         btn_loading={loadingPassword}
-        btn_disabled={oldPassword === '' || newPassword === '' || confirmedPassword === ''}
-        disabled={user.providers === null ? false : (user.providers.length ?? 0) > 0}
+        btn_disabled={
+          !oldPassword?.trim() ||
+          !newPassword?.trim() ||
+          !confirmedPassword?.trim()
+        }
+        disabled={
+          user.providers === null ? false : (user.providers.length ?? 0) > 0
+        }
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
@@ -329,7 +360,7 @@ export default function GeneralSettings() {
                 name='old_password'
                 type='password'
                 value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value.trim())}
+                onChange={(e) => setOldPassword(e.target.value)}
               />
             </Label>
             <Label className='flex flex-col gap-2'>
@@ -339,7 +370,7 @@ export default function GeneralSettings() {
                 name='new_password'
                 type='password'
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value.trim())}
+                onChange={(e) => setNewPassword(e.target.value)}
               />
             </Label>
             <Label className='flex flex-col gap-2'>
@@ -349,7 +380,7 @@ export default function GeneralSettings() {
                 name='confirmed_password'
                 type='password'
                 value={confirmedPassword}
-                onChange={(e) => setConfirmedPassword(e.target.value.trim())}
+                onChange={(e) => setConfirmedPassword(e.target.value)}
               />
             </Label>
           </div>

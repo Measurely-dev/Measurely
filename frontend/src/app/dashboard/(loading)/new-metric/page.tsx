@@ -172,7 +172,7 @@ export default function NewMetric() {
   return (
     <div className='flex flex-col'>
       <Container className='h-[100vh] min-h-[900px] w-[100vw]'>
-        <SemiNavbar isDashboard href='/dashboard' button='Dashboard' />
+        <SemiNavbar href='/dashboard' button='Dashboard' />
         <Content className='flex pt-[140px]'>
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>
             <Stepper initialStep={0} steps={steps} size='sm'>
