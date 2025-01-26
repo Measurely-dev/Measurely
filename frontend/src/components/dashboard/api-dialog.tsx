@@ -38,6 +38,8 @@ export default function ApiDialog(props: {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [apiKeyDup, setApiKeyDup] = useState<string | null>(null);
+  const [isCopying, setIsCopying] = useState<boolean>(false);
 
   // Update apiIndex when projects or projectid changes
   useEffect(() => {
@@ -103,6 +105,7 @@ export default function ApiDialog(props: {
               ),
             );
             setApiKey(data);
+            setApiKeyDup(data);
           }
         });
     }
@@ -114,6 +117,7 @@ export default function ApiDialog(props: {
       const appIndex = projects.findIndex((app) => app.id === props.projectid);
       if (appIndex !== -1 && projects[appIndex].api_key !== null) {
         setApiKey(projects[appIndex].api_key);
+        setApiKeyDup(projects[appIndex].api_key);
       }
     }
   }, [activeProject, projects, props.projectid]);
@@ -127,7 +131,7 @@ export default function ApiDialog(props: {
   };
 
   return (
-    <FloatingPanelRoot>
+    <FloatingPanelRoot onOpenChange={(e) => !e && setIsVisible(false)}>
       <FloatingPanelTrigger
         className={`w-fit ${props.className}`}
         title='API Key'
@@ -135,26 +139,36 @@ export default function ApiDialog(props: {
       >
         {props.children}
       </FloatingPanelTrigger>
-      <FloatingPanelContent className='max-w-[500px] w-[95%]' side='center'>
+      <FloatingPanelContent className='w-[95%] max-w-[500px]' side='center'>
         <FloatingPanelBody className='p-4'>
           <div className='space-y-2'>
             <div className='flex w-full items-center gap-2'>
               <div className='relative w-full'>
-                <Input
-                  id={id}
-                  ref={inputRef}
-                  className='w-full rounded-[12px] pe-9 text-sm'
-                  placeholder='API Key'
-                  type={isVisible ? 'text' : 'password'}
-                  value={apiKey || ''}
-                  readOnly
+                <div
                   onClick={() => {
-                    if (apiKey && isVisible) {
-                      navigator.clipboard.writeText(apiKey);
-                      toast.success('API key copied to clipboard!');
+                    if (apiKey && isVisible && !isCopying) {
+                      navigator.clipboard.writeText(apiKeyDup || '');
+                      setIsCopying(true);
+                      setApiKey('Copied to clipboard!');
+                      setTimeout(() => {
+                        setApiKey(apiKeyDup);
+                        setIsCopying(false);
+                      }, 1500);
                     }
                   }}
-                />
+                >
+                  <Input
+                    id={id}
+                    ref={inputRef}
+                    className='user-select-none pointer-events-none w-full select-none rounded-[12px] pe-9 text-sm !ring-0'
+                    placeholder='API Key'
+                    type={isVisible ? 'text' : 'password'}
+                    value={apiKey || ''}
+                    autoFocus={false}
+                    readOnly
+                    tabIndex={-1}
+                  />
+                </div>
                 <button
                   className='absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
                   type='button'
