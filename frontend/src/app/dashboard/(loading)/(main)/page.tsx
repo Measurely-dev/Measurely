@@ -24,8 +24,6 @@ import {
   Plus,
   PlusCircle,
   PlusSquare,
-  Rocket,
-  Sparkle,
   TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,8 +36,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useContext } from 'react';
-import { ProjectsContext, UserContext } from '@/dash-context';
-import PlansDialog from '@/components/dashboard/plans-dialog';
+import { ProjectsContext } from '@/dash-context';
+
 import {
   Dialog,
   DialogClose,
@@ -70,14 +68,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import {
-  Block,
-  BlockType,
-  ChartType,
-  Metric,
-  MetricType,
-  UserRole,
-} from '@/types';
+import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
 import { toast } from 'sonner';
 import {
   fetchChartData,
@@ -294,64 +285,64 @@ export default function DashboardHomePage() {
     </DashboardContentContainer>
   );
 }
-function UpgradeCard() {
-  const { user } = useContext(UserContext);
-  const { projects, activeProject } = useContext(ProjectsContext);
-  function render() {
-    switch (projects[activeProject].plan.name.toLowerCase()) {
-      case 'starter':
-        return (
-          <Card className='mt-5 rounded-[12px] border-none bg-black'>
-            <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
-              <div className='flex flex-col max-md:w-full'>
-                <div className='flex flex-row items-center gap-3'>
-                  <Rocket className='size-5 text-white' />
-                  <div className='text-md font-semibold text-white'>
-                    You're using the {projects[activeProject].plan.name} plan
-                  </div>
-                </div>
-                <div className='text-sm text-white/70'>
-                  You can unlock your limits by upgrading to the next plan.
-                </div>
-              </div>
-              {projects[activeProject].user_role === UserRole.Owner && (
-                <PlansDialog>
-                  <Button
-                    className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
-                    variant={'default'}
-                  >
-                    Upgrade
-                  </Button>
-                </PlansDialog>
-              )}
-            </CardContent>
-          </Card>
-        );
-      default:
-        return (
-          <Card className='mt-5 animate-gradient rounded-[12px] rounded-b-none border-none bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500'>
-            <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
-              <div className='flex flex-col max-md:w-full'>
-                <div className='flex flex-row items-center gap-3'>
-                  <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 px-2 text-xs font-medium'>
-                    <Sparkle className='size-3' />
-                    {projects[activeProject].plan.name}
-                  </div>
-                  <div className='text-md font-semibold text-white'>
-                    Welcome back,{' '}
-                    <span className='font-semibold capitalize'>
-                      {user?.first_name}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-    }
-  }
-  return render();
-}
+// function UpgradeCard() {
+//   const { user } = useContext(UserContext);
+//   const { projects, activeProject } = useContext(ProjectsContext);
+//   function render() {
+//     switch (projects[activeProject].plan.name.toLowerCase()) {
+//       case 'starter':
+//         return (
+//           <Card className='mt-5 rounded-[12px] border-none bg-black'>
+//             <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
+//               <div className='flex flex-col max-md:w-full'>
+//                 <div className='flex flex-row items-center gap-3'>
+//                   <Rocket className='size-5 text-white' />
+//                   <div className='text-md font-semibold text-white'>
+//                     You're using the {projects[activeProject].plan.name} plan
+//                   </div>
+//                 </div>
+//                 <div className='text-sm text-white/70'>
+//                   You can unlock your limits by upgrading to the next plan.
+//                 </div>
+//               </div>
+//               {projects[activeProject].user_role === UserRole.Owner && (
+//                 <PlansDialog>
+//                   <Button
+//                     className='rounded-[12px] !bg-background !text-primary hover:opacity-80 max-md:w-full'
+//                     variant={'default'}
+//                   >
+//                     Upgrade
+//                   </Button>
+//                 </PlansDialog>
+//               )}
+//             </CardContent>
+//           </Card>
+//         );
+//       default:
+//         return (
+//           <Card className='mt-5 animate-gradient rounded-[12px] rounded-b-none border-none bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500'>
+//             <CardContent className='flex flex-row items-center justify-between gap-5 p-5 max-md:flex-col'>
+//               <div className='flex flex-col max-md:w-full'>
+//                 <div className='flex flex-row items-center gap-3'>
+//                   <div className='flex flex-row items-center gap-1 rounded-full bg-accent p-1 px-2 text-xs font-medium'>
+//                     <Sparkle className='size-3' />
+//                     {projects[activeProject].plan.name}
+//                   </div>
+//                   <div className='text-md font-semibold text-white'>
+//                     Welcome back,{' '}
+//                     <span className='font-semibold capitalize'>
+//                       {user?.first_name}
+//                     </span>
+//                   </div>
+//                 </div>
+//               </div>
+//             </CardContent>
+//           </Card>
+//         );
+//     }
+//   }
+//   return render();
+// }
 
 const cardStyle = (color: string) => ({
   borderColor: `${color}1A`,
@@ -639,6 +630,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
                 date: item.date,
                 tooltiplabel: item.tooltiplabel,
                 [metric.name]: item[metric.name],
+                [`metric_unit_${metric.name}`]:
+                  item[`metric_unit_${metric.name}`],
               });
             });
           } else {
@@ -650,6 +643,8 @@ function BlockContent(props: Block & { groupkey?: string }) {
                   item['Event Count'];
               }
               combinedData[i][metric.name] = item[metric.name];
+              combinedData[i][`metric_unit_${metric.name}`] =
+                item[`metric_unit_${metric.name}`];
             });
           }
         });
@@ -716,6 +711,17 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       return (categoryVariation / previousTotal) * 100;
     }
+  };
+
+  const getUnit = (unit: string): string => {
+    let unitValue = '';
+    const symbol = unit.split('(');
+    if (symbol.length > 1) {
+      unitValue = symbol[1].split(')')[0];
+    } else {
+      unitValue = symbol[0];
+    }
+    return unitValue;
   };
 
   return (
@@ -817,10 +823,10 @@ function BlockContent(props: Block & { groupkey?: string }) {
                       <div className='whitespace-nowrap font-sans text-xs font-normal'>
                         {metric.name}
                       </div>
-
                       {valueFormatter(
                         calculateSummary(chartData ?? [], metric),
-                      )}
+                      )}{' '}
+                      {getUnit(metric.unit)}
                     </div>
                   );
                 })}

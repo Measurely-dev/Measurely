@@ -1,6 +1,16 @@
 import { Button } from '@/components/ui/button';
-import { CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Metric } from '@/types';
 import { fetchEventVariation, valueFormatter } from '@/utils';
@@ -14,7 +24,9 @@ function Filters(props: {
   range: number;
   start: Date;
 }) {
-  const [filters, setFilters] = useState<{ [category: string]: any[] }>({});
+  const [filters, setFilters] = useState<{ [category: string]: any[] }>(
+    props.metric?.filters ?? {},
+  );
 
   const updateFilters = async () => {
     const end = new Date(props.start);

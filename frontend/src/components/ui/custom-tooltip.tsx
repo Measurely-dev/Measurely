@@ -31,7 +31,8 @@ export default function CustomTooltip(props: TooltipProps) {
               </span>
               <div className='flex items-center space-x-1'>
                 <span className='font-medium text-gray-900'>
-                  {valueFormatter(item.value)}
+                  {valueFormatter(item.value)}{' '}
+                  {props.payload[0].payload[`metric_unit_${item.category}`]}
                 </span>
               </div>
             </div>

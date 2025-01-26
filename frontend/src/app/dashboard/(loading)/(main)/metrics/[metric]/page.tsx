@@ -47,6 +47,7 @@ import {
   fetchChartData,
   fetchEventVariation,
   valueFormatter,
+  calculateTrend,
 } from '@/utils';
 import { Dialog } from '@/components/ui/dialog';
 import {
@@ -201,7 +202,9 @@ export default function DashboardMetricPage() {
     } else {
       let dailyValue;
       const previousTotal =
-        metric.total_pos - metric.total_neg - (variation.pos - variation.neg);
+        variation.relative_total_pos -
+        variation.relative_total_neg -
+        (variation.pos - variation.neg);
       const variationValue = variation.pos - variation.neg;
       if (variationValue === 0) dailyValue = 0;
       else if (previousTotal === 0)
@@ -428,7 +431,46 @@ export default function DashboardMetricPage() {
                       )}
                     </>
                   )}
-                  <UnitCombobox />
+                  <UnitCombobox
+                    unit={metric?.unit}
+                    customUnits={projects[activeProject].units}
+                    onChange={(value) => {
+                      fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric-unit`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          unit: value,
+                          metric_id: metric?.id,
+                          project_id: projects[activeProject].id,
+                        }),
+                      }).then((resp) => {
+                        if (resp.ok) {
+                          setProjects(
+                            projects.map((proj, i) =>
+                              i === activeProject
+                                ? Object.assign({}, proj, {
+                                    metrics: proj.metrics?.map((m) =>
+                                      m.id === metric?.id
+                                        ? Object.assign({}, m, {
+                                            unit: value,
+                                          })
+                                        : m,
+                                    ),
+                                  })
+                                : proj,
+                            ),
+                          );
+                        } else {
+                          resp.text().then((text) => {
+                            toast.error(text);
+                          });
+                        }
+                      });
+                    }}
+                  />
                   <Separator
                     orientation='vertical'
                     className='my-auto ml-1 h-4'
@@ -501,27 +543,42 @@ function Chart(props: {
     pos: number;
     neg: number;
     average: number;
-    averagepercentdiff: number;
-  }>({ pos: 0, neg: 0, average: 0, averagepercentdiff: 0 });
+  }>({ pos: 0, neg: 0, average: 0 });
 
   const loadChart = async (from: Date) => {
     if (!props.metric) return;
-    setLoading(true);
+    let data = [];
 
-    const data = await fetchChartData(
-      from,
-      range,
-      activeFilter || props.metric,
-      props.metric.project_id,
-      props.type,
-    );
+    if (activeFilter !== null) {
+      data = await fetchChartData(
+        from,
+        range,
+        activeFilter,
+        activeFilter.project_id,
+        props.type,
+      );
 
-    const { pos, neg, average, averagepercentdiff } = await loadRangeSummary(
-      data,
-      activeFilter || props.metric,
-    );
+      const { pos, neg, average } = await loadRangeSummary(data, activeFilter);
+      setRangeSummary({ pos, neg, average });
+      if (props.type === 'trend') {
+        data = calculateTrend(data, activeFilter, pos, neg, average);
+      }
+    } else {
+      data = await fetchChartData(
+        from,
+        range,
+        props.metric,
+        props.metric.project_id,
+        props.type,
+      );
 
-    setRangeSummary({ pos, neg, average, averagepercentdiff });
+      const { pos, neg, average } = await loadRangeSummary(data, props.metric);
+      setRangeSummary({ pos, neg, average });
+      if (props.type === 'trend') {
+        data = calculateTrend(data, props.metric, pos, neg, average);
+      }
+    }
+
     setChartData(data);
     setLoading(false);
     setLoadingLeft(false);
@@ -535,7 +592,6 @@ function Chart(props: {
     pos: number;
     neg: number;
     average: number;
-    averagepercentdiff: number;
   }> => {
     if (props.type === 'trend') {
       let pos = 0;
@@ -546,7 +602,7 @@ function Chart(props: {
         if (
           data[i]['Positive Trend'] !== undefined &&
           data[i]['Negative Trend'] !== undefined &&
-          data[i]['Average Trend'] !== undefined
+          data[i]['Average Trend']
         ) {
           found = true;
           pos = data[i]['Positive Trend'];
@@ -557,8 +613,7 @@ function Chart(props: {
       }
 
       if (!found) {
-        if (date?.from === undefined)
-          return { pos: 0, neg: 0, average: 0, averagepercentdiff: 0 };
+        if (date?.from === undefined) return { pos: 0, neg: 0, average: 0 };
         const end = new Date(date.from);
         end.setDate(end.getDate() + 1);
         end.setHours(0);
@@ -574,7 +629,6 @@ function Chart(props: {
               metric.event_count === 0
                 ? 0
                 : (metric.total_pos - metric.total_neg) / metric.event_count,
-            averagepercentdiff: 0,
           };
         }
 
@@ -596,94 +650,59 @@ function Chart(props: {
               metric.event_count === 0
                 ? 0
                 : (metric.total_pos - metric.total_neg) / metric.event_count,
-            averagepercentdiff: 0,
           };
         } else {
-          const previousevent_count = relative_event_count - event_count;
+          const previousEventCount = relative_event_count - event_count;
           return {
             pos: relative_total_pos - pos,
             neg: relative_total_neg - neg,
             average:
-              previousevent_count === 0
+              previousEventCount === 0
                 ? 0
                 : (relative_total_pos - pos - (relative_total_neg - neg)) /
-                  previousevent_count,
-            averagepercentdiff: 0,
+                  previousEventCount,
           };
         }
       }
 
-      return { pos, neg, average, averagepercentdiff: 0 };
+      return { pos, neg, average };
     } else {
-      let total_pos = 0;
-      let total_neg = 0;
-      let event_count = 0;
-      let averagepercentdiff = 0;
+      let totalpos = 0;
+      let totalneg = 0;
+      let eventcount = 0;
+      let average = 0;
 
       for (let i = 0; i < data.length; i++) {
         if (metric.type === MetricType.Base) {
-          total_pos += data[i][metric.name] ?? 0;
+          totalpos += data[i][metric.name] ?? 0;
         } else if (metric.type === MetricType.Dual) {
-          total_pos += data[i][metric.name_pos ?? ''] ?? 0;
-          total_neg += data[i][metric.name_neg ?? ''] ?? 0;
+          totalpos += data[i][metric.name_pos ?? ''] ?? 0;
+          totalneg += data[i][metric.name_neg ?? ''] ?? 0;
         } else if (metric.type === MetricType.Average) {
-          total_pos += data[i]['+'] ?? 0;
-          total_neg += data[i]['-'] ?? 0;
+          totalpos += data[i]['+'] ?? 0;
+          totalneg += data[i]['-'] ?? 0;
         }
 
-        event_count += data[i]['Event Count'] ?? 0;
+        eventcount += data[i]['Event Count'] ?? 0;
       }
 
       if (metric.type === MetricType.Average) {
-        let latestDatapoint = undefined;
-        for (let i = data.length - 1; i >= 0; i--) {
-          if (
-            data[i]['Positive Trend'] !== undefined &&
-            data[i]['Negative Trend'] !== undefined
-          ) {
-            latestDatapoint = data[i];
-            break;
-          }
-        }
+        const total = totalpos - totalneg;
 
-        if (latestDatapoint !== undefined) {
-          let lastAverage =
-            (latestDatapoint['Positive Trend'] -
-              latestDatapoint['Negative Trend']) /
-            latestDatapoint['Event Trend'];
-          if (latestDatapoint['Event Trend'] === 0) lastAverage = 0;
-
-          let firstAverage =
-            (latestDatapoint['Positive Trend'] -
-              total_pos -
-              (latestDatapoint['Negative Trend'] - total_neg)) /
-            (latestDatapoint['Event Trend'] - event_count);
-          if (latestDatapoint['Event Trend'] - event_count === 0)
-            firstAverage = 0;
-
-          const diff = lastAverage - firstAverage;
-
-          if (diff !== 0 && firstAverage === 0) {
-            if (diff < 0) {
-              averagepercentdiff = -100;
-            } else {
-              averagepercentdiff = 100;
-            }
-          } else if (firstAverage !== 0) {
-            averagepercentdiff = (diff / firstAverage) * 100;
-          }
+        if (eventcount == 0 || total == 0) {
+          average = 0;
+        } else {
+          average = total / eventcount;
         }
       }
 
       return {
-        pos: total_pos,
-        neg: total_neg,
-        average: 0,
-        averagepercentdiff: averagepercentdiff,
+        pos: totalpos,
+        neg: totalneg,
+        average,
       };
     }
   };
-
   useEffect(() => {
     let interval: any;
     if (range >= 365) {
@@ -821,9 +840,6 @@ function Chart(props: {
                     onChange={(rangeValue) => {
                       const newDateRange = toDateRange(rangeValue);
                       setDate(newDateRange);
-                      if (newDateRange?.from) {
-                        loadChart(newDateRange.from);
-                      }
                     }}
                   />
                 </AriaDialog>
@@ -950,17 +966,7 @@ function Chart(props: {
                 </div>
                 <div className='text-xl font-medium'>
                   {props.metric?.type === MetricType.Average ? (
-                    <>
-                      {rangeSummary.averagepercentdiff > 0 &&
-                      props.type === 'overview'
-                        ? '+'
-                        : ''}
-                      {props.type === 'overview' ? (
-                        <>{valueFormatter(rangeSummary.averagepercentdiff)}%</>
-                      ) : (
-                        <>{valueFormatter(rangeSummary.average)}</>
-                      )}
-                    </>
+                    <>{valueFormatter(rangeSummary.average)}</>
                   ) : (
                     <>
                       {rangeSummary.pos - rangeSummary.neg > 0 &&
@@ -977,7 +983,6 @@ function Chart(props: {
                 activeFilter={activeFilter}
                 setActiveFilter={(filter) => {
                   setActiveFilter(filter);
-                  loadChart(date?.from || new Date());
                 }}
                 range={range}
                 start={date?.to || new Date()}

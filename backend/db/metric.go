@@ -12,8 +12,8 @@ import (
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var newMetric types.Metric
 	query := `INSERT INTO metrics
-		(project_id, name, type, name_pos, name_neg, parent_metric_id, filter_category)
-		VALUES (:project_id, :name, :type, :name_pos, :name_neg, :parent_metric_id, :filter_category) RETURNING *`
+		(project_id, name, type, name_pos, name_neg, parent_metric_id, filter_category, unit)
+		VALUES (:project_id, :name, :type, :name_pos, :name_neg, :parent_metric_id, :filter_category, :unit) RETURNING *`
 
 	rows, err := db.Conn.NamedQuery(query, metric)
 	if err != nil {
@@ -372,5 +372,10 @@ func (db *DB) UpdateMetricLastEventTimestamp(id uuid.UUID, date time.Time) error
 		"UPDATE metrics SET last_event_timestamp = $1 WHERE id = $2",
 		date, id,
 	)
+	return err
+}
+
+func (db *DB) UpdateMetricUnit(id uuid.UUID, project_id uuid.UUID, unit string) error {
+	_, err := db.Conn.Exec(`UPDATE metrics SET unit = $1 WHERE id = $2 AND project_id = $3 `, unit, id, project_id)
 	return err
 }

@@ -3,6 +3,7 @@ export interface Project {
   api_key: string;
   name: string;
   image: string;
+  units: Unit[];
   user_role: UserRole;
   metrics: null | Metric[];
   members: null | User[];
@@ -17,6 +18,7 @@ export interface Project {
 export interface Metric {
   id: string;
   project_id: string;
+  unit: string;
   name: string;
   type: MetricType;
   event_count: number;
@@ -128,6 +130,11 @@ export enum SubscriptionType {
 export enum InvoiceStatus {
   ACTIVE,
   FAILED,
+}
+
+export interface Unit {
+  name: string;
+  symbol: string;
 }
 
 export const chartTypeMetricLimits: Record<

@@ -357,7 +357,11 @@ function Step3({ metricData }: { metricData: any }) {
         Select the unit that will be used to measure your metric.
       </div>
       <div className='mt-5'>
-        <UnitCombobox type='lg' onChange={(value: any) => setUnit(value)} />
+        <UnitCombobox
+          type='lg'
+          onChange={(value: string) => setUnit(value)}
+          customUnits={[]}
+        />
       </div>
       <div className='mt-5 flex w-full flex-row justify-between gap-2 max-md:flex-col'>
         <Button

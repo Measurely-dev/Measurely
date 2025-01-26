@@ -1488,6 +1488,51 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+func (s *Service) UpdateProjectUnits(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ProjectId uuid.UUID    `json:"project_id"`
+		Units     []types.Unit `json:"units"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	// Update the project units
+	err = s.db.UpdateProjectUnits(request.ProjectId, request.Units)
+	if err != nil {
+		log.Println("Error updating project units:", err)
+		http.Error(w, "Failed to update project units, please try again later", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
@@ -1504,6 +1549,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		NameNeg        string     `json:"name_neg"`
 		ParentMetricId *uuid.UUID `json:"parent_metric_id,omitempty"`
 		FilterCategory string     `json:"filter_category"`
+		Unit           string     `json:"unit"`
 	}
 
 	// Try to unmarshal the request body
@@ -1583,6 +1629,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		NameNeg:        request.NameNeg,
 		ParentMetricId: parentMetricId,
 		FilterCategory: request.FilterCategory,
+		Unit:           request.Unit,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1782,6 +1829,51 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.metricsCache.Delete(project.ApiKey + metric.Name)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateMetricUnit(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		Unit      string    `json:"unit"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println("Error fetching project:", err)
+			http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	// Update the metric
+	if err := s.db.UpdateMetricUnit(request.MetricId, request.ProjectId, request.Unit); err != nil {
+		log.Println("Error updating metric unit:", err)
+		http.Error(w, "Failed to update metric unit", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 

@@ -150,10 +150,20 @@ export const fetchChartData = async (
   }
 
   const now = new Date();
+
+  let unitValue = '';
+  const symbol = metric.unit.split('(');
+  if (symbol.length > 1) {
+    unitValue = symbol[1].split(')')[0];
+  } else {
+    unitValue = symbol[0];
+  }
+
   for (let i = 0; i < dataLength; i++) {
     const eventDate = new Date(dateCounter);
     const data: any = {
       date: eventDate,
+      [`metric_unit_${metric.name}`]: unitValue,
     };
     if (eventDate <= now) {
       data[metric.type !== MetricType.Dual ? metric.name : metric.name_pos] = 0;

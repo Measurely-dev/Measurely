@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,82 +27,126 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from './label';
+import { Unit } from '@/types';
+import { toast } from 'sonner';
+import { ProjectsContext } from '@/dash-context';
 
-type Unit = { label: string; value: string };
 const unitCategories = [
   {
     label: 'Basic Units',
     units: [
-      { label: 'Visitors', value: 'visitors' },
-      { label: 'Clients', value: 'clients' },
-      { label: 'Requests', value: 'requests' },
-      { label: 'Sessions', value: 'sessions' },
-      { label: 'Page Views', value: 'views' },
-      { label: 'Unique Visitors', value: 'unique-visitors' },
-      { label: 'Bounce Rate (%)', value: 'bounce-rate' },
-      { label: 'Conversion Rate (%)', value: 'conversion-rate' },
+      { name: 'Hours', symbol: 'h' },
+      { name: 'Minutes', symbol: 'min' },
+      { name: 'Seconds', symbol: 's' },
+      { name: 'Milliseconds', symbol: 'ms' },
+      { name: 'Days', symbol: 'd' },
+      { name: 'Weeks', symbol: 'w' },
+      { name: 'Months', symbol: 'mo' },
+      { name: 'Years', symbol: 'y' },
     ],
   },
   {
     label: 'Performance Metrics',
     units: [
-      { label: 'CPU Usage (%)', value: 'cpu-usage' },
-      { label: 'Memory Usage (MB)', value: 'memory-usage' },
-      { label: 'Disk Space (GB)', value: 'disk-space' },
-      { label: 'Latency (ms)', value: 'latency' },
-      { label: 'Error Rate (%)', value: 'error-rate' },
-      { label: 'Throughput (ops/sec)', value: 'throughput' },
-      { label: 'Response Time (ms)', value: 'response-time' },
-      { label: 'Network Traffic (MB)', value: 'network-traffic' },
+      { name: 'Bytes', symbol: 'B' },
+      { name: 'Kilobytes', symbol: 'KB' },
+      { name: 'Megabytes', symbol: 'MB' },
+      { name: 'Gigabytes', symbol: 'GB' },
+      { name: 'Terabytes', symbol: 'TB' },
+      { name: 'Ops per Second', symbol: 'ops/s' },
+      { name: 'Milliseconds per Operation', symbol: 'ms/op' },
+      { name: 'Transactions per Second', symbol: 'tps' },
     ],
   },
   {
     label: 'Engagement Metrics',
     units: [
-      {
-        label: 'Average Session Duration (min)',
-        value: 'avg-session-duration',
-      },
-      { label: 'Pages per Session', value: 'pages-per-session' },
-      { label: 'Social Shares', value: 'social-shares' },
-      { label: 'Email Open Rate (%)', value: 'email-open-rate' },
-      { label: 'Click-Through Rate (%)', value: 'click-through-rate' },
+      { name: 'Percentage', symbol: '%' },
+      { name: 'Clicks', symbol: 'clicks' },
+      { name: 'Shares', symbol: 'shares' },
+      { name: 'Views', symbol: 'views' },
+      { name: 'Impressions', symbol: 'impressions' },
+      { name: 'Engagement Rate', symbol: '%' },
+      { name: 'Conversion Rate', symbol: '%' },
+      { name: 'Sessions', symbol: 'sessions' },
     ],
   },
   {
     label: 'Monetary Units',
     units: [
-      { label: 'CAD ($)', value: 'money-cad' },
-      { label: 'USD ($)', value: 'money-usd' },
-      { label: 'EUR (€)', value: 'money-eur' },
-      { label: 'GBP (£)', value: 'money-gbp' },
-      { label: 'Revenue ($)', value: 'revenue' },
-      { label: 'Cost ($)', value: 'cost' },
-      { label: 'Profit ($)', value: 'profit' },
-      { label: 'Return on Investment (%)', value: 'roi' },
+      { name: 'CAD', symbol: '$' },
+      { name: 'USD', symbol: '$' },
+      { name: 'EUR', symbol: '€' },
+      { name: 'GBP', symbol: '£' },
+      { name: 'JPY', symbol: '¥' },
+      { name: 'Revenue', symbol: '$' },
+      { name: 'Cost', symbol: '$' },
+      { name: 'Profit', symbol: '$' },
     ],
   },
 ];
 
 interface UnitComboboxProps {
+  unit?: string;
   type?: 'lg' | 'sm';
   onChange?: (value: string) => void;
+  customUnits: Unit[];
 }
-export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
+export function UnitCombobox({
+  type = 'sm',
+  unit,
+  onChange,
+  customUnits,
+}: UnitComboboxProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(unit ?? '');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [customUnits, setCustomUnits] = useState<Unit[]>([]);
   const [newUnitName, setNewUnitName] = useState('');
   const [newUnitSymbol, setNewUnitSymbol] = useState('');
 
+  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
+
   const handleAddUnit = () => {
     if (!newUnitName || !newUnitSymbol) return;
+
     const newUnit = {
-      label: `${newUnitName} (${newUnitSymbol})`,
-      value: newUnitSymbol.toLowerCase(),
+      name: newUnitName,
+      symbol: newUnitSymbol,
     };
-    setCustomUnits((prev) => [newUnit, ...prev]);
+
+    if (customUnits.find((unit) => unit.name === newUnitName)) {
+      toast.error('Unit with the same name already exists');
+      return;
+    }
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/project-units`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        project_id: projects[activeProject].id,
+        units: [...customUnits, newUnit],
+      }),
+    }).then((resp) => {
+      if (resp.ok) {
+        setProjects(
+          projects.map((proj, i) =>
+            i === activeProject
+              ? Object.assign({}, proj, {
+                  units: [...proj.units, newUnit],
+                })
+              : proj,
+          ),
+        );
+      } else {
+        resp.text().then((text) => {
+          toast.error(text);
+        });
+      }
+    });
+
     setNewUnitName('');
     setNewUnitSymbol('');
     setIsDialogOpen(false);
@@ -127,11 +171,7 @@ export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
               aria-expanded={open}
               className='h-11 w-full justify-between rounded-[12px]'
             >
-              {value
-                ? customUnits
-                    .concat(...unitCategories.map((cat) => cat.units))
-                    .find((unit) => unit.value === value)?.label
-                : 'Select Unit'}
+              {value !== '' ? value : 'Select Unit'}
               <ChevronDown className='ml-1 size-4' />
             </Button>
           </PopoverTrigger>
@@ -143,11 +183,8 @@ export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
               aria-expanded={open}
               className='h-fit justify-between rounded-[8px] border bg-accent px-3 py-1 font-normal text-muted-foreground hover:text-primary'
             >
-              {value
-                ? customUnits
-                    .concat(...unitCategories.map((cat) => cat.units))
-                    .find((unit) => unit.value === value)?.label
-                : 'Unit'}
+              {value !== '' ? value : 'Select Unit'}
+
               <ChevronDown className='ml-1 size-4' />
             </Button>
           </PopoverTrigger>
@@ -178,22 +215,26 @@ export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
                   <CommandSeparator />
 
                   <CommandGroup heading='Custom Units'>
-                    {customUnits.map((unit) => (
-                      <CommandItem
-                        className='cursor-pointer rounded-[10px] py-2 font-normal'
-                        key={unit.value}
-                        value={unit.value}
-                        onSelect={handleSelectUnit}
-                      >
-                        {unit.label}
-                        <Check
-                          className={cn(
-                            'ml-auto',
-                            value === unit.value ? 'opacity-100' : 'opacity-0',
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
+                    {customUnits.map((unit) => {
+                      const unitValue =
+                        unit.name + (unit.symbol !== '' && ` (${unit.symbol})`);
+                      return (
+                        <CommandItem
+                          className='cursor-pointer rounded-[10px] py-2 font-normal'
+                          key={unit.name}
+                          value={unitValue}
+                          onSelect={handleSelectUnit}
+                        >
+                          {unitValue}
+                          <Check
+                            className={cn(
+                              'ml-auto',
+                              value === unit.name ? 'opacity-100' : 'opacity-0',
+                            )}
+                          />
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 </>
               )}
@@ -207,24 +248,29 @@ export function UnitCombobox({ type = 'sm', onChange }: UnitComboboxProps) {
                         key={category.label}
                         heading={category.label}
                       >
-                        {category.units.map((unit) => (
-                          <CommandItem
-                            className='cursor-pointer rounded-[10px] py-2 font-normal'
-                            key={unit.value}
-                            value={unit.value}
-                            onSelect={handleSelectUnit}
-                          >
-                            {unit.label}
-                            <Check
-                              className={cn(
-                                'ml-auto',
-                                value === unit.value
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
+                        {category.units.map((unit) => {
+                          const unitValue =
+                            unit.name +
+                            (unit.symbol !== '' && ` (${unit.symbol})`);
+                          return (
+                            <CommandItem
+                              className='cursor-pointer rounded-[10px] py-2 font-normal'
+                              key={unit.name}
+                              value={unitValue}
+                              onSelect={handleSelectUnit}
+                            >
+                              {unitValue}
+                              <Check
+                                className={cn(
+                                  'ml-auto',
+                                  value === unit.name
+                                    ? 'opacity-100'
+                                    : 'opacity-0',
+                                )}
+                              />
+                            </CommandItem>
+                          );
+                        })}
                       </CommandGroup>
                     </>
                   ),

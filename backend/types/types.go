@@ -66,6 +66,7 @@ type UserProvider struct {
 type Project struct {
 	Id                   uuid.UUID `db:"id" json:"id"`
 	ApiKey               string    `db:"api_key" json:"api_key"`
+	Units                []Unit    `json:"units" db:"units"`
 	UserId               uuid.UUID `db:"user_id" json:"user_id"`
 	UserRole             int       `json:"user_role" db:"user_role"`
 	Name                 string    `db:"name" json:"name"`
@@ -80,6 +81,7 @@ type Project struct {
 type Metric struct {
 	Id                 uuid.UUID           `db:"id" json:"id"`
 	ProjectId          uuid.UUID           `db:"project_id" json:"project_id"`
+	Unit               string              `json:"unit" db:"unit"`
 	FilterCategory     string              `db:"filter_category" json:"filter_category"`
 	ParentMetricId     sql.Null[string]    `db:"parent_metric_id" json:"-"`
 	Name               string              `db:"name" json:"name"`
@@ -168,7 +170,7 @@ type Label struct {
 	DefaultColor string `json:"default_color"`
 }
 
-type NullUUID struct {
-	UUID  uuid.UUID
-	Valid bool
+type Unit struct {
+	Name   string `json:"name"`
+	Symbol string `json:"symbol"`
 }

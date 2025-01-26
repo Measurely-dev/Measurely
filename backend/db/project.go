@@ -4,9 +4,21 @@ import (
 	"Measurely/types"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 )
+
+type tmpProject struct {
+	types.Project
+	Units []byte `db:"units"`
+}
+
+type tmpBlocks struct {
+	types.Blocks
+	Layout []byte `db:"layout"`
+	Labels []byte `db:"labels"`
+}
 
 func (db *DB) GetProject(id, userId uuid.UUID) (types.Project, error) {
 	query := `
@@ -18,7 +30,21 @@ func (db *DB) GetProject(id, userId uuid.UUID) (types.Project, error) {
 	`
 
 	var project types.Project
-	err := db.Conn.Get(&project, query, id, userId)
+	var tmp tmpProject
+	err := db.Conn.Get(&tmp, query, id, userId)
+
+	if err != nil {
+		return types.Project{}, err
+	}
+
+	var units []types.Unit
+	if err := json.Unmarshal(tmp.Units, &units); err != nil {
+		log.Fatalf("Failed to unmarshal units: %v", err)
+		return types.Project{}, err
+	}
+
+	project = tmp.Project
+	project.Units = units
 	return project, err
 }
 
@@ -35,11 +61,29 @@ func (db *DB) GetProjectCountByUser(userId uuid.UUID) (int, error) {
 
 func (db *DB) GetProjectByApi(key string) (types.Project, error) {
 	var project types.Project
-	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE api_key = $1", key)
+	var tmp tmpProject
+	err := db.Conn.Get(&tmp, "SELECT * FROM projects WHERE api_key = $1", key)
+
+	if err != nil {
+		return types.Project{}, err
+	}
+
+	var units []types.Unit
+	if err := json.Unmarshal(tmp.Units, &units); err != nil {
+		log.Fatalf("Failed to unmarshal units: %v", err)
+		return types.Project{}, err
+	}
+
+	project = tmp.Project
+	project.Units = units
+
 	return project, err
 }
 
 func (db *DB) GetProjects(userId uuid.UUID) ([]types.Project, error) {
+	var projects []types.Project
+	var tmp []tmpProject
+
 	query := `
 		SELECT p.*,
 		CASE WHEN p.user_id = $1 THEN 0 ELSE tr.role END AS user_role
@@ -48,19 +92,48 @@ func (db *DB) GetProjects(userId uuid.UUID) ([]types.Project, error) {
 		WHERE p.user_id = $1 OR tr.user_id = $1
 	`
 
-	var projects []types.Project
-	err := db.Conn.Select(&projects, query, userId)
+	err := db.Conn.Select(&tmp, query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var units []types.Unit
+	for _, t := range tmp {
+		if err := json.Unmarshal(t.Units, &units); err != nil {
+			log.Fatalf("Failed to unmarshal units: %v", err)
+			return nil, err
+		}
+		t.Project.Units = units
+		projects = append(projects, t.Project)
+	}
+
 	return projects, err
 }
 
 func (db *DB) GetProjectByName(userId uuid.UUID, name string) (types.Project, error) {
 	var project types.Project
-	err := db.Conn.Get(&project, "SELECT * FROM projects WHERE user_id = $1 AND name = $2", userId, name)
+	var tmp tmpProject
+	err := db.Conn.Get(&tmp, "SELECT * FROM projects WHERE user_id = $1 AND name = $2", userId, name)
+
+	if err != nil {
+		return types.Project{}, err
+	}
+
+	var units []types.Unit
+	if err := json.Unmarshal(tmp.Units, &units); err != nil {
+		return types.Project{}, err
+	}
+
+	project = tmp.Project
+	project.Units = units
+
 	return project, err
 }
 
 func (db *DB) CreateProject(project types.Project) (types.Project, error) {
 	var newProject types.Project
+	var tmp tmpProject
+
 	rows, err := db.Conn.NamedQuery(
 		"INSERT INTO projects (user_id, api_key, name, current_plan, max_event_per_month) VALUES (:user_id, :api_key, :name, :current_plan, :max_event_per_month) RETURNING *",
 		project,
@@ -70,10 +143,20 @@ func (db *DB) CreateProject(project types.Project) (types.Project, error) {
 	}
 	defer rows.Close()
 	rows.Next()
-	err = rows.StructScan(&newProject)
+	err = rows.StructScan(&tmp)
 	if err != nil {
+		log.Println(err)
 		return types.Project{}, err
 	}
+
+	var units []types.Unit
+	if err := json.Unmarshal(tmp.Units, &units); err != nil {
+		return types.Project{}, err
+	}
+
+	newProject = tmp.Project
+	newProject.Units = units
+
 	return newProject, err
 }
 
@@ -154,6 +237,16 @@ func (db *DB) GetUsersByProjectId(projectId uuid.UUID) ([]types.User, error) {
 	var users []types.User
 	err := db.Conn.Select(&users, query, projectId)
 	return users, err
+}
+
+func (db *DB) UpdateProjectUnits(projectId uuid.UUID, units []types.Unit) error {
+	unitsJSON, err := json.Marshal(units)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Conn.Exec("UPDATE projects SET units = $1 WHERE id = $2", unitsJSON, projectId)
+	return err
 }
 
 func (db *DB) GetBlocks(projectId, userId uuid.UUID) (*types.Blocks, error) {
