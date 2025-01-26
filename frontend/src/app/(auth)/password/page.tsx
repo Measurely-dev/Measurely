@@ -1,5 +1,6 @@
 'use client';
 
+// Import required components and hooks
 import AuthForm from '@/components/website/auth-form';
 import Container from '@/components/website/container';
 import Content from '@/components/website/content';
@@ -8,14 +9,14 @@ import { redirect, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+// Password creation page component
 export default function Password() {
   const searchParams = useSearchParams();
-
   const [loading, set_loading] = useState(false);
   const [back_query, set_back_query] = useState('');
-
   const router = useRouter();
 
+  // Effect to handle URL parameters and build back navigation query
   useEffect(() => {
     if (
       searchParams.get('first_name') !== null &&
@@ -34,6 +35,7 @@ export default function Password() {
     }
   }, [searchParams]);
 
+  // Effect to set page metadata
   useEffect(() => {
     document.title = 'Create Password | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -55,7 +57,7 @@ export default function Password() {
           form={[
             {
               label: 'Password',
-              placeholder: 'Password',
+              placeholder: 'Password', 
               name: 'password',
               type: 'password',
             },
@@ -71,6 +73,7 @@ export default function Password() {
           action={async (formdata) => {
             set_loading(true);
 
+            // Extract and sanitize form data
             const email = searchParams
               .get('email')
               ?.toString()
@@ -84,6 +87,7 @@ export default function Password() {
             const password = formdata.get('password')?.toString().trim();
             const retype = formdata.get('retyped_password')?.toString().trim();
 
+            // Validate form inputs
             if (
               password === '' ||
               retype === '' ||
@@ -102,6 +106,7 @@ export default function Password() {
               return;
             }
 
+            // Submit registration request to API
             fetch(process.env.NEXT_PUBLIC_API_URL + '/register', {
               method: 'POST',
               headers: {

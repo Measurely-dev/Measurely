@@ -1,5 +1,6 @@
 'use client';
 
+// Import required components and hooks
 import Container from '@/components/website/container';
 import Content from '@/components/website/content';
 import SemiNavbar from '@/components/website/semi-navbar';
@@ -7,28 +8,34 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
 
+// Component for handling email change confirmation
 export default function PasswordReset() {
   const searchParams = useSearchParams();
-  const [view, set_view] = useState(2);
+  // View state: 0 = error, 1 = success, 2 = loading
+  const [view, setView] = useState(2);
 
+  // Effect to handle email change verification
   useEffect(() => {
     if (searchParams.get('code') !== null) {
+      // Send verification code to API
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/change_email`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestid: searchParams.get('code') }),
       }).then((resp) => {
+        // Update view based on API response
         if (resp.status === 200) {
-          set_view(1);
+          setView(1);
         } else {
-          set_view(0);
+          setView(0);
         }
       });
     } else {
-      set_view(0);
+      setView(0);
     }
   }, [searchParams]);
 
+  // Effect to update page metadata
   useEffect(() => {
     document.title = 'Change Email | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -47,6 +54,7 @@ export default function PasswordReset() {
       <Content>
         <div className='flex h-screen w-full items-center justify-center'>
           <div className='flex w-fit flex-col gap-[10px]'>
+            {/* Error state */}
             {view === 0 ? (
               <>
                 <div className='text-base font-semibold'>
@@ -60,6 +68,7 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Success state */}
             {view === 1 ? (
               <>
                 <div className='text-base font-semibold'>
@@ -73,8 +82,10 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Loading state */}
             {view === 2 ? <Loader className='size-8 animate-spin' /> : <></>}
 
+            {/* Support link shown in error and success states */}
             {view === 1 || view === 0 ? (
               <div className='mt-[10px] text-sm'>
                 Need help?{' '}

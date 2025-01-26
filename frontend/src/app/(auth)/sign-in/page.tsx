@@ -1,5 +1,5 @@
-'use client';
 
+// Import required components and hooks
 import AuthForm from '@/components/website/auth-form';
 import Container from '@/components/website/container';
 import Content from '@/components/website/content';
@@ -9,11 +9,12 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function SignIn() {
+  // Initialize hooks and state
   const params = useSearchParams();
-
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  // Handle URL parameters for showing toast notifications
   useEffect(() => {
     if (params.get('error') !== null) {
       setTimeout(() => {
@@ -32,6 +33,7 @@ export default function SignIn() {
     }
   }, [params]);
 
+  // Set page metadata
   useEffect(() => {
     document.title = 'Sign In | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -42,6 +44,7 @@ export default function SignIn() {
       );
     }
   }, []);
+
   return (
     <Container className='min-h-[800px]'>
       <div className='mb-[150px]'>
@@ -71,15 +74,18 @@ export default function SignIn() {
           action={(form) => {
             setLoading(true);
 
+            // Get and sanitize form input values
             const password = form.get('password')?.toString().trim();
             const email = form.get('email')?.toString().trim().toLowerCase();
 
+            // Validate form inputs
             if (password === '' || email === '') {
               toast.error('Please enter email and password');
               setLoading(false);
               return;
             }
 
+            // Make login API request
             fetch(process.env.NEXT_PUBLIC_API_URL + `/login`, {
               method: 'POST',
               headers: {
@@ -97,6 +103,7 @@ export default function SignIn() {
                 });
                 setLoading(false);
               } else {
+                // Clear storage and redirect on successful login
                 localStorage.clear();
                 sessionStorage.clear();
                 router.push('/dashboard');

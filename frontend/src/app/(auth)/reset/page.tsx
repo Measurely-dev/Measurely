@@ -1,5 +1,6 @@
 'use client';
 
+// Import required components and hooks
 import AuthForm from '@/components/website/auth-form';
 import Container from '@/components/website/container';
 import Content from '@/components/website/content';
@@ -9,20 +10,24 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader } from 'lucide-react';
 
+// Password reset component that handles the complete password reset flow
 export default function PasswordReset() {
   const searchParams = useSearchParams();
-  const [view, set_view] = useState(6); // 0 : email input, 1 : sent email , 2 : password input, 3 : fail, 5 : success, 6 : loading
+  // View states: 0-email input, 1-sent email, 2-password input, 3-fail, 5-success, 6-loading
+  const [view, setView] = useState(6);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
 
+  // Check for reset code in URL and set appropriate view
   useEffect(() => {
     if (searchParams.get('code') !== null) {
-      set_view(2);
+      setView(2);
     } else {
-      set_view(0);
+      setView(0);
     }
   }, [searchParams]);
 
+  // Set page metadata
   useEffect(() => {
     document.title = 'Reset password | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -40,6 +45,7 @@ export default function PasswordReset() {
         <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
       <Content type='page'>
+        {/* Email input form view */}
         {view === 0 ? (
           <AuthForm
             title='Forgot password?'
@@ -63,6 +69,7 @@ export default function PasswordReset() {
                 setLoading(false);
                 return;
               }
+              // Send password reset request to API
               fetch(process.env.NEXT_PUBLIC_API_URL + '/forgot_password', {
                 method: 'POST',
                 headers: {
@@ -80,7 +87,7 @@ export default function PasswordReset() {
                   setLoading(false);
                 } else {
                   setEmail(email ?? '');
-                  set_view(1);
+                  setView(1);
                 }
               });
             }}
@@ -89,6 +96,7 @@ export default function PasswordReset() {
           <></>
         )}
 
+        {/* New password input form view */}
         {view === 2 ? (
           <AuthForm
             title='Password'
@@ -116,6 +124,7 @@ export default function PasswordReset() {
               const password = form.get('password');
               const retype = form.get('retype');
 
+              // Validate password inputs
               if (password === '' || retype === '') {
                 toast.error('Password is required');
                 return;
@@ -126,6 +135,7 @@ export default function PasswordReset() {
                 return;
               }
 
+              // Submit new password to API
               fetch(process.env.NEXT_PUBLIC_API_URL + '/recover_account', {
                 method: 'POST',
                 headers: {
@@ -143,7 +153,7 @@ export default function PasswordReset() {
                   });
                   setLoading(false);
                 } else {
-                  set_view(5);
+                  setView(5);
                 }
               });
             }}
@@ -151,8 +161,11 @@ export default function PasswordReset() {
         ) : (
           <></>
         )}
+
+        {/* Status messages container */}
         <div className='flex w-full items-center justify-center'>
           <div className='flex w-fit flex-col gap-[10px]'>
+            {/* Email sent confirmation view */}
             {view === 1 ? (
               <>
                 <div className='mt-20 text-base font-semibold'>
@@ -172,6 +185,7 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Error view */}
             {view === 3 ? (
               <>
                 <div className='text-base font-semibold'>
@@ -185,6 +199,7 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Success view */}
             {view === 5 ? (
               <>
                 <div className='text-base font-semibold'>
@@ -198,8 +213,10 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Loading view */}
             {view === 6 ? <Loader className='size-8 animate-spin' /> : <></>}
 
+            {/* Support link for specific views */}
             {view === 1 || view === 3 || view === 5 ? (
               <div className='mt-[10px] text-sm'>
                 Need help?{' '}
