@@ -8,13 +8,16 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
-import { fetchEventVariation, INTERVAL } from '@/utils';
+import { fetchEventVariation, getUnit, INTERVAL } from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
+  ArrowDown,
+  ArrowUp,
   ArrowUpDown,
   ArrowUpFromDot,
   FileQuestion,
   Loader,
+  Minus,
   Search,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -106,7 +109,10 @@ export default function MetricTable(props: { search: string; filter: string }) {
                   <TableHead colSpan={1.5} className='text-nowrap'>
                     Total value
                   </TableHead>
-                  <TableHead className='min-w-[100px] text-nowrap' colSpan={1.5}>
+                  <TableHead
+                    className='min-w-[100px] text-nowrap'
+                    colSpan={1.5}
+                  >
                     Daily update
                   </TableHead>
                   <TableHead className='min-w-[140px]'>Last updated</TableHead>
@@ -152,8 +158,13 @@ const Item = (props: { metric: Metric; index: number }) => {
 
   // Determines if a plus sign should be shown before positive values
   const todayBadgeSign = (v: number | null) => {
-    if (v === null || v === 0 || v < 0) return '';
-    return v > 0 ? '+' : '';
+    if (v === null || v === 0 || v < 0)
+      return <Minus className='-ml-0.5 size-4' aria-hidden={true} />;
+    return v < 0 ? (
+      <ArrowDown className='-ml-0.5 size-4' aria-hidden={true} />
+    ) : (
+      <ArrowUp className='-ml-0.5 size-4' aria-hidden={true} />
+    );
   };
 
   // Fetches and updates metric data
@@ -178,7 +189,17 @@ const Item = (props: { metric: Metric; index: number }) => {
               variation.relative_event_count,
       );
     } else {
-      setDailyUpdate(variation.pos - variation.neg);
+      let dailyValue;
+      const previousTotal =
+        variation.relative_total_pos -
+        variation.relative_total_neg -
+        (variation.pos - variation.neg);
+      const variationValue = variation.pos - variation.neg;
+      if (variationValue === 0) dailyValue = 0;
+      else if (previousTotal === 0)
+        dailyValue = variationValue < 0 ? -100 : 100;
+      else dailyValue = (variationValue / previousTotal) * 100;
+      setDailyUpdate(dailyValue);
     }
 
     if (
@@ -242,9 +263,16 @@ const Item = (props: { metric: Metric; index: number }) => {
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
             {props.metric.type === MetricType.Average ? (
-              <>{valueFormatter(average)}</>
+              <>
+                {valueFormatter(average)} {getUnit(props.metric.unit)}
+              </>
             ) : (
-              <>{valueFormatter(props.metric.total_pos - props.metric.total_neg)}</>
+              <>
+                {valueFormatter(
+                  props.metric.total_pos - props.metric.total_neg,
+                )}{' '}
+                {getUnit(props.metric.unit)}
+              </>
             )}
           </div>
         </TableCell>
@@ -256,8 +284,8 @@ const Item = (props: { metric: Metric; index: number }) => {
               )}}`}
             >
               {todayBadgeSign(dailyUpdate)}
-              {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate)}
-              {props.metric.type === MetricType.Average ? '%' : ''}
+
+              {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate) + ' %'}
             </Badge>
           </div>
         </TableCell>
@@ -275,7 +303,9 @@ const Item = (props: { metric: Metric; index: number }) => {
                   size={'icon'}
                   className='hover:bg-transparent'
                   onClick={(e) => e.stopPropagation()}
-                  disabled={projects[activeProject].user_role === UserRole.Guest}
+                  disabled={
+                    projects[activeProject].user_role === UserRole.Guest
+                  }
                 >
                   <MoreHorizontal className='size-5' />
                 </Button>

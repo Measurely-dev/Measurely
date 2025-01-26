@@ -77,6 +77,7 @@ import {
   fetchEventVariation,
   generateString,
   getMonthsFromDate,
+  getUnit,
   valueFormatter,
 } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -586,6 +587,9 @@ function BlockContent(props: Block & { groupkey?: string }) {
                 [metric.name]: item[metric.name],
                 [`metric_unit_${metric.name}`]:
                   item[`metric_unit_${metric.name}`],
+                [metric.name + '+']: item['+'] ?? 0,
+                [metric.name + '-']: item['-'] ?? 0,
+                [metric.name + 'Event Count']: item['Event Count'] ?? 0,
               });
             });
           } else {
@@ -599,6 +603,11 @@ function BlockContent(props: Block & { groupkey?: string }) {
               combinedData[i][metric.name] = item[metric.name];
               combinedData[i][`metric_unit_${metric.name}`] =
                 item[`metric_unit_${metric.name}`];
+
+              combinedData[i][metric.name + '+'] = item['+'] ?? 0;
+              combinedData[i][metric.name + '-'] = item['-'] ?? 0;
+              combinedData[i][metric.name + 'Event Count'] =
+                item['Event Count'] ?? 0;
             });
           }
         });
@@ -667,18 +676,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       return (categoryVariation / previousTotal) * 100;
     }
-  };
-
-  // Extract unit from metric
-  const getUnit = (unit: string): string => {
-    let unitValue = '';
-    const symbol = unit.split('(');
-    if (symbol.length > 1) {
-      unitValue = symbol[1].split(')')[0];
-    } else {
-      unitValue = symbol[0];
-    }
-    return unitValue;
   };
 
   return (
@@ -849,7 +846,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
 // Type definition for available chart colors
 export type ColorKey =
   | 'pink'
-  | 'blue' 
+  | 'blue'
   | 'green'
   | 'orange'
   | 'red'
@@ -866,7 +863,7 @@ export type ColorKey =
 // Maps hex color codes to color keys
 const hexToColorKeyMap: Record<string, ColorKey> = {
   '#ff007f': 'pink',
-  '#0033cc': 'blue', 
+  '#0033cc': 'blue',
   '#8000ff': 'purple',
   '#007f3f': 'green',
   '#ff6600': 'orange',
@@ -939,10 +936,12 @@ function Charts(props: {
 
   // Resolve color settings
   const resolvedColorKey = hexToColorKeyMap[props.color] || 'gray';
-  const validResolvedColorKey = resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
+  const validResolvedColorKey =
+    resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const chartColors = chartColorMap[validResolvedColorKey];
 
-  const compactValidResolvedColorKey = resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
+  const compactValidResolvedColorKey =
+    resolvedColorKey in colorSchemeMap ? resolvedColorKey : 'gray';
   const compactChartColor = CompactChartColorMap[compactValidResolvedColorKey];
 
   // Render appropriate chart based on type
@@ -981,7 +980,9 @@ function Charts(props: {
           index='date'
           enableBiaxial
           barSeries={{
-            categories: [props.metrics.length === 0 ? '' : props.metrics[0].name],
+            categories: [
+              props.metrics.length === 0 ? '' : props.metrics[0].name,
+            ],
             showYAxis: true,
             colors: [chartColors[0]],
           }}
@@ -1037,7 +1038,9 @@ function Charts(props: {
                 />
                 <Pie
                   data={props.data ?? []}
-                  dataKey={props.metrics.length === 0 ? '' : props.metrics[0].name}
+                  dataKey={
+                    props.metrics.length === 0 ? '' : props.metrics[0].name
+                  }
                   nameKey={props.categories?.[0]}
                   innerRadius={60}
                   strokeWidth={5}

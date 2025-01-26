@@ -20,16 +20,14 @@ import { Dispatch, SetStateAction, useState, useEffect } from 'react';
 
 // Filter component that displays and manages metric filters
 function Filters(props: {
-  metric: Metric | null | undefined;        // Current metric data
-  activeFilter: Metric | null;              // Currently selected filter
+  metric: Metric | null | undefined; // Current metric data
+  activeFilter: Metric | null; // Currently selected filter
   setActiveFilter: Dispatch<SetStateAction<Metric | null>>; // Filter state setter
-  range: number;                            // Date range in days
-  start: Date;                              // Start date for filtering
+  range: number; // Date range in days
+  start: Date; // Start date for filtering
 }) {
   // State to store categorized filters
-  const [filters, setFilters] = useState<{ [category: string]: any[] }>(
-    props.metric?.filters ?? {},
-  );
+  const [filters, setFilters] = useState<{ [category: string]: any[] }>({});
 
   // Updates filter data with event variations for the selected date range
   const updateFilters = async () => {

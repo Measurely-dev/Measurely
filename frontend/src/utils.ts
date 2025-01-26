@@ -6,7 +6,8 @@ export const MAXFILESIZE = 500 * 1024; // 500KB max file size
 export const INTERVAL = 20000; // 20 second interval
 
 // Character set for random string generation
-const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const characters =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 // Generates a random string of specified length
 export function generateString(length: number): string {
@@ -36,12 +37,14 @@ export function roleToString(role: UserRole): string {
 
 // Formats first and last name with proper capitalization
 export function formatFullName(first_name: string, last_name: string) {
-  first_name = first_name.length > 1
-    ? first_name[0].toUpperCase() + first_name.slice(1)
-    : first_name.toUpperCase();
-  last_name = last_name.length > 1
-    ? last_name[0].toUpperCase() + last_name.slice(1)
-    : last_name.toUpperCase();
+  first_name =
+    first_name.length > 1
+      ? first_name[0].toUpperCase() + first_name.slice(1)
+      : first_name.toUpperCase();
+  last_name =
+    last_name.length > 1
+      ? last_name[0].toUpperCase() + last_name.slice(1)
+      : last_name.toUpperCase();
   return first_name + ' ' + last_name;
 }
 
@@ -89,7 +92,20 @@ export const getDaysFromDate = (date: Date) => {
 
 // Helper function to get month name from date
 export const getMonthsFromDate = (date: Date) => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   return months[date.getMonth()];
 };
 
@@ -205,7 +221,9 @@ export const fetchChartData = async (
                 eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
                 eventDate.getHours() === tmpData[j].date.getHours();
               if (chart_type === 'trend') {
-                matches = matches && eventDate.getMinutes() === tmpData[j].date.getMinutes();
+                matches =
+                  matches &&
+                  eventDate.getMinutes() === tmpData[j].date.getMinutes();
               }
             } else if (range === 7) {
               matches =
@@ -213,7 +231,8 @@ export const fetchChartData = async (
                 eventDate.getMonth() === tmpData[j].date.getMonth() &&
                 eventDate.getFullYear() === tmpData[j].date.getFullYear();
               if (chart_type === 'trend') {
-                matches = matches &&
+                matches =
+                  matches &&
                   eventDate.getHours() >= tmpData[j].date.getHours() &&
                   eventDate.getHours() < tmpData[j].date.getHours() + 8;
               }
@@ -234,7 +253,8 @@ export const fetchChartData = async (
                 const current_average = tmpData[j][metric.name] ?? 0;
                 const current_event_count = tmpData[j]['Event Count'] ?? 0;
 
-                tmpData[j]['Event Count'] = current_event_count + json[i].event_count;
+                tmpData[j]['Event Count'] =
+                  current_event_count + json[i].event_count;
 
                 tmpData[j][metric.name] =
                   (current_average * current_event_count +
@@ -246,7 +266,9 @@ export const fetchChartData = async (
                 tmpData[j]['-'] += json[i].value_neg;
               } else {
                 tmpData[j][
-                  metric.type === MetricType.Base ? metric.name : metric.name_pos
+                  metric.type === MetricType.Base
+                    ? metric.name
+                    : metric.name_pos
                 ] += json[i].value_pos;
                 tmpData[j][metric.name_neg] += json[i].value_neg;
               }
@@ -256,9 +278,11 @@ export const fetchChartData = async (
               tmpData[j]['Negative Trend'] = json[i].relative_total_neg;
               tmpData[j]['Event Trend'] = json[i].relative_event_count;
 
-              tmpData[j]['Average Trend'] = json[i].relative_event_count === 0 
-                ? 0 
-                : (json[i].relative_total_pos - json[i].relative_total_neg) / json[i].relative_event_count;
+              tmpData[j]['Average Trend'] =
+                json[i].relative_event_count === 0
+                  ? 0
+                  : (json[i].relative_total_pos - json[i].relative_total_neg) /
+                    json[i].relative_event_count;
             }
           }
         }
@@ -427,19 +451,32 @@ export const fetchEventVariation = async (
 
       if (json.length > 1) {
         // Calculate variations between two periods
-        pos = json[1].relative_total_pos - (json[0].relative_total_pos - json[0].value_pos);
-        neg = json[1].relative_total_neg - (json[0].relative_total_neg - json[0].value_neg);
-        event_count = json[1].relative_event_count - (json[0].relative_event_count - json[0].evencount);
+        pos =
+          json[1].relative_total_pos -
+          (json[0].relative_total_pos - json[0].value_pos);
+        neg =
+          json[1].relative_total_neg -
+          (json[0].relative_total_neg - json[0].value_neg);
+        event_count =
+          json[1].relative_event_count -
+          (json[0].relative_event_count - json[0].evencount);
         relative_total_pos = json[1].relative_total_pos;
         relative_total_neg = json[1].relative_total_neg;
         relative_event_count = json[1].relative_event_count;
 
-        const lastAverage = json[1].relative_event_count === 0 ? 0 :
-          (json[1].relative_total_pos - json[1].relative_total_neg) / json[1].relative_event_count;
+        const lastAverage =
+          json[1].relative_event_count === 0
+            ? 0
+            : (json[1].relative_total_pos - json[1].relative_total_neg) /
+              json[1].relative_event_count;
 
-        const firstAverage = (json[0].relative_event_count - json[0].event_count) === 0 ? 0 :
-          (json[0].relative_total_pos - json[0].value_pos - (json[0].relative_total_neg - json[0].value_neg)) /
-          (json[0].relative_event_count - json[0].event_count);
+        const firstAverage =
+          json[0].relative_event_count - json[0].event_count === 0
+            ? 0
+            : (json[0].relative_total_pos -
+                json[0].value_pos -
+                (json[0].relative_total_neg - json[0].value_neg)) /
+              (json[0].relative_event_count - json[0].event_count);
 
         const diff = lastAverage - firstAverage;
 
@@ -456,12 +493,19 @@ export const fetchEventVariation = async (
         relative_total_neg = json[0].relative_total_neg;
         relative_event_count = json[0].relative_event_count;
 
-        const lastAverage = json[0].relative_event_count === 0 ? 0 :
-          (json[0].relative_total_pos - json[0].relative_total_neg) / json[0].relative_event_count;
+        const lastAverage =
+          json[0].relative_event_count === 0
+            ? 0
+            : (json[0].relative_total_pos - json[0].relative_total_neg) /
+              json[0].relative_event_count;
 
-        const firstAverage = (json[0].relative_event_count - json[0].event_count) === 0 ? 0 :
-          (json[0].relative_total_pos - json[0].value_pos - (json[0].relative_total_neg - json[0].value_neg)) /
-          (json[0].relative_event_count - json[0].event_count);
+        const firstAverage =
+          json[0].relative_event_count - json[0].event_count === 0
+            ? 0
+            : (json[0].relative_total_pos -
+                json[0].value_pos -
+                (json[0].relative_total_neg - json[0].value_neg)) /
+              (json[0].relative_event_count - json[0].event_count);
 
         const diff = lastAverage - firstAverage;
 
@@ -515,13 +559,18 @@ export const calculateTrend = (
       trend[i]['Event Trend'] !== undefined &&
       trend[i]['Average Trend'] !== undefined
     ) {
-      total_pos = trend[i]['Positive Trend'] - trend[i][metric.type !== MetricType.Dual ? metric.name : metric.name_pos];
+      total_pos =
+        trend[i]['Positive Trend'] -
+        trend[i][
+          metric.type !== MetricType.Dual ? metric.name : metric.name_pos
+        ];
       total_neg = trend[i]['Negative Trend'] - (trend[i][metric.name_neg] ?? 0);
 
       if (metric.type === MetricType.Average) {
         trend[i][metric.name] = trend[i]['Average Trend'];
       } else {
-        trend[i][metric.name] = trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
+        trend[i][metric.name] =
+          trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
       }
 
       const event_count = trend[i]['Event Trend'] - trend[i]['Event Count'];
@@ -532,7 +581,11 @@ export const calculateTrend = (
           trend[i][metric.name] = average;
         }
       } else {
-        if (trend[i][metric.type !== MetricType.Dual ? metric.name : metric.name_pos] !== undefined) {
+        if (
+          trend[i][
+            metric.type !== MetricType.Dual ? metric.name : metric.name_pos
+          ] !== undefined
+        ) {
           trend[i][metric.name] = total_pos;
           trend[i]['Positive Trend'] = total_pos;
         }
@@ -563,4 +616,16 @@ export const parseXAxis = (value: Date, range: number) => {
 // Formats numbers for display
 export const valueFormatter = (number: number) => {
   return Intl.NumberFormat('us').format(number).toString();
+};
+
+// Extract unit from metric
+export const getUnit = (unit: string): string => {
+  let unitValue = '';
+  const symbol = unit.split('(');
+  if (symbol.length > 1) {
+    unitValue = symbol[1].split(')')[0];
+  } else {
+    unitValue = symbol[0];
+  }
+  return unitValue;
 };

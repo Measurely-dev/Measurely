@@ -49,6 +49,7 @@ import {
   fetchEventVariation,
   valueFormatter,
   calculateTrend,
+  getUnit,
 } from '@/utils';
 import { Dialog } from '@/components/ui/dialog';
 import {
@@ -61,6 +62,7 @@ import {
   Edit,
   ListFilter,
   Loader,
+  Minus,
   Sliders,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
@@ -116,6 +118,25 @@ function getDualMetricChartColors(
   const selectedColors = colorsConfig[theme];
   return [selectedColors.positive, selectedColors.negative];
 }
+
+// Determines if a plus sign should be shown before positive values
+const todayBadgeSign = (v: number | null) => {
+  if (v === null || v === 0 || v < 0)
+    return <Minus className='-ml-0.5 size-4' aria-hidden={true} />;
+  return v < 0 ? (
+    <ArrowDown className='-ml-0.5 size-4' aria-hidden={true} />
+  ) : (
+    <ArrowUp className='-ml-0.5 size-4' aria-hidden={true} />
+  );
+};
+
+const todayBadgeColor = (v: number | null) => {
+  if (v === null || v === 0)
+    return 'border-zinc-200 bg-zinc-500/10 text-zinc-500';
+  return v > 0
+    ? 'bg-green-100 border-green-200 text-green-600'
+    : 'bg-red-100 border-red-200 text-red-600';
+};
 
 // Main component for the dashboard metric page
 export default function DashboardMetricPage() {
@@ -454,23 +475,12 @@ export default function DashboardMetricPage() {
                 </div>
                 <div>
                   <div className='flex flex-wrap justify-center gap-4'>
-                    {daily < 0 ? (
-                      <span className='inline-flex items-center gap-x-1 rounded-md border border-red-200 bg-red-100 px-2 py-1 text-sm font-semibold text-red-600'>
-                        <ArrowDown
-                          className='-ml-0.5 size-4'
-                          aria-hidden={true}
-                        />
-                        {daily}%
-                      </span>
-                    ) : (
-                      <span className='inline-flex items-center gap-x-1 rounded-md border border-green-200 bg-green-100 px-2 py-1 text-sm font-semibold text-green-600'>
-                        <ArrowUp
-                          className='-ml-0.5 size-4'
-                          aria-hidden={true}
-                        />
-                        {daily}%
-                      </span>
-                    )}
+                    <span
+                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${todayBadgeColor(daily)}`}
+                    >
+                      {todayBadgeSign(daily)}
+                      {daily} %
+                    </span>
                   </div>
                 </div>
               </div>
@@ -820,6 +830,7 @@ function Chart(props: {
                   <RangeCalendar
                     value={toRangeValue(date)}
                     onChange={(rangeValue) => {
+                      console.log(rangeValue);
                       const newDateRange = toDateRange(rangeValue);
                       setDate(newDateRange);
                     }}
@@ -950,14 +961,9 @@ function Chart(props: {
                   {props.metric?.type === MetricType.Average ? (
                     <>{valueFormatter(rangeSummary.average)}</>
                   ) : (
-                    <>
-                      {rangeSummary.pos - rangeSummary.neg > 0 &&
-                      props.type === 'overview'
-                        ? '+'
-                        : ''}
-                      {valueFormatter(rangeSummary.pos - rangeSummary.neg)}
-                    </>
-                  )}
+                    <>{valueFormatter(rangeSummary.pos - rangeSummary.neg)}</>
+                  )}{' '}
+                  {getUnit(props.metric?.unit ?? '')}
                 </div>
               </div>
               <Filters
