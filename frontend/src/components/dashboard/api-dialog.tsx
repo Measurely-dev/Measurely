@@ -2,15 +2,6 @@
 
 // Import UI components and utilities
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import {
   ReactNode,
@@ -25,12 +16,19 @@ import { Shuffle } from 'lucide-react';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import {
+  FloatingPanelBody,
+  FloatingPanelContent,
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
+} from '../ui/floating-panel';
 
 // ApiDialog component for displaying and managing API keys
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
   projectid: string;
+  className?: string;
 }) {
   // State management
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -129,24 +127,17 @@ export default function ApiDialog(props: {
   };
 
   return (
-    <Dialog
-      onOpenChange={(e) => {
-        if (!e) {
-          setIsVisible(false);
-        }
-      }}
-    >
-      <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='rounded-xl border border-input p-4 shadow-none max-md:max-w-[95%] max-sm:w-full max-sm:max-w-full max-sm:rounded-none'>
-        <DialogHeader className='hidden'>
-          <DialogTitle className='sr-only'>API KEY</DialogTitle>
-          <DialogDescription className='sr-only'>
-            Anyone who has this key will be able to use it.
-          </DialogDescription>
-        </DialogHeader>
-        <div className='space-y-2'>
-          <Label htmlFor={id} className='flex w-full flex-col gap-2'>
-            API Key
+    <FloatingPanelRoot>
+      <FloatingPanelTrigger
+        className={`w-fit ${props.className}`}
+        title='API Key'
+        description='Manage your API key'
+      >
+        {props.children}
+      </FloatingPanelTrigger>
+      <FloatingPanelContent className='max-w-[500px] w-[95%]' side='center'>
+        <FloatingPanelBody className='p-4'>
+          <div className='space-y-2'>
             <div className='flex w-full items-center gap-2'>
               <div className='relative w-full'>
                 <Input
@@ -190,9 +181,9 @@ export default function ApiDialog(props: {
                 </Button>
               )}
             </div>
-          </Label>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </FloatingPanelBody>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

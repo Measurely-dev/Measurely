@@ -174,15 +174,11 @@ export function FloatingPanelTrigger({
       {/* Animated content */}
       <motion.div
         layoutId={`floating-panel-label-container-${uniqueId}`}
-        className='flex items-center'
         initial={{ opacity: 1 }}
         animate={{ opacity: isOpen ? 0 : 1 }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
       >
-        <motion.span
-          layoutId={`floating-panel-label-${uniqueId}`}
-          className='text-sm font-semibold'
-        >
+        <motion.span layoutId={`floating-panel-label-${uniqueId}`}>
           {children}
         </motion.span>
       </motion.div>
@@ -192,8 +188,9 @@ export function FloatingPanelTrigger({
 interface FloatingPanelContentProps {
   children: React.ReactNode;
   className?: string;
-  side?: 'left' | 'right'; // Only left and right are supported
+  side?: 'left' | 'right' | 'center'; // Added center option
 }
+
 export function FloatingPanelContent({
   children,
   className,
@@ -244,22 +241,40 @@ export function FloatingPanelContent({
   };
 
   const getPositionStyle = () => {
-    if (!triggerRect) return { left: '50%', top: '50%' };
+    if (!triggerRect) {
+      return {
+        translateX: '-50%',
+        translateY: '-50%',
+        left: '50%',
+        top: '50%',
+      };
+    }
 
     switch (side) {
       case 'left':
         return {
-          left: triggerRect.left,
-          top: triggerRect.bottom + 8,
+          left: `${triggerRect.left}px`,
+          top: `${triggerRect.bottom + 8}px`,
         };
       case 'right':
         return {
-          left:
-            panelWidth > 0 ? triggerRect.right - panelWidth : triggerRect.left, // Fallback to left position
-          top: triggerRect.bottom + 8,
+          left: `${panelWidth > 0 ? triggerRect.right - panelWidth : triggerRect.left}px`,
+          top: `${triggerRect.bottom + 8}px`,
+        };
+      case 'center':
+        return {
+          translateX: '-50%',
+          translateY: '-50%',
+          left: '50%',
+          top: '50%',
         };
       default:
-        return { left: '50%', top: '50%' };
+        return {
+          translateX: '-50%',
+          translateY: '-50%',
+          left: '50%',
+          top: '50%',
+        };
     }
   };
 
@@ -283,9 +298,9 @@ export function FloatingPanelContent({
             )}
             style={{
               borderRadius: 12,
-              ...getPositionStyle(),
-              transformOrigin: 'top left',
+              transformOrigin: side === 'center' ? 'center center' : 'top left',
               minWidth: 200,
+              ...getPositionStyle(),
             }}
             initial='hidden'
             animate='visible'

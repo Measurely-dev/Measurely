@@ -99,7 +99,7 @@ export default function TeamInvite(props: {
         </div>
         <Separator className='my-5' />
         <form onSubmit={inviteUser}>
-          <div className='flex w-full flex-row items-end gap-5'>
+          <div className='flex w-full flex-row items-end gap-5 max-sm:flex-col'>
             <div className='flex w-full flex-row gap-5 max-sm:flex-col'>
               {/* Email Input Field */}
               <div className='flex w-full flex-col gap-3'>
@@ -127,7 +127,7 @@ export default function TeamInvite(props: {
                 >
                   <SelectTrigger
                     id='type'
-                    className='h-11 w-[300px] max-w-[300px] rounded-[12px] bg-background max-sm:w-full max-sm:max-w-none'
+                    className='h-11 w-[300px] max-w-[300px] rounded-[12px] bg-background max-lg:w-[200px] max-md:w-[150px] max-sm:w-full max-sm:max-w-none'
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -152,7 +152,7 @@ export default function TeamInvite(props: {
             {/* Submit Button or Loading Skeleton */}
             {props.loading ? (
               <>
-                <Skeleton className='mt-4 flex h-9 w-fit items-center px-3 !text-transparent'>
+                <Skeleton className='mt-4 flex h-9 w-fit items-center px-3 !text-transparent max-sm:w-full'>
                   <UserPlus className='mr-2 size-5' />
                   Add member
                 </Skeleton>
@@ -160,7 +160,7 @@ export default function TeamInvite(props: {
             ) : (
               <Button
                 variant='outline'
-                className='h-11 w-fit rounded-[12px] border !bg-background text-secondary'
+                className='h-11 w-fit rounded-[12px] !bg-background text-secondary max-sm:w-full sm:border'
                 disabled={
                   props.disable || email === '' || inviteLoading ? true : false
                 }

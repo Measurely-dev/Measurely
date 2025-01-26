@@ -86,15 +86,19 @@ export const TeamTable = (props: { members: User[] }) => {
   const filteredMembers = useMemo(() => {
     if (!props.members) return [];
     const filtered = props.members.filter((member) => {
-      const matchesSearch = (
-        member.first_name.toLowerCase() +
-        ' ' +
-        member.last_name.toLowerCase()
-      ).includes(search.toLowerCase()) ||
+      const matchesSearch =
+        (
+          member.first_name.toLowerCase() +
+          ' ' +
+          member.last_name.toLowerCase()
+        ).includes(search.toLowerCase()) ||
         member.email.toLowerCase().includes(search.toLowerCase()) ||
-        roleToString(member.user_role).toLowerCase().includes(search.toLowerCase());
+        roleToString(member.user_role)
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
-      const matchesRole = roleFilter === 'All' || member.user_role === roleFilter;
+      const matchesRole =
+        roleFilter === 'All' || member.user_role === roleFilter;
 
       return matchesSearch && matchesRole;
     });
@@ -128,7 +132,7 @@ export const TeamTable = (props: { members: User[] }) => {
 
   return (
     <>
-      <div className='mb-2.5 flex flex-row items-center gap-4'>
+      <div className='mb-2.5 flex flex-row items-center gap-4 max-md:flex-col'>
         <div className='flex w-full flex-row items-center gap-2 rounded-[12px] border pl-[12px] shadow-sm shadow-black/5'>
           <Search className='size-[18px] text-secondary' />
           <Input
@@ -153,8 +157,12 @@ export const TeamTable = (props: { members: User[] }) => {
             <TableHeader>
               <TableRow className='bg-accent/60'>
                 <TableHead colSpan={2}>Member</TableHead>
-                <TableHead colSpan={3} className='text-nowrap'>Email</TableHead>
-                <TableHead className='text-nowrap' colSpan={1.5}>Role</TableHead>
+                <TableHead colSpan={3} className='text-nowrap'>
+                  Email
+                </TableHead>
+                <TableHead className='text-nowrap' colSpan={1.5}>
+                  Role
+                </TableHead>
                 <TableHead className='w-[50px] text-right'>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -165,7 +173,10 @@ export const TeamTable = (props: { members: User[] }) => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className='text-center text-muted-foreground'>
+                  <TableCell
+                    colSpan={7}
+                    className='text-center text-muted-foreground'
+                  >
                     No results on this page. Adjust your search or filter.
                   </TableCell>
                 </TableRow>
@@ -174,7 +185,9 @@ export const TeamTable = (props: { members: User[] }) => {
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={6}>Total</TableCell>
-                <TableCell className='text-right'>{paginatedMembers.length}</TableCell>
+                <TableCell className='text-right'>
+                  {paginatedMembers.length}
+                </TableCell>
               </TableRow>
             </TableFooter>
           </Table>
@@ -185,7 +198,11 @@ export const TeamTable = (props: { members: User[] }) => {
                 <PaginationPrevious
                   href='#'
                   onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-                  className={currentPage === 1 ? 'pointer-events-none text-muted-foreground opacity-50' : ''}
+                  className={
+                    currentPage === 1
+                      ? 'pointer-events-none text-muted-foreground opacity-50'
+                      : ''
+                  }
                 />
               </PaginationItem>
               <div className='flex items-center gap-2'>
@@ -204,8 +221,14 @@ export const TeamTable = (props: { members: User[] }) => {
               <PaginationItem>
                 <PaginationNext
                   href='#'
-                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
+                  className={
+                    currentPage === totalPages
+                      ? 'pointer-events-none opacity-50'
+                      : ''
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
@@ -218,10 +241,14 @@ export const TeamTable = (props: { members: User[] }) => {
 
 // Style definitions for role badges
 const badgeClasses: { [key: string]: string } = {
-  Owner: 'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
-  Admin: 'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
-  Developer: 'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
-  Guest: 'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
+  Owner:
+    'bg-green-500/10 text-green-500 border !rounded-[12px] border-green-500/20',
+  Admin:
+    'bg-blue-500/5 text-blue-500 border !rounded-[12px] border-blue-500/20',
+  Developer:
+    'bg-purple-500/5 text-purple-500 border !rounded-[12px] border-purple-500/20',
+  Guest:
+    'bg-zinc-500/5 text-zinc-500 border !rounded-[12px] border-zinc-500/20',
 };
 
 // Individual member row component
@@ -247,7 +274,10 @@ const Item = (props: { member: User }) => {
             <div className='w-full truncate'>
               {user.id === props.member.id
                 ? 'You'
-                : formatFullName(props.member.first_name, props.member.last_name)}
+                : formatFullName(
+                    props.member.first_name,
+                    props.member.last_name,
+                  )}
             </div>
           </div>
         </TableCell>
@@ -258,7 +288,9 @@ const Item = (props: { member: User }) => {
         </TableCell>
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
-            <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.user_role)]}`}>
+            <span
+              className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses[roleToString(props.member.user_role)]}`}
+            >
               {roleToString(props.member.user_role)}
             </span>
           </div>
@@ -266,7 +298,11 @@ const Item = (props: { member: User }) => {
         <TableCell>
           <div className='flex w-full justify-end'>
             <MemberOption member={props.member}>
-              <Button variant={'ghost'} size={'icon'} className='size-9 hover:bg-transparent'>
+              <Button
+                variant={'ghost'}
+                size={'icon'}
+                className='size-9 hover:bg-transparent'
+              >
                 <MoreHorizontal className='size-5' />
               </Button>
             </MemberOption>
@@ -392,7 +428,9 @@ function MemberOption({
         }),
       }).then((resp) => {
         if (resp.ok) {
-          toast.success(`Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}`);
+          toast.success(
+            `Successfully ${isUpgrade ? 'Upgraded' : 'Downgraded'} ${formatFullName(member.first_name, member.last_name)}'s role to ${roleToString(newRole)}`,
+          );
           setProjects(
             projects.map((proj, i) =>
               i === activeProject
@@ -452,12 +490,16 @@ function MemberOption({
         }),
       }).then((resp) => {
         if (resp.ok) {
-          toast.success(`Successfully removed ${formatFullName(member.first_name, member.last_name)} from the project`);
+          toast.success(
+            `Successfully removed ${formatFullName(member.first_name, member.last_name)} from the project`,
+          );
           setProjects(
             projects.map((proj, i) =>
               i === activeProject
                 ? Object.assign({}, proj, {
-                    members: (proj.members ?? []).filter((m) => m.id !== member.id),
+                    members: (proj.members ?? []).filter(
+                      (m) => m.id !== member.id,
+                    ),
                   })
                 : proj,
             ),

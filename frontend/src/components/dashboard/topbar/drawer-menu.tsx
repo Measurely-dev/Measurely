@@ -97,17 +97,18 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         </Link>
 
         {/* Mobile-only API key button */}
-        <div className='sm:hidden'>
-          <ApiDialog projectid={projects?.[activeProject]?.id ?? ''}>
-            <Button
-              variant={'secondary'}
-              className='w-full gap-1.5 rounded-[12px]'
-            >
-              <Code className='size-4' />
-              Api key
-            </Button>
-          </ApiDialog>
-        </div>
+        <ApiDialog
+          className='w-full sm:hidden'
+          projectid={projects?.[activeProject]?.id ?? ''}
+        >
+          <Button
+            variant={'secondary'}
+            className='h-[35px] w-full gap-[8px] rounded-[12px] hover:text-primary'
+          >
+            <Code className='size-4' />
+            Api key
+          </Button>
+        </ApiDialog>
 
         {/* Documentation link */}
         <Link href={'/docs/getting-started/introduction'}>
@@ -123,7 +124,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         {/* Settings dialog */}
         <SettingDialog>
           <Button
-            className='h-[35px] gap-[8px] rounded-[12px] text-secondary hover:text-primary'
+            className='h-[35px] w-full gap-[8px] rounded-[12px] text-secondary hover:text-primary'
             variant='secondary'
           >
             <Settings className='size-[16px]' />
@@ -133,8 +134,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
 
         {/* Logout button */}
         <Button
-          className='h-[35px] gap-[8px] rounded-[12px] bg-red-500/5 !text-red-500 transition-all hover:!bg-red-500/20'
-          variant='default'
+          className='h-[35px] w-full gap-[8px] rounded-[12px]'
+          variant='destructiveOutline'
           onClick={handleLogout}
         >
           <LogOut className='size-[16px]' />
