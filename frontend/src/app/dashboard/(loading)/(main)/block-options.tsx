@@ -4,21 +4,21 @@
 import { Button } from '@/components/ui/button';
 import ColorDropdown from '@/components/ui/color-dropdown';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { FilterCategorySelect } from '@/components/ui/filter-category-select';
 import { Input } from '@/components/ui/input';
@@ -27,24 +27,24 @@ import { LabelSelect } from '@/components/ui/label-select';
 import { MetricSelect } from '@/components/ui/metric-select';
 import { ProjectsContext } from '@/dash-context';
 import {
-    Block,
-    BlockType,
-    ChartType,
-    chartTypeMetricLimits,
-    Metric,
-    Project,
+  Block,
+  BlockType,
+  ChartType,
+  chartTypeMetricLimits,
+  Metric,
+  Project,
 } from '@/types';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { Edit, Trash2 } from 'lucide-react';
 import {
-    ChangeEvent,
-    Dispatch,
-    FC,
-    ReactNode,
-    SetStateAction,
-    useContext,
-    useEffect,
-    useState,
+  ChangeEvent,
+  Dispatch,
+  FC,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
 } from 'react';
 import { toast } from 'sonner';
 
@@ -297,7 +297,6 @@ export default function BlockOptions(
                           }
                         : l,
                     ),
-                    userid: proj.blocks?.user_id || '',
                   },
                 }
               : proj,
@@ -317,7 +316,6 @@ export default function BlockOptions(
                   blocks: {
                     ...proj.blocks,
                     layout,
-                    userid: proj.blocks?.user_id || '',
                   },
                 }
               : proj,

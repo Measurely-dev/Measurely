@@ -70,7 +70,14 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Block, BlockType, ChartType, Metric, MetricType } from '@/types';
+import {
+  Block,
+  BlockType,
+  ChartType,
+  Metric,
+  MetricType,
+  Project,
+} from '@/types';
 import { toast } from 'sonner';
 import {
   fetchChartData,
@@ -440,26 +447,84 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredMore, setIsHoveredMore] = useState(false);
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
-  const { projects, activeProject } = useContext(ProjectsContext);
+  const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const [chartData, setChartData] = useState<any[] | null>(null);
   const [range, setRange] = useState(7);
   const [isCopying, setIsCopying] = useState(false);
   const [disabledItem, setDisabledItem] = useState<string | null>(null);
   const [date, setDate] = useState<Date>(new Date());
 
-  // Get metrics for current block
+  // Function to delete a block from the project layout
+  // Handles both nested blocks (within groups) and default blocks
+  const deleteBlock = () => {
+    if (props.type === BlockType.Nested) {
+      // For nested blocks, filter out the block from its parent group's nested array
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.map((l) =>
+                    l.unique_key === props.groupkey
+                      ? {
+                          ...l,
+                          nested: l.nested?.filter(
+                            (n) => n.unique_key != props.unique_key,
+                          ),
+                        }
+                      : l,
+                  ),
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+    } else if (props.type === BlockType.Default) {
+      // For default blocks, filter out the block from the main layout array
+      setProjects(
+        projects.map((proj, i) =>
+          i === activeProject
+            ? {
+                ...proj,
+                blocks: {
+                  ...proj.blocks,
+                  layout: proj.blocks?.layout.filter(
+                    (block) => block.unique_key != props.unique_key,
+                  ),
+                },
+              }
+            : proj,
+        ) as Project[],
+      );
+    }
+  };
+
+  // Memoized metrics calculation for the current block
+  // Maps metric IDs to actual metric objects and filters out undefined metrics
+  // Also handles automatic deletion of blocks with no metrics
   const metrics = useMemo(() => {
-    return props.metric_ids
+    const result = props.metric_ids
       .map((id) => projects[activeProject].metrics?.find((m) => m.id === id))
       .filter((m) => m !== undefined) as Metric[];
+
+    if (result.length === 0 && props.type !== BlockType.Group) {
+      // Delete the block if all the referenced metrics have been deleted
+      deleteBlock();
+    }
+
+    return result;
   }, [props.metric_ids, projects, activeProject]);
 
-  // Calculate summary values for metrics
+  // Calculates summary values for different metric types (Base, Dual, Average)
+  // Returns a single numerical value representing the metric summary
   function calculateSummary(data: any[], metric: Metric): number {
-    let totalpos = 0;
-    let totalneg = 0;
-    let eventcount = 0;
+    let totalpos = 0; // Accumulator for positive values
+    let totalneg = 0; // Accumulator for negative values
+    let eventcount = 0; // Counter for events (used in Average metrics)
 
+    // Iterate through data points and accumulate values based on metric type
     for (let i = 0; i < data.length; i++) {
       if (metric.type === MetricType.Base) {
         totalpos += data[i][metric.name] ?? 0;
@@ -473,6 +538,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
       }
     }
 
+    // Calculate final value based on metric type
     if (metric.type === MetricType.Average) {
       return eventcount === 0 ? 0 : (totalpos - totalneg) / eventcount;
     }
@@ -490,6 +556,14 @@ function BlockContent(props: Block & { groupkey?: string }) {
 
       let combinedData: any[] = [];
       if (props.type === BlockType.Nested) {
+        if (
+          metrics[0].filters === null ||
+          metrics[0].filters?.[props.filter_categories[0]] === undefined
+        ) {
+          // Delete the nested block if the filter category has been deleted
+          deleteBlock();
+          return;
+        }
         const dataPromises = metrics[0].filters[props.filter_categories[0]].map(
           async (filter) => {
             const endDate = new Date();
@@ -543,6 +617,40 @@ function BlockContent(props: Block & { groupkey?: string }) {
         );
 
         combinedData = await Promise.all(dataPromises);
+        if (combinedData.length > 6) {
+          const first6 = combinedData.slice(0, 6);
+          const others = combinedData.slice(6);
+
+          // Combine remaining elements into 'other'
+          const otherElement = {
+            [metrics[0].filters[props.filter_categories[0]][0].filter_category]:
+              'Other',
+            [metrics[0].name]: others.reduce(
+              (sum, item) => sum + item[metrics[0].name],
+              0,
+            ),
+            name: 'Other',
+            value: others.reduce((sum, item) => sum + item.value, 0),
+            metadata: {
+              value: others.reduce((sum, item) => sum + item.metadata.value, 0),
+              event_count: others.reduce(
+                (sum, item) => sum + item.metadata.event_count,
+                0,
+              ),
+              relative_total: others.reduce(
+                (sum, item) => sum + item.metadata.relative_total,
+                0,
+              ),
+              relative_event_count: others.reduce(
+                (sum, item) => sum + item.metadata.relative_event_count,
+                0,
+              ),
+              date: combinedData[0].metadata.date,
+            },
+          };
+
+          combinedData = [...first6, otherElement];
+        }
         if (combinedData.length > 0) {
           setDate(combinedData[0].metadata.date);
         }
@@ -811,10 +919,18 @@ function BlockContent(props: Block & { groupkey?: string }) {
         >
           <Charts
             chartType={props.chart_type}
-            data={chartData}
+            data={chartData ?? []}
             color={props.color}
             metrics={metrics}
-            categories={props.filter_categories}
+            categories={
+              metrics.length === 0
+                ? undefined
+                : props.filter_categories.every((category) =>
+                      Object.keys(metrics[0].filters ?? {}).includes(category),
+                    )
+                  ? props.filter_categories
+                  : []
+            }
           />
         </CardContent>
       )}
@@ -924,7 +1040,7 @@ function createDynamicPieChartConfig(dataKeys: any, _: string[]) {
 // Main chart rendering component that handles different chart types
 function Charts(props: {
   chartType: ChartType | undefined;
-  data: any[] | null;
+  data: any[];
   color: string;
   metrics: Metric[];
   categories?: string[];
@@ -962,7 +1078,7 @@ function Charts(props: {
     case ChartType.Bar:
       return (
         <BarChart
-          data={props.data ?? []}
+          data={props.data}
           {...chartProps}
           customTooltip={customTooltip}
           colors={chartColors}
@@ -975,7 +1091,7 @@ function Charts(props: {
     case ChartType.Combo:
       return (
         <ComboChart
-          data={props.data ?? []}
+          data={props.data}
           {...chartProps}
           index='date'
           enableBiaxial
@@ -997,15 +1113,21 @@ function Charts(props: {
     case ChartType.BarList:
       return (
         <BarList
-          data={(props.data ?? [])
+          data={props.data
             .slice()
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 10)}
+            .sort((a, b) => {
+              if (a === props.data[props.data.length - 1]) return 1;
+              if (b === props.data[props.data.length - 1]) return -1;
+              return b.value - a.value;
+            })
+            .slice(0, 7)}
           {...chartProps}
           color={`${compactChartColor}`}
         />
       );
     case ChartType.Pie:
+      if (!props.categories || props.categories.length === 0) return;
+
       const pieChartConfig = createDynamicPieChartConfig(
         props.metrics[0].filters?.[props.categories?.[0] ?? ''].map(
           (filter) => filter.name,
@@ -1023,7 +1145,7 @@ function Charts(props: {
       ];
       return (
         <>
-          {props.data?.reduce(
+          {props.data.reduce(
             (sum, item) => sum + item[props.metrics[0].name],
             0,
           ) !== 0 ? (
@@ -1144,6 +1266,8 @@ function Charts(props: {
         </>
       );
     case ChartType.Radar:
+      if (!props.categories || props.categories.length === 0) return;
+
       return (
         <ChartContainer
           config={{} as ChartConfig}

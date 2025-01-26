@@ -184,19 +184,20 @@ export const fetchChartData = async (
     }
 
     const events = await eventsRes.json();
-    if (!events) return tmpData;
+    // Process events if they exist
+    if (events) {
+      // Process events data
+      events.forEach((event: any) => {
+        const eventDate = new Date(event.date);
 
-    // Process events data
-    events.forEach((event: any) => {
-      const eventDate = new Date(event.date);
-
-      tmpData.forEach((data) => {
-        if (datesMatch(eventDate, data.date, range, chart_type)) {
-          updateMetricValues(data, event, metric);
-          updateTrendValues(data, event);
-        }
+        tmpData.forEach((data) => {
+          if (datesMatch(eventDate, data.date, range, chart_type)) {
+            updateMetricValues(data, event, metric);
+            updateTrendValues(data, event);
+          }
+        });
       });
-    });
+    }
   } catch (err) {
     console.error('Error fetching events:', err);
     toast.error('Failed to fetch events data');
@@ -335,7 +336,7 @@ export const fetchNextEvent = async (
     if (!events?.length) return defaultEventData();
 
     return events.reduce(
-      (acc : any, event: any) => ({
+      (acc: any, event: any) => ({
         pos: acc.pos + event.value_pos,
         neg: acc.neg + event.value_neg,
         event_count: acc.event_count + event.event_count,
