@@ -2,10 +2,7 @@
   "name": "measurely",
   "version": "1.0.0",
   "description": "Measurely: A dashboard for tracking metrics with API integration.",
-  "author": [
-    "Zak-Afz",
-    "YastheGoat"
-  ],
+  "author": "Zak-Afz, YastheGoat",
   "license": "MIT",
   "private": true,
   "scripts": {
