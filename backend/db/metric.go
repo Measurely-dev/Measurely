@@ -12,8 +12,8 @@ import (
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
 	var newMetric types.Metric
 	query := `INSERT INTO metrics
-		(project_id, name, type, name_pos, name_neg, parent_metric_id, filter_category, unit)
-		VALUES (:project_id, :name, :type, :name_pos, :name_neg, :parent_metric_id, :filter_category, :unit) RETURNING *`
+		(project_id, name, type, name_pos, name_neg, parent_metric_id, filter_category, unit, stripe_api_key)
+		VALUES (:project_id, :name, :type, :name_pos, :name_neg, :parent_metric_id, :filter_category, :unit, :stripe_api_key) RETURNING *`
 
 	rows, err := db.Conn.NamedQuery(query, metric)
 	if err != nil {

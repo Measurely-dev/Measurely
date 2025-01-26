@@ -1,108 +1,130 @@
-// Main project interface defining the structure of a project entity
+/**
+ * Main project interface defining the structure of a project entity.
+ * Contains core project information, user roles, metrics, and subscription details.
+ */
 export interface Project {
-  id: string;
-  api_key: string;
-  name: string;
-  image: string;
-  units: Unit[];
-  user_role: UserRole;
-  metrics: null | Metric[];
-  members: null | User[];
-  blocks: null | Blocks;
-  current_plan: string;
-  subscription_type: SubscriptionType;
-  max_event_per_month: number;
-  monthly_event_count: number;
-  plan: Plan;
+  id: string;                       // Unique project identifier
+  api_key: string;                  // API key for project access
+  name: string;                     // Project name
+  image: string;                    // Project image/logo
+  units: Unit[];                    // Measurement units used in project
+  user_role: UserRole;             // User's role in this project
+  metrics: null | Metric[];         // Project metrics
+  members: null | User[];          // Project team members
+  blocks: null | Blocks;           // Block configurations for project
+  current_plan: string;            // Current subscription plan name
+  subscription_type: SubscriptionType;  // Monthly/yearly subscription
+  max_event_per_month: number;     // Maximum events allowed per month
+  monthly_event_count: number;     // Current month's event count
+  plan: Plan;                      // Detailed plan information
 }
 
-// Interface for metric data including counts and metadata
+/**
+ * Interface for metric data including counts and metadata.
+ * Tracks various metric measurements and filtering options.
+ */
 export interface Metric {
-  id: string;
-  project_id: string;
-  unit: string;
-  name: string;
-  type: MetricType;
-  event_count: number;
-  total_pos: number;
-  total_neg: number;
-  name_pos: string;
-  name_neg: string;
-  filters: {
+  id: string;                      // Unique metric identifier
+  project_id: string;              // Associated project ID
+  unit: string;                    // Measurement unit
+  name: string;                    // Metric name
+  type: MetricType;                // Type of metric
+  event_count: number;             // Total number of events
+  total_pos: number;               // Total positive value
+  total_neg: number;               // Total negative value
+  name_pos: string;                // Label for positive values
+  name_neg: string;                // Label for negative values
+  filters: {                       // Metric filtering options
     [category: string]: Metric[];
   };
-  filter_category: string;
-  created: Date;
-  last_event_timestamp: { Valid: boolean; V: Date };
+  filter_category: string;         // Category for filtering
+  created: Date;                   // Creation timestamp
+  last_event_timestamp: { Valid: boolean; V: Date }; // Last event time
 }
 
-// Interface for individual metric events with relative and absolute values
+/**
+ * Interface for individual metric events tracking both absolute and relative values
+ */
 export interface MetricEvent {
-  id: string;
-  date: Date;
-  value_pos: number;
-  value_neg: number;
-  event_count: number;
-  relative_total_pos: number;
-  relative_total_neg: number;
-  relative_event_count: number;
+  id: string;                      // Event identifier
+  date: Date;                      // Event timestamp
+  value_pos: number;               // Positive value
+  value_neg: number;               // Negative value
+  event_count: number;             // Number of events
+  relative_total_pos: number;      // Relative positive total
+  relative_total_neg: number;      // Relative negative total
+  relative_event_count: number;    // Relative event count
 }
 
-// User interface containing basic user information and authentication details
+/**
+ * User interface containing basic user information and authentication details
+ */
 export interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  image: string;
-  email: string;
-  user_role: UserRole;
-  invoice_status: InvoiceStatus;
-  providers: UserProvider[];
+  id: string;                      // User identifier
+  first_name: string;              // First name
+  last_name: string;               // Last name
+  image: string;                   // Profile image URL
+  email: string;                   // Email address
+  user_role: UserRole;             // User permission level
+  invoice_status: InvoiceStatus;   // Payment status
+  providers: UserProvider[];       // Authentication providers
 }
 
-// Interface for user authentication providers
+/**
+ * Interface for user authentication providers
+ */
 export interface UserProvider {
-  id: string;
-  type: Provider;
+  id: string;                      // Provider identifier
+  type: Provider;                  // Provider type (GitHub/Google)
 }
 
-// Subscription plan interface with usage limits
+/**
+ * Subscription plan interface with usage limits
+ */
 export interface Plan {
-  name: string;
-  metric_limit: number;
-  team_member_limit: number;
-  range: number;
+  name: string;                    // Plan name
+  metric_limit: number;            // Maximum metrics allowed
+  team_member_limit: number;       // Maximum team members
+  range: number;                   // Data retention range
 }
 
-// Interface for organizing blocks of content/charts
+/**
+ * Interface for organizing blocks of content/charts
+ */
 export interface Blocks {
-  user_id: string;
-  project_id: string;
-  layout: Block[];
-  labels: LabelType[];
+  user_id: string;                 // Owner user ID
+  project_id: string;              // Associated project ID
+  layout: Block[];                 // Block layout configuration
+  labels: LabelType[];             // Label definitions
 }
 
-// Individual block interface for chart/content elements
+/**
+ * Individual block interface for chart/content elements
+ */
 export interface Block {
-  unique_key: string;
-  id: number;
-  name: string;
-  nested?: Block[];
-  metric_ids: string[];
-  filter_categories: string[];
-  chart_type?: ChartType;
-  type: BlockType;
-  label: string;
-  color: string;
+  unique_key: string;              // Unique block identifier
+  id: number;                      // Block ID
+  name: string;                    // Block name
+  nested?: Block[];                // Nested block elements
+  metric_ids: string[];            // Associated metric IDs
+  filter_categories: string[];     // Filter categories
+  chart_type?: ChartType;         // Type of chart
+  type: BlockType;                 // Block type
+  label: string;                   // Block label
+  color: string;                   // Block color
 }
 
-// Interface for block label styling
+/**
+ * Interface for block label styling
+ */
 export interface LabelType {
-  name: string;
-  default_color: string;
+  name: string;                    // Label name
+  default_color: string;           // Default label color
 }
 
-// Enum defining different types of metrics
+/**
+ * Enum defining different types of metrics
+ */
 export enum MetricType {
   Base,
   Dual,
@@ -112,13 +134,17 @@ export enum MetricType {
   AWS,
 }
 
-// Authentication provider types
+/**
+ * Authentication provider types
+ */
 export enum Provider {
   GITHUB,
   GOOGLE,
 }
 
-// User permission levels
+/**
+ * User permission levels
+ */
 export enum UserRole {
   Owner,
   Admin,
@@ -126,7 +152,9 @@ export enum UserRole {
   Guest,
 }
 
-// Available chart visualization types
+/**
+ * Available chart visualization types
+ */
 export enum ChartType {
   Bar,
   Area,
@@ -136,24 +164,33 @@ export enum ChartType {
   Radar,
 }
 
-// Subscription billing periods
+/**
+ * Subscription billing periods
+ */
 export enum SubscriptionType {
   MONTHLY,
   YEARLY,
 }
 
-// Invoice payment status
+/**
+ * Invoice payment status
+ */
 export enum InvoiceStatus {
   ACTIVE,
   FAILED,
 }
 
+/**
+ * Unit definition interface
+ */
 export interface Unit {
-  name: string;
-  symbol: string;
+  name: string;                    // Unit name
+  symbol: string;                  // Unit symbol
 }
 
-// Configuration for metric limits per chart type
+/**
+ * Configuration for metric limits per chart type
+ */
 export const chartTypeMetricLimits: Record<
   ChartType,
   { min: number; max: number }
@@ -166,14 +203,18 @@ export const chartTypeMetricLimits: Record<
   [ChartType.BarList]: { min: 1, max: 1 },
 };
 
-// Block layout types
+/**
+ * Block layout types
+ */
 export enum BlockType {
   Default,
   Group,
   Nested,
 }
 
-// Available color options for charts and UI elements
+/**
+ * Available color options for charts and UI elements
+ */
 export type AllowedColors =
   | 'blue'
   | 'red'
@@ -197,7 +238,9 @@ export type AllowedColors =
   | 'coral'
   | 'mint';
 
-// Interface mapping color names to their values
+/**
+ * Interface mapping color names to their values
+ */
 export interface ChartColors {
   blue: string;
   red: string;
@@ -222,7 +265,10 @@ export interface ChartColors {
   mint: string;
 }
 
-// Color palette configurations for dual metric charts
+/**
+ * Color palette configurations for dual metric charts defining positive/negative
+ * color combinations across different themes
+ */
 export interface DualMetricChartColors {
   default: {
     positive: AllowedColors;

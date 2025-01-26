@@ -1550,6 +1550,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		ParentMetricId *uuid.UUID `json:"parent_metric_id,omitempty"`
 		FilterCategory string     `json:"filter_category"`
 		Unit           string     `json:"unit"`
+		StripeApiKey   string     `json:"stripeapikey"`
 	}
 
 	// Try to unmarshal the request body
@@ -1620,6 +1621,16 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		parentMetricId.V = request.ParentMetricId.String()
 	}
 
+	var stripeApiKey sql.Null[string]
+	if request.Type == types.STRIPE_METRIC {
+		if request.StripeApiKey != "" {
+			stripeApiKey.V = request.StripeApiKey
+			stripeApiKey.Valid = true
+		} else {
+			stripeApiKey.Valid = false
+		}
+	}
+
 	// Create the metric
 	metric, err := s.db.CreateMetric(types.Metric{
 		Name:           request.Name,
@@ -1630,6 +1641,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		ParentMetricId: parentMetricId,
 		FilterCategory: request.FilterCategory,
 		Unit:           request.Unit,
+		StripeApiKey:   stripeApiKey,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -2232,7 +2244,9 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		Link:        GetOrigin() + "/dashboard",
 	})
 }
-
+// GetTeamMembers retrieves all team members associated with a project
+// Requires authentication token and project ID
+// Returns a list of users with sensitive data removed
 func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
@@ -2277,6 +2291,9 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+// GetBlocks retrieves the block layout and labels for a project's dashboard
+// If no blocks exist, creates default blocks with predefined labels
+// Requires authentication token and project ID
 func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
@@ -2357,6 +2374,9 @@ func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+// UpdateBlocks updates the layout and labels of a project's dashboard blocks
+// Requires authentication token and project ID
+// Accepts new layout and labels in request body
 func (s *Service) UpdateBlocks(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {

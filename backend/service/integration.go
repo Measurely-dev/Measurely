@@ -11,6 +11,8 @@ import (
 	"github.com/stripe/stripe-go/v79/client"
 )
 
+// IntegrationWorker runs background tasks to sync metrics data from integrations.
+// It polls every minute and spawns workers for each integration type.
 func (s *Service) IntegrationWorker() {
 	tick := time.NewTicker(time.Minute)
 	defer tick.Stop()
@@ -20,10 +22,11 @@ func (s *Service) IntegrationWorker() {
 
 		metrics, err := s.db.GetAllIntegrationMetrics()
 		if err != nil && err != sql.ErrNoRows {
-			log.Println("Failed to fetch all integration metrics")
+			log.Println("Failed to fetch all integration metrics:", err)
+			continue
 		}
 
-		log.Println(fmt.Sprintf("Starting workers on %d metrics", len(metrics)))
+		log.Printf("Starting workers on %d metrics", len(metrics))
 		for _, metric := range metrics {
 			if metric.Type == types.STRIPE_METRIC {
 				go s.stripeWorker(&metric)
@@ -32,113 +35,87 @@ func (s *Service) IntegrationWorker() {
 	}
 }
 
+// stripeWorker processes a single Stripe metric by fetching payment data
+// and updating the last event timestamp.
 func (s *Service) stripeWorker(metric *types.Metric) {
-	log.Println("Running stripe worker on:", metric.Name)
+	log.Printf("Running stripe worker on: %s", metric.Name)
 
-	// Initialize Stripe client with the stored Stripe account ID
-	stripe.Key = "your_stripe_secret_key" // Replace with your Stripe secret key
+	if !metric.StripeApiKey.Valid {
+		log.Printf("Invalid Stripe API key for metric %s", metric.Id)
+		return
+	}
 
-	// Determine the start date for fetching data
-	var startDate time.Time
-	if !metric.LastEventTimestamp.Valid {
-		// Fetch all historical data
-		startDate = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC) // Arbitrary old date
-	} else {
-		// Fetch data from the last event timestamp
+	sc := &client.API{}
+	sc.Init(metric.StripeApiKey.V, nil)
+
+	// Use year 2000 as default start date if no previous timestamp
+	startDate := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	if metric.LastEventTimestamp.Valid {
 		startDate = metric.LastEventTimestamp.V
 	}
 
-	// Fetch successful checkouts (PaymentIntents with status 'succeeded')
-	s.fetchStripePaymentIntents(metric, startDate)
-
-	// Fetch paid invoices
-	s.fetchStripePaidInvoices(metric, startDate)
-
-	// Fetch refunds
-	s.fetchStripeRefunds(metric, startDate)
-
-	// Update the LastEventTimestamp with the current time
-	now := time.Now().UTC()
-	metric.LastEventTimestamp = sql.Null[time.Time]{V: now, Valid: true}
-	err := s.db.UpdateMetricLastEventTimestamp(metric.Id, now)
-	if err != nil {
-		log.Println("Failed to update LastEventTimestamp:", err)
+	// Fetch all payment-related data
+	if _, err := s.fetchStripePaymentIntents(startDate, sc); err != nil {
+		log.Printf("Error fetching payment intents: %v", err)
 	}
+	if _, err := s.fetchStripePaidInvoices(startDate, sc); err != nil {
+		log.Printf("Error fetching paid invoices: %v", err)
+	}
+	if _, err := s.fetchStripeRefunds(startDate, sc); err != nil {
+		log.Printf("Error fetching refunds: %v", err)
+	}
+
+	now := time.Now().UTC()
+	if err := s.db.UpdateMetricLastEventTimestamp(metric.Id, now); err != nil {
+		log.Printf("Failed to update LastEventTimestamp: %v", err)
+		return
+	}
+	metric.LastEventTimestamp = sql.Null[time.Time]{V: now, Valid: true}
 }
 
-func (s *Service) fetchStripePaymentIntents(metric *types.Metric, startDate time.Time) ([]*stripe.PaymentIntent, error) {
-	// Initialize a new Stripe client with the user's API key
-	sc := &client.API{}
-	sc.Init(metric.StripeApiKey.V, nil)
-
+// fetchStripePaymentIntents retrieves successful payment intents after startDate.
+// Returns a slice of payment intents and any error encountered.
+func (s *Service) fetchStripePaymentIntents(startDate time.Time, sc *client.API) ([]*stripe.PaymentIntent, error) {
 	query := fmt.Sprintf("status:'succeeded' AND created>%d", startDate.Unix())
 	params := &stripe.PaymentIntentSearchParams{
-		SearchParams: stripe.SearchParams{
-			Query: query,
-		},
+		SearchParams: stripe.SearchParams{Query: query},
 	}
 
 	var paymentIntents []*stripe.PaymentIntent
-	i := sc.PaymentIntents.Search(params)
-	for i.Next() {
-		pi := i.PaymentIntent()
-		paymentIntents = append(paymentIntents, pi)
+	iter := sc.PaymentIntents.Search(params)
+	for iter.Next() {
+		paymentIntents = append(paymentIntents, iter.PaymentIntent())
 	}
-
-	if err := i.Err(); err != nil {
-		return nil, err
-	}
-
-	return paymentIntents, nil
+	return paymentIntents, iter.Err()
 }
 
-func (s *Service) fetchStripePaidInvoices(metric *types.Metric, startDate time.Time) ([]*stripe.Invoice, error) {
-	// Initialize a new Stripe client with the user's API key
-	sc := &client.API{}
-	sc.Init(metric.StripeApiKey.V, nil)
-
+// fetchStripePaidInvoices retrieves paid invoices created after startDate.
+// Returns a slice of invoices and any error encountered.
+func (s *Service) fetchStripePaidInvoices(startDate time.Time, sc *client.API) ([]*stripe.Invoice, error) {
 	params := &stripe.InvoiceListParams{
-		CreatedRange: &stripe.RangeQueryParams{
-			GreaterThan: startDate.Unix(),
-		},
-		Status: stripe.String(string(stripe.InvoiceStatusPaid)),
+		CreatedRange: &stripe.RangeQueryParams{GreaterThan: startDate.Unix()},
+		Status:       stripe.String(string(stripe.InvoiceStatusPaid)),
 	}
 
 	var invoices []*stripe.Invoice
-	i := sc.Invoices.List(params)
-	for i.Next() {
-		inv := i.Invoice()
-		invoices = append(invoices, inv)
+	iter := sc.Invoices.List(params)
+	for iter.Next() {
+		invoices = append(invoices, iter.Invoice())
 	}
-
-	if err := i.Err(); err != nil {
-		return nil, err
-	}
-
-	return invoices, nil
+	return invoices, iter.Err()
 }
 
-func (s *Service) fetchStripeRefunds(metric *types.Metric, startDate time.Time) ([]*stripe.Refund, error) {
-	// Initialize a new Stripe client with the user's API key
-	sc := &client.API{}
-	sc.Init(metric.StripeApiKey.V, nil)
-
+// fetchStripeRefunds retrieves refunds created after startDate.
+// Returns a slice of refunds and any error encountered.
+func (s *Service) fetchStripeRefunds(startDate time.Time, sc *client.API) ([]*stripe.Refund, error) {
 	params := &stripe.RefundListParams{
-		CreatedRange: &stripe.RangeQueryParams{
-			GreaterThan: startDate.Unix(),
-		},
+		CreatedRange: &stripe.RangeQueryParams{GreaterThan: startDate.Unix()},
 	}
 
 	var refunds []*stripe.Refund
-	i := sc.Refunds.List(params)
-	for i.Next() {
-		ref := i.Refund()
-		refunds = append(refunds, ref)
+	iter := sc.Refunds.List(params)
+	for iter.Next() {
+		refunds = append(refunds, iter.Refund())
 	}
-
-	if err := i.Err(); err != nil {
-		return nil, err
-	}
-
-	return refunds, nil
+	return refunds, iter.Err()
 }
