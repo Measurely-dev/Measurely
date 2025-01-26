@@ -4,13 +4,14 @@ import { SheetLeftbar } from './leftbar';
 import { page_routes } from '@/lib/routes-config';
 import { Button } from '../ui/button';
 
+// Navigation links configuration for main navigation
 export const NAVLINKS = [
   {
     title: 'Docs',
     href: `/docs${page_routes[0].href}`,
   },
   {
-    title: 'Blog',
+    title: 'Blog', 
     href: '/blog',
   },
   {
@@ -19,11 +20,15 @@ export const NAVLINKS = [
   },
 ];
 
+// Main navigation component
 export function Navbar() {
   return (
+    // Navigation container with sticky positioning and backdrop blur
     <nav className='sticky top-0 z-50 h-16 w-full border-b border-accent/80 bg-opacity-5 backdrop-blur-xl backdrop-filter'>
       <div className='flex h-full items-center justify-between sm:container max-sm:px-3'>
+        {/* Left section with logo and navigation links */}
         <div className='flex items-center gap-9'>
+          {/* Logo and site name */}
           <Link
             href='/'
             className='flex flex-row items-center gap-2 font-semibold'
