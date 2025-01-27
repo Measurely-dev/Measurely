@@ -18,7 +18,6 @@ export default async function RootLayout({
 }>) {
   // Retrieve the 'is-authenticated' and 'x-request-pathname' values from the request headers.
   const is_authenticated = headers().get('is-authenticated');
-  const pathname = headers().get('x-request-pathname');
 
   // Determine whether the current page is the home page or user is authenticated.
   const isHome = is_authenticated === 'true'

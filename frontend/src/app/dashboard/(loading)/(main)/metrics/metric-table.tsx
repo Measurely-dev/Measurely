@@ -270,8 +270,8 @@ const Item = (props: { metric: Metric; index: number }) => {
               <>
                 {valueFormatter(
                   props.metric.total_pos - props.metric.total_neg,
-                )}{' '}
-                {getUnit(props.metric.unit)}
+                )}
+                <span className='text-sm ml-1 text-muted-foreground'>{getUnit(props.metric.unit)}</span>
               </>
             )}
           </div>

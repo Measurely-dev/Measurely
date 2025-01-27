@@ -181,7 +181,7 @@ const Slider = React.forwardRef<
                   'left-8 -translate-y-1/4 transform':
                     formatLabelSide === 'right',
                 },
-                'absolute z-30 w-max animate-gradient items-center justify-items-center overflow-hidden rounded-[12px] border bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text px-3 py-1 text-center font-medium text-transparent shadow-sm',
+                'absolute z-30 w-max items-center justify-items-center overflow-hidden rounded-[8px] border px-3 py-1 text-center font-medium text-sm shadow-sm shadow-blac/5',
               )}
             >
               {formatLabel && formatLabel(numberStep)}

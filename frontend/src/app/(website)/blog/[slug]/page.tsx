@@ -70,7 +70,7 @@ export default async function BlogPage(props: PageProps) {
             <div className='text-md mb-3 !text-muted-foreground'>
               {formatDate(res.frontmatter.date)}
             </div>
-            <div className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-center text-5xl !font-medium text-transparent'>
+            <div className='text-center text-5xl !font-medium'>
               {res.frontmatter.title}
             </div>
             <div className='mt-5 flex flex-col gap-3'>

@@ -94,7 +94,6 @@ import {
 import Filters from './filter-selector';
 import AdvancedOptions from './advanced-options';
 import { Separator } from '@/components/ui/separator';
-
 // Define color configurations for dual metric charts
 const dualMetricChartColors: DualMetricChartColors = {
   default: { positive: 'green', negative: 'red' },
@@ -190,7 +189,7 @@ export default function DashboardMetricPage() {
       }
 
       if (variation.averagepercentdiff >= 0) {
-        setDaily(variation.averagepercentdiff);
+        setDaily(Math.round(variation.averagepercentdiff * 100) / 100);
       }
     } else {
       let dailyValue;
@@ -202,7 +201,7 @@ export default function DashboardMetricPage() {
       if (variationValue === 0) dailyValue = 0;
       else if (previousTotal === 0)
         dailyValue = variationValue < 0 ? -100 : 100;
-      else dailyValue = (variationValue / previousTotal) * 100;
+      else dailyValue = Math.round((variationValue / previousTotal) * 10000) / 100;
       setDaily(dailyValue);
     }
 

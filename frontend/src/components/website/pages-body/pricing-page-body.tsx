@@ -112,14 +112,10 @@ export default function PricingBody(props: {
   return (
     <>
       <PageHeader
-        title={
-          <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-transparent'>
-            Pricing
-          </span>
-        }
+        title='Transparent pricing, built to grow with your project.'
         description='Use Measurely for free to track your metrics. Upgrade to enable unlimited team members, more events, and additional features.'
-        className='mx-auto mb-10 max-w-[650px]'
-        descriptionClassName='!text-md text-muted-foreground max-w-[500px] mx-auto'
+        className='mx-auto mb-10'
+        descriptionClassName=' text-base text-primary max-w-[800px] mx-auto'
       />
       <PricingOptions
         billingPeriod={billingPeriod}

@@ -1,13 +1,21 @@
 'use client';
 
+import { BrandAssetsQuestions } from '@/components/global/faq-questions';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Container from '@/components/website/container';
 import Content from '@/components/website/content';
 import PageHeader from '@/components/website/page-header';
-import { Download } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect } from 'react';
+import * as AccordionPrimitive from '@radix-ui/react-accordion';
+import HeroTitle from '@/components/website/hero-title';
 
 // BrandAssetsPage component for displaying brand assets and guidelines
 export default function BrandAssetsPage() {
@@ -28,21 +36,12 @@ export default function BrandAssetsPage() {
       <Content type='page'>
         {/* Page header with gradient text */}
         <PageHeader
-          title={
-            <span>
-              <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
-                Brand
-              </span>
-              assets <br className='sm:hidden' />
-              available <br />
-              for your use
-            </span>
-          }
+          title="Brand assets available for your use"
           description='Guidelines and assets for presenting the Measurely brand consistently.'
+          descriptionClassName=' text-base text-primary max-w-[800px] mx-auto'
         />
-
         {/* Logos Section */}
-        <div className='mb-16 mt-[120px]'>
+        <div className='mb-16 mt-10'>
           <h2 className='mb-4 text-2xl font-medium'>Logos</h2>
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             {[
@@ -144,6 +143,50 @@ export default function BrandAssetsPage() {
                     </ul>
                   </CardContent>
                 </Card>
+              </div>
+            </div>
+          </div>
+          <div className='mt-[70px] pt-12'>
+            {/* HeroTitle component for the FAQ section */}
+            <HeroTitle subtitle='FAQ' title='Frequently Asked Questions' />
+
+            {/* Accordion for displaying FAQs */}
+            <div className='mt-[70px] flex w-full items-start justify-center'>
+              <div className='w-full'>
+                <Accordion
+                  type='single'
+                  collapsible
+                  className='w-full -space-y-px rounded-[12px] shadow-sm shadow-black/5'
+                  defaultValue='3'
+                >
+                  {/* Map through PricingQuestion array to render each FAQ item */}
+                  {BrandAssetsQuestions.map((item, i) => (
+                    <AccordionItem
+                      value={item.answer}
+                      key={i}
+                      className='border bg-background px-4 py-1 first:rounded-t-[12px] last:rounded-b-[12px]'
+                    >
+                      {/* Accordion header with the question */}
+                      <AccordionPrimitive.Header className='flex'>
+                        <AccordionPrimitive.Trigger className='flex flex-1 items-center gap-3 py-2 text-left text-[15px] font-semibold leading-6 transition-all [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&>svg]:-order-1 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 [&[data-state=open]>svg]:rotate-180'>
+                          {item.question}
+                          {/* Plus icon for expanding/collapsing the FAQ item */}
+                          <Plus
+                            size={16}
+                            strokeWidth={2}
+                            className='shrink-0 opacity-60 transition-transform duration-200'
+                            aria-hidden='true'
+                          />
+                        </AccordionPrimitive.Trigger>
+                      </AccordionPrimitive.Header>
+
+                      {/* Accordion content with the answer */}
+                      <AccordionContent className='pb-2 text-muted-foreground'>
+                        {item.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </div>
             </div>
           </div>

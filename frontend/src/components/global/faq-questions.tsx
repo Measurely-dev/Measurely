@@ -48,3 +48,31 @@ export const PricingQuestion = [
     answer: `Payments are typically charged monthly.`,
   },
 ];
+
+export const BrandAssetsQuestions = [
+  {
+    id: 1,
+    question: 'Where can I find Measurely’s brand assets?',
+    answer: `Measurely’s brand assets, including logos, colors, and guidelines, are available on our Brand Assets page. You can download and use them in accordance with our brand guidelines.`,
+  },
+  {
+    id: 3,
+    question: 'Can I modify Measurely’s logos or brand assets?',
+    answer: `No, Measurely’s logos and brand assets should not be altered, distorted, or modified in any way. Please use them as provided to maintain brand consistency.`,
+  },
+  {
+    id: 4,
+    question: 'Are there specific color codes for Measurely’s brand?',
+    answer: `Yes, Measurely’s brand colors are clearly defined in our brand guidelines. You can find the exact colors on the Brand Assets page.`,
+  },
+  {
+    id: 5,
+    question: 'How should I use Measurely’s brand assets in my projects?',
+    answer: `Measurely’s brand assets should be used in accordance with our brand guidelines.`,
+  },
+  {
+    id: 6,
+    question: 'Can I use Measurely’s brand assets for commercial purposes?',
+    answer: `Measurely’s brand assets are intended for use in projects that align with our brand values and guidelines. For commercial use, please contact us for approval.`,
+  },
+];

@@ -9,7 +9,7 @@ import Content from '@/components/website/content';
 import FooterHeader from '@/components/website/footer-header';
 import PricingBody from '@/components/website/pages-body/pricing-page-body';
 import PricingComparaison from '@/components/website/pages-body/pricing-page-body-comparaison';
-import WebTitle from '@/components/website/hero-title';
+import HeroTitle from '@/components/website/hero-title';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { Plus } from 'lucide-react';
 import { Metadata } from 'next';
@@ -39,8 +39,8 @@ export default function Pricing() {
 
         {/* FAQ Section */}
         <div className='mt-[145px] pt-12'>
-          {/* WebTitle component for the FAQ section */}
-          <WebTitle subtitle='FAQ' title='Frequently Asked Questions' />
+          {/* HeroTitle component for the FAQ section */}
+          <HeroTitle subtitle='FAQ' title='Frequently Asked Questions' />
 
           {/* Accordion for displaying FAQs */}
           <div className='mt-[70px] flex w-full items-start justify-center'>
