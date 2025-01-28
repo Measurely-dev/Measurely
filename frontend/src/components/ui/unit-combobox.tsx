@@ -171,7 +171,7 @@ export function UnitCombobox({
               aria-expanded={open}
               className='h-11 w-full justify-between rounded-[12px]'
             >
-              {value !== '' ? value : 'Select Unit'}
+              {value !== '' ? value : 'Select Unit (optional)'}
               <ChevronDown className='ml-1 size-4' />
             </Button>
           </PopoverTrigger>
@@ -229,7 +229,7 @@ export function UnitCombobox({
                           <Check
                             className={cn(
                               'ml-auto',
-                              value === unit.name ? 'opacity-100' : 'opacity-0',
+                              value === unitValue ? 'opacity-100' : 'opacity-0',
                             )}
                           />
                         </CommandItem>
@@ -260,7 +260,7 @@ export function UnitCombobox({
                               <Check
                                 className={cn(
                                   'ml-auto',
-                                  value === unit.name
+                                  value === unitValue
                                     ? 'opacity-100'
                                     : 'opacity-0',
                                 )}

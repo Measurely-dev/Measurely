@@ -7,7 +7,6 @@ export default async function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
   const cookie = request.cookies.get('measurely-session');
   const logged = cookie !== undefined;
-
   // Set custom headers for authentication state and request path
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('is-authenticated', logged ? 'true' : 'false');
@@ -76,5 +75,6 @@ export const config = {
     '/new-project',
     '/dashboard',
     '/dashboard/:appname*',
+    '/docs/:slug*',
   ],
 };

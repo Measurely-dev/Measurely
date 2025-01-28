@@ -11,7 +11,7 @@ export default function Toc(props: { path: string }) {
 
   return (
     // Sticky sidebar container for table of contents
-    <div className='toc sticky top-16 hidden h-[95.95vh] min-w-[230px] flex-[1] py-8 lg:flex'>
+    <div className='toc sticky top-16 hidden border-l pl-5 h-[95.95vh] min-w-[230px] flex-[1] py-8 lg:flex'>
       <div className='flex w-full flex-col gap-3 pl-2'>
         <h3 className='text-sm font-semibold'>On this page</h3>
         {/* Scrollable area for table of contents links */}

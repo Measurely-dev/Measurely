@@ -195,7 +195,7 @@ export default function NewMetric() {
           </div>
         </Content>
       </Container>
-      <Footer type='waitlist' border bg='secondary' isHome />
+      <Footer type='waitlist' border bg='secondary' />
     </div>
   );
 }
@@ -238,11 +238,7 @@ function Step1({
           </TabsTrigger>
         </TabsList>
         {metricTypes.map((metric: any, i: any) => (
-          <TabsContent
-            className='space-y-3'
-            value={metric.label}
-            key={i}
-          >
+          <TabsContent className='space-y-3' value={metric.label} key={i}>
             {metric.types.map((type: any, j: number) => (
               <Metric
                 key={j}
@@ -393,7 +389,6 @@ function Step3({ metricData }: { metricData: any }) {
           loading={loading}
           className='w-fit rounded-[12px]'
           onClick={handleSubmit}
-          disabled={!unit}
         >
           Create
         </Button>

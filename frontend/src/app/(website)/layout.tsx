@@ -17,21 +17,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Retrieve the 'is-authenticated' and 'x-request-pathname' values from the request headers.
-  const is_authenticated = headers().get('is-authenticated');
-
-  // Determine whether the current page is the home page or user is authenticated.
-  const isHome = is_authenticated === 'true'
+  const is_authenticated = headers().get('is-authenticated') === 'true';
 
   return (
     <div className='flex flex-col items-center overflow-x-hidden'>
       {/* Navbar component at the top of the page */}
-      <Navbar isHome={isHome} type='waitlist' />
+      <Navbar type={is_authenticated ? 'logged' : 'waitlist'} />
 
       {/* Main content area */}
       <div className='min-h-screen w-screen'>{children}</div>
 
       {/* Footer component at the bottom of the page */}
-      <Footer border={false} bg='secondary' type='waitlist' isHome={isHome} />
+      <Footer border={false} bg='secondary' type='waitlist' />
     </div>
   );
 }

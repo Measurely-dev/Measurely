@@ -15,23 +15,19 @@ type AnchorProps = ComponentProps<typeof Link> & {
 
 // Custom Anchor component that extends Next.js Link with additional functionality
 export default function Anchor({
-  absolute,
   className = '',
   activeClassName = '',
   disabled,
+  absolute = false,
   children,
   ...props
 }: AnchorProps) {
   const path = usePathname();
 
   // Determine if current path matches link destination
-  let isMatch = absolute
-    ? props.href.toString().split('/')[1] == path.split('/')[1] // Match first path segment
-    : path === props.href; // Match full path
-
+  let isMatch = path === props.href.toString() + '/'; // Match full path
   // External links are never considered active
   if (props.href.toString().includes('http')) isMatch = false;
-
   // Return disabled state if specified
   if (disabled)
     return (

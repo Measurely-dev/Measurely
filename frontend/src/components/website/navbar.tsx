@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 // Main navigation bar component that handles different authentication states
 export default function Navbar(props: {
   type: 'default' | 'logged' | 'waitlist';
-  isHome?: boolean | false;
 }) {
   // Navigation links configuration
   const links: any = [

@@ -3,6 +3,7 @@ import Anchor from './anchor';
 import { SheetLeftbar } from './leftbar';
 import { page_routes } from '@/lib/routes-config';
 import { Button } from '../ui/button';
+import { useMemo } from 'react';
 
 // Navigation links configuration for main navigation
 export const NAVLINKS = [
@@ -11,7 +12,7 @@ export const NAVLINKS = [
     href: `/docs${page_routes[0].href}`,
   },
   {
-    title: 'Blog', 
+    title: 'Blog',
     href: '/blog',
   },
   {
@@ -21,10 +22,34 @@ export const NAVLINKS = [
 ];
 
 // Main navigation component
-export function Navbar() {
+export function Navbar(props: { type: 'logged' | 'default' | 'waitlist' }) {
+  const CTA = useMemo(() => {
+    switch (props.type) {
+      case 'logged':
+        return (
+          <Link href={'/dashboard'} className='max-md:hidden'>
+            <Button className='rounded-[12px]'>Dashboard</Button>
+          </Link>
+        );
+      case 'default':
+        return (
+          <Link href={'/register'} className='max-md:hidden'>
+            <Button className='rounded-[12px]'>Get started</Button>
+          </Link>
+        );
+      case 'waitlist':
+        return (
+          <Link href={'/waitlist'} className='max-md:hidden'>
+            <Button className='rounded-[12px]'>Join waitlist</Button>
+          </Link>
+        );
+      default:
+        return null;
+    }
+  }, [props.type]);
   return (
     // Navigation container with sticky positioning and backdrop blur
-    <nav className='sticky top-0 z-50 h-16 w-full border-b border-accent/80 bg-opacity-5 backdrop-blur-xl backdrop-filter'>
+    <nav className='sticky top-0 z-50 h-16 w-full border-b border-input bg-opacity-5 backdrop-blur-xl backdrop-filter'>
       <div className='flex h-full items-center justify-between sm:container max-sm:px-3'>
         {/* Left section with logo and navigation links */}
         <div className='flex items-center gap-9'>
@@ -61,9 +86,8 @@ export function Navbar() {
             })}
           </div>
         </div>
-        <Link href={'/register'} className='max-md:hidden'>
-          <Button className='rounded-[12px]'>Get started</Button>
-        </Link>
+        {/* Right section with CTA buttons */}
+        <>{CTA}</>
         <SheetLeftbar />
       </div>
     </nav>

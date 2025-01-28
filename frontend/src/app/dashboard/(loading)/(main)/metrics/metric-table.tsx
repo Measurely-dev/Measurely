@@ -109,7 +109,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 <TableRow className='bg-accent/60'>
                   <TableHead colSpan={2}>Metric</TableHead>
                   <TableHead colSpan={1.5} className='text-nowrap'>
-                    Total value
+                    Value
                   </TableHead>
                   <TableHead
                     className='min-w-[100px] text-nowrap'
@@ -135,7 +135,9 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 </TableRow>
               </TableFooter>
             </Table>
-            <div className='mx-auto mt-3 text-muted-foreground text-sm'>A list of your metrics.</div>
+            <div className='mx-auto mt-3 text-sm text-muted-foreground'>
+              A list of your metrics.
+            </div>
           </>
         )}
       </div>
@@ -273,7 +275,9 @@ const Item = (props: { metric: Metric; index: number }) => {
                 {valueFormatter(
                   props.metric.total_pos - props.metric.total_neg,
                 )}
-                <span className='text-sm'>{getUnit(props.metric.unit)}</span>
+                <span className='ml-1 text-sm'>
+                  {getUnit(props.metric.unit)}
+                </span>
               </>
             )}
           </div>

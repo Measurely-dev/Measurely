@@ -50,7 +50,6 @@ const footerData = [
 export default function Footer(props: {
   border: boolean;
   bg?: 'default' | 'secondary';
-  isHome?: boolean | false;
   type: 'default' | 'waitlist';
 }) {
   const pathname = usePathname();

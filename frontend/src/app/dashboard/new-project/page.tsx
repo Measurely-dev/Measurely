@@ -115,7 +115,7 @@ export default function NewProject() {
           </div>
         </Content>
       </Container>
-      <Footer type='waitlist' border bg='secondary' isHome />
+      <Footer type='waitlist' border bg='secondary' />
     </div>
   );
 }

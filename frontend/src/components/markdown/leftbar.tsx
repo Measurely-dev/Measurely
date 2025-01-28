@@ -1,4 +1,4 @@
-// Import UI components and utilities
+// Import core UI components, navigation elements and layout utilities 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '../ui/button';
 import { AlignLeftIcon } from 'lucide-react';
@@ -6,10 +6,11 @@ import DocsMenu from './docs-menu';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '../ui/sheet';
 
-// Desktop sidebar component that shows documentation menu
+// Main documentation sidebar - Desktop version
+// Contains navigation menu in a fixed scrollable container
 export function Leftbar() {
   return (
-    <aside className='sticky top-16 hidden h-[94.5vh] min-w-[230px] flex-[1] flex-col overflow-y-auto md:flex'>
+    <aside className='sticky top-16 border-r mr-5 hidden h-[94.5vh] min-w-[230px] flex-[1] flex-col overflow-y-auto md:flex'>
       <ScrollArea className='py-4'>
         <DocsMenu />
       </ScrollArea>
@@ -17,17 +18,18 @@ export function Leftbar() {
   );
 }
 
-// Mobile sidebar component that shows as a drawer/sheet
+// Mobile optimized sidebar implementation
+// Opens as slide-out sheet with full navigation menu
 export function SheetLeftbar() {
   return (
     <Sheet>
-      {/* Drawer trigger button - only visible on mobile */}
+      {/* Mobile menu trigger - Hamburger button */}
       <SheetTrigger asChild>
         <Button variant='ghost' size='icon' className='flex md:hidden'>
           <AlignLeftIcon className='h-5 w-5' />
         </Button>
       </SheetTrigger>
-      {/* Drawer content with navigation menu */}
+      {/* Mobile sheet with navigation and call-to-action */}
       <SheetContent
         side='left'
         isClosable={false}

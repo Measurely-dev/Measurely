@@ -6,6 +6,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  Command,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -15,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Metric } from '@/types';
 import { fetchEventVariation, valueFormatter } from '@/utils';
-import { ChevronsUpDown, Command, CircleOff } from 'lucide-react';
+import { ChevronsUpDown, CircleOff } from 'lucide-react';
 import { Dispatch, SetStateAction, useState, useEffect } from 'react';
 
 // Filter component that displays and manages metric filters

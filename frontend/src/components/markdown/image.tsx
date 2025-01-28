@@ -31,7 +31,7 @@ export default function Image({
       width={width as Width}
       height={height as Height}
       quality={40}
-      className='rounded-[12px] border'
+      className='w-full max-w-[600px] rounded-[12px] border'
       {...props}
     />
   );

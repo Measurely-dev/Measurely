@@ -7,7 +7,7 @@ import { ReactNode, useContext } from 'react';
 import { motion } from 'framer-motion';
 import {
   FloatingPanelBody,
-  FloatingPanelButton, 
+  FloatingPanelButton,
   FloatingPanelContent,
   FloatingPanelRoot,
   FloatingPanelTrigger,
@@ -51,6 +51,7 @@ const QuickActionsFloatingPanel = (props: { children: ReactNode }) => {
           credentials: 'include',
         }).then(() => {
           router.push('/sign-in');
+          window.location.reload();
         });
       },
     },
