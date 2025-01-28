@@ -24,7 +24,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -57,6 +56,9 @@ function sortbyDate(a: Metric, b: Metric, order: string): number {
 
 // Formats numbers with proper locale-specific formatting
 const valueFormatter = (number: number) => {
+  if (typeof number === 'number' && !Number.isInteger(number)) {
+    return number.toFixed(2);
+  }
   return Intl.NumberFormat('us').format(number).toString();
 };
 
@@ -133,7 +135,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
                 </TableRow>
               </TableFooter>
             </Table>
-            <TableCaption>A list of your metrics.</TableCaption>
+            <div className='mx-auto mt-3 text-muted-foreground text-sm'>A list of your metrics.</div>
           </>
         )}
       </div>
@@ -271,7 +273,7 @@ const Item = (props: { metric: Metric; index: number }) => {
                 {valueFormatter(
                   props.metric.total_pos - props.metric.total_neg,
                 )}
-                <span className='text-sm ml-1 text-muted-foreground'>{getUnit(props.metric.unit)}</span>
+                <span className='text-sm'>{getUnit(props.metric.unit)}</span>
               </>
             )}
           </div>

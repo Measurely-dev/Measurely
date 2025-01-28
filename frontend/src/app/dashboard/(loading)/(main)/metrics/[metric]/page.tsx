@@ -79,7 +79,7 @@ import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import FilterManagerDialog from './filter-manager';
 import { PushValueDialog } from '../../push-value';
-import { UnitCombobox } from '@/components/ui/unit-select';
+import { UnitCombobox } from '@/components/ui/unit-combobox';
 import { RangeCalendar } from '@/components/ui/calendar-rac';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { DateInput, dateInputStyle } from '@/components/ui/datefield-rac';
@@ -94,6 +94,7 @@ import {
 import Filters from './filter-selector';
 import AdvancedOptions from './advanced-options';
 import { Separator } from '@/components/ui/separator';
+
 // Define color configurations for dual metric charts
 const dualMetricChartColors: DualMetricChartColors = {
   default: { positive: 'green', negative: 'red' },
@@ -149,20 +150,21 @@ export default function DashboardMetricPage() {
 
   // Fetch the metric data based on the active project and metric name
   const metric = useMemo(() => {
-    if (projects[activeProject]) {
-      const index = projects[activeProject].metrics?.findIndex(
-        (g) => g.name === metricName,
-      );
-      if (index !== undefined && index !== -1) {
-        const metricData = projects[activeProject].metrics?.[index];
-        if (metricData !== null && metricData !== undefined) {
-          return metricData;
-        }
+    if (!projects || !projects[activeProject]) {
+      return null;
+    }
+    const index = projects[activeProject].metrics?.findIndex(
+      (g) => g.name === metricName,
+    );
+    if (index !== undefined && index !== -1) {
+      const metricData = projects[activeProject].metrics?.[index];
+      if (metricData !== null && metricData !== undefined) {
+        return metricData;
       }
     }
     router.push('/dashboard/metrics');
     return null;
-  }, [activeProject, projects]);
+  }, [activeProject, projects, metricName]);
 
   const [daily, setDaily] = useState<number>(0);
   const [average, setAverage] = useState<number>(0);
@@ -201,7 +203,8 @@ export default function DashboardMetricPage() {
       if (variationValue === 0) dailyValue = 0;
       else if (previousTotal === 0)
         dailyValue = variationValue < 0 ? -100 : 100;
-      else dailyValue = Math.round((variationValue / previousTotal) * 10000) / 100;
+      else
+        dailyValue = Math.round((variationValue / previousTotal) * 10000) / 100;
       setDaily(dailyValue);
     }
 
@@ -233,15 +236,17 @@ export default function DashboardMetricPage() {
 
   // Load daily values on mount and set an interval to refresh them
   useEffect(() => {
-    loadDailyValues(metric!);
-    const interval = setInterval(() => {
-      loadDailyValues(metric!);
-    }, INTERVAL);
+    if (metric) {
+      loadDailyValues(metric);
+      const interval = setInterval(() => {
+        loadDailyValues(metric);
+      }, INTERVAL);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [metric]);
 
   // Update the document title and meta description based on the metric
   useEffect(() => {
@@ -253,17 +258,19 @@ export default function DashboardMetricPage() {
         `Track and analyze ${metric?.name} in detail. Monitor its performance, explore trends, and gain insights to make informed decisions.`,
       );
     }
-  }, []);
+  }, [metric]);
 
   // Redirect to the metrics page if the metric is not found
   useEffect(() => {
-    const index = projects[activeProject].metrics?.findIndex(
+    if (!projects[activeProject]?.metrics) return;
+
+    const index = projects[activeProject].metrics.findIndex(
       (g) => g.name === metricName,
     );
     if (index === -1) {
       router.push('/dashboard/metrics');
     }
-  }, [activeProject]);
+  }, [activeProject, projects, metricName]);
 
   // Helper function to generate card styles based on color
   const cardStyle = (color: string) => ({
@@ -429,7 +436,7 @@ export default function DashboardMetricPage() {
                   )}
                   <UnitCombobox
                     unit={metric?.unit}
-                    customUnits={projects[activeProject].units}
+                    customUnits={projects[activeProject]?.units}
                     onChange={(value) => {
                       fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric-unit`, {
                         method: 'PATCH',

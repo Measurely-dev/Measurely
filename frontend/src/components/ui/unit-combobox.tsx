@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useState } from 'react';
+import { Fragment, useContext, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -239,15 +239,12 @@ export function UnitCombobox({
                 </>
               )}
               {unitCategories.map(
-                (category) =>
+                (category, i) =>
                   category.units.length > 0 && (
-                    <>
+                    <Fragment key={`category-${i}`}>
                       <CommandSeparator />
 
-                      <CommandGroup
-                        key={category.label}
-                        heading={category.label}
-                      >
+                      <CommandGroup heading={category.label}>
                         {category.units.map((unit) => {
                           const unitValue =
                             unit.name +
@@ -272,7 +269,7 @@ export function UnitCombobox({
                           );
                         })}
                       </CommandGroup>
-                    </>
+                    </Fragment>
                   ),
               )}
             </CommandList>

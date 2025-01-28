@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
-  SelectContent, 
+  SelectContent,
   SelectGroup,
   SelectItem,
   SelectTrigger,
@@ -38,7 +38,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
 import { Step, StepItem, Stepper, useStepper } from '@/components/ui/stepper';
 import { Box, ClipboardList, Minus, Plus, Ruler } from 'lucide-react';
-import { UnitCombobox } from '@/components/ui/unit-select';
+import { UnitCombobox } from '@/components/ui/unit-combobox';
 import confetti from 'canvas-confetti';
 import { useCharacterLimit } from '@/lib/character-limit';
 
@@ -46,7 +46,7 @@ import { useCharacterLimit } from '@/lib/character-limit';
 const forbidden = [
   'average',
   'average trend',
-  'positive trend', 
+  'positive trend',
   'negative trend',
   'event count',
 ];
@@ -237,11 +237,11 @@ function Step1({
             Integrations
           </TabsTrigger>
         </TabsList>
-        {metricTypes.map((metric: any) => (
+        {metricTypes.map((metric: any, i: any) => (
           <TabsContent
             className='space-y-3'
             value={metric.label}
-            key={metric.label}
+            key={i}
           >
             {metric.types.map((type: any, j: number) => (
               <Metric

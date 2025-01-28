@@ -49,8 +49,8 @@ export function useFloatingPanel() {
   return context;
 }
 function useFloatingPanelLogic(
-  controlledOpen?: boolean, // Controlled open state
-  onOpenChange?: (isOpen: boolean) => void, // Callback for open state changes
+  controlledOpen?: boolean,
+  onOpenChange?: (isOpen: boolean) => void,
 ) {
   const uniqueId = useId();
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +59,6 @@ function useFloatingPanelLogic(
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  // Sync internal state with controlled open state
   useEffect(() => {
     if (controlledOpen !== undefined) {
       setIsOpen(controlledOpen);
@@ -69,13 +68,13 @@ function useFloatingPanelLogic(
   const openFloatingPanel = (rect: DOMRect) => {
     setTriggerRect(rect);
     setIsOpen(true);
-    onOpenChange?.(true); // Notify parent of open state change
+    onOpenChange?.(true);
   };
 
   const closeFloatingPanel = () => {
     setIsOpen(false);
     setNote('');
-    onOpenChange?.(false); // Notify parent of open state change
+    onOpenChange?.(false);
   };
 
   return {
@@ -96,15 +95,15 @@ function useFloatingPanelLogic(
 interface FloatingPanelRootProps {
   children: React.ReactNode;
   className?: string;
-  open?: boolean; // Add open prop
-  onOpenChange?: (isOpen: boolean) => void; // Add onOpenChange prop
+  open?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
 export function FloatingPanelRoot({
   children,
   className,
-  open: controlledOpen, // Controlled open state
-  onOpenChange, // Callback for open state changes
+  open: controlledOpen,
+  onOpenChange,
 }: FloatingPanelRootProps) {
   const floatingPanelLogic = useFloatingPanelLogic(
     controlledOpen,
@@ -123,7 +122,7 @@ export function FloatingPanelRoot({
 interface FloatingPanelTriggerProps {
   children: React.ReactNode;
   className?: string;
-  title: string; // Required prop
+  title: string;
   description?: string;
   onClick?: (e: React.MouseEvent) => void;
 }
@@ -132,11 +131,11 @@ export function FloatingPanelTrigger({
   className,
   title,
   description,
-  onClick, // Destructure onClick prop
+  onClick,
 }: FloatingPanelTriggerProps) {
   const { openFloatingPanel, uniqueId, setTitle, setDescription, isOpen } =
     useFloatingPanel();
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (e: React.MouseEvent) => {
     if (triggerRef.current) {
@@ -144,23 +143,25 @@ export function FloatingPanelTrigger({
       setTitle(title);
       setDescription(description ?? '');
     }
-    onClick?.(e); // Pass the event to the onClick handler
+    onClick?.(e);
   };
 
   return (
-    <motion.button
-      ref={triggerRef}
+    <motion.div
+      ref={triggerRef} // Added ref here
       layoutId={`floating-panel-trigger-${uniqueId}`}
-      className={cn('relative overflow-hidden', className)}
+      className={cn(
+        'relative cursor-pointer overflow-hidden active:scale-[0.98]',
+        className,
+      )}
       style={{ borderRadius: 8 }}
       onClick={(e) => {
         handleClick(e);
         e.stopPropagation();
-      }} // Pass handleClick to onClick
+      }}
       aria-haspopup='dialog'
-      aria-expanded={false}
+      aria-expanded={isOpen}
     >
-      {/* Dashed border when panel is open */}
       <motion.div
         className='absolute left-0 top-0 z-10 size-full'
         style={{ borderRadius: 'inherit' }}
@@ -171,7 +172,6 @@ export function FloatingPanelTrigger({
         transition={{ duration: 0.2, ease: 'easeInOut' }}
       />
 
-      {/* Animated content */}
       <motion.div
         layoutId={`floating-panel-label-container-${uniqueId}`}
         initial={{ opacity: 1 }}
@@ -182,7 +182,7 @@ export function FloatingPanelTrigger({
           {children}
         </motion.span>
       </motion.div>
-    </motion.button>
+    </motion.div>
   );
 }
 interface FloatingPanelContentProps {

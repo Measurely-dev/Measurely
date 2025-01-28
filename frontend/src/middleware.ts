@@ -26,12 +26,20 @@ export default async function middleware(request: NextRequest) {
   // Handle authentication redirects
   if (logged) {
     // Redirect authenticated users away from auth pages
-    if (url.includes('sign-in') || url.includes('register')) {
+    if (
+      url.includes('sign-in') ||
+      url.includes('register') ||
+      url.includes('waitlist')
+    ) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   } else {
     // Allow unauthenticated users to access auth pages
-    if (url.includes('sign-in') || url.includes('register')) {
+    if (
+      url.includes('sign-in') ||
+      url.includes('register') ||
+      url.includes('waitlist')
+    ) {
       return NextResponse.next();
     }
   }
@@ -63,9 +71,10 @@ export const config = {
     '/pricing',
     '/sign-in',
     '/register',
+    '/waitlist',
     '/forgot-password',
     '/new-project',
-    '/dashboard', 
+    '/dashboard',
     '/dashboard/:appname*',
   ],
 };

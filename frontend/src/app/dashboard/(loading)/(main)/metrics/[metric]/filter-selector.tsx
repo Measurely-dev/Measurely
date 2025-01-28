@@ -39,35 +39,40 @@ function Filters(props: {
 
     const finalFilters: { [category: string]: any[] } = {};
 
-    // Process all filter categories in parallel
-    await Promise.all(
-      categories.map(async (category) => {
-        const filters = props.metric?.filters[category] ?? [];
-        // Fetch event variations for each filter
-        const updatedFilters = await Promise.all(
-          filters.map(async (filter: any) => {
-            const { pos, neg } = await fetchEventVariation(
-              filter.project_id,
-              filter.id,
-              props.start,
-              end,
-            );
+    try {
+      // Process all filter categories in parallel
+      await Promise.all(
+        categories.map(async (category) => {
+          const filters = props.metric?.filters?.[category] ?? [];
+          // Fetch event variations for each filter
+          const updatedFilters = await Promise.all(
+            filters.map(async (filter: any) => {
+              const { pos, neg } = await fetchEventVariation(
+                filter.project_id,
+                filter.id,
+                props.start,
+                end,
+              );
 
-            return {
-              ...filter,
-              summary: pos - neg,
-            };
-          }),
-        );
+              return {
+                ...filter,
+                summary: pos - neg,
+              };
+            }),
+          );
 
-        // Sort filters by summary value
-        finalFilters[category] = updatedFilters.sort(
-          (a, b) => b.summary - a.summary,
-        );
-      }),
-    );
+          // Sort filters by summary value
+          finalFilters[category] = updatedFilters.sort(
+            (a, b) => b.summary - a.summary,
+          );
+        }),
+      );
 
-    setFilters(finalFilters);
+      setFilters(finalFilters);
+    } catch (error) {
+      console.error('Error updating filters:', error);
+      setFilters({});
+    }
   };
 
   // Update filters when dependencies change
@@ -159,9 +164,9 @@ function Filters(props: {
                           if (props.activeFilter?.id === filter.id) {
                             props.setActiveFilter(null);
                           } else {
-                            const metric = props.metric?.filters[
+                            const metric = props.metric?.filters?.[
                               filterCategory
-                            ].find((m) => m.name === value);
+                            ]?.find((m) => m.name === value);
                             props.setActiveFilter(metric ?? null);
                           }
                         }}
