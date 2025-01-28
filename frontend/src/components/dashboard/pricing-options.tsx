@@ -26,7 +26,7 @@ export const PricingOptions = ({
     <div
       className={
         type !== 'page'
-          ? 'mb-4 flex flex-row items-end justify-between gap-2 px-5'
+          ? 'mb-4 flex flex-row items-end justify-between gap-2 px-1'
           : 'flex flex-col-reverse'
       }
     >
