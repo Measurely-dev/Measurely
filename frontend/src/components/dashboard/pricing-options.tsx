@@ -27,12 +27,12 @@ export const PricingOptions = ({
       className={
         type !== 'page'
           ? 'mb-4 flex flex-row items-end justify-between gap-2 px-5'
-          : ''
+          : 'flex flex-col-reverse'
       }
     >
       {/* Event quantity slider section */}
       <div
-        className={`flex w-full max-w-[400px] flex-row items-center gap-4 ${type === 'dialog' ? 'mt-10' : 'mx-auto mt-[40px]'}`}
+        className={`flex w-full max-w-[400px] flex-row items-center gap-4 ${type === 'dialog' ? 'mt-10' : 'mx-auto mt-[40px] mb-10'}`}
       >
         <span className='font-mono text-sm font-medium text-primary'>10K</span>
         <Slider

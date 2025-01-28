@@ -2,11 +2,11 @@
 
 // Import necessary dependencies
 import { plans } from '@/plans';
-import PageHeader from '../page-header';
 import PricingCard from '../pricing-card';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import HeroTitle from '../hero-title';
 
 // Component that renders the subscription UI section with pricing plans
 export default function SubscriptionUiSection(props: {
@@ -68,22 +68,10 @@ export default function SubscriptionUiSection(props: {
   return (
     <div className='mt-[145px] pt-12'>
       {/* Pricing section header */}
-      <PageHeader
-        title={
-          <span>
-            <span className='mr-3 animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text font-mono text-transparent'>
-              Pricing
-            </span>
-            <br className='sm:hidden' />
-            that fits
-            <br /> your needs
-          </span>
-        }
-        description=''
-      />
+      <HeroTitle title='Pricing that fits your need' subtitle='Transparent pricing' />
 
       {/* Grid of pricing cards */}
-      <div className='mt-[60px] grid grid-cols-3 max-md:mt-[20px] max-md:grid-cols-1 max-md:gap-3'>
+      <div className='mt-[70px] grid grid-cols-3 max-md:grid-cols-1 max-md:gap-3'>
         {plans.map((plan, i) => {
           return (
             <PricingCard
