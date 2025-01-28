@@ -17,7 +17,7 @@ import { useState } from 'react';
 /**
  * SubLink Component
  * Renders a collapsible navigation link that can contain nested sub-links
- * 
+ *
  * @param title - Text to display for the link
  * @param href - URL the link points to
  * @param items - Array of child navigation items
@@ -67,7 +67,7 @@ export default function SubLink({
           {titleOrLink}
           <CollapsibleTrigger asChild>
             <Button
-              className='ml-auto mr-3.5 h-6 w-6'
+              className='ml-auto mr-3.5 h-6 w-6 shadow-none'
               variant='link'
               size='icon'
             >

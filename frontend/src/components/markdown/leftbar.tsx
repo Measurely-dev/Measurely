@@ -4,12 +4,7 @@ import { Button } from '../ui/button';
 import { AlignLeftIcon } from 'lucide-react';
 import DocsMenu from './docs-menu';
 import Link from 'next/link';
-import {
-  Drawer,
-  DrawerContent, 
-  DrawerTitle,
-  DrawerTrigger,
-} from '../ui/drawer';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '../ui/sheet';
 
 // Desktop sidebar component that shows documentation menu
 export function Leftbar() {
@@ -25,25 +20,29 @@ export function Leftbar() {
 // Mobile sidebar component that shows as a drawer/sheet
 export function SheetLeftbar() {
   return (
-    <Drawer>
+    <Sheet>
       {/* Drawer trigger button - only visible on mobile */}
-      <DrawerTrigger asChild>
+      <SheetTrigger asChild>
         <Button variant='ghost' size='icon' className='flex md:hidden'>
           <AlignLeftIcon className='h-5 w-5' />
         </Button>
-      </DrawerTrigger>
+      </SheetTrigger>
       {/* Drawer content with navigation menu */}
-      <DrawerContent className='flex flex-col gap-4 px-5'>
-        <DrawerTitle className='sr-only !text-2xl'>Menu</DrawerTitle>
-        <ScrollArea className='flex flex-col gap-4'>
-          <Link href={'/register'}>
-            <Button className='w-full rounded-[12px]'>Get started</Button>
-          </Link>
+      <SheetContent
+        side='left'
+        isClosable={false}
+        className='flex flex-col gap-4 pb-0'
+      >
+        <SheetTitle>Docs</SheetTitle>
+        <Link href={'/register'}>
+          <Button className='w-full rounded-[12px]'>Get started</Button>
+        </Link>
+        <ScrollArea className='flex flex-col gap-4 border-t'>
           <div className='mx-2'>
             <DocsMenu isSheet />
           </div>
         </ScrollArea>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   );
 }

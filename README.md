@@ -1,11 +1,24 @@
 # Measurely
 
-Measurely is an online dashboard that empowers users to track and analyze their metrics with ease. With a simple API integration, users can send their data for real-time monitoring and visualization.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Open Source](https://img.shields.io/badge/open--source-yes-green)
+![Version](https://img.shields.io/badge/version-1.0.0-orange)
+
+Measurely is an open-source analytics platform for tracking and visualizing metrics with ease.
 
 ## Features
-- **API Integration**: Connect your projects to Measurely using an API key for seamless data tracking.
-- **Real-time Monitoring**: View your metrics as they are updated in real-time.
-- **Basic and Dual Metrics**: Track single-value metrics or analyze trends with dual metrics (positive and negative values).
+
+- **Developer-Friendly API**: Seamlessly integrate Measurely with your applications using an API key.
+- **Real-Time Monitoring**: View and analyze your metrics as they update in real-time.
+- **Custom Metric Types**:
+  - **Basic Metrics**: Track single-value data points.
+  - **Dual Metrics**: Analyze trends with both positive and negative values.
+  - **Advanced Options**: Add offsets or custom tracking periods for granular insights.
+- **Blocks for Data Visualization**: Create customizable charts and tables to visualize your data.
+- **Team Management**: Collaborate with your team using role-based permissions.
+- **Integrations**: Coming soon—**AWS CloudWatch**, **Google Analytics**, and **LemonSqueeze**.
+
+---
 
 ## Getting Started
 
@@ -13,38 +26,51 @@ Follow these steps to get started with Measurely:
 
 ### 1. Sign Up
 
-Create an account on our platform and receive your unique API key.
+Create an account on [Measurely](https://measurely.dev) and get your API key.
 
 ### 2. Connect Your Metrics
 
 Use our API documentation to integrate Measurely into your project.
+👉 [Check the Docs](https://measurely.dev/docs/getting-started/introduction)
 
 ### 3. Monitor Your Data
 
-Log in to the dashboard to view and analyze your metrics in real-time.
+Log in to the dashboard to view, filter, and analyze your metrics in real time.
+
+---
 
 ## API Documentation
 
-Check out our detailed [API documentation](#) to learn how to:
+Check out our detailed [API documentation](https://measurely.dev/docs/getting-started/introduction) for:
 
-- Authenticate your API requests
-- Send data to Measurely
-- Retrieve and analyze your metrics
+- Authenticating API requests
+- Sending data to Measurely
+- Retrieving metrics for analysis
+- Implementing advanced metric types and visualizations
+
+---
 
 ## Pricing
 
-Measurely offers different plans to suit your needs. Explore our [pricing options](#) to choose the best plan for your requirements.
+Measurely offers flexible plans tailored to your needs.
+Explore our [pricing options](https://measurely.dev/pricing) to find the plan that works best for you.
+
+---
 
 ## Support
 
-For help, feedback, or inquiries, contact us at:
+For any questions, feedback, or assistance, reach out to us:
 
 - **Email**: info@measurely.dev
 
+---
+
 ## About
 
-Measurely was created by **[zxk-afz](https://github.com/zxk-afz)** and **[yasthegoat](https://github.com/yasthegoat)** to simplify the process of metric tracking and analysis for developers and businesses.
+Measurely was created by [zxk-afz](https://github.com/zxk-afz) and [yasthegoat](https://github.com/yasthegoat) to simplify metric tracking and visualization for modern developers and businesses.
+
+---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](https://github.com/Measurely/Measurely/blob/main/LICENSE).
