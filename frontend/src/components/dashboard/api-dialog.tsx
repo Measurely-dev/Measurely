@@ -127,50 +127,48 @@ export default function ApiDialog(props: {
       </FloatingPanelTrigger>
       <FloatingPanelContent className='w-[95%] max-w-[500px]' side='center'>
         <FloatingPanelBody className='p-4'>
-          <div className='space-y-2'>
-            <div className='flex w-full items-center'>
-              <Button
-                onClick={() => {
-                  if (apiKey && !isCopying) {
-                    navigator.clipboard.writeText(apiKeyDup || '');
-                    setIsVisible(true);
-                    setIsCopying(true);
-                    setApiKey('Copied to clipboard!');
-                    setTimeout(() => {
-                      setApiKey(apiKeyDup);
-                      setIsVisible(false);
-                      setIsCopying(false);
-                    }, 1500);
-                  }
-                }}
-                className='w-full rounded-[12px] rounded-e-none'
-                variant='outline'
-              >
-                {isVisible ? apiKey : 'Click to copy API key'}
-              </Button>
-              <Button
-                className='size-9 min-w-9 rounded-[12px] rounded-s-none border-s-0'
-                variant='outline'
-                size={'icon'}
-                onClick={toggleVisibility}
-              >
-                {isVisible ? (
-                  <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
-                ) : (
-                  <Eye size={16} strokeWidth={2} aria-hidden='true' />
-                )}
-              </Button>
-              {props.randomize && (
-                <Button
-                  onClick={RandomizeAPI}
-                  size={'icon'}
-                  className='size-9 min-w-9 rounded-[12px]'
-                  variant={'destructiveOutline'}
-                >
-                  <Shuffle className='size-4' />
-                </Button>
+          <div className='flex w-full items-center'>
+            <Button
+              onClick={() => {
+                if (apiKey && !isCopying) {
+                  navigator.clipboard.writeText(apiKeyDup || '');
+                  setIsVisible(true);
+                  setIsCopying(true);
+                  setApiKey('Copied to clipboard!');
+                  setTimeout(() => {
+                    setApiKey(apiKeyDup);
+                    setIsVisible(false);
+                    setIsCopying(false);
+                  }, 1500);
+                }
+              }}
+              className='w-full rounded-[12px] rounded-e-none'
+              variant='outline'
+            >
+              {isVisible ? apiKey : 'Click to copy API key'}
+            </Button>
+            <Button
+              className='size-9 min-w-9 rounded-[12px] rounded-s-none border-s-0'
+              variant='outline'
+              size={'icon'}
+              onClick={toggleVisibility}
+            >
+              {isVisible ? (
+                <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
+              ) : (
+                <Eye size={16} strokeWidth={2} aria-hidden='true' />
               )}
-            </div>
+            </Button>
+            {props.randomize && (
+              <Button
+                onClick={RandomizeAPI}
+                size={'icon'}
+                className='size-9 ml-2 min-w-9 rounded-[12px]'
+                variant={'destructiveOutline'}
+              >
+                <Shuffle className='size-4' />
+              </Button>
+            )}
           </div>
         </FloatingPanelBody>
       </FloatingPanelContent>
