@@ -513,7 +513,8 @@ function calculateVariationForSinglePeriod(data: any) {
 }
 
 /**
- * Calculates trend data for metrics
+ * Calculates trend data for metrics by processing positive/negative trends
+ * and averaging values based on metric type
  */
 export const calculateTrend = (
   data: any[],
@@ -524,49 +525,56 @@ export const calculateTrend = (
 ): any[] => {
   if (!metric) return data;
 
-  return data.map((obj) => {
-    const trend = { ...obj };
+  // Create copy of data to modify
+  const trend = data.map((obj) => ({ ...obj }));
+
+  // Process each data point from newest to oldest
+  for (let i = trend.length - 1; i >= 0; i--) {
+    const point = trend[i];
     const hasTrends =
-      trend['Positive Trend'] !== undefined &&
-      trend['Negative Trend'] !== undefined &&
-      trend['Event Trend'] !== undefined &&
-      trend['Average Trend'] !== undefined;
+      point['Positive Trend'] !== undefined &&
+      point['Negative Trend'] !== undefined &&
+      point['Event Trend'] !== undefined &&
+      point['Average Trend'] !== undefined;
 
     if (hasTrends) {
+      // Calculate running totals
       const metricName =
         metric.type !== MetricType.Dual ? metric.name : metric.name_pos;
-      total_pos = trend['Positive Trend'] - trend[metricName];
-      total_neg = trend['Negative Trend'] - (trend[metric.name_neg] ?? 0);
+      total_pos = point['Positive Trend'] - point[metricName];
+      total_neg = point['Negative Trend'] - (point[metric.name_neg] ?? 0);
 
-      if (metric.type === MetricType.Average) {
-        trend[metric.name] = trend['Average Trend'];
-      } else {
-        trend[metric.name] = trend['Positive Trend'] - trend['Negative Trend'];
-      }
+      // Update metric value based on type
+      point[metric.name] =
+        metric.type === MetricType.Average
+          ? point['Average Trend']
+          : point['Positive Trend'] - point['Negative Trend'];
 
-      const event_count = trend['Event Trend'] - trend['Event Count'];
+      // Calculate new average
+      const event_count = point['Event Trend'] - point['Event Count'];
       average = event_count === 0 ? 0 : (total_pos - total_neg) / event_count;
     } else {
+      // Handle points without trends
       if (metric.type === MetricType.Average) {
-        if (trend[metric.name] !== undefined) {
-          trend[metric.name] = average;
+        if (point[metric.name] !== undefined) {
+          point[metric.name] = average;
         }
       } else {
         const metricName =
           metric.type !== MetricType.Dual ? metric.name : metric.name_pos;
-        if (trend[metricName] !== undefined) {
-          trend[metric.name] = total_pos;
-          trend['Positive Trend'] = total_pos;
+        if (point[metricName] !== undefined) {
+          point[metric.name] = total_pos;
+          point['Positive Trend'] = total_pos;
         }
-        if (trend[metric.name_neg] !== undefined) {
-          trend[metric.name] -= total_neg;
-          trend['Negative Trend'] = total_neg;
+        if (point[metric.name_neg] !== undefined) {
+          point[metric.name] -= total_neg;
+          point['Negative Trend'] = total_neg;
         }
       }
     }
+  }
 
-    return trend;
-  });
+  return trend;
 };
 
 /**
