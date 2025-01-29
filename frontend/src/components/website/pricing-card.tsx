@@ -4,22 +4,25 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { Sparkles } from 'lucide-react';
 import { ReactNode } from 'react';
 
+
 // Define props interface for PricingCard component
 interface PricingCardProps {
-  className?: string;          // Optional CSS class name
-  name: string;                // Name of the pricing tier
-  description: string;         // Description text
+  className?: string; // Optional CSS class name
+  name: string; // Name of the pricing tier
+  description: string; // Description text
   price?: number | 'custom pricing'; // Price amount or custom pricing text
-  recurrence: string;          // Billing frequency (month/year)
-  target?: string;             // Target audience text
-  list?: Array<ReactNode>;     // List of features
-  button?: string;             // Button text
-  disabled?: boolean;          // Disable button state
+  recurrence: string; // Billing frequency (month/year)
+  target?: string; // Target audience text
+  list?: Array<ReactNode>; // List of features
+  button?: string; // Button text
+  disabled?: boolean; // Disable button state
   sliderValue?: string | number; // Value for usage slider
-  popular?: boolean;           // Show popular badge
-  loading?: boolean;           // Loading state for button
-  onSelect?: () => void;       // Button click handler
+  popular?: boolean;
+  startingFrom?: boolean; // Show popular badge
+  loading?: boolean; // Loading state for button
+  onSelect?: () => void; // Button click handler
 }
+
 
 // PricingCard component - displays a pricing tier card with features and pricing details
 const PricingCard: React.FC<PricingCardProps> = ({
@@ -35,6 +38,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   loading,
   onSelect,
   sliderValue,
+  startingFrom = false,
   popular,
   ...additionalProps
 }) => {
@@ -70,14 +74,30 @@ const PricingCard: React.FC<PricingCardProps> = ({
           </div>
         ) : (
           <>
-            <div className='text-3xl font-semibold leading-none'>
-              {isFree ? 'Free' : `$${Math.round(price || 0)}`}
-            </div>
-            <div className='text-xs text-secondary'>
+            {!startingFrom ? (
+              <div className='flex items-end text-3xl font-semibold leading-none'>
+                {isFree ? 'Free' : `$${Math.round(price || 0)}`}
+              </div>
+            ) : isFree ? (
+              <div className='flex items-end text-3xl font-semibold leading-none'>
+                Free
+              </div>
+            ) : (
+              <>
+                <span className='flex items-end text-sm text-muted-foreground'>
+                  From
+                </span>
+                <div className='inline-flex items-end gap-2 text-3xl font-semibold leading-none'>
+                  ${price}
+                </div>
+              </>
+            )}
+
+            <div className='flex items-end text-xs leading-5 text-secondary'>
               {isMonthly
                 ? 'USD per month'
                 : isYearly
-                  ? 'USD per year'
+                  ? 'USD per month billed annually'
                   : 'forever'}
             </div>
           </>
@@ -85,12 +105,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
       </div>
 
       {/* Usage limit slider (if applicable) */}
-      {sliderValue && !isFree && (
+      {sliderValue && (
         <div className='mt-5 flex flex-row items-center gap-[10px]'>
           <div className='text-sm font-medium text-secondary'>
             Up to{' '}
             <span className='mx-1 rounded-[6px] bg-accent px-2 py-1 font-mono text-base font-bold text-primary'>
-              {sliderValue}
+              {isFree ? '5K' : sliderValue}
             </span>{' '}
             events per month
           </div>

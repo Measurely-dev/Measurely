@@ -1,4 +1,5 @@
 // Import required UI components and React types
+import { getEventAmount } from '@/utils';
 import { Slider } from '../ui/slider';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { Dispatch, SetStateAction } from 'react';
@@ -9,7 +10,6 @@ interface PricingOptionsProps {
   setSliderValue: (value: number[]) => void;  // Function to update slider value
   billingPeriod: 'month' | 'year'; // Current billing period selection
   setBillingPeriod: Dispatch<SetStateAction<'month' | 'year'>>; // Function to update billing period
-  getEventAmount: (value: number) => string;  // Function to format event amounts
   type?: 'page' | 'dialog';        // Display type of the component
 }
 
@@ -19,7 +19,6 @@ export const PricingOptions = ({
   setSliderValue,
   billingPeriod,
   setBillingPeriod,
-  getEventAmount,
   type = 'page',
 }: PricingOptionsProps) => {
   return (

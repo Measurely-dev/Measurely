@@ -15,7 +15,8 @@ import { ArrowBigDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
-import { PricingOptions } from './pricing-options';
+import { PricingOptions } from '../global/pricing-options';
+import { calculatePrice, getEventCount } from '@/utils';
 
 // PlansDialog component handles the subscription plan selection and management
 export default function PlansDialog(props: { children: ReactNode }) {
@@ -42,18 +43,6 @@ export default function PlansDialog(props: { children: ReactNode }) {
       100: '10M+',
     };
     return valueMap[value] || 'N/A';
-  }
-
-  // Calculates the price based on base price, slider value and billing period
-  function calculatePrice(basePrice: number): number {
-    const additionalCostPerStep = 5;
-    const sliderSteps = sliderValue[0] / 10;
-    let totalPrice = basePrice + additionalCostPerStep * sliderSteps;
-
-    if (billingPeriod === 'year') {
-      totalPrice = totalPrice * 12 * 0.8; // 20% discount for yearly billing
-    }
-    return Math.round(totalPrice);
   }
 
   // Handles the subscription process for a selected plan
@@ -149,7 +138,6 @@ export default function PlansDialog(props: { children: ReactNode }) {
         </DialogHeader>
         <PricingOptions
           billingPeriod={billingPeriod}
-          getEventAmount={getEventAmount}
           setBillingPeriod={setBillingPeriod}
           setSliderValue={setSliderValue}
           sliderValue={sliderValue}
@@ -157,14 +145,14 @@ export default function PlansDialog(props: { children: ReactNode }) {
         />
         <div className='grid grid-cols-3 gap-5 overflow-y-scroll max-lg:gap-1 max-md:grid-cols-1 max-md:gap-5'>
           {plans.map((plan, i) => {
-            const isStarter = plan.name === 'Starter';
+            const price = calculatePrice(plan.price, plan.name, getEventCount(sliderValue[0]), billingPeriod)
             return (
               <PricingCard
                 key={i}
                 sliderValue={getEventAmount(sliderValue[0])}
                 name={plan.name}
                 description={plan.description}
-                price={isStarter ? plan.price : calculatePrice(plan.price)}
+                price={price}
                 recurrence={plan.name === 'Starter' ? 'forever' : billingPeriod}
                 target={plan.target}
                 list={plan.list}

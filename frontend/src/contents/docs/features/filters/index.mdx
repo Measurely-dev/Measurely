@@ -1,51 +1,55 @@
 ---
 title: Filters
-description: Learn what filters are and how to use them to categorize your metrics.
+description: Learn what filters are, why they matter, and how to use them to categorize and analyze your metrics effectively.
 ---
 
 ## What is a Filter?
 
-A **filter** is a key-value pair used to add additional metadata to your metrics. Filters provide context about your data, allowing you to categorize, segment, and analyze metrics effectively.
+A **filter** is a key-value pair used to enrich your metrics with additional metadata. Filters allow you to categorize, segment, and analyze your data more efficiently by providing context to your tracked events.
 
-### Why Use Filters?
+## Why Use Filters?
 
-Filters are helpful when you want to:
+Filters help you:
 
-- Track metrics across different environments (e.g., production, staging, development).
-- Segment data based on user attributes, regions, or other categories.
-- Add flexible and descriptive labels to your metrics for better analysis.
+- **Segment your data** – Group metrics by meaningful attributes (e.g., environment, region, user type).
+- **Improve analytics** – Gain deeper insights by filtering and comparing specific metric subsets.
+- **Enhance visualization** – Use filters to create more focused charts and reports in Measurely.
+- **Support flexible queries** – Retrieve only the relevant data when analyzing trends.
 
-### Example Use Cases
+## Example Use Cases
 
-- **Environment-based segmentation:** Use filters to track metrics in specific environments like `production` or `development`.
-- **Region-based analysis:** Monitor metrics across geographical locations like `us-east` or `eu-west`.
+- **Environment-based tracking:** Monitor metrics separately for `production`, `staging`, or `development` environments.
+- **Geographical segmentation:** Analyze user activity across different regions such as `us-east` or `eu-west`.
+- **User-based insights:** Categorize metrics by user roles (e.g., `admin`, `guest`, `member`).
 
-# How to Create a Filter
+## How to Create a Filter
 
-Filters are defined as a map of key-value pairs in your metric payload. Here's how to add filters when capturing a metric.
+Filters are added as key-value pairs in your metric payload. Here's how to define and use them when capturing a metric.
 
 ### Step-by-Step Guide
 
-1. **Define your filters:** Decide the context you want to add (e.g., `environment`, `region`).
-2. **Add filters to your payload:** Include a `filters` object when sending your event.
+1. **Define your filters:** Identify key attributes to add, such as `environment`, `region`, or `user_id`.
+2. **Attach filters to your payload:** Include a `filters` object in the request when sending metrics.
+3. **Use filters in analysis:** Apply filters in Measurely’s dashboard to refine your data views.
 
-### Example in TypeScript
+## Example in TypeScript
 
-Below is an example of creating a metric with filters using the Measurely TypeScript SDK:
+Below is an example of adding filters when capturing a metric using the Measurely TypeScript SDK:
 
 ```typescript
 import { Measurely } from 'measurely-sdk';
 
 // Initialize Measurely with your API key
-const measurely = new Measurely('YOUR_API_KEY');
+const measurely = new Measurely('your_api_key');
 
-// Define your filters
+// Define filters
 const filters = {
   environment: 'production',
   region: 'us-east',
+  user_type: 'admin',
 };
 
-// Create a metric payload with value and filters
+// Create a metric payload with a value and filters
 const payload = {
   value: 42,
   filters: filters,
@@ -68,6 +72,9 @@ measurely
 
 ## Best Practices for Filters
 
-- Use **consistent keys**: Stick to a naming convention for keys like `environment`, `region`, or `user_type`.
-- **Keep filters relevant**: Only include filters that add meaningful context to your metrics.
-- Avoid **excessive filters**: Too many filters can complicate your data analysis.
+- **Use standardized keys:** Maintain consistency with naming conventions like `environment`, `region`, or `user_type`.
+- **Keep filters relevant:** Avoid unnecessary filters that don’t contribute to meaningful segmentation.
+- **Optimize for performance:** Minimize the number of filters per metric to ensure efficient querying and storage.
+- **Utilize filters for dashboard insights:** Leverage filters in Measurely’s UI to create dynamic charts and comparisons.
+
+Filters are a powerful tool to organize, analyze, and extract deeper insights from your data. Use them strategically to maximize the value of your metrics.
