@@ -41,9 +41,11 @@ next-env.d.ts
 # ds store
 .DS.Store
 
-# sitemap
+# sitemap and robots
 frontend/public/sitemap.xml
-frontend/public/robot.txt
+frontend/public/sitemap-*.xml
+frontend/public/robots.txt
+frontend/public/sitemap-index.xml
 
 dump.rdb
 

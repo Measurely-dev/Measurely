@@ -1,72 +1,65 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Textarea } from '@/components/ui/textarea';
-import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
-export default function FeedbackPopover(props: { children: any }) {
-  const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const handleFeedback = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+import React, { ReactNode } from 'react';
+import {
+  FloatingPanelBody,
+  FloatingPanelCloseButton,
+  FloatingPanelContent,
+  FloatingPanelFooter,
+  FloatingPanelForm,
+  FloatingPanelRoot,
+  FloatingPanelSubmitButton,
+  FloatingPanelTextarea,
+  FloatingPanelTrigger,
+} from '@/components/ui/floating-panel';
+import { XIcon } from 'lucide-react';
 
-    setLoading(true);
+// Main feedback component that wraps the floating panel functionality
+export default function FeedbackPopover(props: { children: any }) {
+  return <FloatingPanelInput>{props.children}</FloatingPanelInput>;
+}
+
+// Component that handles the floating panel input and submission logic
+function FloatingPanelInput(props: { children: ReactNode }) {
+  // Handles form submission by sending feedback content to the API
+  const handleSubmit = (content: string) => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/feedback`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
-    })
-      .then((resp) => {
-        if (resp.status === 200) {
-          toast.success('Thank you for your feedback');
-        } else {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    }).then((resp) => {
+      if (resp.status === 200) {
+        toast.success('Thank you for your feedback');
+      } else {
+        resp.text().then((text) => {
+          toast.error(text);
+        });
+      }
+    });
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>{props.children}</PopoverTrigger>
-      <PopoverContent className='mr-5 mt-1 w-[200px] rounded-[16px] p-2 shadow-sm'>
-        <form
-          onSubmit={(e) => {
-            handleFeedback(e);
-            e.preventDefault();
-            setContent('');
-            setTimeout(() => setIsOpen(false), 400);
-          }}
-        >
-          <Textarea
-            placeholder='Tell us what you think...'
-            className='h-20 resize-none'
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-          <div className='flex w-full items-end justify-end'>
-            <Button
-              className='mt-2 w-full rounded-[12px]'
-              variant={'default'}
-              size={'sm'}
-              loading={loading}
-              disabled={loading || content == ''}
-            >
-              Send
-            </Button>
-          </div>
-        </form>
-      </PopoverContent>
-    </Popover>
+    <FloatingPanelRoot>
+      <FloatingPanelTrigger title='Send feedback'>
+        {props.children}
+      </FloatingPanelTrigger>
+      <FloatingPanelContent className='w-80' side='right'>
+        <FloatingPanelForm onSubmit={handleSubmit}>
+          <FloatingPanelBody>
+            <FloatingPanelTextarea max={1000} className='min-h-[100px]' />
+          </FloatingPanelBody>
+          <FloatingPanelFooter>
+            <FloatingPanelCloseButton
+              icon={<XIcon size={16} />}
+              ariaLabel='Close panel'
+            />
+            <FloatingPanelSubmitButton>
+              Send Message
+            </FloatingPanelSubmitButton>
+          </FloatingPanelFooter>
+        </FloatingPanelForm>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

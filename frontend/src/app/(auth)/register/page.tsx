@@ -1,22 +1,24 @@
-'use client';
+'use client'
 
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+// Import required components and dependencies
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Measurely from 'measurely-js';
 
+// Registration page component
 export default function Register() {
   const searchParams = useSearchParams();
-
   const [loading, set_loading] = useState(false);
-
   const router = useRouter();
 
+  // Set page metadata and initialize analytics on mount
   useEffect(() => {
+    // Update page title and meta description
     document.title = 'Register | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
@@ -25,23 +27,27 @@ export default function Register() {
         'Create a Measurely account to start tracking your metrics and gain insights for your projects and teams.',
       );
     }
+
+    // Initialize analytics in production environment
     if (process.env.NEXT_PUBLIC_ENV === 'production') {
       Measurely.init(process.env.NEXT_PUBLIC_MEASURELY_API_KEY ?? '');
       Measurely.capture('b3c58d0d-f1af-4c34-84ed-0450cd93e844', {
         value: 1,
-        filters: {}
+        filters: {},
       });
     }
   }, []);
+
   return (
-    <WebContainer>
+    <Container>
       <div className='mb-[150px]'>
-        <AuthNavbar href='/sign-in' button='Sign in' />
+        <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer className='pb-[100px]'>
+      <Content className='pb-[100px]'>
         <AuthForm
           title='Create an account'
           providers={true}
+          // Form field configurations with default values from URL params
           form={[
             {
               label: 'First name',
@@ -67,9 +73,11 @@ export default function Register() {
           ]}
           button='Create your account'
           btn_loading={loading}
+          // Form submission handler
           action={async (formdata) => {
             set_loading(true);
 
+            // Process and normalize form input
             const email = formdata
               .get('email')
               ?.toString()
@@ -86,13 +94,15 @@ export default function Register() {
               .trimStart()
               .toLowerCase();
 
+            // Validate required fields
             if (email === '' || first_name === '' || last_name === '') {
               toast.error('Please fill in all fields');
               set_loading(false);
               return;
             }
 
-            fetch(process.env.NEXT_PUBLIC_API_URL + '/email-valid', {
+            // Validate email with backend API
+            fetch(process.env.NEXT_PUBLIC_API_URL + '/email_valid', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -117,7 +127,7 @@ export default function Register() {
           }}
           policies
         />
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

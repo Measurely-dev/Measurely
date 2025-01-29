@@ -1,28 +1,33 @@
 'use client';
 
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+// Import required components and hooks
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader } from 'lucide-react';
 
+// Password reset component that handles the complete password reset flow
 export default function PasswordReset() {
   const searchParams = useSearchParams();
-  const [view, set_view] = useState(6); // 0 : email input, 1 : sent email , 2 : password input, 3 : fail, 5 : success, 6 : loading
+  // View states: 0-email input, 1-sent email, 2-password input, 3-fail, 5-success, 6-loading
+  const [view, setView] = useState(6);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
 
+  // Check for reset code in URL and set appropriate view
   useEffect(() => {
     if (searchParams.get('code') !== null) {
-      set_view(2);
+      setView(2);
     } else {
-      set_view(0);
+      setView(0);
     }
   }, [searchParams]);
 
+  // Set page metadata
   useEffect(() => {
     document.title = 'Reset password | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -35,14 +40,15 @@ export default function PasswordReset() {
   }, []);
 
   return (
-    <WebContainer>
+    <Container>
       <div className=''>
-        <AuthNavbar href='/sign-in' button='Sign in' />
+        <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
-      <ContentContainer type='page'>
+      <Content type='page'>
+        {/* Email input form view */}
         {view === 0 ? (
           <AuthForm
-            title='Email'
+            title='Forgot password?'
             description='Please enter the email address linked to your account'
             providers={false}
             form={[
@@ -63,7 +69,8 @@ export default function PasswordReset() {
                 setLoading(false);
                 return;
               }
-              fetch(process.env.NEXT_PUBLIC_API_URL + '/forgot-password', {
+              // Send password reset request to API
+              fetch(process.env.NEXT_PUBLIC_API_URL + '/forgot_password', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -80,7 +87,7 @@ export default function PasswordReset() {
                   setLoading(false);
                 } else {
                   setEmail(email ?? '');
-                  set_view(1);
+                  setView(1);
                 }
               });
             }}
@@ -89,6 +96,7 @@ export default function PasswordReset() {
           <></>
         )}
 
+        {/* New password input form view */}
         {view === 2 ? (
           <AuthForm
             title='Password'
@@ -105,7 +113,7 @@ export default function PasswordReset() {
                 label: 'Retype password',
                 placeholder: 'Password',
                 name: 'retype',
-                type: 'password',
+                type: 'password-normal',
               },
             ]}
             button='Reset'
@@ -116,6 +124,7 @@ export default function PasswordReset() {
               const password = form.get('password');
               const retype = form.get('retype');
 
+              // Validate password inputs
               if (password === '' || retype === '') {
                 toast.error('Password is required');
                 return;
@@ -126,14 +135,15 @@ export default function PasswordReset() {
                 return;
               }
 
-              fetch(process.env.NEXT_PUBLIC_API_URL + '/recover-account', {
+              // Submit new password to API
+              fetch(process.env.NEXT_PUBLIC_API_URL + '/recover_account', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  newpassword: password,
-                  requestid: searchParams.get('code'),
+                  new_password: password,
+                  request_id: searchParams.get('code'),
                 }),
                 credentials: 'include',
               }).then((res) => {
@@ -143,7 +153,7 @@ export default function PasswordReset() {
                   });
                   setLoading(false);
                 } else {
-                  set_view(5);
+                  setView(5);
                 }
               });
             }}
@@ -151,8 +161,11 @@ export default function PasswordReset() {
         ) : (
           <></>
         )}
+
+        {/* Status messages container */}
         <div className='flex w-full items-center justify-center'>
           <div className='flex w-fit flex-col gap-[10px]'>
+            {/* Email sent confirmation view */}
             {view === 1 ? (
               <>
                 <div className='mt-20 text-base font-semibold'>
@@ -172,6 +185,7 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Error view */}
             {view === 3 ? (
               <>
                 <div className='text-base font-semibold'>
@@ -185,6 +199,7 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Success view */}
             {view === 5 ? (
               <>
                 <div className='text-base font-semibold'>
@@ -198,8 +213,10 @@ export default function PasswordReset() {
               <></>
             )}
 
+            {/* Loading view */}
             {view === 6 ? <Loader className='size-8 animate-spin' /> : <></>}
 
+            {/* Support link for specific views */}
             {view === 1 || view === 3 || view === 5 ? (
               <div className='mt-[10px] text-sm'>
                 Need help?{' '}
@@ -215,7 +232,7 @@ export default function PasswordReset() {
             )}
           </div>
         </div>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

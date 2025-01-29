@@ -1,21 +1,25 @@
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import PolicyWrapper from '@/components/website/policy';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import PolicyWrapper from '../policy-wrapper';
 import TermsContent from './terms';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon } from 'lucide-react';
 
+// Define metadata for SEO and page headers
 export const metadata: Metadata = {
   title: 'Terms of service | Measurely',
   description:
     'Read Measurely’s Terms of Service to understand the rules, responsibilities, and guidelines for using our platform. We are dedicated to providing a secure and reliable service while ensuring a seamless experience for our users.',
 };
+
+// Main page component
 export default function Page() {
   return (
-    <WebContainer>
-      <ContentContainer type='page'>
+    <Container>
+      <Content type='page'>
+        {/* Back button to navigate to the legal page */}
         <Link href='/legal' className='mb-5'>
           <Button
             variant={'secondary'}
@@ -27,6 +31,8 @@ export default function Page() {
             </div>
           </Button>
         </Link>
+
+        {/* PolicyWrapper component to structure the terms of service content */}
         <PolicyWrapper
           title='Terms of Service'
           updatedDate='December 25, 2024'
@@ -59,9 +65,10 @@ export default function Page() {
             </>
           }
         >
+          {/* Render the TermsContent component for additional terms details */}
           <TermsContent />
         </PolicyWrapper>
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

@@ -50,14 +50,14 @@ func (h *Handler) setup_api() {
 	//// ROUTES THAT ARE ONLY AVAILABLE TO THE APPLICATION DOMAIN, PRIVATE CORS
 	privateRouter.Use(privateCors)
 	privateRouter.Post("/waitlist", h.service.JoinWaitlist)
-	privateRouter.Post("/email-valid", h.service.EmailValid)
+	privateRouter.Post("/email_valid", h.service.EmailValid)
 	privateRouter.Post("/login", h.service.Login)
 	privateRouter.Get("/oauth/{provider}", h.service.Oauth)
 	privateRouter.HandleFunc("/callback/{provider}", h.service.Callback)
 	privateRouter.Post("/register", h.service.Register)
 	privateRouter.Post("/logout", h.service.Logout)
-	privateRouter.Post("/forgot-password", h.service.ForgotPassword)
-	privateRouter.Post("/recover-account", h.service.RecoverAccount)
+	privateRouter.Post("/forgot_password", h.service.ForgotPassword)
+	privateRouter.Post("/recover_account", h.service.RecoverAccount)
 	privateRouter.HandleFunc("/webhook", h.service.Webhook)
 
 	// privateRouter.Post("/update-rates", h.service.UpdateRates)
@@ -65,36 +65,49 @@ func (h *Handler) setup_api() {
 	// privateRouter.Get("/rates", h.service.GetRates)
 	// privateRouter.Get("/plans", h.service.GetPlans)
 
-	privateRouter.Patch("/changeemail", h.service.UpdateUserEmail)
+	privateRouter.Patch("/change_email", h.service.UpdateUserEmail)
 	////
 
 	// ROUTES THAT REQUIRE AUTHENTIFICATION
 	authRouter.Use(h.service.AuthenticatedMiddleware)
 	authRouter.Post("/feedback", h.service.SendFeedback)
 
-	authRouter.Get("/is-connected", h.service.IsConnected)
+	authRouter.Get("/is_connected", h.service.IsConnected)
 	authRouter.Delete("/account", h.service.DeleteAccount)
 	authRouter.Post("/disconnect/{provider}", h.service.DisconnectProvider)
 	authRouter.Get("/user", h.service.GetUser)
-  authRouter.Post("/user-image", h.service.UploadUserImage)
+	authRouter.Post("/user_image", h.service.UploadUserImage)
 
 	authRouter.Patch("/name", h.service.UpdateFirstAndLastName)
 	authRouter.Patch("/password", h.service.UpdatePassword)
-	authRouter.Post("/requestemailchange", h.service.RequestEmailChange)
+	authRouter.Post("/request_email_change", h.service.RequestEmailChange)
 
 	authRouter.Get("/projects", h.service.GetProjects)
 	authRouter.Post("/project", h.service.CreateProject)
 	authRouter.Delete("/project", h.service.DeleteProject)
-	authRouter.Patch("/project-name", h.service.UpdateProjectName)
-	authRouter.Post("/project-image/{project}", h.service.UploadProjectImage)
-	authRouter.Patch("/rand-apikey", h.service.RandomizeApiKey)
+	authRouter.Patch("/project_name", h.service.UpdateProjectName)
+	authRouter.Post("/project_image/{project_id}", h.service.UploadProjectImage)
+	authRouter.Patch("/rand_apikey", h.service.RandomizeApiKey)
+	authRouter.Patch("/project-units", h.service.UpdateProjectUnits)
+
+	authRouter.Get("/blocks/{project_id}", h.service.GetBlocks)
+	authRouter.Patch("/blocks/layout", h.service.UpdateBlocks)
+
+	authRouter.Get("/members/{project_id}", h.service.GetTeamMembers)
+	authRouter.Patch("/role", h.service.UpdateMemberRole)
+	authRouter.Delete("/member", h.service.RemoveTeamMember)
+	authRouter.Post("/member", h.service.AddTeamMember)
+	authRouter.Get("/members", h.service.SearchUsers)
 
 	authRouter.Get("/metrics", h.service.GetMetrics)
 	authRouter.Get("/events", h.service.GetMetricEvents)
-	authRouter.Get("/daily-variation", h.service.GetDailyVariation)
+	authRouter.Get("/daily_variation", h.service.GetDailyVariation)
 	authRouter.Post("/metric", h.service.CreateMetric)
 	authRouter.Patch("/metric", h.service.UpdateMetric)
 	authRouter.Delete("/metric", h.service.DeleteMetric)
+	authRouter.Delete("/category", h.service.DeleteCategory)
+	authRouter.Patch("/category", h.service.UpdateCategory)
+	authRouter.Patch("/metric-unit", h.service.UpdateMetricUnit)
 
 	authRouter.Get("/billing", h.service.ManageBilling)
 	authRouter.Post("/subscribe", h.service.Subscribe)
@@ -102,7 +115,8 @@ func (h *Handler) setup_api() {
 
 	// PUBLIC API ENDPOINT
 	publicRouter.Use(publicCors)
-	publicRouter.Post("/v1/{metricidentifier}", h.service.CreateMetricEventV1)
+	publicRouter.Post("/v1/{metric_identifier}", h.service.CreateMetricEventV1)
+
 	////
 
 	privateRouter.Mount("/", authRouter)

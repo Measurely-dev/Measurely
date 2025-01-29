@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,127 +15,92 @@ import (
 	"github.com/google/uuid"
 )
 
+// Regex for validating filter names/values - allows alphanumeric and selected special chars
+var validFilterRegex = regexp.MustCompile(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`)
+
+// Duration to cache metric data
+const CacheDuration = 15 * time.Minute
+
+// Common date format for API requests
+const DateFormat = "2006-01-02T15:04:05.000Z"
+
+// VerifyKeyToMetricId verifies API key has access to metric ID
 func (s *Service) VerifyKeyToMetricId(metricid uuid.UUID, apikey string) bool {
-	value, ok := s.cache.metrics[0].Load(metricid)
-	var relation MetricCache
-	expired := false
-
-	if ok {
-		relation = value.(MetricCache)
-		if time.Now().After(relation.expiry) {
-			expired = true
+	if value, ok := s.metricsCache.Load(metricid); ok {
+		relation := value.(MetricCache)
+		if !time.Now().After(relation.expiry) {
+			return relation.key == apikey
 		}
 	}
 
-	if !ok || expired {
-		metric, err := s.db.GetMetricById(metricid)
-		if err != nil {
-			log.Println(err)
-			return false
-		}
-		app, err := s.db.GetProjectByApi(apikey)
-		if err != nil {
-			log.Println(err)
-			return false
-		}
-
-		if app.Id != metric.ProjectId {
-			return false
-		}
-
-		s.cache.metrics[0].Store(metricid, MetricCache{
-			key:         apikey,
-			metric_type: metric.Type,
-			user_id:     app.UserId,
-			metric_id:   metric.Id,
-			expiry:      time.Now().Add(15 * time.Minute),
-		})
-
-		return true
-	}
-
-	return relation.key == apikey
-}
-
-func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
-	value, ok := s.cache.metrics[1].Load(apikey + metricname)
-	var relation MetricCache
-	expired := false
-
-	if ok {
-		relation = value.(MetricCache)
-		if time.Now().After(relation.expiry) {
-			expired = true
-		}
-	}
-
-	if !ok || expired {
-		app, err := s.db.GetProjectByApi(apikey)
-		if err != nil {
-			log.Println(err)
-			return false
-		}
-
-		metric, err := s.db.GetMetricByName(metricname, app.Id)
-		if err != nil && err != sql.ErrNoRows {
-			log.Println(err)
-			return false
-		}
-
-		if app.Id != metric.ProjectId {
-			return false
-		}
-
-		s.cache.metrics[1].Store(apikey+metricname, MetricCache{
-			key:         apikey,
-			metric_type: metric.Type,
-			user_id:     app.UserId,
-			metric_id:   metric.Id,
-			expiry:      time.Now().Add(15 * time.Minute),
-		})
-
-		return true
-	}
-
-	return relation.key == apikey
-}
-
-func (s *Service) RateAllow(user_id uuid.UUID, maxRequest int) bool {
-	value, ok := s.cache.ratelimits.Load(user_id)
-	expired := false
-	var rate RateLimit
-
-	if ok {
-		rate = value.(RateLimit)
-		if time.Now().After(rate.expiry) {
-			expired = true
-		}
-	}
-
-	if !ok || expired {
-		s.cache.ratelimits.Store(user_id, RateLimit{
-			current: 1,
-			max:     maxRequest,
-			expiry:  time.Now().Add(1 * time.Minute),
-		})
-
-		return true
-	}
-
-	if rate.current > rate.max {
+	metric, err := s.db.GetMetricById(metricid)
+	if err != nil {
+		log.Printf("Error getting metric by ID: %v", err)
 		return false
 	}
 
-	s.cache.ratelimits.Store(user_id, RateLimit{
-		current: rate.current + 1,
-		max:     rate.max,
-		expiry:  rate.expiry,
+	app, err := s.db.GetProjectByApi(apikey)
+	if err != nil {
+		log.Printf("Error getting project by API key: %v", err)
+		return false
+	}
+
+	if app.Id != metric.ProjectId {
+		return false
+	}
+
+	s.metricsCache.Store(metricid, MetricCache{
+		key:         apikey,
+		metric_type: metric.Type,
+		user_id:     app.UserId,
+		metric_id:   metric.Id,
+		expiry:      time.Now().Add(CacheDuration),
 	})
 
 	return true
 }
 
+// VerifyKeyToMetricName verifies API key has access to metric name
+func (s *Service) VerifyKeyToMetricName(metricname string, apikey string) bool {
+	cacheKey := apikey + metricname
+
+	if value, ok := s.metricsCache.Load(cacheKey); ok {
+		relation := value.(MetricCache)
+		if !time.Now().After(relation.expiry) {
+			return relation.key == apikey
+		}
+	}
+
+	app, err := s.db.GetProjectByApi(apikey)
+	if err != nil {
+		log.Printf("Error getting project by API key: %v", err)
+		return false
+	}
+
+	metric, err := s.db.GetMetricByName(metricname, app.Id)
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf("Error getting metric by name: %v", err)
+		return false
+	}
+
+	if app.Id != metric.ProjectId {
+		return false
+	}
+
+	s.metricsCache.Store(cacheKey, MetricCache{
+		key:         apikey,
+		metric_type: metric.Type,
+		user_id:     app.UserId,
+		metric_id:   metric.Id,
+		expiry:      time.Now().Add(CacheDuration),
+	})
+
+	return true
+}
+
+// CreateMetricEventV1 creates a new metric event
 func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
+	// Extract and validate auth token
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" || len(authHeader) < 8 || authHeader[:7] != "Bearer " {
 		http.Error(w, "Invalid or missing Authorization header", http.StatusUnauthorized)
@@ -144,111 +108,85 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 	apikey := authHeader[7:]
 
-	metricid, err := uuid.Parse(chi.URLParam(r, "metricidentifier"))
-	metricname := chi.URLParam(r, "metricidentifier")
-	useName := false
+	// Get metric identifier (ID or name)
+	metricid, err := uuid.Parse(chi.URLParam(r, "metric_identifier"))
+	metricname := chi.URLParam(r, "metric_identifier")
+	useName := metricname != "" && err != nil
 
 	if metricname == "" && err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
 	}
 
-	if metricname != "" && err != nil {
-		useName = true
-	}
-
+	// Parse and validate request
 	var request struct {
 		Value   int               `json:"value"`
 		Filters map[string]string `json:"filters"`
 	}
-
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	formattedFilters := make(map[string]string)
-
+	// Format and validate filters
+	formattedFilters := make(map[string]string, len(request.Filters))
 	for key, value := range request.Filters {
 		key = strings.ToLower(strings.TrimSpace(key))
 		value = strings.ToLower(strings.TrimSpace(value))
 
-		match1, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, key)
-		if err != nil {
-			http.Error(w, "Invalid name format for filter category: ", http.StatusBadRequest)
+		if !validFilterRegex.MatchString(key) || !validFilterRegex.MatchString(value) {
+			http.Error(w, "Invalid filter format", http.StatusBadRequest)
 			return
 		}
-
-		match2, err := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, value)
-		if err != nil {
-			http.Error(w, "Invalid name format for filter name:", http.StatusBadRequest)
-			return
-		}
-		if !match1 || !match2 {
-			http.Error(w, "Metric name can only contain letters, numbers, spaces, and these special characters ($, _ , - , / , & , *, ! , ~)", http.StatusBadRequest)
-			return
-		}
-
 		formattedFilters[key] = value
 	}
 
+	// Verify access
 	var value any
 	if useName {
 		if !s.VerifyKeyToMetricName(metricname, apikey) {
 			http.Error(w, "Invalid API key or metric name", http.StatusUnauthorized)
 			return
 		}
-
-		value, _ = s.cache.metrics[1].Load(apikey + metricname)
+		value, _ = s.metricsCache.Load(apikey + metricname)
 	} else {
 		if !s.VerifyKeyToMetricId(metricid, apikey) {
 			http.Error(w, "Invalid API key or metric ID", http.StatusUnauthorized)
 			return
 		}
-		value, _ = s.cache.metrics[0].Load(metricid)
+		value, _ = s.metricsCache.Load(metricid)
 	}
 
-	// Retrieve the metric's and user's cache entry
 	metricCache := value.(MetricCache)
-	userCache, err := s.GetUserCache(metricCache.user_id)
+	projectCache, err := s.GetProjectCache(metricCache.key)
 	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
+		log.Printf("Error getting project cache: %v", err)
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
 
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
+	// Validate limits and rules
+	if projectCache.event_count > projectCache.monthly_event_limit {
+		http.Error(w, fmt.Sprintf("Monthly event limit exceeded: %d", projectCache.monthly_event_limit), http.StatusTooManyRequests)
 		return
 	}
 
-	// Check if the rate limit is exceeded
-	if !s.RateAllow(metricCache.user_id, plan.RequestLimit) {
-		http.Error(w, "You have exceeded your plan's rate limit: "+strconv.Itoa(plan.RequestLimit)+" requests per minute", http.StatusTooManyRequests)
+	if metricCache.metric_type == types.STRIPE_METRIC {
+		http.Error(w, "Stripe metrics cannot be manually updated", http.StatusForbidden)
 		return
 	}
 
-	// Check if the monthly limit is exceeded
-	if userCache.metric_count >= plan.MonthlyEventLimit {
-		http.Error(w, "You have exceeded your monthly event limit: "+strconv.FormatInt(plan.MonthlyEventLimit, 10)+" events per month", http.StatusTooManyRequests)
-		return
-	}
-
-	// Validate the metric value for base metrics
 	if metricCache.metric_type == types.BASE_METRIC && request.Value < 0 {
-		http.Error(w, "Base metric cannot have a negative value", http.StatusBadRequest)
+		http.Error(w, "Base metrics cannot be negative", http.StatusBadRequest)
 		return
 	}
 
-	// Reject zero values
 	if request.Value == 0 && metricCache.metric_type != types.AVERAGE_METRIC {
-		http.Error(w, "Metric value cannot be zero", http.StatusBadRequest)
+		http.Error(w, "Value cannot be zero", http.StatusBadRequest)
 		return
 	}
 
-	// Determine positive and negative values for metrics
+	// Process value
 	pos, neg := 0, 0
 	if request.Value > 0 {
 		pos = request.Value
@@ -256,107 +194,99 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 		neg = -request.Value
 	}
 
-	// Update the metric and create the event summary in the database
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, metricCache.user_id, pos, neg, &formattedFilters); err != nil {
-		log.Print("Failed to update metric and create event: ", err)
+	// Update metric
+	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, projectCache.id, pos, neg, &formattedFilters); err != nil {
+		log.Printf("Error updating metric: %v", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return
 	} else {
-		s.cache.users.Store(metricCache.user_id, UserCache{
-			plan_identifier: userCache.plan_identifier,
-			metric_count:    count,
-			startDate:       userCache.startDate,
+		s.projectsCache.Store(projectCache.api_key, ProjectCache{
+			api_key:             projectCache.api_key,
+			id:                  projectCache.id,
+			event_count:         count,
+			monthly_event_limit: projectCache.monthly_event_limit,
 		})
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetMetricEvents returns metric events for a time range
 func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Invalid authentication token", http.StatusUnauthorized)
 		return
 	}
 
-	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
+	// Parse query params
+	query := r.URL.Query()
+	metricid, err := uuid.Parse(query.Get("metric_id"))
 	if err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
 	}
 
-	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
+	projectid, err := uuid.Parse(query.Get("project_id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
-	start, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("start"))
+	start, err := time.Parse(DateFormat, query.Get("start"))
 	if err != nil {
-		http.Error(w, "Invalid start date format", http.StatusBadRequest)
+		http.Error(w, "Invalid start date", http.StatusBadRequest)
 		return
 	}
 
-	end, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("end"))
+	end, err := time.Parse(DateFormat, query.Get("end"))
 	if err != nil {
-		http.Error(w, "Invalid end date format", http.StatusBadRequest)
+		http.Error(w, "Invalid end date", http.StatusBadRequest)
 		return
 	}
 
-	usenext := false
-	if r.URL.Query().Get("usenext") == "1" {
-		usenext = true
-	}
+	usenext := query.Get("use_next") == "1"
 
-	// Get the project
-	app, err := s.db.GetProject(projectid, token.Id)
+	// Validate access
+	project, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
 
-	// Verify API key and metric association
-	if !s.VerifyKeyToMetricId(metricid, app.ApiKey) {
-		http.Error(w, "Metric not found", http.StatusNotFound)
+	if !s.VerifyKeyToMetricId(metricid, project.ApiKey) {
+		http.Error(w, "Unauthorized access to metric", http.StatusUnauthorized)
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
+	plan, exists := s.plans[project.CurrentPlan]
 	if !exists {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
+		http.Error(w, "Invalid subscription plan", http.StatusBadRequest)
 		return
 	}
 
-	// Ensure the requested date range is within the user's plan limits
+	// Check date range
 	nbrDays := (float64(end.Sub(start).Abs()) / float64(24*time.Hour)) - 2
 	if nbrDays > float64(plan.Range) {
-		http.Error(w, fmt.Sprintf("Your current plan allows viewing up to %d days of data. Upgrade to unlock extended date ranges.", plan.Range), http.StatusUnauthorized)
+		http.Error(w, fmt.Sprintf("Date range exceeds plan limit of %d days", plan.Range), http.StatusUnauthorized)
 		return
 	}
 
-	var bytes []byte
-	// Fetch the metric events
+	// Fetch events
 	metrics, err := s.db.GetMetricEvents(metricid, start, end, usenext)
 	if err != nil {
-		log.Println("Error fetching metric events:", err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Printf("Error fetching events: %v", err)
+		http.Error(w, "Failed to retrieve events", http.StatusInternalServerError)
 		return
 	}
 
-	bytes, err = json.Marshal(metrics)
+	bytes, err := json.Marshal(metrics)
 	if err != nil {
-		http.Error(w, "Failed to process events", http.StatusBadRequest)
+		http.Error(w, "Failed to process events", http.StatusInternalServerError)
 		return
 	}
 
+	// Cache results
 	if end.Before(time.Now()) {
 		SetupCacheControl(w, 100000000)
 	} else {
@@ -367,69 +297,76 @@ func (s *Service) GetMetricEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+// GetDailyVariation returns daily metric variations
 func (s *Service) GetDailyVariation(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Invalid authentication token", http.StatusUnauthorized)
 		return
 	}
 
-	metricid, err := uuid.Parse(r.URL.Query().Get("metricid"))
+	// Parse query params
+	query := r.URL.Query()
+	metricid, err := uuid.Parse(query.Get("metric_id"))
 	if err != nil {
 		http.Error(w, "Invalid metric ID", http.StatusBadRequest)
 		return
 	}
 
-	projectid, err := uuid.Parse(r.URL.Query().Get("projectid"))
+	projectid, err := uuid.Parse(query.Get("project_id"))
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
-	start, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("start"))
+	start, err := time.Parse(DateFormat, query.Get("start"))
 	if err != nil {
-		http.Error(w, "Invalid start date format", http.StatusBadRequest)
+		http.Error(w, "Invalid start date", http.StatusBadRequest)
 		return
 	}
 
-	end, err := time.Parse("2006-01-02T15:04:05.000Z", r.URL.Query().Get("end"))
+	end, err := time.Parse(DateFormat, query.Get("end"))
 	if err != nil {
-		http.Error(w, "Invalid end date format", http.StatusBadRequest)
+		http.Error(w, "Invalid end date", http.StatusBadRequest)
 		return
 	}
 
-	// Get the project
+	// Validate access
 	app, err := s.db.GetProject(projectid, token.Id)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
 
-	// Verify API key and metric association
 	if !s.VerifyKeyToMetricId(metricid, app.ApiKey) {
-		http.Error(w, "Metric not found", http.StatusNotFound)
+		http.Error(w, "Unauthorized access to metric", http.StatusUnauthorized)
 		return
 	}
 
 	events, err := s.db.GetVariationEvents(metricid, start, end)
 	if err != nil {
-		http.Error(w, "Internal error, failed to retrieve daily variation", http.StatusInternalServerError)
+		http.Error(w, "Failed to retrieve variation data", http.StatusInternalServerError)
 		return
 	}
 
-	if len(events) > 1 {
-		if events[0].Id == events[1].Id {
-			events = events[:1]
-		}
+	// Remove duplicates
+	if len(events) > 1 && events[0].Id == events[1].Id {
+		events = events[:1]
 	}
 
 	body, err := json.Marshal(events)
+	if err != nil {
+		http.Error(w, "Failed to process events", http.StatusInternalServerError)
+		return
+	}
 
+	// Cache results
 	if end.Before(time.Now()) {
 		SetupCacheControl(w, 100000000)
 	} else {
 		SetupCacheControl(w, 5)
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }

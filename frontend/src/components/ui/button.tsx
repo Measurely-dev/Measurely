@@ -5,20 +5,22 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center !outline-none !ring-0 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex shadow-sm shadow-black/5 items-center justify-center !outline-none !ring-0 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        default:
+          'bg-primary border border-primary text-primary-foreground hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         outline:
           'border border-input hover:bg-accent hover:text-accent-foreground',
         secondary:
-          'bg-accent text-secondary hover:text-primary hover:bg-accent',
+          'bg-accent border text-muted-foreground hover:text-primary hover:bg-accent',
         destructiveOutline:
-          'border border-red-500/50 hover:bg-destructive/90 bg-destructive text-red-50 hover:text-white',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+          'border border-red-500/50 hover:bg-destructive/15 bg-destructive/10 text-destructive',
+        ghost:
+          'hover:bg-accent shadow-none border border-transparent hover:border-input hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
@@ -68,7 +70,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               strokeWidth='2'
               strokeLinecap='round'
               strokeLinejoin='round'
-              className='feather feather-loader mr-2 h-4 w-4 animate-spin duration-[2000s]'
+              className='feather feather-loader duration-[2000s] mr-2 h-4 w-4 animate-spin'
             >
               <line x1='12' y1='2' x2='12' y2='6' />
               <line x1='12' y1='18' x2='12' y2='22' />

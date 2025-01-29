@@ -1,17 +1,21 @@
+// Required imports for the Note component
 import { cn } from '@/lib/utils';
 import clsx from 'clsx';
 import { PropsWithChildren } from 'react';
 
+// Type definition for Note component props
 type NoteProps = PropsWithChildren & {
-  title?: string;
-  type?: 'note' | 'danger' | 'warning' | 'success';
+  title?: string; // Optional title text
+  type?: 'note' | 'danger' | 'warning' | 'success'; // Optional note type for different styles
 };
 
+// Note component for displaying highlighted information boxes
 export default function Note({
   children,
   title = 'Note',
   type = 'note',
 }: NoteProps) {
+  // Generate Tailwind classes based on note type
   const noteClassNames = clsx({
     'dark:bg-neutral-900 bg-neutral-100': type == 'note',
     'dark:bg-red-950 bg-red-100 border-red-200 dark:border-red-900':
@@ -22,6 +26,7 @@ export default function Note({
       type === 'success',
   });
 
+  // Render note container with title and content
   return (
     <div
       className={cn(

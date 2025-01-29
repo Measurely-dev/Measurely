@@ -1,23 +1,66 @@
 'use client';
-import WebButton from './button';
-import LogoSvg from '@/components/global/logo-svg';
-import { usePathname } from 'next/navigation';
-import { footerData } from './footer-data';
-import FooterLink from './footer-link';
-import Link from 'next/link';
 
+// Import required components and utilities
+import LogoSvg from '@/components/global/logo-svg';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Button } from '../ui/button';
+
+// Footer navigation data structure
+const footerData = [
+  {
+    title: 'Company',
+    links: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Brand Assets', href: '/brand' },
+      { name: 'Blog', href: '/blog' },
+    ],
+  },
+  {
+    title: 'Resources', 
+    links: [
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'Basic metric', href: '/docs/features/basic-metric/' },
+      { name: 'Dual metric', href: '/docs/features/dual-metric/' },
+      { name: 'Help', href: '/help' },
+    ],
+  },
+  {
+    title: 'Documentation',
+    links: [
+      { name: 'Getting started', href: '/docs/getting-started/introduction' },
+      {
+        name: 'JS/TS Integration',
+        href: '/docs/code-integrations/javascript-typescript/',
+      },
+      { name: 'Golang Integration', href: '/docs/code-integrations/golang/' },
+      { name: 'Python Integration', href: '/docs/code-integrations/python/' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Privacy policy', href: '/privacy' },
+      { name: 'Terms of service', href: '/terms' },
+    ],
+  },
+];
+
+// Main Footer component with customizable props for border, background, home status and type
 export default function Footer(props: {
   border: boolean;
   bg?: 'default' | 'secondary';
-  isHome?: boolean | false;
   type: 'default' | 'waitlist';
 }) {
   const pathname = usePathname();
+
   return (
     <footer
       className={`relative z-10 flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-16 ${props.bg ? (props.bg === 'default' ? 'bg-background' : 'bg-secondaryColor') : pathname === '/' || pathname === '/home/' ? 'bg-background' : 'bg-secondaryColor'} ${props.border === true ? 'border-t' : ''} `}
     >
+      {/* Main footer content grid */}
       <div className='max-md: grid w-full max-w-[1100px] grid-cols-5 flex-col-reverse max-md:flex'>
+        {/* Navigation sections */}
         <div className='z-10 col-span-4 mx-auto grid w-full grid-cols-4 max-sm:grid-cols-2'>
           {footerData.map((section, i) => {
             return (
@@ -26,7 +69,11 @@ export default function Footer(props: {
                 <div className='flex flex-col gap-3'>
                   {section.links.map((link, i) => {
                     return (
-                      <FooterLink href={link.href} name={link.name} key={i} />
+                      <IndividualLink
+                        href={link.href}
+                        name={link.name}
+                        key={i}
+                      />
                     );
                   })}
                 </div>
@@ -34,14 +81,16 @@ export default function Footer(props: {
             );
           })}
         </div>
+        {/* Logo section */}
         <div className='flex w-full flex-col items-end gap-5 max-md:mb-10 max-md:items-start'>
-          <Link href={props.isHome ? '/home' : '/'}>
+          <Link href='/'>
             <LogoSvg className='size-10' aria-hidden='true' />
             <span className='sr-only'>Go to homepage</span>
           </Link>
         </div>
       </div>
 
+      {/* Footer bottom section with social links and CTA */}
       <div className='mt-24 flex w-full max-w-[1100px] items-center justify-between text-sm text-[#666666] max-md:mt-16 max-sm:mt-6'>
         <div className='flex items-center gap-2'>
           <a
@@ -69,18 +118,36 @@ export default function Footer(props: {
               />
             </svg>
           </a>
-          © 2025 <span className='max-md:hidden'>Measurely-dev</span>
+          © 2025 <span className='max-md:hidden'>Measurely.dev</span>
         </div>
+        {/* Conditional rendering of CTA button based on type prop */}
         {props.type === 'waitlist' ? (
           <Link href={'/waitlist'}>
-            <WebButton>Join waitlist</WebButton>
+            <Button className='rounded-[12px]'>Join waitlist</Button>
           </Link>
         ) : (
           <Link href={'/register'}>
-            <WebButton>Get started</WebButton>
+            <Button className='rounded-[12px]'>Get started</Button>
           </Link>
         )}
       </div>
     </footer>
+  );
+}
+
+// Component for rendering individual footer links
+function IndividualLink(props: {
+  name: string[] | string;
+  href: string;
+  key: any;
+}) {
+  return (
+    <Link
+      href={props.href}
+      key={props.key}
+      className='w-auto max-w-fit text-sm text-[#666666] hover:text-primary max-md:mb-1 max-md:max-w-full'
+    >
+      {props.name}
+    </Link>
   );
 }

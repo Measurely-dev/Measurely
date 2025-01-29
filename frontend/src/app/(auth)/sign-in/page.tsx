@@ -1,19 +1,20 @@
-'use client';
-
-import AuthForm from '@/components/website/auth';
-import WebContainer from '@/components/website/container';
-import ContentContainer from '@/components/website/content';
-import AuthNavbar from '@/components/website/auth-navbar';
+'use client'
+// Import required components and hooks
+import AuthForm from '@/components/website/auth-form';
+import Container from '@/components/website/container';
+import Content from '@/components/website/content';
+import SemiNavbar from '@/components/website/semi-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function SignIn() {
+  // Initialize hooks and state
   const params = useSearchParams();
-
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  // Handle URL parameters for showing toast notifications
   useEffect(() => {
     if (params.get('error') !== null) {
       setTimeout(() => {
@@ -32,6 +33,7 @@ export default function SignIn() {
     }
   }, [params]);
 
+  // Set page metadata
   useEffect(() => {
     document.title = 'Sign In | Measurely';
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -42,12 +44,13 @@ export default function SignIn() {
       );
     }
   }, []);
+
   return (
-    <WebContainer className='min-h-[800px]'>
+    <Container className='min-h-[800px]'>
       <div className='mb-[150px]'>
-        <AuthNavbar href='/waitlist' button='Join waitlist' />
+        <SemiNavbar href='/waitlist' button='Join waitlist' />
       </div>
-      <ContentContainer>
+      <Content className='pb-20'>
         <AuthForm
           title='Hey friend! Welcome back'
           providers={true}
@@ -62,7 +65,7 @@ export default function SignIn() {
               label: 'Password',
               name: 'password',
               placeholder: 'Password',
-              type: 'password',
+              type: 'password-normal',
             },
           ]}
           button='Sign in'
@@ -71,15 +74,18 @@ export default function SignIn() {
           action={(form) => {
             setLoading(true);
 
+            // Get and sanitize form input values
             const password = form.get('password')?.toString().trim();
             const email = form.get('email')?.toString().trim().toLowerCase();
 
+            // Validate form inputs
             if (password === '' || email === '') {
               toast.error('Please enter email and password');
               setLoading(false);
               return;
             }
 
+            // Make login API request
             fetch(process.env.NEXT_PUBLIC_API_URL + `/login`, {
               method: 'POST',
               headers: {
@@ -97,6 +103,7 @@ export default function SignIn() {
                 });
                 setLoading(false);
               } else {
+                // Clear storage and redirect on successful login
                 localStorage.clear();
                 sessionStorage.clear();
                 router.push('/dashboard');
@@ -104,7 +111,7 @@ export default function SignIn() {
             });
           }}
         />
-      </ContentContainer>
-    </WebContainer>
+      </Content>
+    </Container>
   );
 }

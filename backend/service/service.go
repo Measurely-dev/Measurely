@@ -42,31 +42,21 @@ type MetricCache struct {
 	expiry      time.Time
 }
 
-type RateLimit struct {
-	current int
-	max     int
-	expiry  time.Time
-}
-
-type UserCache struct {
-	plan_identifier string
-	metric_count    int64
-	startDate       time.Time
-}
-
-type Cache struct {
-	plans      sync.Map
-	users      sync.Map
-	metrics    []sync.Map
-	ratelimits sync.Map
+type ProjectCache struct {
+	api_key             string
+	id                  uuid.UUID
+	event_count         int
+	monthly_event_limit int
 }
 
 type Service struct {
-	db        *db.DB
-	email     *email.Email
-	s3Client  *s3.Client
-	providers map[string]Provider
-	cache     Cache
+	db            *db.DB
+	email         *email.Email
+	s3Client      *s3.Client
+	providers     map[string]Provider
+	metricsCache  sync.Map
+	projectsCache sync.Map
+	plans         map[string]types.Plan
 }
 
 func New() Service {
@@ -134,25 +124,43 @@ func New() Service {
 		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
 	})
 
+	plans := make(map[string]types.Plan)
+
+	plans["starter"] = types.Plan{
+		Name:             "Starter",
+		MonthlyPriceId:   os.Getenv(""),
+		YearlyPriceId:    os.Getenv(""),
+		MetricLimit:      3,
+		Range:            30,
+		MaxEventPerMonth: 5000,
+	}
+
+	plans["plus"] = types.Plan{
+		Name:           "Plus",
+		MonthlyPriceId: os.Getenv(""),
+		YearlyPriceId:  os.Getenv(""),
+		MetricLimit:    15,
+		Range:          365,
+	}
+
+	plans["pro"] = types.Plan{
+		Name:           "Pro",
+		MonthlyPriceId: os.Getenv(""),
+		YearlyPriceId:  os.Getenv(""),
+		MetricLimit:    -1,
+		Range:          365,
+	}
+
 	// Return the new service with all components initialized
 	return Service{
-		db:        db,
-		email:     email,
-		providers: providers,
-		s3Client:  client,
-		cache: Cache{
-			plans:      sync.Map{},
-			users:      sync.Map{},
-			metrics:    []sync.Map{{}, {}},
-			ratelimits: sync.Map{},
-		},
+		db:            db,
+		email:         email,
+		providers:     providers,
+		s3Client:      client,
+		metricsCache:  sync.Map{},
+		projectsCache: sync.Map{},
+		plans:         plans,
 	}
-}
-
-func (s *Service) SetupBasicPlans() {
-	s.GetPlan("starter")
-	s.GetPlan("plus")
-	s.GetPlan("pro")
 }
 
 func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
@@ -424,43 +432,42 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 	provider, gerr := s.db.GetProviderByProviderUserId(providerUser.Id, chosenProvider.Type)
 	if gerr == sql.ErrNoRows {
 		if action == "auth" {
-			// TODO : uncomment this code when the waitlist is done
+			if os.Getenv("ENV") != "production" {
+				stripeParams := &stripe.CustomerParams{
+					Email: stripe.String(providerUser.Email),
+				}
 
-			// Handle user creation logic
-			// stripeParams := &stripe.CustomerParams{
-			// 	Email: stripe.String(providerUser.Email),
-			// }
-			//
-			// c, err := customer.New(stripeParams)
-			// if err != nil {
-			// 	log.Println("Stripe error:", err)
-			// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			// 	return
-			// }
+				c, err := customer.New(stripeParams)
+				if err != nil {
+					log.Println("Stripe error:", err)
+					http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+					return
+				}
 
-			// user, err = s.db.CreateUser(types.User{
-			// 	Email:            strings.ToLower(providerUser.Email),
-			// 	Password:         "",
-			// 	FirstName:        providerUser.Name,
-			// 	LastName:         "",
-			// 	StripeCustomerId: c.ID,
-			// 	CurrentPlan:      "starter",
-			// })
-			// if err != nil {
-			// 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			// 		http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
-			// 	} else {
-			// 		http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-			// 	}
-			// 	return
-			// }
-			//
-			//    go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan" : "starter"}})
-			// go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
-      
+				user, err = s.db.CreateUser(types.User{
+					Email:            strings.ToLower(providerUser.Email),
+					Password:         "",
+					FirstName:        strings.ToLower(strings.TrimSpace(providerUser.Name)),
+					LastName:         "",
+					StripeCustomerId: c.ID,
+				})
+				if err != nil {
+					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+						http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
+					} else {
+						log.Println("Error creatiing user: ", err)
+						http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+					}
+					return
+				}
+
+				go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
+				go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
+
+			} else {
 				http.Redirect(w, r, GetOrigin()+"/sign-in?warning=Be the first to know when Measurely is ready by joining the waitlist.", http.StatusFound)
 				return
-
+			}
 		} else if action == "connect" {
 			parsedId, err := uuid.Parse(id)
 			if err != nil {
@@ -476,17 +483,18 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Create provider link in DB
-		// provider, err = s.db.CreateProvider(types.UserProvider{
-		// 	UserId:         user.Id,
-		// 	Type:           chosenProvider.Type,
-		// 	ProviderUserId: providerUser.Id,
-		// })
-		// if err != nil {
-		// 	log.Println("Error creating provider link:", err)
-		// 	http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
-		// 	return
-		// }
+		if os.Getenv("ENV") != "production" {
+			provider, err = s.db.CreateProvider(types.UserProvider{
+				UserId:         user.Id,
+				Type:           chosenProvider.Type,
+				ProviderUserId: providerUser.Id,
+			})
+			if err != nil {
+				log.Println("Error creating provider link:", err)
+				http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
+				return
+			}
+		}
 	}
 
 	if gerr == nil {
@@ -580,8 +588,8 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Email     string `json:"email"`
 		Password  string `json:"password"`
-		FirstName string `json:"firstname"`
-		LastName  string `json:"lastname"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
 	}
 
 	// Try to unmarshal the request body
@@ -634,7 +642,6 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		FirstName:        request.FirstName,
 		LastName:         request.LastName,
 		StripeCustomerId: c.ID,
-		CurrentPlan:      "starter",
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -659,7 +666,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
-	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": "starter"}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
 	go measurely.Capture(metricIds["signups"], measurely.CapturePayload{Value: 1})
 
 	// send email
@@ -719,37 +726,18 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	userCache, err := s.GetUserCache(user.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache: ", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user plan from cache: ", err)
-		http.Error(w, "Plan not found.", http.StatusNotFound)
-		return
-	}
-
-	plan.Price = ""
 	response := struct {
-		Id         uuid.UUID            `json:"id"`
-		Email      string               `json:"email"`
-		FirstName  string               `json:"firstname"`
-		LastName   string               `json:"lastname"`
-		EventCount int64                `json:"eventcount"`
-		Plan       types.Plan           `json:"plan"`
-		Providers  []types.UserProvider `json:"providers"`
+		Id        uuid.UUID            `json:"id"`
+		Email     string               `json:"email"`
+		FirstName string               `json:"first_name"`
+		LastName  string               `json:"last_name"`
+		Providers []types.UserProvider `json:"providers"`
 	}{
-		Id:         user.Id,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		EventCount: user.MonthlyEventCount,
-		Plan:       plan,
-		Providers:  finalProviders,
+		Id:        user.Id,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Providers: finalProviders,
 	}
 
 	bytes, jerr := json.Marshal(response)
@@ -813,8 +801,8 @@ func (s *Service) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) RecoverAccount(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		RequestId   uuid.UUID `json:"requestid"`
-		NewPassword string    `json:"newpassword"`
+		RequestId   uuid.UUID `json:"request_id"`
+		NewPassword string    `json:"new_password"`
 	}
 
 	// Try to unmarshal the request body
@@ -915,7 +903,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Log the feedback event
-	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1, Filters: map[string]string{"plan": user.CurrentPlan}})
+	go measurely.Capture(metricIds["feedbacks"], measurely.CapturePayload{Value: 1})
 
 	// Send email confirmation to user and the team
 	go s.email.SendEmail(email.MailFields{
@@ -925,7 +913,7 @@ func (s *Service) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	})
 	go s.email.SendEmail(email.MailFields{
 		To:      "info@measurely.dev",
-		Subject: "Feedback Received from " + user.Email + " (" + user.CurrentPlan + ")",
+		Subject: "Feedback Received from " + user.Email,
 		Content: request.Content,
 	})
 }
@@ -945,24 +933,25 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.CurrentPlan != "starter" {
-		result := subscription.List(&stripe.SubscriptionListParams{
-			Customer: stripe.String(user.StripeCustomerId),
-		})
+	result := subscription.List(&stripe.SubscriptionListParams{
+		Customer: stripe.String(user.StripeCustomerId),
+	})
 
-		subscriptions := result.SubscriptionList()
+	subscriptions := result.SubscriptionList()
 
-		if subscriptions != nil {
-			if len(subscriptions.Data) != 0 {
-				_, err := subscription.Cancel(subscriptions.Data[0].ID, nil)
+	if subscriptions != nil {
+		if len(subscriptions.Data) != 0 {
+
+			for _, sub := range subscriptions.Data {
+				_, err := subscription.Cancel(sub.ID, nil)
 				if err != nil {
 					log.Println("Failed to cancel subscriptions: ", err)
 					http.Error(w, "Internal error", http.StatusInternalServerError)
 					return
 				}
 			}
-		}
 
+		}
 	}
 
 	// Delete stripe customer
@@ -994,7 +983,7 @@ func (s *Service) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1, Filters: map[string]string{"plan": user.CurrentPlan}})
+	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: -1})
 
 	// Send confirmation emails
 	go s.email.SendEmail(email.MailFields{
@@ -1058,7 +1047,7 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		RequestId uuid.UUID `json:"requestid"`
+		RequestId uuid.UUID `json:"request_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1222,33 +1211,6 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache: ", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user plan from cache: ", err)
-		http.Error(w, "Plan not found.", http.StatusNotFound)
-		return
-	}
-	if plan.ProjectLimit >= 0 {
-		count, cerr := s.db.GetProjectCountByUser(token.Id)
-		if cerr != nil {
-			log.Println("Error retrieving project count:", cerr)
-			http.Error(w, "Error checking project count, please try again later", http.StatusInternalServerError)
-			return
-		}
-
-		if count >= plan.ProjectLimit {
-			http.Error(w, "Project limit reached", http.StatusForbidden)
-			return
-		}
-	}
-
 	var apiKey string
 	var aerr error
 	for tries := 5; tries > 0; tries-- {
@@ -1268,10 +1230,13 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newApp, err := s.db.CreateProject(types.Project{
-		ApiKey: apiKey,
-		Name:   request.Name,
-		UserId: token.Id,
+	new_project, err := s.db.CreateProject(types.Project{
+		ApiKey:           apiKey,
+		Name:             request.Name,
+		UserId:           token.Id,
+		CurrentPlan:      "starter",
+		SubscriptionType: types.SUBSCRIPTION_MONTHLY,
+		MaxEventPerMonth: s.plans["starter"].MaxEventPerMonth,
 	})
 	if err != nil {
 		log.Println("Error creating project:", err)
@@ -1279,8 +1244,19 @@ func (s *Service) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  newApp.UserRole = types.TEAM_OWNER
-	bytes, jerr := json.Marshal(newApp)
+	new_project.UserRole = types.TEAM_OWNER
+
+	type ProjectResponse struct {
+		types.Project
+		Plan types.Plan `json:"plan"`
+	}
+
+	response := ProjectResponse{
+		Project: new_project,
+		Plan:    s.plans[new_project.CurrentPlan],
+	}
+
+	bytes, jerr := json.Marshal(response)
 	if jerr != nil {
 		http.Error(w, "Failed to marshal project data", http.StatusInternalServerError)
 		return
@@ -1301,7 +1277,7 @@ func (s *Service) RandomizeApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"projectid"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Attempt to decode the request body into the `request` struct
@@ -1371,13 +1347,38 @@ func (s *Service) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"project"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Try to unmarshal the request body
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println("Error fetching project:", err)
+			http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	if project.StripeSubscriptionId != "" {
+		_, err = subscription.Cancel(project.StripeSubscriptionId, nil)
+		if err != nil {
+			log.Println("Failed to cancel subscriptions: ", err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Delete the project
@@ -1400,7 +1401,7 @@ func (s *Service) UpdateProjectName(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		NewName   string    `json:"new_name"`
-		ProjectId uuid.UUID `json:"projectid"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1446,6 +1447,11 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type ProjectResponse struct {
+		types.Project
+		Plan types.Plan `json:"plan"`
+	}
+
 	// Fetch Projects
 	projects, err := s.db.GetProjects(token.Id)
 	if err == sql.ErrNoRows {
@@ -1456,13 +1462,23 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	projects_response := []ProjectResponse{}
+
 	for i, project := range projects {
-		if project.UserRole == types.TEAM_VIEW {
+		projects[i].StripeSubscriptionId = ""
+		if project.UserRole == types.TEAM_GUEST {
 			projects[i].ApiKey = ""
 		}
+
+		response := ProjectResponse{
+			Project: project,
+			Plan:    s.plans[project.CurrentPlan],
+		}
+
+		projects_response = append(projects_response, response)
 	}
 
-	bytes, err := json.Marshal(projects)
+	bytes, err := json.Marshal(projects_response)
 	if err != nil {
 		http.Error(w, "Failed to marshal projects data: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -1470,6 +1486,51 @@ func (s *Service) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
+}
+
+func (s *Service) UpdateProjectUnits(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ProjectId uuid.UUID    `json:"project_id"`
+		Units     []types.Unit `json:"units"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error, please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusUnauthorized)
+		return
+	}
+
+	// Update the project units
+	err = s.db.UpdateProjectUnits(request.ProjectId, request.Units)
+	if err != nil {
+		log.Println("Error updating project units:", err)
+		http.Error(w, "Failed to update project units, please try again later", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
@@ -1481,13 +1542,15 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		Name           string     `json:"name"`
-		ProjectId      uuid.UUID  `json:"projectid"`
+		ProjectId      uuid.UUID  `json:"project_id"`
 		Type           int        `json:"type"`
-		BaseValue      int64      `json:"basevalue"`
-		NamePos        string     `json:"namepos"`
-		NameNeg        string     `json:"nameneg"`
-		ParentMetricId *uuid.UUID `json:"parentmetricid,omitempty"`
-		FilterCategory string     `json:"filtercategory"`
+		BaseValue      int64      `json:"base_value"`
+		NamePos        string     `json:"name_pos"`
+		NameNeg        string     `json:"name_neg"`
+		ParentMetricId *uuid.UUID `json:"parent_metric_id,omitempty"`
+		FilterCategory string     `json:"filter_category"`
+		Unit           string     `json:"unit"`
+		StripeApiKey   string     `json:"stripeapikey"`
 	}
 
 	// Try to unmarshal the request body
@@ -1511,7 +1574,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Type != types.BASE_METRIC && request.Type != types.DUAL_METRIC && request.Type != types.AVERAGE_METRIC {
+	if request.Type < 0 || request.Type > 3 {
 		http.Error(w, "Invalid metric type", http.StatusBadRequest)
 		return
 	}
@@ -1545,31 +1608,27 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCache, err := s.GetUserCache(token.Id)
-	if err != nil {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	plan, exists := s.GetPlan(userCache.plan_identifier)
-	if !exists {
-		log.Println("Failed to retrieve user from cache:", err)
-		http.Error(w, "User not found.", http.StatusNotFound)
-		return
-	}
-
-	if count >= plan.MetricPerProjectLimit {
+	if count >= s.plans[project.CurrentPlan].MetricLimit {
 		http.Error(w, "Metric limit reached for this app", http.StatusForbidden)
 		return
 	}
 
-	var parentMetricId sql.Null[uuid.UUID]
+	var parentMetricId sql.Null[string]
 	if request.ParentMetricId == nil {
 		parentMetricId.Valid = false
 	} else {
 		parentMetricId.Valid = true
-		parentMetricId.V = *request.ParentMetricId
+		parentMetricId.V = request.ParentMetricId.String()
+	}
+
+	var stripeApiKey sql.Null[string]
+	if request.Type == types.STRIPE_METRIC {
+		if request.StripeApiKey != "" {
+			stripeApiKey.V = request.StripeApiKey
+			stripeApiKey.Valid = true
+		} else {
+			stripeApiKey.Valid = false
+		}
 	}
 
 	// Create the metric
@@ -1581,6 +1640,8 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		NameNeg:        request.NameNeg,
 		ParentMetricId: parentMetricId,
 		FilterCategory: request.FilterCategory,
+		Unit:           request.Unit,
+		StripeApiKey:   stripeApiKey,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1633,8 +1694,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MetricId  uuid.UUID `json:"metricid"`
-		ProjectId uuid.UUID `json:"projectid"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	// Try to unmarshal the request body
@@ -1670,8 +1731,8 @@ func (s *Service) DeleteMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Remove the metric from the cache
-	s.cache.metrics[0].Delete(request.MetricId)
-	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
+	s.metricsCache.Delete(request.MetricId)
+	s.metricsCache.Delete(project.ApiKey + metric.Name)
 
 	w.WriteHeader(http.StatusOK)
 	go measurely.Capture(metricIds["metrics"], measurely.CapturePayload{Value: -1})
@@ -1684,7 +1745,7 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectid, perr := uuid.Parse(r.URL.Query().Get("projectid"))
+	projectid, perr := uuid.Parse(r.URL.Query().Get("project_id"))
 	if perr != nil {
 		http.Error(w, "Invalid app ID format", http.StatusBadRequest)
 		return
@@ -1711,6 +1772,10 @@ func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i := range metrics {
+		metrics[i].StripeApiKey.V = ""
+	}
+
 	bytes, err := json.Marshal(metrics)
 	if err != nil {
 		http.Error(w, "Failed to marshal metrics data: "+err.Error(), http.StatusInternalServerError)
@@ -1729,11 +1794,11 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ProjectId uuid.UUID `json:"projectid"`
-		MetricId  uuid.UUID `json:"metricid"`
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
 		Name      string    `json:"name"`
-		NamePos   string    `json:"namepos"`
-		NameNeg   string    `json:"nameneg"`
+		NamePos   string    `json:"name_pos"`
+		NameNeg   string    `json:"name_neg"`
 	}
 
 	// Try to unmarshal the request body
@@ -1775,7 +1840,139 @@ func (s *Service) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.cache.metrics[1].Delete(project.ApiKey + metric.Name)
+	s.metricsCache.Delete(project.ApiKey + metric.Name)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateMetricUnit(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		Unit      string    `json:"unit"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println("Error fetching project:", err)
+			http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	// Update the metric
+	if err := s.db.UpdateMetricUnit(request.MetricId, request.ProjectId, request.Unit); err != nil {
+		log.Println("Error updating metric unit:", err)
+		http.Error(w, "Failed to update metric unit", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ParentMetricId uuid.UUID `json:"parent_metric_id"`
+		ProjectId      uuid.UUID `json:"project_id"`
+		Category       string    `json:"category"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.DeleteMetricByCategory(request.ParentMetricId, request.ProjectId, request.Category)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to delete category", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		ParentMetricId uuid.UUID `json:"parent_metric_id"`
+		ProjectId      uuid.UUID `json:"project_id"`
+		OldName        string    `json:"old_name"`
+		NewName        string    `json:"new_name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
+	}
+
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.UpdateCategoryName(request.OldName, request.NewName, request.ParentMetricId, request.ProjectId)
+	if err != nil {
+		http.Error(w, "Failed to update category", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -1786,18 +1983,9 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request struct {
-		Search string `json:"search"`
-	}
+	search := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("search")))
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	request.Search = strings.ToLower(strings.TrimSpace(request.Search))
-
-	users, err := s.db.SearchUsers(request.Search)
+	users, err := s.db.SearchUsers(search)
 	if err != nil && err != sql.ErrNoRows {
 		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		return
@@ -1805,6 +1993,7 @@ func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		users[i].Password = ""
+		users[i].StripeCustomerId = ""
 	}
 
 	body, err := json.Marshal(users)
@@ -1825,9 +2014,9 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
-		Role      int       `json:"role"`
+		MemberEmail string    `json:"member_email"`
+		ProjectId   uuid.UUID `json:"project_id"`
+		Role        int       `json:"role"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1835,16 +2024,17 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Role != types.TEAM_VIEW && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
+	if request.Role != types.TEAM_GUEST && request.Role != types.TEAM_DEV && request.Role != types.TEAM_ADMIN {
 		http.Error(w, "Invalid team member role", http.StatusBadRequest)
 		return
 	}
 
-	_, err := s.db.GetUserById(request.MemberId)
+	member, err := s.db.GetUserByEmail(request.MemberEmail)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "User not found", http.StatusNotFound)
+			http.Error(w, "The user was found", http.StatusNotFound)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
 		return
@@ -1855,6 +2045,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
 		}
 		return
@@ -1865,21 +2056,51 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	count, err := s.db.GetTeamMembersCount(request.ProjectId)
+	if err != nil {
+		http.Error(w, "Failed to add team member", http.StatusInternalServerError)
+		return
+	}
+
+	if count > s.plans[project.CurrentPlan].TeamMemberLimit {
+		http.Error(w, "Team limit reached for this project", http.StatusForbidden)
+		return
+	}
+
 	err = s.db.CreateTeamRelation(types.TeamRelation{
-		UserId:    request.MemberId,
+		UserId:    member.Id,
 		ProjectId: request.ProjectId,
 		Role:      request.Role,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			http.Error(w, "The User is already a member of this team", http.StatusAlreadyReported)
+			http.Error(w, "The user is already a member of this team", http.StatusAlreadyReported)
 		} else {
 			log.Println(err)
 			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
 		}
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	member.Password = ""
+	member.StripeCustomerId = ""
+	member.UserRole = request.Role
+
+	body, err := json.Marshal(member)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else {
+		w.Header().Set("Content-Type", "authorization/json")
+		w.Write(body)
+	}
+
+	go s.email.SendEmail(email.MailFields{
+		To:          member.Email,
+		Subject:     fmt.Sprintf("You have been added to %s as a team member", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
 }
 
 func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
@@ -1890,8 +2111,8 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
+		MemberId  uuid.UUID `json:"member_id"`
+		ProjectId uuid.UUID `json:"project_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1925,7 +2146,6 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if token.Id == request.MemberId || project.UserRole == types.TEAM_OWNER || team_relation.Role == types.TEAM_ADMIN {
-		// can delete
 		s.db.DeleteTeamRelation(request.MemberId, request.ProjectId)
 	} else {
 		http.Error(w, "You do not have the role necessary to perform this action.", http.StatusUnauthorized)
@@ -1933,6 +2153,16 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	user, _ := s.db.GetUserById(team_relation.Id)
+
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     fmt.Sprintf("You have been removed from the project %s", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
 }
 
 func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
@@ -1943,9 +2173,9 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		MemberId  uuid.UUID `json:"memberid"`
-		ProjectId uuid.UUID `json:"projectid"`
-		NewRole   int       `json:"NewRole"`
+		MemberId  uuid.UUID `json:"member_id"`
+		ProjectId uuid.UUID `json:"project_id"`
+		NewRole   int       `json:"new_role"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1953,8 +2183,8 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.NewRole != types.TEAM_ADMIN && request.NewRole != types.TEAM_DEV && request.NewRole != types.TEAM_VIEW {
-		http.Error(w, "Invalide role", http.StatusBadRequest)
+	if request.NewRole != types.TEAM_ADMIN && request.NewRole != types.TEAM_DEV && request.NewRole != types.TEAM_GUEST {
+		http.Error(w, "Invalid role", http.StatusBadRequest)
 		return
 	}
 
@@ -1968,6 +2198,7 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		}
 		return
@@ -1983,6 +2214,7 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Invalid request", http.StatusBadGateway)
 		} else {
+			log.Println(err)
 			http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		}
 		return
@@ -1995,13 +2227,26 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 
 	err = s.db.UpdateUserRole(request.MemberId, request.ProjectId, request.NewRole)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
 
+	user, _ := s.db.GetUserById(team_relation.Id)
+
+	go s.email.SendEmail(email.MailFields{
+		To:          user.Email,
+		Subject:     fmt.Sprintf("Your role has been changed in the project %s", project.Name),
+		Content:     "",
+		ButtonTitle: "Dashboard",
+		Link:        GetOrigin() + "/dashboard",
+	})
+}
+// GetTeamMembers retrieves all team members associated with a project
+// Requires authentication token and project ID
+// Returns a list of users with sensitive data removed
 func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
@@ -2009,13 +2254,13 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appid, err := uuid.Parse(chi.URLParam(r, "appid"))
+	projectid, err := uuid.Parse(chi.URLParam(r, "project_id"))
 	if err != nil {
 		http.Error(w, "Invalid app id", http.StatusBadRequest)
 		return
 	}
 
-	_, err = s.db.GetProject(appid, token.Id)
+	_, err = s.db.GetProject(projectid, token.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Project not found", http.StatusNotFound)
@@ -2025,7 +2270,7 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := s.db.GetUsersByProjectId(appid)
+	users, err := s.db.GetUsersByProjectId(projectid)
 	if err != nil && err != sql.ErrNoRows {
 		http.Error(w, "Internal error, please try again later.", http.StatusInternalServerError)
 		return
@@ -2033,6 +2278,7 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		users[i].Password = ""
+		users[i].StripeCustomerId = ""
 	}
 
 	body, err := json.Marshal(users)
@@ -2043,4 +2289,121 @@ func (s *Service) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
+}
+
+// GetBlocks retrieves the block layout and labels for a project's dashboard
+// If no blocks exist, creates default blocks with predefined labels
+// Requires authentication token and project ID
+func (s *Service) GetBlocks(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	projectid, err := uuid.Parse(chi.URLParam(r, "project_id"))
+	if err != nil {
+		http.Error(w, "Invalid project Id", http.StatusBadRequest)
+		return
+	}
+
+	blocks, err := s.db.GetBlocks(projectid, token.Id)
+	if err != nil && err != sql.ErrNoRows {
+		log.Println(err)
+		http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		return
+	} else if err == sql.ErrNoRows {
+		project, err := s.db.GetProject(projectid, token.Id)
+		if err == nil {
+			teamrelationid := sql.Null[string]{
+				Valid: false,
+			}
+			if project.UserRole != types.TEAM_OWNER {
+				team_relation, err := s.db.GetTeamRelation(token.Id, projectid)
+				if err == nil {
+					teamrelationid.Valid = true
+					teamrelationid.V = team_relation.Id.String()
+				}
+			}
+
+			DefaultLabels := []types.Label{
+				{
+					Name:         "overview",
+					DefaultColor: "#8000ff",
+				},
+				{
+					Name:         "comparaison",
+					DefaultColor: "#ff007f",
+				},
+				{
+					Name:         "revenue",
+					DefaultColor: "#0033cc",
+				},
+				{
+					Name:         "profit",
+					DefaultColor: "#00cccc",
+				},
+				{
+					Name:         "growth",
+					DefaultColor: "#cc9900",
+				},
+			}
+
+			blocks, err = s.db.CreateBlocks(types.Blocks{
+				TeamRelationId: teamrelationid,
+				UserId:         token.Id,
+				ProjectId:      projectid,
+				Labels:         DefaultLabels,
+				Layout:         []types.Block{},
+			})
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	body, err := json.Marshal(blocks)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
+}
+
+// UpdateBlocks updates the layout and labels of a project's dashboard blocks
+// Requires authentication token and project ID
+// Accepts new layout and labels in request body
+func (s *Service) UpdateBlocks(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		NewLayout []types.Block `json:"new_layout"`
+		NewLabels []types.Label `json:"new_labels"`
+		ProjectId uuid.UUID     `json:"project_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := s.db.UpdateBlocksLayout(request.ProjectId, token.Id, request.NewLayout, request.NewLabels); err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Blocks not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -9,11 +9,11 @@ import {
 } from '@/components/ui/dialog';
 import { CreditCard, Home, X } from 'lucide-react';
 import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
-import SettingGeneralPage from './setting-pages/general';
+import GeneralSettings from './setting-pages/general';
 import { Hexagon } from 'react-feather';
-import SettingPaymentPage from './setting-pages/payment';
+import PaymentSettings from './setting-pages/payment';
 import { Button } from '@/components/ui/button';
-import SettingProjectPage from './setting-pages/projects';
+import ProjectsSettings from './setting-pages/projects';
 
 interface SettingPage {
   name: string;
@@ -43,7 +43,7 @@ export default function SettingDialog(props: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 !shadow-none ring-1 ring-input max-lg:min-w-[95%] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col lg:min-w-[900px] lg:max-w-[900px]'>
+      <DialogContent className='flex h-[70%] max-h-[70%] min-w-[80%] flex-row gap-0 overflow-hidden !rounded-xl bg-transparent !p-0 max-lg:min-w-[95%] max-md:min-h-[95%] max-md:max-w-[95%] max-md:flex-col lg:min-w-[900px] lg:max-w-[900px]'>
         <DialogTitle className='sr-only'>Settings</DialogTitle>
         <DialogDescription className='sr-only'>
           Settings dialog
@@ -75,14 +75,16 @@ function Navbar(props: {
 }) {
   return (
     <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
-      <div className='ml-4 text-xs font-medium text-secondary'>Settings</div>
+      <div className='ml-4 text-xs font-medium text-muted-foreground'>Settings</div>
       <div className='mt-3 flex flex-col gap-2'>
         {props.settings.map((item, i) => {
           return (
             <div
               key={i}
-              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] px-4 py-[5px] text-sm font-medium text-primary hover:bg-zinc-400/15 ${
-                props.page === item.value ? 'bg-zinc-400/15' : ''
+              className={`flex w-full cursor-pointer select-none flex-row items-center gap-2 rounded-[8px] border border-transparent px-4 py-[5px] text-sm font-medium text-primary hover:border-input hover:bg-input/50 ${
+                props.page === item.value
+                  ? '!border !border-input bg-input/50'
+                  : ''
               }`}
               onClick={() => props.setPage(item.value)}
             >
@@ -104,11 +106,11 @@ function Content(props: {
   function content() {
     switch (props.page) {
       case 'general':
-        return <SettingGeneralPage />;
+        return <GeneralSettings />;
       case 'projects':
-        return <SettingProjectPage />;
+        return <ProjectsSettings />;
       case 'payment':
-        return <SettingPaymentPage />;
+        return <PaymentSettings />;
     }
   }
   return (

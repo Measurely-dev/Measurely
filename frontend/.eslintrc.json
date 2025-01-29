@@ -2,23 +2,23 @@
   "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
   "plugins": ["unused-imports", "react"],
   "rules": {
-    "unused-imports/no-unused-imports": "error", // Enforce removal of unused imports
+    "unused-imports/no-unused-imports": "error",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "off",
     "@typescript-eslint/no-empty-object-type": "off",
-    "react/no-unescaped-entities": ["off"], // React rule for unescaped entities
+    "react/no-unescaped-entities": ["off"],
     "react-hooks/exhaustive-deps": "off",
     "unused-imports/no-unused-vars": [
-      "warn", // Warn for unused vars
+      "warn",
       {
         "vars": "all",
-        "varsIgnorePattern": "^_", // Ignore vars starting with _
+        "varsIgnorePattern": "^_",
         "args": "after-used",
-        "argsIgnorePattern": "^_" // Ignore function args starting with _
+        "argsIgnorePattern": "^_"
       }
     ],
-    "react/jsx-key": "error" // Add a rule for missing key props
+    "react/jsx-key": "error"
   },
   "ignorePatterns": ["src/docs-contents/", ".next/", "node_modules/"]
 }
