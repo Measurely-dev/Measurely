@@ -1,34 +1,47 @@
 'use client';
 
+// Import necessary dependencies and contexts
 import { ProjectsContext, UserContext } from '@/dash-context';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import LogoSvg from '@/components/global/logo-svg';
 import { toast } from 'sonner';
 import { loadMetrics } from '@/utils';
-import { LoaderIcon } from 'lucide-react';
+import { UserRole } from '@/types';
+import { Loader } from 'react-feather';
 
+// Dashboard layout component that handles project/user data loading and displays a loading state
 export default function DashboardContentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get project-related state and methods from context
   const {
     projects,
     setProjects,
     setActiveProject,
     projectsLoading,
     setProjectsLoading,
+    activeProject,
   } = useContext(ProjectsContext);
-  const { setUser, userLoading, setUserLoading } = useContext(UserContext);
 
+  // Get user-related state and methods from context
+  const { setUser, userLoading, setUserLoading } = useContext(UserContext);
+  const [activeProjectName, setActiveProjectName] = useState('');
   const router = useRouter();
 
+  // Initial data loading effect
   useEffect(() => {
-    if (projects.length === 0 && !projectsLoading) {
+    // Redirect to new project page if user has no owned projects
+    if (
+      projects.filter((proj) => proj.user_role === UserRole.Owner).length ===
+        0 &&
+      !projectsLoading
+    ) {
       router.push('/dashboard/new-project');
     }
 
+    // Load user data if not already loaded
     if (userLoading) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/user', {
         method: 'GET',
@@ -55,6 +68,7 @@ export default function DashboardContentLayout({
         });
     }
 
+    // Load projects data if not already loaded
     if (projectsLoading) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/projects', {
         method: 'GET',
@@ -79,16 +93,16 @@ export default function DashboardContentLayout({
             router.push('/dashboard/new-project');
             return;
           }
+
+          // Get saved active project from localStorage or default to 0
           let savedActiveProject = parseInt(
             localStorage.getItem('activeProject') ?? '0',
           );
           if (savedActiveProject > json.length - 1 || savedActiveProject < 0) {
             savedActiveProject = 0;
-            localStorage.setItem(
-              'activeProject',
-              savedActiveProject.toString(),
-            );
           }
+
+          // Load metrics only for active project
           for (let i = 0; i < json.length; i++) {
             if (
               i === savedActiveProject &&
@@ -98,6 +112,8 @@ export default function DashboardContentLayout({
             } else {
               json[i].metrics = null;
             }
+            json[i].members = null;
+            json[i].blocks = null;
           }
 
           setProjects(json);
@@ -107,14 +123,50 @@ export default function DashboardContentLayout({
     }
   }, []);
 
+  // Handle active project changes
+  useEffect(() => {
+    if (
+      projects === undefined ||
+      !projects.length ||
+      activeProject >= projects.length
+    )
+      return;
+    setProjectsLoading(true);
+    setActiveProjectName(projects[activeProject].name);
+    if (projects[activeProject].metrics === null) {
+      loadMetrics(projects[activeProject].id)
+        .then((data) => {
+          setProjects(
+            projects.map((proj, i) =>
+              i === activeProject
+                ? Object.assign({}, proj, {
+                    metrics: data,
+                  })
+                : proj,
+            ),
+          );
+        })
+        .finally(() => {
+          setProjectsLoading(false);
+        });
+    } else {
+      setTimeout(() => setProjectsLoading(false), 300);
+    }
+    localStorage.setItem('activeProject', activeProject.toString());
+  }, [activeProject]);
+
+  // Render loading state or children components
   return (
     <>
       {projectsLoading || userLoading ? (
-        <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-8 bg-accent'>
-          <div className='relative flex flex-col items-center justify-center gap-2'>
-            <LogoSvg className='size-20' />
+        <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-4 bg-accent'>
+          <span className='sr-only'>Loader</span>
+          <Loader className='size-7 animate-spin text-muted-foreground' />
+          <div className='inline-flex items-center font-mono text-sm text-muted-foreground'>
+            {projectsLoading && activeProjectName
+              ? `Loading ${activeProjectName.charAt(0).toUpperCase() + activeProjectName.slice(1).toLowerCase()}`
+              : 'Loading Measurely'}
           </div>
-          <LoaderIcon className='size-5 animate-spin' />
         </div>
       ) : (
         <>{children}</>

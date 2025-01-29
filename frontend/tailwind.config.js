@@ -78,6 +78,14 @@ const config = {
           '50%': { backgroundPosition: '100% 50%' },
           '100%': { backgroundPosition: '0% 50%' },
         },
+        'animate-in': {
+          from: { opacity: '0', transform: 'translateY(10px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'animate-out': {
+          from: { opacity: '1', transform: 'translateY(0)' },
+          to: { opacity: '0', transform: 'translateY(10px)' },
+        },
       },
       backgroundSize: {
         '300%': '300%',
@@ -86,10 +94,12 @@ const config = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         gradient: 'animatedgradient 12s ease infinite alternate',
+        'animate-in': 'animate-in 0.2s ease-out',
+        'animate-out': 'animate-out 0.2s ease-out',
       },
     },
-    plugins: [animate],
   },
+  plugins: [animate],
 };
 
 export default config;

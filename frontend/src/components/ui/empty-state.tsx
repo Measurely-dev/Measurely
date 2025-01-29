@@ -10,6 +10,7 @@ interface EmptyStateProps {
   action?: {
     label: string;
     onClick: () => void;
+    disabled?: boolean | false;
   };
   className?: string;
 }
@@ -65,6 +66,7 @@ export function EmptyState({
       {action && (
         <Button
           onClick={action.onClick}
+          disabled={action.disabled}
           variant='outline'
           className={cn('mt-4 rounded-[12px]', 'shadow-sm active:shadow-none')}
         >

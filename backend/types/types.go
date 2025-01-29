@@ -16,13 +16,24 @@ const (
 	BASE_METRIC = iota
 	DUAL_METRIC
 	AVERAGE_METRIC
+	STRIPE_METRIC
 )
 
 const (
 	TEAM_OWNER = iota
 	TEAM_ADMIN
 	TEAM_DEV
-	TEAM_VIEW
+	TEAM_GUEST
+)
+
+const (
+	SUBSCRIPTION_MONTHLY = iota
+	SUBSCRIPTION_YEARLY
+)
+
+const (
+	INVOICE_ACTIVE = iota
+	INVOICE_FAILED
 )
 
 type key int
@@ -30,99 +41,136 @@ type key int
 const TOKEN key = iota
 
 type Token struct {
-	Id    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	Id    uuid.UUID `db:"id" json:"id"`
+	Email string    `db:"email" json:"email"`
 }
 type User struct {
-	Id                uuid.UUID
-	Email             string
-	FirstName         string
-	LastName          string
-	Password          string
-	StripeCustomerId  string
-	CurrentPlan       string
-	Image             string
-	MonthlyEventCount int64
-	StartCountDate    time.Time
-	UserRole          int `db:"userrole"`
+	Id               uuid.UUID `db:"id" json:"id"`
+	Email            string    `db:"email" json:"email"`
+	FirstName        string    `db:"first_name" json:"first_name"`
+	LastName         string    `db:"last_name" json:"last_name"`
+	Password         string    `db:"password" json:"-"`
+	StripeCustomerId string    `db:"stripe_customer_id" json:"-"`
+	Image            string    `db:"image" json:"image"`
+	InvoiceStatus    int       `db:"invoice_status" json:"invoice_status"`
+	UserRole         int       `json:"user_role" db:"user_role"`
 }
 
 type UserProvider struct {
-	Id             uuid.UUID `json:"id"`
-	UserId         uuid.UUID `json:"userid"`
-	Type           int       `json:"type"`
-	ProviderUserId string    `json:"provideruserid"`
+	Id             uuid.UUID `db:"id" json:"id"`
+	UserId         uuid.UUID `db:"user_id" json:"user_id"`
+	Type           int       `db:"type" json:"type"`
+	ProviderUserId string    `db:"provider_user_id" json:"provider_user_id"`
 }
 
 type Project struct {
-	Id       uuid.UUID `db:"id" json:"id"`
-	ApiKey   string    `db:"apikey" json:"apikey"`
-	UserId   uuid.UUID `db:"userid" json:"userid"`
-	UserRole int       `db:"userrole" json:"userrole"`
-	Name     string    `db:"name" json:"name"`
-	Image    string    `db:"image" json:"image"`
+	Id                   uuid.UUID `db:"id" json:"id"`
+	ApiKey               string    `db:"api_key" json:"api_key"`
+	Units                []Unit    `json:"units" db:"units"`
+	UserId               uuid.UUID `db:"user_id" json:"user_id"`
+	UserRole             int       `json:"user_role" db:"user_role"`
+	Name                 string    `db:"name" json:"name"`
+	Image                string    `db:"image" json:"image"`
+	CurrentPlan          string    `db:"current_plan" json:"current_plan"`
+	SubscriptionType     int       `db:"subscription_type" json:"subscription_type"`
+	StripeSubscriptionId string    `db:"stripe_subscription_id" json:"-"`
+	MaxEventPerMonth     int       `db:"max_event_per_month" json:"max_event_per_month"`
+	MonthlyEventCount    int       `db:"monthly_event_count" json:"monthly_event_count"`
 }
 
 type Metric struct {
-	Id             uuid.UUID           `json:"id"`
-	ProjectId      uuid.UUID           `json:"projectid"`
-	FilterCategory string              `json:"filtercategory"`
-	ParentMetricId sql.Null[uuid.UUID] `json:"parentmetricid"`
-	Name           string              `json:"name"`
-	Type           int                 `json:"type"`
-	EventCount     int64               `json:"eventcount"`
-	TotalPos       int64               `json:"totalpos"`
-	TotalNeg       int64               `json:"totalneg"`
-	NamePos        string              `json:"namepos"`
-	NameNeg        string              `json:"nameneg"`
-	Filters        map[string][]Metric `json:"filters"`
-	Created        time.Time           `json:"created"`
+	Id                 uuid.UUID           `db:"id" json:"id"`
+	ProjectId          uuid.UUID           `db:"project_id" json:"project_id"`
+	Unit               string              `json:"unit" db:"unit"`
+	FilterCategory     string              `db:"filter_category" json:"filter_category"`
+	ParentMetricId     sql.Null[string]    `db:"parent_metric_id" json:"-"`
+	Name               string              `db:"name" json:"name"`
+	Type               int                 `db:"type" json:"type"`
+	EventCount         int64               `db:"event_count" json:"event_count"`
+	TotalPos           int64               `db:"total_pos" json:"total_pos"`
+	TotalNeg           int64               `db:"total_neg" json:"total_neg"`
+	NamePos            string              `db:"name_pos" json:"name_pos"`
+	NameNeg            string              `db:"name_neg" json:"name_neg"`
+	Filters            map[string][]Metric `db:"filters" json:"filters"`
+	Created            time.Time           `db:"created" json:"created"`
+	LastEventTimestamp sql.Null[time.Time] `db:"last_event_timestamp"`
+	StripeApiKey       sql.Null[string]    `db:"stripe_api_key" json:"-"`
 }
 
 type MetricEvent struct {
-	Id                 uuid.UUID `json:"id"`
-	MetricId           uuid.UUID `json:"metricid"`
-	Date               time.Time `json:"date"`
-	EventCount         int       `json:"eventcount"`
-	ValuePos           int       `json:"valuepos"`
-	ValueNeg           int       `json:"valueneg"`
-	RelativeEventCount int64     `json:"relativeeventcount"`
-	RelativeTotalPos   int64     `json:"relativetotalpos"`
-	RelativeTotalNeg   int64     `json:"relativetotalneg"`
+	Id                 uuid.UUID `db:"id" json:"id"`
+	MetricId           uuid.UUID `db:"metric_id" json:"metric_id"`
+	Date               time.Time `db:"date" json:"date"`
+	EventCount         int       `db:"event_count" json:"event_count"`
+	ValuePos           int       `db:"value_pos" json:"value_pos"`
+	ValueNeg           int       `db:"value_neg" json:"value_neg"`
+	RelativeEventCount int64     `db:"relative_event_count" json:"relative_event_count"`
+	RelativeTotalPos   int64     `db:"relative_total_pos" json:"relative_total_pos"`
+	RelativeTotalNeg   int64     `db:"relative_total_neg" json:"relative_total_neg"`
 }
 
 type AccountRecovery struct {
-	Id     uuid.UUID
-	UserId uuid.UUID
+	Id     uuid.UUID `db:"id"`
+	UserId uuid.UUID `db:"user_id"`
 }
 
 type EmailChangeRequest struct {
-	Id       uuid.UUID
-	UserId   uuid.UUID
-	NewEmail string
+	Id       uuid.UUID `db:"id"`
+	UserId   uuid.UUID `db:"user_id"`
+	NewEmail string    `db:"new_email"`
 }
 
 type Feedback struct {
-	Id      uuid.UUID
-	Date    time.Time
-	Email   string `db:"email"`
-	Content string `db:"content"`
+	Id      uuid.UUID `db:"id"`
+	Date    time.Time `db:"date"`
+	Email   string    `db:"email"`
+	Content string    `db:"content"`
 }
 
 type Plan struct {
-	Name                  string `json:"name"`
-	Identifier            string `json:"identifier"`
-	Price                 string `json:"price"`
-	ProjectLimit          int    `json:"projectlimit"`
-	MetricPerProjectLimit int    `json:"metric_per_project_limit"`
-	RequestLimit          int    `json:"requestlimit"`
-	MonthlyEventLimit     int64  `json:"monthlyeventlimit"`
-	Range                 int    `json:"range"`
+	Name             string `json:"name"`
+	MonthlyPriceId   string `json:"-"`
+	YearlyPriceId    string `json:"-"`
+	MetricLimit      int    `json:"metric_limit"`
+	TeamMemberLimit  int    `json:"team_member_limit"`
+	Range            int    `json:"range"`
+	MaxEventPerMonth int    `json:"-"`
 }
 
 type TeamRelation struct {
-	Id        uuid.UUID `json:"id"`
-	UserId    uuid.UUID `json:"userid"`
-	ProjectId uuid.UUID `json:"projectid"`
-	Role      int       `json:"rol"`
+	Id        uuid.UUID `db:"id" json:"id"`
+	UserId    uuid.UUID `db:"user_id" json:"user_id"`
+	ProjectId uuid.UUID `db:"project_id" json:"project_id"`
+	Role      int       `db:"role" json:"rol"`
+}
+
+type Blocks struct {
+	TeamRelationId sql.Null[string] `db:"team_relation_id"`
+	UserId         uuid.UUID        `db:"user_id"`
+	ProjectId      uuid.UUID        `db:"project_id"`
+	Layout         []Block          `db:"layout" json:"layout"`
+	Labels         []Label          `db:"labels" json:"labels"`
+}
+
+type Block struct {
+	UniqueKey        string      `json:"unique_key"`
+	Id               int         `json:"id"`
+	Name             string      `json:"name"`
+	Nested           []Block     `json:"nested"`
+	MetricIds        []uuid.UUID `json:"metric_ids"`
+	FilterCategories []string    `json:"filter_categories"`
+	Type             int         `json:"type"`
+	ChartType        int         `json:"chart_type"`
+	Label            string      `json:"label"`
+	Color            string      `json:"color"`
+}
+
+type Label struct {
+	Name         string `json:"name"`
+	DefaultColor string `json:"default_color"`
+}
+
+type Unit struct {
+	Name   string `json:"name"`
+	Symbol string `json:"symbol"`
 }

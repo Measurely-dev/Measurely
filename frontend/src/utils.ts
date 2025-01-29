@@ -1,537 +1,574 @@
 import { toast } from 'sonner';
-import { Metric, MetricType } from './types';
+import { Metric, MetricType, UserRole } from './types';
 
-export const MAXFILESIZE = 500 * 1024;
-export const INTERVAL = 20000;
+/**
+ * Constants
+ */
+export const MAXFILESIZE = 500 * 1024; // 500KB max file size
+export const INTERVAL = 20000; // 20 second interval
 
-export async function loadMetrics(projectid: string): Promise<Metric[]> {
+const ALPHA_NUM_CHARS =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+/**
+ * Generates a random alphanumeric string of specified length
+ */
+export function generateString(length: number): string {
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += ALPHA_NUM_CHARS.charAt(
+      Math.floor(Math.random() * ALPHA_NUM_CHARS.length),
+    );
+  }
+  return result;
+}
+
+/**
+ * Maps UserRole enum to display string
+ */
+export function roleToString(role: UserRole): string {
+  const roleMap = {
+    [UserRole.Owner]: 'Owner',
+    [UserRole.Admin]: 'Admin',
+    [UserRole.Developer]: 'Developer',
+    [UserRole.Guest]: 'Guest',
+  };
+  return roleMap[role] || '';
+}
+
+/**
+ * Capitalizes first letter of first and last name
+ */
+export function formatFullName(first_name: string, last_name: string): string {
+  const capitalize = (str: string) =>
+    str.length > 1 ? str[0].toUpperCase() + str.slice(1) : str.toUpperCase();
+
+  return `${capitalize(first_name)} ${capitalize(last_name)}`;
+}
+
+/**
+ * Fetches and processes metrics data for a project
+ */
+export async function loadMetrics(project_id: string): Promise<Metric[]> {
   const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + '/metrics?projectid=' + projectid,
+    `${process.env.NEXT_PUBLIC_API_URL}/metrics?project_id=${project_id}`,
     {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
     },
   );
-  if (res.ok) {
-    const json = await res.json();
-    if (json === null) return [];
 
-    for (let i = 0; i < json.length; i++) {
-      const namepos = json[i].namepos;
-      const nameneg = json[i].nameneg;
+  if (!res.ok) return [];
 
-      if (json[i].filters === null) continue;
-      const filterCategories = Object.keys(json[i].filters);
+  const json = await res.json();
+  if (!json) return [];
 
-      for (let j = 0; j < filterCategories.length; j++) {
-        for (let k = 0; k < json[i].filters[filterCategories[j]].length; k++) {
-          json[i].filters[filterCategories[j]][k].namepos = namepos;
-          json[i].filters[filterCategories[j]][k].nameneg = nameneg;
-        }
-      }
-    }
+  // Apply names to nested filters
+  return json.map((metric: Metric) => {
+    if (!metric.filters) return metric;
 
-    return json;
-  }
-
-  return [];
+    const { name_pos, name_neg } = metric;
+    Object.values(metric.filters).forEach((filterArr) => {
+      filterArr.forEach((filter) => {
+        filter.name_pos = name_pos;
+        filter.name_neg = name_neg;
+      });
+    });
+    return metric;
+  });
 }
 
-export const getDaysFromDate = (date: Date) => {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return days[date.getDay()];
-};
+// Cached day/month names
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
-export const getMonthsFromDate = (date: Date) => {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return months[date.getMonth()];
-};
+export const getDaysFromDate = (date: Date) => DAYS[date.getDay()];
+export const getMonthsFromDate = (date: Date) => MONTHS[date.getMonth()];
 
+/**
+ * Fetches and processes chart data based on date range and metric type
+ */
 export const fetchChartData = async (
   date: Date,
   range: number,
   metric: Metric,
-  projectid: string,
-  chartType: 'trend' | 'overview',
+  project_id: string,
+  chart_type: 'trend' | 'overview',
 ): Promise<any[]> => {
-  const tmpData: any[] = [];
-  if (!date) {
-    return [];
-  }
+  if (!date) return [];
 
-  date.setHours(0);
-  date.setMinutes(0);
-  date.setSeconds(0);
-  date.setMilliseconds(0);
-
+  // Initialize dates
   const from = new Date(date);
-  const to = new Date(date);
+  from.setHours(0, 0, 0, 0);
+
+  const to = new Date(from);
   to.setDate(to.getDate() + range - 1);
-  to.setHours(23);
-  to.setMinutes(59);
-  to.setSeconds(59);
+  to.setHours(23, 59, 59);
 
-  const dateCounter = new Date(from);
-  let dataLength = 0;
+  // Calculate data points
+  const dataLength =
+    range === 1
+      ? chart_type === 'trend'
+        ? 72
+        : 24
+      : range === 7
+        ? chart_type === 'trend'
+          ? 21
+          : 7
+        : range >= 365
+          ? 12
+          : range;
 
-  if (range === 1) {
-    if (chartType === 'trend') {
-      dataLength = 24 * 3;
-    } else {
-      dataLength = 24;
-    }
-  } else if (range === 7) {
-    if (chartType === 'trend') {
-      dataLength = range * 3;
-    } else {
-      dataLength = range;
-    }
-  } else if (range >= 365) {
-    dataLength = 12;
-  } else {
-    dataLength = range;
-  }
-
+  // Initialize data array
   const now = new Date();
+  const unitValue = getUnit(metric.unit);
+  const tmpData: any[] = [];
+  const dateCounter = new Date(from);
+
   for (let i = 0; i < dataLength; i++) {
     const eventDate = new Date(dateCounter);
     const data: any = {
       date: eventDate,
+      [`metric_unit_${metric.name}`]: unitValue,
     };
+
     if (eventDate <= now) {
-      data[metric.type !== MetricType.Dual ? metric.name : metric.namepos] = 0;
+      data[metric.type !== MetricType.Dual ? metric.name : metric.name_pos] = 0;
       if (metric.type === MetricType.Dual) {
-        data[metric.nameneg] = 0;
+        data[metric.name_neg] = 0;
       }
     }
     tmpData.push(data);
+
+    // Increment date based on range
     if (range === 1) {
-      if (chartType === 'trend') {
-        dateCounter.setMinutes(dateCounter.getMinutes() + 20);
-      } else {
-        dateCounter.setHours(dateCounter.getHours() + 1);
-      }
+      dateCounter.setMinutes(
+        dateCounter.getMinutes() + (chart_type === 'trend' ? 20 : 60),
+      );
     } else if (range === 7) {
-      if (chartType === 'trend') {
-        dateCounter.setHours(dateCounter.getHours() + 8);
-      } else {
-        dateCounter.setDate(dateCounter.getDate() + 1);
-      }
+      dateCounter.setHours(
+        dateCounter.getHours() + (chart_type === 'trend' ? 8 : 24),
+      );
     } else if (range >= 365) {
       dateCounter.setMonth(dateCounter.getMonth() + 1);
     } else {
       dateCounter.setDate(dateCounter.getDate() + 1);
     }
   }
-  await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?metricid=${metric.id}&projectid=${projectid}&start=${from.toISOString()}&end=${to.toISOString()}`,
-    { method: 'GET', credentials: 'include' },
-  )
-    .then((resp) => {
-      if (!resp.ok) {
-        resp.text().then((text) => {
-          toast.error(text);
-        });
-      } else {
-        return resp.json();
-      }
-    })
-    .then((json) => {
-      if (json !== null && json !== undefined) {
-        for (let i = 0; i < json.length; i++) {
-          const eventDate = new Date(json[i].date);
-          for (let j = 0; j < tmpData.length; j++) {
-            let matches = false;
-            if (range === 1) {
-              matches =
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear() &&
-                eventDate.getHours() === tmpData[j].date.getHours();
-              if (chartType === 'trend') {
-                matches =
-                  matches &&
-                  eventDate.getMinutes() === tmpData[j].date.getMinutes();
-              }
-            } else if (range === 7) {
-              matches =
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear();
-              if (chartType === 'trend') {
-                matches =
-                  matches &&
-                  eventDate.getHours() >= tmpData[j].date.getHours() &&
-                  eventDate.getHours() < tmpData[j].date.getHours() + 8;
-              }
-            } else if (range >= 365) {
-              matches =
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear();
-            } else {
-              matches =
-                eventDate.getDate() === tmpData[j].date.getDate() &&
-                eventDate.getMonth() === tmpData[j].date.getMonth() &&
-                eventDate.getFullYear() === tmpData[j].date.getFullYear();
-            }
 
-            if (matches) {
-              if (metric.type === MetricType.Average) {
-                const current_average = tmpData[j][metric.name] ?? 0;
-                const current_eventcount = tmpData[j]['Event Count'] ?? 0;
+  // Fetch events data
+  try {
+    const eventsRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events?metric_id=${metric.id}&project_id=${project_id}&start=${from.toISOString()}&end=${to.toISOString()}`,
+      { method: 'GET', credentials: 'include' },
+    );
 
-                tmpData[j]['Event Count'] =
-                  current_eventcount + json[i].eventcount;
+    if (!eventsRes.ok) {
+      const errText = await eventsRes.text();
+      toast.error(errText);
+      return tmpData;
+    }
 
-                tmpData[j][metric.name] =
-                  (current_average * current_eventcount +
-                    (json[i].valuepos - json[i].valueneg)) /
-                  tmpData[j]['Event Count'];
-                if (tmpData[j]['+'] === undefined) tmpData[j]['+'] = 0;
-                if (tmpData[j]['-'] === undefined) tmpData[j]['-'] = 0;
-                tmpData[j]['+'] += json[i].valuepos;
-                tmpData[j]['-'] += json[i].valueneg;
-              } else {
-                tmpData[j][
-                  metric.type === MetricType.Base ? metric.name : metric.namepos
-                ] += json[i].valuepos;
-                tmpData[j][metric.nameneg] += json[i].valueneg;
-              }
+    const events = await eventsRes.json();
+    // Process events if they exist
+    if (events) {
+      // Process events data
+      events.forEach((event: any) => {
+        const eventDate = new Date(event.date);
 
-              tmpData[j]['Positive Trend'] = json[i].relativetotalpos;
-              tmpData[j]['Negative Trend'] = json[i].relativetotalneg;
-              tmpData[j]['Event Trend'] = json[i].relativeeventcount;
-
-              if (json[i].relativeeventcount === 0) {
-                tmpData[j]['Average Trend'] = 0;
-              } else {
-                tmpData[j]['Average Trend'] =
-                  (json[i].relativetotalpos - json[i].relativetotalneg) /
-                  json[i].relativeeventcount;
-              }
-            }
+        tmpData.forEach((data) => {
+          if (datesMatch(eventDate, data.date, range, chart_type)) {
+            updateMetricValues(data, event, metric);
+            updateTrendValues(data, event);
           }
-        }
-      }
-    });
-
-  let lastDate = undefined;
-
-  for (let i = 0; i < tmpData.length; i++) {
-    tmpData[i].tooltiplabel = parseXAxis(tmpData[i].date, range);
-    if ((range === 1 || range === 7) && chartType === 'trend') {
-      tmpData[i].tooltiplabel += ' ' + parseXAxis(tmpData[i].date, 0);
+        });
+      });
     }
-
-    let matches = false;
-    if (lastDate !== undefined) {
-      if (range === 1) {
-        matches =
-          tmpData[i].date.getDate() === lastDate.getDate() &&
-          tmpData[i].date.getMonth() === lastDate.getMonth() &&
-          tmpData[i].date.getFullYear() === lastDate.getFullYear() &&
-          tmpData[i].date.getHours() === lastDate.getHours();
-      } else if (range >= 365) {
-        matches =
-          tmpData[i].date.getMonth() === lastDate.getMonth() &&
-          tmpData[i].date.getFullYear() === lastDate.getFullYear();
-      } else if (range === 7 || range === 15 || range >= 28) {
-        matches =
-          tmpData[i].date.getDate() === lastDate.getDate() &&
-          tmpData[i].date.getMonth() === lastDate.getMonth() &&
-          tmpData[i].date.getFullYear() === lastDate.getFullYear();
-      }
-    }
-
-    if (!matches) {
-      lastDate = new Date(tmpData[i].date);
-      tmpData[i].date = parseXAxis(tmpData[i].date, range);
-    } else {
-      tmpData[i].date = '';
-    }
+  } catch (err) {
+    console.error('Error fetching events:', err);
+    toast.error('Failed to fetch events data');
   }
+
+  // Format dates for display
+  let lastDate: Date | undefined = undefined;
+  tmpData.forEach((data) => {
+    data.tooltiplabel = parseXAxis(data.date, range);
+
+    const matches = lastDate && datesMatch(data.date, lastDate, range);
+    if (!matches) {
+      lastDate = new Date(data.date);
+      data.date = parseXAxis(data.date, range);
+    } else {
+      data.date = '';
+    }
+  });
 
   return tmpData;
 };
 
+/**
+ * Helper to check if dates match based on range
+ */
+function datesMatch(
+  d1: Date,
+  d2: Date,
+  range: number,
+  chart_type?: 'trend' | 'overview',
+): boolean {
+  if (range === 1) {
+    const baseMatch =
+      d1.getDate() === d2.getDate() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getHours() === d2.getHours();
+    return chart_type === 'trend'
+      ? baseMatch && d1.getMinutes() === d2.getMinutes()
+      : baseMatch;
+  }
+
+  if (range === 7 && chart_type === 'trend') {
+    return (
+      d1.getDate() === d2.getDate() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getHours() >= d2.getHours() &&
+      d1.getHours() < d2.getHours() + 8
+    );
+  }
+
+  if (range >= 365) {
+    return (
+      d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear()
+    );
+  }
+
+  return (
+    d1.getDate() === d2.getDate() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getFullYear() === d2.getFullYear()
+  );
+}
+
+/**
+ * Helper to update metric values
+ */
+function updateMetricValues(data: any, event: any, metric: Metric) {
+  if (metric.type === MetricType.Average) {
+    const current_average = data[metric.name] ?? 0;
+    const current_event_count = data['Event Count'] ?? 0;
+
+    data['Event Count'] = current_event_count + event.event_count;
+    data[metric.name] =
+      (current_average * current_event_count +
+        (event.value_pos - event.value_neg)) /
+      data['Event Count'];
+
+    data['+'] = (data['+'] ?? 0) + event.value_pos;
+    data['-'] = (data['-'] ?? 0) + event.value_neg;
+  } else {
+    const metricName =
+      metric.type === MetricType.Base ? metric.name : metric.name_pos;
+    data[metricName] += event.value_pos;
+    data[metric.name_neg] += event.value_neg;
+  }
+}
+
+/**
+ * Helper to update trend values
+ */
+function updateTrendValues(data: any, event: any) {
+  data['Positive Trend'] = event.relative_total_pos;
+  data['Negative Trend'] = event.relative_total_neg;
+  data['Event Trend'] = event.relative_event_count;
+  data['Average Trend'] =
+    event.relative_event_count === 0
+      ? 0
+      : (event.relative_total_pos - event.relative_total_neg) /
+        event.relative_event_count;
+}
+
+/**
+ * Fetches next event data for a metric
+ */
 export const fetchNextEvent = async (
-  projectid: string,
-  metricid: string,
+  project_id: string,
+  metric_id: string,
   start?: Date,
 ): Promise<{
   pos: number;
   neg: number;
-  eventcount: number;
-  relativetotalpos: number;
-  relativetotalneg: number;
-  relativeeventcount: number;
+  event_count: number;
+  relative_total_pos: number;
+  relative_total_neg: number;
+  relative_event_count: number;
   results: number;
 }> => {
-  const from = start === undefined ? new Date() : new Date(start);
-  from.setHours(0);
-  from.setMinutes(0);
-  from.setSeconds(0);
-  from.setMilliseconds(0);
+  const from = new Date(start || new Date());
+  from.setHours(0, 0, 0, 0);
 
-  const to = new Date(from);
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/events?projectid=${projectid}&metricid=${metricid}&start=${from.toISOString()}&end=${to.toISOString()}&usenext=1`,
-    {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events?project_id=${project_id}&metric_id=${metric_id}&start=${from.toISOString()}&end=${from.toISOString()}&use_next=1`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       },
-    },
-  );
-  if (res.ok) {
-    const json = await res.json();
-    if (json != null) {
-      if (json.length > 0) {
-        let pos = 0;
-        let neg = 0;
-        let eventcount = 0;
-        let relativetotalpos = 0;
-        let relativetotalneg = 0;
-        let relativeeventcount = 0;
-        let results = 0;
-        for (let i = 0; i < json.length; i++) {
-          relativetotalpos = json[i].relativetotalpos;
-          relativetotalneg = json[i].relativetotalneg;
-          relativeeventcount = json[i].relativeeventcount;
+    );
 
-          pos += json[i].valuepos;
-          neg += json[i].valueneg;
-          eventcount += json[i].eventcount;
+    if (!res.ok) return defaultEventData();
 
-          results += 1;
-        }
-        return {
-          pos,
-          neg,
-          eventcount,
-          relativetotalpos,
-          relativetotalneg,
-          relativeeventcount,
-          results,
-        };
-      }
-    }
+    const events = await res.json();
+    if (!events?.length) return defaultEventData();
+
+    return events.reduce(
+      (acc: any, event: any) => ({
+        pos: acc.pos + event.value_pos,
+        neg: acc.neg + event.value_neg,
+        event_count: acc.event_count + event.event_count,
+        relative_total_pos: event.relative_total_pos,
+        relative_total_neg: event.relative_total_neg,
+        relative_event_count: event.relative_event_count,
+        results: acc.results + 1,
+      }),
+      defaultEventData(),
+    );
+  } catch (err) {
+    console.error('Error fetching next event:', err);
+    return defaultEventData();
   }
+};
+
+function defaultEventData() {
   return {
     pos: 0,
     neg: 0,
-    eventcount: 0,
-    relativetotalpos: 0,
-    relativetotalneg: 0,
-    relativeeventcount: 0,
+    event_count: 0,
+    relative_total_pos: 0,
+    relative_total_neg: 0,
+    relative_event_count: 0,
     results: 0,
   };
-};
+}
 
+/**
+ * Fetches event variation data between dates
+ */
 export const fetchEventVariation = async (
-  projectid: string,
-  metricid: string,
+  project_id: string,
+  metric_id: string,
   startDate?: Date,
   endDate?: Date,
 ): Promise<{
   pos: number;
   neg: number;
-  relativetotalpos: number;
-  relativetotalneg: number;
-  relativeeventcount: number;
+  event_count: number;
+  relative_total_pos: number;
+  relative_total_neg: number;
+  relative_event_count: number;
   averagepercentdiff: number;
   results: number;
 }> => {
-  const start = startDate === undefined ? new Date() : startDate;
-  start.setHours(0);
-  start.setMinutes(0);
-  start.setSeconds(0);
-  start.setMilliseconds(0);
+  const start = new Date(startDate || new Date());
+  start.setHours(0, 0, 0, 0);
 
-  const end = endDate === undefined ? new Date(start) : endDate;
-  end.setHours(23);
-  end.setMinutes(59);
-  end.setSeconds(59);
+  const end = new Date(endDate || start);
+  end.setHours(23, 59, 59);
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/daily-variation?projectid=${projectid
-    }&metricid=${metricid}&start=${start.toISOString()}&end=${end.toISOString()}`,
-    {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/daily_variation?project_id=${project_id}&metric_id=${metric_id}&start=${start.toISOString()}&end=${end.toISOString()}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       },
-    },
-  );
-  if (res.ok) {
-    const json = await res.json();
-    if (json != null) {
-      let pos = 0;
-      let neg = 0;
-      let averagepercentdiff = 0;
-      let relativetotalpos = 0;
-      let relativetotalneg = 0;
-      let relativeeventcount = 0;
+    );
 
-      if (json.length > 1) {
-        pos =
-          json[1].relativetotalpos -
-          (json[0].relativetotalpos - json[0].valuepos);
-        neg =
-          json[1].relativetotalneg -
-          (json[0].relativetotalneg - json[0].valueneg);
-        relativetotalpos = json[1].relativetotalpos;
-        relativetotalneg = json[1].relativetotalneg;
-        relativeeventcount = json[1].relativeeventcount;
+    if (!res.ok) return defaultVariationData();
 
-        let lastAverage =
-          (json[1].relativetotalpos - json[1].relativetotalneg) /
-          json[1].relativeeventcount;
-        let firstAverage =
-          (json[0].relativetotalpos -
-            json[0].valuepos -
-            (json[0].relativetotalneg - json[0].valueneg)) /
-          json[0].relativeeventcount;
+    const data = await res.json();
+    if (!data) return defaultVariationData();
 
-        if (json[1].relativeeventcount === 0) lastAverage = 0;
-        if (json[0].relativeeventcount === 0) firstAverage = 0;
-
-        const diff = lastAverage - firstAverage;
-
-        if (diff !== 0 && firstAverage === 0) {
-          if (diff < 0) {
-            averagepercentdiff = -100;
-          } else {
-            averagepercentdiff = 100;
-          }
-        } else if (firstAverage !== 0) {
-          averagepercentdiff = (diff / firstAverage) * 100;
-        }
-      } else if (json.length > 0) {
-        pos = json[0].valuepos;
-        neg = json[0].valueneg;
-        relativetotalpos = json[0].relativetotalpos;
-        relativetotalneg = json[0].relativetotalneg;
-        relativeeventcount = json[0].relativeeventcount;
-
-        let lastAverage =
-          (json[0].relativetotalpos - json[0].relativetotalneg) /
-          json[0].relativeeventcount;
-        let firstAverage =
-          (json[0].relativetotalpos -
-            json[0].valuepos -
-            (json[0].relativetotalneg - json[0].valueneg)) /
-          json[0].relativeeventcount;
-
-        if (json[0].relativeeventcount === 0) {
-          lastAverage = 0;
-          firstAverage = 0;
-        }
-
-        const diff = lastAverage - firstAverage;
-
-        if (diff !== 0 && firstAverage === 0) {
-          if (diff < 0) {
-            averagepercentdiff = -100;
-          } else {
-            averagepercentdiff = 100;
-          }
-        } else if (firstAverage !== 0) {
-          averagepercentdiff = (diff / firstAverage) * 100;
-        }
-      }
-
-      return {
-        pos,
-        neg,
-        relativetotalpos,
-        relativetotalneg,
-        relativeeventcount,
-        averagepercentdiff,
-        results: json.length,
-      };
+    if (data.length > 1) {
+      return calculateVariationForTwoPeriods(data);
+    } else if (data.length === 1) {
+      return calculateVariationForSinglePeriod(data[0]);
     }
+
+    return defaultVariationData();
+  } catch (err) {
+    console.error('Error fetching variation:', err);
+    return defaultVariationData();
   }
+};
+
+function defaultVariationData() {
   return {
     pos: 0,
     neg: 0,
-    relativetotalpos: 0,
-    relativetotalneg: 0,
-    relativeeventcount: 0,
+    event_count: 0,
+    relative_total_pos: 0,
+    relative_total_neg: 0,
+    relative_event_count: 0,
     averagepercentdiff: 0,
     results: 0,
   };
-};
+}
 
+function calculateVariationForTwoPeriods(data: any[]) {
+  const [first, last] = data;
+  const pos =
+    last.relative_total_pos - (first.relative_total_pos - first.value_pos);
+  const neg =
+    last.relative_total_neg - (first.relative_total_neg - first.value_neg);
+  const event_count =
+    last.relative_event_count - (first.relative_event_count - first.evencount);
+
+  const lastAverage =
+    last.relative_event_count === 0
+      ? 0
+      : (last.relative_total_pos - last.relative_total_neg) /
+        last.relative_event_count;
+
+  const firstAverage =
+    first.relative_event_count - first.event_count === 0
+      ? 0
+      : (first.relative_total_pos -
+          first.value_pos -
+          (first.relative_total_neg - first.value_neg)) /
+        (first.relative_event_count - first.event_count);
+
+  const diff = lastAverage - firstAverage;
+  const averagepercentdiff =
+    diff !== 0 && firstAverage === 0
+      ? diff < 0
+        ? -100
+        : 100
+      : firstAverage !== 0
+        ? (diff / firstAverage) * 100
+        : 0;
+
+  return {
+    pos,
+    neg,
+    event_count,
+    relative_total_pos: last.relative_total_pos,
+    relative_total_neg: last.relative_total_neg,
+    relative_event_count: last.relative_event_count,
+    averagepercentdiff,
+    results: data.length,
+  };
+}
+
+function calculateVariationForSinglePeriod(data: any) {
+  const lastAverage =
+    data.relative_event_count === 0
+      ? 0
+      : (data.relative_total_pos - data.relative_total_neg) /
+        data.relative_event_count;
+
+  const firstAverage =
+    data.relative_event_count - data.event_count === 0
+      ? 0
+      : (data.relative_total_pos -
+          data.value_pos -
+          (data.relative_total_neg - data.value_neg)) /
+        (data.relative_event_count - data.event_count);
+
+  const diff = lastAverage - firstAverage;
+  const averagepercentdiff =
+    diff !== 0 && firstAverage === 0
+      ? diff < 0
+        ? -100
+        : 100
+      : firstAverage !== 0
+        ? (diff / firstAverage) * 100
+        : 0;
+
+  return {
+    pos: data.value_pos,
+    neg: data.value_neg,
+    event_count: data.event_count,
+    relative_total_pos: data.relative_total_pos,
+    relative_total_neg: data.relative_total_neg,
+    relative_event_count: data.relative_event_count,
+    averagepercentdiff,
+    results: 1,
+  };
+}
+
+/**
+ * Calculates trend data for metrics by processing positive/negative trends
+ * and averaging values based on metric type
+ */
 export const calculateTrend = (
   data: any[],
   metric: Metric | null | undefined,
-  totalpos: number,
-  totalneg: number,
+  total_pos: number,
+  total_neg: number,
   average: number,
 ): any[] => {
   if (!metric) return data;
+
+  // Create copy of data to modify
   const trend = data.map((obj) => ({ ...obj }));
+
+  // Process each data point from newest to oldest
   for (let i = trend.length - 1; i >= 0; i--) {
-    if (
-      trend[i]['Positive Trend'] !== undefined &&
-      trend[i]['Negative Trend'] !== undefined &&
-      trend[i]['Event Trend'] !== undefined &&
-      trend[i]['Average Trend'] !== undefined
-    ) {
-      totalpos =
-        trend[i]['Positive Trend'] -
-        trend[i][
-        metric.type !== MetricType.Dual ? metric.name : metric.namepos
-        ];
-      totalneg = trend[i]['Negative Trend'] - (trend[i][metric.nameneg] ?? 0);
+    const point = trend[i];
+    const hasTrends =
+      point['Positive Trend'] !== undefined &&
+      point['Negative Trend'] !== undefined &&
+      point['Event Trend'] !== undefined &&
+      point['Average Trend'] !== undefined;
 
-      if (metric.type === MetricType.Average) {
-        trend[i][metric.name] = trend[i]['Average Trend'];
-      } else {
-        trend[i][metric.name] =
-          trend[i]['Positive Trend'] - trend[i]['Negative Trend'];
-      }
+    if (hasTrends) {
+      // Calculate running totals
+      const metricName =
+        metric.type !== MetricType.Dual ? metric.name : metric.name_pos;
+      total_pos = point['Positive Trend'] - point[metricName];
+      total_neg = point['Negative Trend'] - (point[metric.name_neg] ?? 0);
 
-      const eventcount = trend[i]['Event Trend'] - trend[i]['Event Count'];
-      if (eventcount === 0) {
-        average = 0;
-      } else {
-        average = (totalpos - totalneg) / eventcount;
-      }
+      // Update metric value based on type
+      point[metric.name] =
+        metric.type === MetricType.Average
+          ? point['Average Trend']
+          : point['Positive Trend'] - point['Negative Trend'];
+
+      // Calculate new average
+      const event_count = point['Event Trend'] - point['Event Count'];
+      average = event_count === 0 ? 0 : (total_pos - total_neg) / event_count;
     } else {
+      // Handle points without trends
       if (metric.type === MetricType.Average) {
-        if (trend[i][metric.name] !== undefined) {
-          trend[i][metric.name] = average;
+        if (point[metric.name] !== undefined) {
+          point[metric.name] = average;
         }
       } else {
-        if (
-          trend[i][
-          metric.type !== MetricType.Dual ? metric.name : metric.namepos
-          ] !== undefined
-        ) {
-          trend[i][metric.name] = totalpos;
+        const metricName =
+          metric.type !== MetricType.Dual ? metric.name : metric.name_pos;
+        if (point[metricName] !== undefined) {
+          point[metric.name] = total_pos;
+          point['Positive Trend'] = total_pos;
         }
-        if (trend[i][metric.nameneg] !== undefined) {
-          trend[i][metric.name] -= totalneg;
+        if (point[metric.name_neg] !== undefined) {
+          point[metric.name] -= total_neg;
+          point['Negative Trend'] = total_neg;
         }
       }
     }
@@ -540,14 +577,97 @@ export const calculateTrend = (
   return trend;
 };
 
-export const parseXAxis = (value: Date, range: number) => {
-  if (range === 0) {
-    return value.getMinutes() + ' MIN';
-  } else if (range === 1) {
-    return value.getHours().toString() + ' H';
-  } else if (range >= 365) {
-    return getMonthsFromDate(value);
-  } else if (range === 7 || range === 15 || range >= 28) {
-    return getMonthsFromDate(value) + ' ' + value.getDate().toString();
+/**
+ * Formats date for X-axis display
+ */
+export const parseXAxis = (value: Date, range: number): string => {
+  if (range === 0) return `${value.getMinutes()} MIN`;
+  if (range === 1) return `${value.getHours()} H`;
+  if (range >= 365) return getMonthsFromDate(value);
+  if (range === 7 || range === 15 || range >= 28) {
+    return `${getMonthsFromDate(value)} ${value.getDate()}`;
   }
+  return '';
 };
+
+/**
+ * Formats numbers for display
+ */
+export const valueFormatter = (number: number): string => {
+  return Intl.NumberFormat('us').format(number);
+};
+
+/**
+ * Extract unit from metric
+ */
+export const getUnit = (unit: string): string => {
+  const [_, value] = unit.match(/\((.*?)\)/) || [null, unit];
+  return value;
+};
+//
+// Calculates price based on selected plan and billing period
+export function calculatePrice(
+  basePrice: number,
+  plan: string,
+  quantity: number,
+  cycle: 'month' | 'year',
+): number {
+  console.log(cycle)
+  let n = 0;
+  const baseQuantity = 10000;
+
+  if (plan === 'plus') {
+    n = 0.41;
+  } else if (plan === 'pro') {
+    n = 0.378;
+  }
+  
+  
+  
+  
+  const k = basePrice / Math.pow(baseQuantity, n);
+
+  let price = k * Math.pow(quantity, n);
+  
+  if(cycle === "year"){
+    price *= 0.8;
+  }
+  
+
+  return Math.round(price * 100) / 100;
+}
+
+// Maps slider values to event amounts for display
+export function getEventAmount(value: number): string {
+  const valueMap: Record<number, string> = {
+    0: '10K',
+    10: '50K',
+    20: '100K',
+    30: '250K',
+    40: '500K',
+    50: '1M',
+    60: '2M',
+    70: '4M',
+    80: '6M',
+    90: '8M',
+    100: '10M+',
+  };
+  return valueMap[value] || 'N/A';
+}
+
+export function getEventCount(value: number): number {
+  const valueMap: Record<number, number> = {
+    0: 10000,
+    10: 50000,
+    20: 100000,
+    30: 250000,
+    40: 500000,
+    50: 1000000,
+    60: 2000000,
+    70: 4000000,
+    80: 6000000,
+    90: 8000000,
+    100: 10000000,
+  };
+  return valueMap[value] || 0;
+}

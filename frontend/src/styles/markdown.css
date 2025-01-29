@@ -194,14 +194,14 @@
 }
 
 .markdown h5 {
-  font-size: .83em;
+  font-size: 0.83em;
   margin-top: 1.67em;
   margin-bottom: 1.67em;
   font-weight: bold;
 }
 
 .markdown h6 {
-  font-size: .67em;
+  font-size: 0.67em;
   margin-top: 2.33em;
   margin-bottom: 2.33em;
   font-weight: bold;

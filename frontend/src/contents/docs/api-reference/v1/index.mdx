@@ -1,5 +1,4 @@
 ---
-
 title: Measurely API
 description: How to interact with the Measurely API to update metric values.
 ---
@@ -25,7 +24,7 @@ Before you can start using the Measurely API, you will need the following:
 To update a metric's value, you need to make a POST request to the following endpoint:
 
 ```
-POST https://api.measurely.dev/v1/event/{METRIC_ID OR METRIC_NAME}
+POST https://api.measurely.dev/event/v1/{METRIC_ID OR METRIC_NAME}
 ```
 
 ### Request Body
@@ -81,4 +80,3 @@ The rate limit has been exceeded. This typically occurs when the number of reque
 ### 500 - Internal server error
 
 An error occurred while processing the request, such as a failure to update the metric. This should be very rare.
-

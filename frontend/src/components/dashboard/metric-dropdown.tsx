@@ -1,38 +1,37 @@
 'use client';
+
+// Import UI components and utilities
 import { DialogTrigger } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Metric, Project } from '@/types';
-import { useContext } from 'react';
-import { toast } from 'sonner';
-import { useConfirm } from '@omit/react-confirm-dialog';
-import { Trash } from 'lucide-react';
+  FloatingPanelBody,
+  FloatingPanelButton,
+  FloatingPanelContent,
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
+} from '@/components/ui/floating-panel';
 import { ProjectsContext } from '@/dash-context';
+import { Metric, Project, UserRole } from '@/types';
+import { useConfirm } from '@omit/react-confirm-dialog';
+import { Copy, Edit, Trash } from 'lucide-react';
+import { useContext, useState } from 'react';
+import { toast } from 'sonner';
 
+// Component for displaying dropdown menu for metric actions
 export default function MetricDropdown(props: {
-  children: any;
+  children: React.ReactNode;
   metric: Metric;
-  isOpen: boolean | false;
-  setIsOpen: (state: any) => void;
 }) {
-  const { setProjects, projects } = useContext(ProjectsContext);
+  const { setProjects, projects, activeProject } = useContext(ProjectsContext);
   const confirm = useConfirm();
-  const DeleteMetric = async () => {
+  const [open, setOpen] = useState(false);
+
+  // Handle metric deletion with confirmation
+  const deleteMetric = async () => {
+    // Show confirmation dialog with customized styling
     const isConfirmed = await confirm({
-      title:
-        'Delete ' +
-        "'" +
-        props.metric.name.charAt(0).toUpperCase() +
-        props.metric.name.slice(1).toLowerCase() +
-        "'",
+      title: `Delete '${props.metric.name.charAt(0).toUpperCase()}${props.metric.name.slice(1).toLowerCase()}'`,
       icon: <Trash className='size-6 text-destructive' />,
-      description:
-        'Are you sure you want to delete this metric? You will loose all the data linked to this metric forever.',
+      description: 'Are you sure you want to delete this metric? You will lose all the data linked to this metric forever.',
       confirmText: 'Yes, Delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -50,6 +49,8 @@ export default function MetricDropdown(props: {
         className: '!rounded-[12px]',
       },
     });
+
+    // If confirmed, send delete request to API
     if (isConfirmed) {
       fetch(process.env.NEXT_PUBLIC_API_URL + '/metric', {
         method: 'DELETE',
@@ -57,19 +58,21 @@ export default function MetricDropdown(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectid: props.metric.projectid,
-          metricid: props.metric.id,
+          project_id: props.metric.project_id,
+          metric_id: props.metric.id,
         }),
         credentials: 'include',
       }).then((res) => {
         if (res.ok && projects !== null) {
-          toast.success('Metric succesfully deleted');
+          toast.success('Metric successfully deleted');
+          // Update projects state by removing deleted metric
           setProjects(
-            projects?.map((v: Project) =>
-              v.id === props.metric.projectid
-                ? Object.assign({}, v, {
-                    metrics: v.metrics?.filter((m) => m.id !== props.metric.id),
-                  })
+            projects.map((v: Project) =>
+              v.id === props.metric.project_id
+                ? {
+                    ...v,
+                    metrics: v.metrics?.filter((m) => m.id !== props.metric.id) ?? null,
+                  }
                 : v,
             ),
           );
@@ -79,42 +82,75 @@ export default function MetricDropdown(props: {
       });
     }
   };
+
+  // Render floating panel with metric actions
   return (
-    <>
-      <DropdownMenu
-        open={props.isOpen}
-        onOpenChange={(e) => props.setIsOpen(e)}
+    <FloatingPanelRoot onOpenChange={setOpen} open={open}>
+      <FloatingPanelTrigger
+        title={props.metric.name}
+        className='relative'
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
       >
-        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
-        <DropdownMenuContent className='relative right-[20px] w-[150px] shadow-sm'>
-          <DialogTrigger asChild>
-            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-              Edit
-            </DropdownMenuItem>
-          </DialogTrigger>
-          <>
-            <DropdownMenuItem
-              onClick={(e) => {
-                navigator.clipboard.writeText(props.metric.id);
-                toast.success('Succefully copied metric ID');
-                e.stopPropagation();
-              }}
-            >
-              Copy ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-          <DropdownMenuItem
-            onClick={(e) => {
+        {props.children}
+      </FloatingPanelTrigger>
+      <FloatingPanelContent
+        className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
+        side='right'
+      >
+        <FloatingPanelBody className='p-1'>
+          {/* Show edit button for admin/owner users */}
+          {(projects[activeProject].user_role === UserRole.Owner ||
+            projects[activeProject].user_role === UserRole.Admin) && (
+            <DialogTrigger asChild>
+              <FloatingPanelButton
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+                onClick={(e: React.MouseEvent) => {
+                  setOpen(false);
+                  e.stopPropagation();
+                }}
+              >
+                <Edit className='size-4' />
+                <span>Edit</span>
+              </FloatingPanelButton>
+            </DialogTrigger>
+          )}
+
+          {/* Copy metric ID button */}
+          <FloatingPanelButton
+            className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+            onClick={(e: React.MouseEvent) => {
+              navigator.clipboard.writeText(props.metric.id);
+              toast.success('Successfully copied metric ID');
               e.stopPropagation();
-              DeleteMetric();
+              setOpen(false);
             }}
-            className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
           >
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
+            <Copy className='size-4' />
+            <span>Copy ID</span>
+          </FloatingPanelButton>
+
+          {/* Show delete button for admin/owner users */}
+          {(projects[activeProject].user_role === UserRole.Owner ||
+            projects[activeProject].user_role === UserRole.Admin) && (
+            <>
+              <div className='my-1 h-px bg-zinc-950/10 dark:bg-zinc-50/10' />
+              <FloatingPanelButton
+                className='flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 text-left text-red-500 transition-colors hover:bg-red-500/20'
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  deleteMetric();
+                  setOpen(false);
+                }}
+              >
+                <Trash className='size-4' />
+                <span>Delete</span>
+              </FloatingPanelButton>
+            </>
+          )}
+        </FloatingPanelBody>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

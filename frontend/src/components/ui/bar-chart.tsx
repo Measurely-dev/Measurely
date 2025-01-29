@@ -53,7 +53,6 @@ function deepEqual<T>(obj1: T, obj2: T): boolean {
 
   return true;
 }
-
 const renderShape = (
   props: any,
   activeBar: any | undefined,
@@ -71,12 +70,16 @@ const renderShape = (
     width = Math.abs(width); // width must be a positive number
   }
 
+  const cornerRadius = 4; // Adjust this value for your desired border radius
+
   return (
     <rect
       x={x}
       y={y}
       width={width}
       height={height}
+      rx={cornerRadius} // Horizontal corner radius
+      ry={cornerRadius} // Vertical corner radius
       opacity={
         activeBar || (activeLegend && activeLegend !== name)
           ? deepEqual(activeBar, { ...payload, value })
@@ -666,6 +669,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       }
       return value;
     };
+
     return (
       <div
         ref={forwardedRef}

@@ -1,8 +1,14 @@
-'use client'; // Error components must be Client Components
+'use client';
 
+// Import required dependencies
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 
+/**
+ * Error component to handle and display application errors
+ * @param error - The error object containing error details
+ * @param reset - Function to attempt recovery by re-rendering
+ */
 export default function Error({
   error,
   reset,
@@ -10,11 +16,12 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Log any errors to console for debugging
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error);
+    console.error(error); 
   }, [error]);
 
+  // Render error UI with recovery option
   return (
     <div className='flex min-h-[99vh] flex-col items-start gap-3 px-2 py-8'>
       <div>
@@ -22,10 +29,7 @@ export default function Error({
         <p className='text-muted-foreground'>Something went wrong!</p>
       </div>
       <Button
-        onClick={
-          // Attempt to recover by trying to re-render the segment
-          () => reset()
-        }
+        onClick={() => reset()}
       >
         Try again
       </Button>

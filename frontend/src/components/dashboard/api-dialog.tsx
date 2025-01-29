@@ -1,41 +1,43 @@
 'use client';
 
+// Import UI components and utilities
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { EyeClosedIcon } from '@radix-ui/react-icons';
-import { ReactNode, useContext, useEffect, useState } from 'react';
-import { Eye } from 'react-feather';
 import { ProjectsContext } from '@/dash-context';
-import { Loader, Shuffle, X } from 'lucide-react';
 import { useConfirm } from '@omit/react-confirm-dialog';
+import { Eye, EyeOff, Shuffle } from 'lucide-react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import {
+  FloatingPanelBody,
+  FloatingPanelContent,
+  FloatingPanelRoot,
+  FloatingPanelTrigger,
+} from '../ui/floating-panel';
 
+// ApiDialog component for displaying and managing API keys
 export default function ApiDialog(props: {
   children: ReactNode;
   randomize?: boolean | false;
   projectid: string;
+  className?: string;
 }) {
-  const [view, setView] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // State management
   const [apiKey, setApiKey] = useState<string | null>(null);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const confirm = useConfirm();
   const [apiIndex, setApiIndex] = useState<number | undefined>(undefined);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [apiKeyDup, setApiKeyDup] = useState<string | null>(null);
+  const [isCopying, setIsCopying] = useState<boolean>(false);
 
+  // Update apiIndex when projects or projectid changes
   useEffect(() => {
     if (projects !== null) {
       setApiIndex(projects.findIndex((proj) => proj.id === props.projectid));
     }
-  }, []);
+  }, [projects, props.projectid]);
+
+  // Handle API key randomization with confirmation
   const RandomizeAPI = async () => {
     const isConfirmed = await confirm({
       title: 'Randomize API Key',
@@ -59,14 +61,16 @@ export default function ApiDialog(props: {
         className: '!rounded-[12px]',
       },
     });
+
     if (isConfirmed) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/rand-apikey', {
+      // Make API call to randomize the key
+      fetch(process.env.NEXT_PUBLIC_API_URL + '/rand_apikey', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectid: apiIndex !== undefined ? projects?.[apiIndex].id : '',
+          project_id: apiIndex !== undefined ? projects?.[apiIndex].id : '',
         }),
         credentials: 'include',
       })
@@ -79,106 +83,95 @@ export default function ApiDialog(props: {
         })
         .then((data) => {
           if (data !== null && data !== undefined && projects !== null) {
-            toast.success('API key succesfully randomized');
+            toast.success('API key successfully randomized');
             setProjects(
               projects?.map((v, i) =>
                 i === apiIndex
                   ? Object.assign({}, v, {
-                      apikey: data,
+                      api_key: data,
                     })
                   : v,
               ),
             );
+            setApiKey(data);
+            setApiKeyDup(data);
           }
         });
     }
   };
 
+  // Initialize API key from projects when component mounts
   useEffect(() => {
     if (projects !== null && projects.length > 0) {
       const appIndex = projects.findIndex((app) => app.id === props.projectid);
-      if (appIndex !== -1 && projects[appIndex].apikey !== null) {
-        setApiKey(projects[appIndex].apikey);
+      if (appIndex !== -1 && projects[appIndex].api_key !== null) {
+        setApiKey(projects[appIndex].api_key);
+        setApiKeyDup(projects[appIndex].api_key);
       }
     }
-  }, [activeProject, projects]);
+  }, [activeProject, projects, props.projectid]);
+
+  // Toggle API key visibility and handle text selection
+  const toggleVisibility = () => {
+    setIsVisible((prevState) => !prevState);
+  };
 
   return (
-    <Dialog onOpenChange={() => setView(false)}>
-      <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className='rounded-xl border border-input shadow-none max-md:max-w-[95%] max-sm:w-full max-sm:max-w-full max-sm:rounded-none max-sm:px-2 max-sm:py-4'>
-        <DialogHeader className='max-md:text-start'>
-          <DialogTitle>API KEY</DialogTitle>
-          <DialogDescription>
-            Anyone who has this key will be able to use it.
-          </DialogDescription>
-          <DialogClose className='absolute right-5 top-3 max-sm:hidden'>
+    <FloatingPanelRoot onOpenChange={(e) => !e && setIsVisible(false)}>
+      <FloatingPanelTrigger
+        className={`w-fit ${props.className}`}
+        title='API Key'
+        description='Manage your API key'
+      >
+        {props.children}
+      </FloatingPanelTrigger>
+      <FloatingPanelContent className='w-[95%] max-w-[500px]' side='center'>
+        <FloatingPanelBody className='p-4'>
+          <div className='flex w-full items-center'>
             <Button
-              type='button'
-              size={'icon'}
-              variant='secondary'
-              className='rounded-[12px]'
-            >
-              <X />
-            </Button>
-          </DialogClose>
-        </DialogHeader>
-        <div className='flex max-w-full items-center'>
-          <div className='flex w-full max-w-full flex-row gap-2'>
-            <Label htmlFor='link' className='sr-only'>
-              Link
-            </Label>
-            <Button
-              id='link'
-              className={`w-full overflow-x-scroll rounded-[8px] rounded-r-none border-r-0 max-sm:max-w-[calc(100vw-16px-40px)] max-sm:text-xs ${
-                view ? '' : 'text-secondary'
-              }`}
-              variant={'outline'}
               onClick={() => {
-                if (apiKey !== null) {
-                  navigator.clipboard.writeText(apiKey);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1000);
+                if (apiKey && !isCopying) {
+                  navigator.clipboard.writeText(apiKeyDup || '');
+                  setIsVisible(true);
+                  setIsCopying(true);
+                  setApiKey('Copied to clipboard!');
+                  setTimeout(() => {
+                    setApiKey(apiKeyDup);
+                    setIsVisible(false);
+                    setIsCopying(false);
+                  }, 1500);
                 }
               }}
+              className='w-full rounded-[12px] rounded-e-none'
+              variant='outline'
             >
-              {copied ? (
-                'Copied!'
-              ) : apiKey !== null ? (
-                view ? (
-                  apiKey
-                ) : (
-                  'Click to copy'
-                )
+              {isVisible ? apiKey : 'Click to copy API key'}
+            </Button>
+            <Button
+              className='size-9 min-w-9 rounded-[12px] rounded-s-none border-s-0'
+              variant='outline'
+              size={'icon'}
+              onClick={toggleVisibility}
+            >
+              {isVisible ? (
+                <EyeOff size={16} strokeWidth={2} aria-hidden='true' />
               ) : (
-                <Loader className='size-4 animate-spin' />
+                <Eye size={16} strokeWidth={2} aria-hidden='true' />
               )}
             </Button>
-          </div>
-          <Button
-            onClick={() => setView(!view)}
-            size='sm'
-            variant={'secondary'}
-            className='h-full rounded-[8px] rounded-l-none border border-l-0 px-3'
-          >
-            <span className='sr-only'>View</span>
-            {view ? (
-              <EyeClosedIcon className='h-4 w-4' />
-            ) : (
-              <Eye className='h-4 w-4' />
+            {props.randomize && (
+              <Button
+                onClick={RandomizeAPI}
+                size={'icon'}
+                className='size-9 ml-2 min-w-9 rounded-[12px]'
+                variant={'destructiveOutline'}
+              >
+                <Shuffle className='size-4' />
+              </Button>
             )}
-          </Button>
-        </div>
-        {props.randomize ? (
-          <Button
-            onClick={RandomizeAPI}
-            className='rounded-[12px]'
-            variant={'destructiveOutline'}
-          >
-            Randomize key
-          </Button>
-        ) : undefined}
-      </DialogContent>
-    </Dialog>
+          </div>
+        </FloatingPanelBody>
+      </FloatingPanelContent>
+    </FloatingPanelRoot>
   );
 }

@@ -1,98 +1,121 @@
 'use client';
+
+// Import necessary dependencies
 import React, { FormEvent, useContext, useState } from 'react';
 import SettingCard from '../setting-card';
 import { Button } from '@/components/ui/button';
 import PlansDialog from '../plans-dialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { ProjectsContext, UserContext } from '@/dash-context';
+import { ProjectsContext } from '@/dash-context';
 import MetricStats from '../metric-stats';
 import { Rocket } from 'lucide-react';
 
-const valueFormatter = (number: number) => {
-  return Intl.NumberFormat('us').format(number).toString();
-};
-
-export default function SettingPaymentPage() {
+// Component for managing payment settings and billing
+export default function PaymentSettings() {
+  // State for tracking billing form submission
   const [loadingBilling, setLoadingBilling] = useState(false);
   const router = useRouter();
-  const { user } = useContext(UserContext);
-
   const { projects, activeProject } = useContext(ProjectsContext);
 
-  const handleManageBilling = (e: FormEvent<HTMLFormElement>) => {
+  // Handler for managing billing portal redirect
+  const handleManageBilling = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoadingBilling(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    })
-      .then((resp) => {
-        if (resp.status === 200) {
-          return resp.json();
-        } else {
-          resp.text().then((text) => {
-            toast.error(text);
-          });
-          setLoadingBilling(false);
-        }
-      })
-      .then((data) => {
-        if (data !== null && data !== undefined) {
-          toast.success('Opening billing portal...');
-          setTimeout(() => router.push(data.url), 500);
-        }
+    try {
+      // Fetch billing portal URL from API
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
+      if (resp.ok) {
+        const data = await resp.json();
+        toast.success('Opening billing portal...');
+        setTimeout(() => router.push(data.url), 500);
+      } else {
+        const errorText = await resp.text();
+        toast.error(errorText);
+      }
+    } catch (err) {
+      toast.error('Failed to connect to the billing service.' + err);
+    } finally {
+      setLoadingBilling(false);
+    }
   };
 
   return (
     <div className='flex flex-col gap-5'>
+      {/* Display metrics and usage statistics */}
+      <MetricStats
+        differ
+        className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
+        stats={[
+          {
+            title: `Metrics limit`,
+            used: projects[activeProject].metrics === null ? 0 : projects[activeProject].metrics.length,
+            total: projects[activeProject].plan.metric_limit,
+            description: `For '${projects[activeProject].name}'`,
+          },
+          {
+            title: 'Event limit per month',
+            used: projects[activeProject].monthly_event_count,
+            total: projects[activeProject].max_event_per_month,
+            description: `For '${projects[activeProject].name}'`,
+          },
+        ]}
+      />
+
+      {/* Current plan display and upgrade/downgrade button */}
       <div
-        className={`flex w-full flex-row items-center justify-between rounded-lg px-5 py-3 max-md:flex-col max-md:gap-4 ${user?.plan.identifier === 'starter' ? 'bg-accent' : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'}`}
+        className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${
+          projects[activeProject].plan.name.toLowerCase() === 'starter'
+            ? 'bg-accent'
+            : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'
+        }`}
       >
         <div className='flex flex-col max-md:w-full'>
           <div className='flex flex-row items-center gap-3'>
             <Rocket className='size-5' />
             <div className='text-md font-semibold'>
-              You're using the {user?.plan.name} plan
+              You&apos;re using the {projects[activeProject].plan.name.toLowerCase()} plan
             </div>
           </div>
-          {user?.plan.identifier !== 'starter' ? (
-            ''
-          ) : (
-            <div className='text-sm text-secondary'>
-              You can unlock your limits by upgrading to the next plan.
+          {projects[activeProject].plan.name.toLowerCase() === 'starter' && (
+            <div className='text-sm text-muted-foreground'>
+              Unlock more features by upgrading your plan.
             </div>
           )}
         </div>
         <PlansDialog>
           <Button
-            className={`rounded-md max-md:w-full ${user?.plan.identifier === 'starter' ? '' : 'bg-background text-primary hover:bg-background hover:text-primary/80'}`}
-            variant={
-              user?.plan.identifier === 'starter' ? 'default' : 'outline'
-            }
+            className={`rounded-[10px] max-md:w-full ${
+              projects[activeProject].plan.name.toLowerCase() === 'starter'
+                ? ''
+                : 'bg-background text-primary hover:bg-background hover:text-primary/80'
+            }`}
+            variant={projects[activeProject].plan.name.toLowerCase() === 'starter' ? 'default' : 'outline'}
           >
-            {user?.plan.identifier === 'starter'
+            {projects[activeProject].plan.name.toLowerCase() === 'starter'
               ? 'Upgrade plan'
-              : user?.plan.identifier === 'pro'
+              : projects[activeProject].plan.name.toLowerCase() === 'pro'
                 ? 'Downgrade plan'
                 : 'Switch plan'}
           </Button>
         </PlansDialog>
       </div>
+
+      {/* Billing management card */}
       <SettingCard
         title='Manage'
         btn_loading={loadingBilling}
         btn_disabled={loadingBilling}
         action={handleManageBilling}
-        description='To manage your payment methods and plans please go on stripe.'
+        description='Manage payment methods and plans through Stripe.'
         content={
           <Button
-            className='w-full rounded-md'
-            variant={'default'}
+            className='w-full rounded-[10px]'
+            variant='default'
             type='submit'
             loading={loadingBilling}
             disabled={loadingBilling}
@@ -100,36 +123,6 @@ export default function SettingPaymentPage() {
             Manage
           </Button>
         }
-      />
-      <MetricStats
-        differ
-        className='grid !grid-cols-1 gap-3 divide-x-0 rounded-lg'
-        stats={[
-          {
-            title: `Metrics limit`,
-            description: `For '${projects?.[activeProject].name.charAt(0).toUpperCase() + projects?.[activeProject].name.slice(1).toLowerCase()}'`,
-            value: `${projects?.[activeProject].metrics === null ? 0 : projects?.[activeProject].metrics.length}/${user?.plan.metric_per_project_limit}`,
-          },
-          {
-            title: 'Projects limit',
-            description: 'On this plan',
-            value: `${projects?.length}/${user?.plan.projectlimit}`,
-          },
-          {
-            title: 'Update limit',
-            description: 'Per API key',
-            value: user?.plan.requestlimit + ' per minute',
-          },
-          {
-            title: 'Event limit',
-            description: 'On this plan',
-            value:
-              valueFormatter(user.eventcount) +
-              '/' +
-              valueFormatter(user?.plan.monthlyeventlimit) +
-              ' per month',
-          },
-        ]}
       />
     </div>
   );
