@@ -64,7 +64,7 @@ export default function Home({
 function Landing(props: { type: 'default' | 'waitlist' }) {
   return (
     <>
-      <div className='flex h-[90vh] min-h-[500px] w-screen flex-col items-center justify-center gap-5 text-center'>
+      <div className='flex h-[90vh] min-h-[550px] w-screen flex-col items-center justify-center gap-5 text-center max-md:h-fit max-md:min-h-[50vh] max-md:pb-[80px] max-md:pt-[120px]'>
         <Link
           href={'/blog/1'}
           className='group flex cursor-pointer select-none flex-row items-center gap-3 rounded-full border border-input bg-accent p-0.5 pr-1 text-sm shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-black/10 max-sm:scale-90'
@@ -76,20 +76,20 @@ function Landing(props: { type: 'default' | 'waitlist' }) {
             Learn more <MoveRight className='size-4' />
           </span>
         </Link>
-        <h1 className='inline-flex flex-col text-[4.3rem] font-medium leading-tight max-lg:text-[3rem] max-md:text-[2rem]'>
+        <h1 className='flex-col text-[4.3rem] font-medium leading-tight max-lg:text-[3rem] max-md:text-[2rem] max-sm:text-[1.8rem] md:inline-flex'>
           Track all your metrics <br />
           <span className='animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-transparent'>
             In one powerful platform
           </span>
         </h1>
 
-        <div className='text-md inline-flex w-[95%] flex-col font-medium max-md:text-sm max-sm:text-[13px]'>
+        <div className='text-md w-[95%] flex-col font-medium max-md:text-sm max-sm:text-[13px] md:inline-flex'>
           <span>Measurely is an open source analytics platform.</span>
           <span>
             Start tracking with real-time metrics, API integrations,
             customizable
-            <br /> blocks, data visualizations, and powerful team collaboration
-            tools.
+            <br className='max-md:hidden' /> blocks, data visualizations, and
+            powerful team collaboration tools.
           </span>
         </div>
         <div className='mt-4 flex gap-2'>
