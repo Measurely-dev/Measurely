@@ -42,7 +42,7 @@ export default async function BlogIndexPage() {
             {...newestBlog}
             slug={newestBlog.slug}
             key={newestBlog.slug}
-            className='flex-row items-center gap-10'
+            className='md:flex-row items-center md:gap-10'
           />
           <Separator className='absolute left-0 mt-5 w-screen' />
         </div>
