@@ -220,7 +220,7 @@ function Step1({
     <>
       <div className='flex flex-col gap-[5px] md:mt-5'>
         <div className='text-xl font-medium'>Choose metric type </div>
-        <div className='text-sm text-secondary'>
+        <div className='text-sm text-muted-foreground'>
           Select the type of metric you want to create
         </div>
       </div>
@@ -362,7 +362,7 @@ function Step3({ metricData }: { metricData: any }) {
   return (
     <div className='flex flex-col gap-[5px] md:mt-5'>
       <div className='text-xl font-medium'>Choose metric unit</div>
-      <div className='text-sm text-secondary'>
+      <div className='text-sm text-muted-foreground'>
         Select the unit that will be used to measure your metric.
       </div>
       <div className='mt-5'>
@@ -427,7 +427,7 @@ function Metric(props: {
           <div className='text-xs text-blue-500'>coming soon</div>
         )}
       </div>
-      <div className='text-xs font-light text-secondary'>
+      <div className='text-xs font-light text-muted-foreground'>
         {props.description}
       </div>
     </div>
@@ -490,7 +490,7 @@ function BasicAverageStep(props: {
         <div className='text-xl font-medium'>
           {props.type === MetricType.Base ? 'Basic metric' : 'Average Metric'}
         </div>
-        <div className='text-sm text-secondary'>
+        <div className='text-sm text-muted-foreground'>
           {props.type === MetricType.Base
             ? 'Track a single value for straightforward metrics, ideal for simple counts or totals.'
             : 'Analyze trends with average metrics, perfect for monitoring performance over time.'}
@@ -560,7 +560,7 @@ function BasicAverageStep(props: {
                   </Group>
                 </div>
               </NumberField>
-              <Label className='text-xs font-normal leading-tight text-secondary'>
+              <Label className='text-xs font-normal leading-tight text-muted-foreground'>
                 Base value stands for the value of the metric before using
                 Measurely to measure the metric
               </Label>
@@ -642,7 +642,7 @@ function DualStep(props: {
     <div className='mx-auto flex flex-col gap-6'>
       <div className='flex flex-col gap-[5px]'>
         <div className='text-xl font-medium'>Dual metric</div>
-        <div className='text-sm text-secondary'>
+        <div className='text-sm text-muted-foreground'>
           Track metrics with positive and negative values, perfect for scenarios
           like gains and losses or approvals and rejections.
         </div>
@@ -697,7 +697,7 @@ function DualStep(props: {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Label className='text-xs font-normal leading-tight text-secondary'>
+              <Label className='text-xs font-normal leading-tight text-muted-foreground'>
                 Customize the names for positive and negative values to match
                 your specific use case and improve clarity.
               </Label>
@@ -738,7 +738,7 @@ function DualStep(props: {
                   </Group>
                 </div>
               </NumberField>
-              <Label className='text-xs font-normal leading-tight text-secondary'>
+              <Label className='text-xs font-normal leading-tight text-muted-foreground'>
                 Base value stands for the value of the metric before using
                 Measurely to measure the metric
               </Label>
@@ -864,7 +864,7 @@ function StripeStep(props: {
     <div className='mx-auto flex flex-col gap-6'>
       <div className='flex flex-col gap-[5px]'>
         <div className='text-xl font-medium'>Stripe Metric</div>
-        <div className='text-sm text-secondary'>
+        <div className='text-sm text-muted-foreground'>
           Tracks revenue, subscriptions, refunds, and more via Stripe for
           financial insights.
         </div>

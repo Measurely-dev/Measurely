@@ -82,7 +82,7 @@ export default function PaymentSettings() {
             </div>
           </div>
           {projects[activeProject].plan.name.toLowerCase() === 'starter' && (
-            <div className='text-sm text-secondary'>
+            <div className='text-sm text-muted-foreground'>
               Unlock more features by upgrading your plan.
             </div>
           )}

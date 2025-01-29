@@ -3,7 +3,7 @@
 // Import necessary dependencies and components
 import { plans } from '@/plans';
 import PageHeader from '../page-header';
-import PricingCard from '../pricing-card';
+import PricingCard from '@/components/global/pricing-card';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PricingOptions } from '@/components/global/pricing-options';
@@ -16,7 +16,7 @@ export default function PricingBody() {
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
   const [window_width, set_window_width] = useState(window.innerWidth);
   const router = useRouter();
-  
+
   // Handle window resize events
   useEffect(() => {
     const handleResize = () => {
@@ -51,7 +51,12 @@ export default function PricingBody() {
         className={`grid grid-cols-3 max-lg:grid-cols-1 max-lg:gap-[10px] ${window_width > 768 ? 'mt-10' : ''}`}
       >
         {plans.map((plan, i) => {
-          const price = calculatePrice(plan.price, plan.identifier, getEventCount(sliderValue[0]), billingPeriod);
+          const price = calculatePrice(
+            plan.price,
+            plan.identifier,
+            getEventCount(sliderValue[0]),
+            billingPeriod,
+          );
           return (
             <PricingCard
               key={i}
@@ -69,7 +74,7 @@ export default function PricingBody() {
                   : 'Continue with ' + plan.name
               }
               onSelect={() => {
-                router.push("/waitlist")
+                router.push('/waitlist');
               }}
             />
           );

@@ -168,7 +168,7 @@ function SearchComponent(props: {
 }) {
   return (
     <div className='flex w-full flex-row items-center gap-2 rounded-[12px] border bg-background pl-[12px] shadow-sm shadow-black/5'>
-      <Search className='size-[18px] text-secondary' />
+      <Search className='size-[18px] text-muted-foreground' />
       <Input
         className='h-[40px] w-full rounded-none border-none bg-transparent px-0 shadow-none !ring-0'
         placeholder='Search metric...'

@@ -295,7 +295,7 @@ const Item = (props: { metric: Metric; index: number }) => {
             </Badge>
           </div>
         </TableCell>
-        <TableCell className='text-nowrap text-secondary'>
+        <TableCell className='text-nowrap text-muted-foreground'>
           {formattedDate(
             props.metric.last_event_timestamp?.V ?? props.metric.created,
           )}

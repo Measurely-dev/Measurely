@@ -199,7 +199,7 @@ export const PushValueDialog = (props: {
             </>
           ) : null}
 
-          <Label className='text-xs font-normal text-secondary'>
+          <Label className='text-xs font-normal text-muted-foreground'>
             Filters modify the metric's data by applying specific criteria
             before pushing a new value.
           </Label>

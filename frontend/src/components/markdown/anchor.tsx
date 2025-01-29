@@ -8,7 +8,6 @@ import { ComponentProps } from 'react';
 
 // Define props interface extending Next.js Link props
 type AnchorProps = ComponentProps<typeof Link> & {
-  absolute?: boolean; // Match first path segment only instead of full path
   activeClassName?: string; // Class to apply when link is active
   disabled?: boolean; // Disable link functionality
 };
@@ -18,7 +17,6 @@ export default function Anchor({
   className = '',
   activeClassName = '',
   disabled,
-  absolute = false,
   children,
   ...props
 }: AnchorProps) {

@@ -397,7 +397,7 @@ function AdvancedOptions(props: {
             <Label className='flex flex-row items-center justify-between gap-4'>
               <div className='flex flex-col gap-1'>
                 Split trend lines
-                <div className='text-xs font-normal text-secondary'>
+                <div className='text-xs font-normal text-muted-foreground'>
                   Divide trend into separate positive and negative values
                 </div>
               </div>

@@ -55,7 +55,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
       <DrawerContent className='flex flex-col gap-2 p-10 !pt-0 max-sm:p-2'>
         {/* User profile section */}
         <Label className='flex flex-row items-center gap-4 rounded-[12px] p-2'>
-          <Avatar className='size-[35px] cursor-pointer border text-secondary hover:text-primary'>
+          <Avatar className='size-[35px] cursor-pointer border text-muted-foreground hover:text-primary'>
             <AvatarImage src={props.image} className='rounded-full' />
             <AvatarFallback>
               <User className='size-1/2' />
@@ -113,7 +113,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         {/* Documentation link */}
         <Link href={'/docs/getting-started/introduction'}>
           <Button
-            className='h-[35px] w-full gap-[8px] rounded-[12px] text-secondary hover:text-primary'
+            className='h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary'
             variant='secondary'
           >
             <Book className='size-[16px]' />
@@ -124,7 +124,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         {/* Settings dialog */}
         <SettingDialog>
           <Button
-            className='h-[35px] w-full gap-[8px] rounded-[12px] text-secondary hover:text-primary'
+            className='h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary'
             variant='secondary'
           >
             <Settings className='size-[16px]' />

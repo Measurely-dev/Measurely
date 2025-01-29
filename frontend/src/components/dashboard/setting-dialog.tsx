@@ -75,7 +75,7 @@ function Navbar(props: {
 }) {
   return (
     <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
-      <div className='ml-4 text-xs font-medium text-secondary'>Settings</div>
+      <div className='ml-4 text-xs font-medium text-muted-foreground'>Settings</div>
       <div className='mt-3 flex flex-col gap-2'>
         {props.settings.map((item, i) => {
           return (

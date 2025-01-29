@@ -157,7 +157,7 @@ function Step1({
   return (
     <div className='flex flex-col gap-[5px] md:mt-5'>
       <div className='text-xl font-medium'>Project Name</div>
-      <div className='text-sm text-secondary'>
+      <div className='text-sm text-muted-foreground'>
         Choose a name for your project. This will be used to identify it in your
         dashboard.
       </div>
@@ -204,7 +204,7 @@ function Step2() {
   return (
     <div className='flex flex-col gap-[5px] md:mt-5'>
       <div className='text-xl font-medium'>Choose Plan</div>
-      <div className='text-sm text-secondary'>
+      <div className='text-sm text-muted-foreground'>
         Select a plan for your project. (Placeholder for plan selection)
       </div>
       <div className='mt-5 flex w-full justify-between'>
@@ -230,7 +230,7 @@ function Step3() {
   return (
     <div className='flex flex-col gap-[5px] md:mt-5'>
       <div className='text-xl font-medium'>Additional Settings</div>
-      <div className='text-sm text-secondary'>
+      <div className='text-sm text-muted-foreground'>
         Configure additional settings for your project. (Placeholder for
         settings)
       </div>
@@ -265,7 +265,7 @@ function Step4({
   return (
     <div className='flex flex-col gap-[5px] md:mt-5'>
       <div className='text-xl font-medium'>Overview</div>
-      <div className='text-sm text-secondary'>
+      <div className='text-sm text-muted-foreground'>
         Review your project details before creating it.
       </div>
       <div className='mt-5 flex w-full flex-col gap-3'>

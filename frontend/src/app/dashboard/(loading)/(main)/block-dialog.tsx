@@ -416,7 +416,7 @@ function BlockItem(props: {
       onClick={handleClick}
     >
       <div className='text-sm font-medium'>{props.name}</div>
-      <div className='text-xs font-light text-secondary'>
+      <div className='text-xs font-light text-muted-foreground'>
         {props.description}
       </div>
       {props.value === ChartType.BarList ? (

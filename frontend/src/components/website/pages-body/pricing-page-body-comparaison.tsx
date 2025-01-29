@@ -7,13 +7,13 @@ import { CheckIcon, XIcon } from 'lucide-react';
 import HeroTitle from '../hero-title';
 
 // Component for displaying pricing plan comparison
-export default function PricingComparaison() {
+export default function PricingBodyComparaison() {
   // Define pricing plans data structure with features and options
   const pricingSection = [
     {
       label: 'Starter',
       mainFeatures: [
-        { value: 1, label: 'Team Member Count' }, 
+        { value: 1, label: 'Team Member Count' },
         { value: 3, label: 'Metric Count' },
         { value: 1, label: 'Filter Categories per metric' },
         { value: 6, label: 'Filters per filter category' },
@@ -34,7 +34,7 @@ export default function PricingComparaison() {
     {
       label: 'Plus',
       mainFeatures: [
-        { value: 5, label: 'Team Member Count' }, 
+        { value: 5, label: 'Team Member Count' },
         { value: 10, label: 'Metric Count' },
         { value: 20, label: 'Filter Categories per metric' },
         { value: 3, label: 'Filters per filter category' },
@@ -55,7 +55,7 @@ export default function PricingComparaison() {
     {
       label: 'Pro',
       mainFeatures: [
-        { value: 20, label: 'Team Member Count' }, 
+        { value: 20, label: 'Team Member Count' },
         { value: 30, label: 'Metric Count' },
         { value: 4, label: 'Filter Categories per metric' },
         { value: 3, label: 'Filters per filter category' },

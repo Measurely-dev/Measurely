@@ -134,7 +134,7 @@ export const TeamTable = (props: { members: User[] }) => {
     <>
       <div className='mb-2.5 flex flex-row items-center gap-4 max-md:flex-col'>
         <div className='flex w-full flex-row items-center gap-2 rounded-[12px] border pl-[12px] shadow-sm shadow-black/5'>
-          <Search className='size-[18px] text-secondary' />
+          <Search className='size-[18px] text-muted-foreground' />
           <Input
             className='h-[40px] w-full rounded-none border-none bg-transparent px-0 shadow-none !ring-0'
             placeholder='Search member...'
@@ -282,7 +282,7 @@ const Item = (props: { member: User }) => {
           </div>
         </TableCell>
         <TableCell colSpan={3}>
-          <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px] text-secondary'>
+          <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px] text-muted-foreground'>
             {props.member.email}
           </div>
         </TableCell>

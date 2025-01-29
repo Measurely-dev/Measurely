@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import PricingCard from '@/components/website/pricing-card';
+import PricingCard from '@/components/global/pricing-card';
 import { plans } from '@/plans';
 import { useConfirm } from '@omit/react-confirm-dialog';
 import { DialogTitle } from '@radix-ui/react-dialog';

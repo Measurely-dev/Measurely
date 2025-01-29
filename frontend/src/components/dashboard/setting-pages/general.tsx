@@ -251,7 +251,7 @@ export default function GeneralSettings() {
                     src={reader === null ? user.image : reader}
                   />
                   <AvatarFallback className='h-full w-full !rounded-full'>
-                    <ImageIcon className='size-5 text-secondary' />
+                    <ImageIcon className='size-5 text-muted-foreground' />
                   </AvatarFallback>
                   <Input
                     type='file'
@@ -305,7 +305,7 @@ export default function GeneralSettings() {
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
-            <div className='text-md max-w-[220px] text-center text-secondary'>
+            <div className='text-md max-w-[220px] text-center text-muted-foreground'>
               You cannot update your{' '}
               <span className='font-semibold text-primary'>email</span> when
               connected to a provider
@@ -342,7 +342,7 @@ export default function GeneralSettings() {
         disabled_text={
           <div className='flex flex-col items-center justify-center gap-4'>
             <Info className='size-16 text-blue-500' />
-            <div className='text-md max-w-[220px] text-center text-secondary'>
+            <div className='text-md max-w-[220px] text-center text-muted-foreground'>
               You cannot update your{' '}
               <span className='font-semibold text-primary'>password</span> when
               connected to a provider

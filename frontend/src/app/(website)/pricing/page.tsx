@@ -8,12 +8,11 @@ import Container from '@/components/website/container';
 import Content from '@/components/website/content';
 import FooterHeader from '@/components/website/footer-header';
 import PricingBody from '@/components/website/pages-body/pricing-page-body';
-import PricingComparaison from '@/components/website/pages-body/pricing-page-body-comparaison';
+import PricingBodyComparaison from '@/components/website/pages-body/pricing-page-body-comparaison';
 import HeroTitle from '@/components/website/hero-title';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { Plus } from 'lucide-react';
 import { Metadata } from 'next';
-import { headers } from 'next/headers';
 
 // Define metadata for SEO and page headers
 export const metadata: Metadata = {
@@ -24,18 +23,14 @@ export const metadata: Metadata = {
 
 // Main Pricing page component
 export default function Pricing() {
-  // Get headers to check if the user is authenticated
-  const headersList = headers();
-  const is_authentificated = headersList.get('is-authentificated');
-
   return (
     <Container className='w-full max-w-full'>
       <Content type='page' className='w-[90%] pt-[150px]'>
         {/* PricingBody component to display pricing plans */}
-        <PricingBody type='waitlist' isAuthentificated={is_authentificated} />
+        <PricingBody />
 
         {/* PricingComparaison component to display pricing comparison */}
-        <PricingComparaison />
+        <PricingBodyComparaison />
 
         {/* FAQ Section */}
         <div className='mt-[145px] pt-12'>

@@ -76,7 +76,6 @@ export function Navbar(props: { type: 'logged' | 'default' | 'waitlist' }) {
                 <Anchor
                   key={item.title + item.href}
                   activeClassName='text-primary font-semibold'
-                  absolute
                   className='flex items-center gap-1'
                   href={item.href}
                 >

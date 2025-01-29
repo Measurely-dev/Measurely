@@ -64,7 +64,7 @@ export default function DashboardNavbar() {
           <Tooltip>
             <SettingDialog>
               <TooltipTrigger>
-                <div className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-transparent bg-background text-[20px] text-secondary hover:border-input hover:bg-accent hover:text-primary`}>
+                <div className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-transparent bg-background text-[20px] text-muted-foreground hover:border-input hover:bg-accent hover:text-primary`}>
                   <Settings className='size-5' />
                 </div>
               </TooltipTrigger>
@@ -103,7 +103,7 @@ function NavItem(props: { children: ReactNode; name: string; href: string }) {
             <div className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${
               isActive 
                 ? 'border-input bg-accent/75'
-                : 'border-transparent bg-background text-secondary hover:bg-accent'
+                : 'border-transparent bg-background text-muted-foreground hover:bg-accent'
             }`}>
               {props.children}
             </div>
@@ -151,7 +151,7 @@ function ChipItem(props: { children: ReactNode; label: string; href: string }) {
       <Tooltip>
         <TooltipTrigger>
           <Link href={props.href} target='_blank'>
-            <div className={`flex items-center justify-center rounded-[12px] py-1.5 text-[20px] text-secondary transition-all duration-200 hover:bg-background hover:text-primary`}>
+            <div className={`flex items-center justify-center rounded-[12px] py-1.5 text-[20px] text-muted-foreground transition-all duration-200 hover:bg-background hover:text-primary`}>
               {props.children}
             </div>
           </Link>

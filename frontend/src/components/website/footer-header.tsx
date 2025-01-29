@@ -18,7 +18,7 @@ export default function FooterHeader(props: {
       </div>
 
       {/* Subheadline text */}
-      <div className='text-2xl text-secondary max-md:text-xl max-sm:text-base'>
+      <div className='text-2xl text-muted-foreground max-md:text-xl max-sm:text-base'>
         Join the teams who trust Measurely for real-time
         <br /> insights and seamless integration.
       </div>

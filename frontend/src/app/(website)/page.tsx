@@ -4,7 +4,6 @@ import Container from '@/components/website/container';
 import Body from '@/components/website/pages-body/landing-page-body';
 import { MoveRight } from 'lucide-react';
 import Measurely from 'measurely-js';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { ChevronRight } from 'react-feather';
 
@@ -14,8 +13,6 @@ export default function Home({
 }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const is_authenticated = headers().get('is-authentificated');
-
   // Initialize analytics tracking in production environment
   if (process.env.NEXT_PUBLIC_ENV === 'production') {
     // Determine traffic source from URL parameters
@@ -58,7 +55,7 @@ export default function Home({
   return (
     <Container>
       <Landing type='waitlist' />
-      <Body type='waitlist' isAuthentificated={is_authenticated} />
+      <Body />
     </Container>
   );
 }
@@ -89,7 +86,8 @@ function Landing(props: { type: 'default' | 'waitlist' }) {
         <div className='text-md inline-flex w-[95%] flex-col font-medium max-md:text-sm max-sm:text-[13px]'>
           <span>Measurely is an open source analytics platform.</span>
           <span>
-            Start tracking with real-time metrics, API integrations, customizable
+            Start tracking with real-time metrics, API integrations,
+            customizable
             <br /> blocks, data visualizations, and powerful team collaboration
             tools.
           </span>

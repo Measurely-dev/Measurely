@@ -151,7 +151,7 @@ export default function AuthForm(props: {
                 </div>
               );
             })}
-            <div className='mt-[20px] flex w-full items-center justify-center text-sm text-secondary'>
+            <div className='mt-[20px] flex w-full items-center justify-center text-sm text-muted-foreground'>
               Or
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function AuthForm(props: {
           </Button>
 
           {props.forgot_password && (
-            <Link className='w-fit text-sm text-secondary' href={'/reset'}>
+            <Link className='w-fit text-sm text-muted-foreground' href={'/reset'}>
               Forgot password?
             </Link>
           )}

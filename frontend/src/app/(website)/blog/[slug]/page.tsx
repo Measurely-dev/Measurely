@@ -120,7 +120,7 @@ function Authors({ authors }: { authors: Author[] }) {
 
             {/* Author handle */}
             <div>
-              <p className='text-sm font-medium text-secondary'>
+              <p className='text-sm font-medium text-muted-foreground'>
                 @{author.handle}
               </p>
             </div>

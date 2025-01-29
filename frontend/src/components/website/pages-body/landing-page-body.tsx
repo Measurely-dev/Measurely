@@ -6,7 +6,7 @@ import FooterHeader from '../footer-header';
 import HeroTitle from '../hero-title';
 import Content from '../content';
 import { Gauge, LayoutGridIcon, SparklesIcon } from 'lucide-react';
-import SubscriptionUiSection from './landing-page-body-pricing';
+import LandingPageBodyPricing from './landing-page-body-pricing';
 import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
@@ -22,10 +22,7 @@ import { Question } from '@/components/global/faq-questions';
 import Image, { StaticImageData } from 'next/image';
 
 // Main Body component that handles the landing page layout
-export default function Body(props: {
-  isAuthentificated: string | null;
-  type: 'default' | 'waitlist';
-}) {
+export default function Body() {
   // Track window width for responsive layout
   const [window_width, set_window_width] = useState(0);
 
@@ -81,10 +78,7 @@ export default function Body(props: {
         />
 
         {/* Subscription Section */}
-        <SubscriptionUiSection
-          type={props.type}
-          isAuthentificated={props.isAuthentificated}
-        />
+        <LandingPageBodyPricing />
 
         {/* Benefits Section */}
         <HeroTitle
@@ -96,17 +90,21 @@ export default function Body(props: {
         {/* Feature Boxes */}
         <div className='mt-[70px] grid grid-cols-3 gap-[10px] max-md:grid-cols-1'>
           <Box
-            icon={<Gauge className='size-10 stroke-[1] text-secondary' />}
+            icon={<Gauge className='size-10 stroke-[1] text-muted-foreground' />}
             title='Instant Insights'
             description='Gain real-time data insights for fast and informed decision-making.'
           />
           <Box
-            icon={<SparklesIcon className='size-10 stroke-[1] text-secondary' />}
+            icon={
+              <SparklesIcon className='size-10 stroke-[1] text-muted-foreground' />
+            }
             title='Custom Metrics'
             description='Tailor your tracking to suit unique business needs with flexible metric options.'
           />
           <Box
-            icon={<LayoutGridIcon className='size-10 stroke-[1] text-secondary' />}
+            icon={
+              <LayoutGridIcon className='size-10 stroke-[1] text-muted-foreground' />
+            }
             title='Effortless Integration'
             description='Connect easily with your current tools and workflows without hassle.'
           />
@@ -174,7 +172,7 @@ function BentoBox(props: {
           >
             <div className='flex h-full w-full flex-col justify-between p-[30px] pr-0'>
               <div className='text-xl font-semibold'>{props.title}</div>
-              <div className='text-base font-normal text-secondary'>
+              <div className='text-base font-normal text-muted-foreground'>
                 {props.description}
               </div>
             </div>
@@ -205,7 +203,7 @@ function BentoBox(props: {
             </div>
             <div className='flex h-full w-full flex-col justify-between p-[30px] pl-0'>
               <div className='text-xl font-semibold'>{props.title}</div>
-              <div className='text-base font-normal text-secondary'>
+              <div className='text-base font-normal text-muted-foreground'>
                 {props.description}
               </div>
             </div>
@@ -218,7 +216,7 @@ function BentoBox(props: {
           >
             <div className='flex h-fit w-full flex-col justify-between gap-8 p-[30px]'>
               <div className='text-xl font-semibold'>{props.title}</div>
-              <div className='text-base font-normal text-secondary'>
+              <div className='text-base font-normal text-muted-foreground'>
                 {props.description}
               </div>
             </div>
@@ -253,7 +251,7 @@ function Box(props: {
       </div>
       <div className='flex flex-col gap-5 text-center'>
         <div className='text-xl font-semibold'>{props.title}</div>
-        <div className='text-base text-secondary'>{props.description}</div>
+        <div className='text-base text-muted-foreground'>{props.description}</div>
       </div>
     </div>
   );

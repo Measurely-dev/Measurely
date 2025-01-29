@@ -91,7 +91,7 @@ export default function ProjectsDropdown() {
             </AvatarFallback>
           </Avatar>
           {projects[activeProject] ? projects[activeProject].name : ''}
-          <CaretSortIcon className='size-5 shrink-0 text-secondary opacity-80' />
+          <CaretSortIcon className='size-5 shrink-0 text-muted-foreground opacity-80' />
         </div>
       </FloatingPanelTrigger>
       <FloatingPanelContent className='w-[300px]' side='left'>

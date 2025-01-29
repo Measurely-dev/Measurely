@@ -4,7 +4,6 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { Sparkles } from 'lucide-react';
 import { ReactNode } from 'react';
 
-
 // Define props interface for PricingCard component
 interface PricingCardProps {
   className?: string; // Optional CSS class name
@@ -22,7 +21,6 @@ interface PricingCardProps {
   loading?: boolean; // Loading state for button
   onSelect?: () => void; // Button click handler
 }
-
 
 // PricingCard component - displays a pricing tier card with features and pricing details
 const PricingCard: React.FC<PricingCardProps> = ({
@@ -93,7 +91,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
               </>
             )}
 
-            <div className='flex items-end text-xs leading-5 text-secondary'>
+            <div className='flex items-end text-xs leading-5 text-muted-foreground'>
               {isMonthly
                 ? 'USD per month'
                 : isYearly
@@ -107,7 +105,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
       {/* Usage limit slider (if applicable) */}
       {sliderValue && (
         <div className='mt-5 flex flex-row items-center gap-[10px]'>
-          <div className='text-sm font-medium text-secondary'>
+          <div className='text-sm font-medium text-muted-foreground'>
             Up to{' '}
             <span className='mx-1 rounded-[6px] bg-accent px-2 py-1 font-mono text-base font-bold text-primary'>
               {isFree ? '5K' : sliderValue}
@@ -123,9 +121,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
         {list?.map((listItem, i) => (
           <div className='flex flex-row items-center gap-[10px]' key={i}>
             <div className='flex size-[20px] min-h-[20px] min-w-[20px] items-center justify-center rounded-[6px] bg-accent'>
-              <CheckIcon className='size-[14px] text-secondary' />
+              <CheckIcon className='size-[14px] text-muted-foreground' />
             </div>
-            <div className='text-sm font-medium text-secondary'>{listItem}</div>
+            <div className='text-sm font-medium text-muted-foreground'>{listItem}</div>
           </div>
         ))}
       </div>

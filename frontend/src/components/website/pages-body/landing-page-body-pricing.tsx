@@ -2,15 +2,15 @@
 
 // Import necessary dependencies
 import { plans } from '@/plans';
-import PricingCard from '../pricing-card';
+import PricingCard from '../../global/pricing-card';
 import { useRouter } from 'next/navigation';
 import HeroTitle from '../hero-title';
 
 // Component that renders the subscription UI section with pricing plans
-export default function SubscriptionUiSection() {
+export default function LandingPageBodyPricing() {
   // State for managing loading state and selected plan
   const router = useRouter();
-  
+
   return (
     <div className='mt-[145px] pt-12'>
       {/* Pricing section header */}
@@ -39,7 +39,7 @@ export default function SubscriptionUiSection() {
                   : 'Continue with ' + plan.name
               }
               onSelect={() => {
-                router.push("/waitlist")
+                router.push('/waitlist');
               }}
             />
           );

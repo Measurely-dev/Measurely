@@ -157,7 +157,7 @@ export default function EditAppDialogContent(props: {
                 alt='Project image'
               />
               <AvatarFallback className='h-full w-full'>
-                <ImageIcon className='text-secondary' />
+                <ImageIcon className='text-muted-foreground' />
               </AvatarFallback>
               <Input
                 onChange={(event) => {

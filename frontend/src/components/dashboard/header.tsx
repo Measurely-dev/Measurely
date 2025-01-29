@@ -27,7 +27,7 @@ export default function Header(props: {
         </div>
         {/* Optional description element */}
         {props.description ? (
-          <div className={`text-sm text-secondary ${props.descriptionClassName}`}>
+          <div className={`text-sm text-muted-foreground ${props.descriptionClassName}`}>
             {props.description}
           </div>
         ) : null}

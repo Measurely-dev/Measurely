@@ -160,7 +160,7 @@ export default function TeamInvite(props: {
             ) : (
               <Button
                 variant='outline'
-                className='h-11 w-fit rounded-[12px] !bg-background text-secondary max-sm:w-full sm:border'
+                className='h-11 w-fit rounded-[12px] !bg-background text-muted-foreground max-sm:w-full sm:border'
                 disabled={
                   props.disable || email === '' || inviteLoading ? true : false
                 }

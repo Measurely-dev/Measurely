@@ -960,7 +960,7 @@ function Chart(props: {
           <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent p-5 shadow-sm shadow-black/5'>
             <div className='flex w-full items-center justify-between gap-5'>
               <div className='flex flex-col'>
-                <div className='text-md text-secondary'>
+                <div className='text-md text-muted-foreground'>
                   {range === 365 ? `Summary of ${year}` : 'Summary'}
                 </div>
                 <div className='text-xl font-medium'>
