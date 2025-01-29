@@ -14,7 +14,7 @@ export default function FooterHeader(props: {
       {/* Main headline text */}
       <div className='text-6xl font-medium max-md:text-5xl max-sm:text-4xl'>
         Ready to elevate your app's
-        <br /> tracking methods?
+        <br className='max-md:hidden' /> tracking methods?
       </div>
 
       {/* Subheadline text */}
