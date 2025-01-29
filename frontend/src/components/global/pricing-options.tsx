@@ -32,7 +32,7 @@ export const PricingOptions = ({
     >
       {/* Event quantity slider section */}
       <div
-        className={`flex w-full max-w-[400px] flex-row items-center gap-4 ${type === 'dialog' ? 'mt-10' : 'mx-auto mb-10 mt-[40px]'}`}
+        className={`flex w-full max-w-[400px] max-md:w-[85%] flex-row items-center gap-4 ${type === 'dialog' ? 'mt-10' : 'mx-auto mb-10 mt-[40px]'}`}
       >
         <span className='font-mono text-sm font-medium text-primary'>10K</span>
         <Slider
