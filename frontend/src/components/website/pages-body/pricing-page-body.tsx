@@ -80,6 +80,9 @@ export default function PricingBody() {
           );
         })}
       </div>
+      <div className='mx-auto mt-10 text-xs text-muted-foreground'>
+        * All prices are in USD
+      </div>
     </>
   );
 }
