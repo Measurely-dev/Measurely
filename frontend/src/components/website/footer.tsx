@@ -5,6 +5,7 @@ import LogoSvg from '@/components/global/logo-svg';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 
 // Footer navigation data structure
 const footerData = [
@@ -17,7 +18,7 @@ const footerData = [
     ],
   },
   {
-    title: 'Resources', 
+    title: 'Resources',
     links: [
       { name: 'Pricing', href: '/pricing' },
       { name: 'Basic metric', href: '/docs/features/basic-metric/' },
@@ -91,33 +92,47 @@ export default function Footer(props: {
       </div>
 
       {/* Footer bottom section with social links and CTA */}
-      <div className='mt-24 flex w-full max-w-[1100px] items-center justify-between text-sm text-[#666666] max-md:mt-16 max-sm:mt-6'>
+      <div className='mt-24 flex w-full max-w-[1100px] items-center justify-between text-sm text-muted-foreground max-md:mt-16 max-sm:mt-6'>
         <div className='flex items-center gap-2'>
-          <a
-            target='_blank'
-            href='https://x.com/getmeasurely'
-            className='group relative mr-2 transition-all duration-500'
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='24'
-              height='24'
-              viewBox='0 0 93 92'
-              fill='none'
+          <Link href='https://x.com/getmeasurely' target='_blank'>
+            <Button
+              variant='outline'
+              size={'icon'}
+              className='aspect-square h-full rounded-xl font-medium max-md:w-full'
             >
-              <rect
-                x='0.138672'
-                width='91.5618'
-                height='91.5618'
-                rx='15'
-                fill='black'
-              />
-              <path
-                d='M50.7568 42.1716L69.3704 21H64.9596L48.7974 39.383L35.8887 21H21L40.5205 48.7983L21 71H25.4111L42.4788 51.5869L56.1113 71H71L50.7557 42.1716H50.7568ZM44.7152 49.0433L42.7374 46.2752L27.0005 24.2492H33.7756L46.4755 42.0249L48.4533 44.7929L64.9617 67.8986H58.1865L44.7152 49.0443V49.0433Z'
-                fill='white'
-              />
-            </svg>
-          </a>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='20'
+                height='20'
+                viewBox='0 0 93 92'
+                fill='none'
+              >
+                <rect
+                  x='0.138672'
+                  width='91.5618'
+                  height='91.5618'
+                  rx='15'
+                  fill='black'
+                />
+                <path
+                  d='M50.7568 42.1716L69.3704 21H64.9596L48.7974 39.383L35.8887 21H21L40.5205 48.7983L21 71H25.4111L42.4788 51.5869L56.1113 71H71L50.7557 42.1716H50.7568ZM44.7152 49.0433L42.7374 46.2752L27.0005 24.2492H33.7756L46.4755 42.0249L48.4533 44.7929L64.9617 67.8986H58.1865L44.7152 49.0443V49.0433Z'
+                  fill='white'
+                />
+              </svg>
+            </Button>
+          </Link>
+          <Link
+            href='https://github.com/measurely-dev/measurely'
+            target='_blank'
+          >
+            <Button
+              variant='outline'
+              size={'icon'}
+              className='mr-2 aspect-square h-full rounded-xl font-medium text-primary max-md:w-full'
+            >
+              <GitHubLogoIcon className='size-5' />
+            </Button>
+          </Link>
           © 2025 <span className='max-md:hidden'>Measurely.dev</span>
         </div>
         {/* Conditional rendering of CTA button based on type prop */}
