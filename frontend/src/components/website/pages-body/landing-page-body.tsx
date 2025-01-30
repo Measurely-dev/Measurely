@@ -11,7 +11,7 @@ import Image1 from '../../../../public/measurely-image1.png';
 import Image2 from '../../../../public/measurely-image2.png';
 import Image4 from '../../../../public/measurely-image4.png';
 import Image5 from '../../../../public/measurely-image5.png';
-import {
+import { 
   Accordion,
   AccordionContent,
   AccordionItem,
