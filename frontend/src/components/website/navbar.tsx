@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/drawer';
 import { Menu } from 'react-feather';
 import { Button } from '@/components/ui/button';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 
 // Main navigation bar component that handles different authentication states
 export default function Navbar(props: {
@@ -92,7 +93,7 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
       // Default state - Sign in and Get started buttons
       case 'default':
         return (
-          <div className='flex flex-row gap-2 max-md:flex-col'>
+          <>
             <Link href='/sign-in'>
               <Button
                 variant='outline'
@@ -111,12 +112,12 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
                 Get started
               </Button>
             </Link>
-          </div>
+          </>
         );
       // Logged in state - Dashboard button
       case 'logged':
         return (
-          <div className='flex flex-row gap-2 max-md:w-full'>
+          <>
             <Link href='/dashboard' className='max-md:w-full'>
               <Button
                 variant='default'
@@ -126,12 +127,12 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
                 Dashboard
               </Button>
             </Link>
-          </div>
+          </>
         );
       // Waitlist state - Sign in and Join waitlist buttons
       case 'waitlist':
         return (
-          <div className='flex flex-row gap-2 max-md:flex-col'>
+          <>
             <Link href='/sign-in'>
               <Button
                 variant='outline'
@@ -150,11 +151,24 @@ function Actions(props: { type: 'default' | 'waitlist' | 'logged' }) {
                 Join waitlist
               </Button>
             </Link>
-          </div>
+          </>
         );
     }
   };
-  return render();
+  return (
+    <div className='flex flex-row gap-2 max-md:flex-col'>
+      <Link href='https://github.com/measurely-dev/measurely' target='_blank'>
+        <Button
+          variant='outline'
+          size={'icon'}
+          className='aspect-square min-h-[38px] rounded-xl font-medium max-md:w-full'
+        >
+          <GitHubLogoIcon className='size-5' />
+        </Button>
+      </Link>
+      {render()}
+    </div>
+  );
 }
 
 // Component to render navigation links
