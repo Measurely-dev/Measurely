@@ -18,8 +18,6 @@ Measurely is an open-source analytics platform for tracking and visualizing metr
 - **Team Management**: Collaborate with your team using role-based permissions.
 - **Integrations**: Coming soon—**AWS CloudWatch**, **Google Analytics**, and **LemonSqueeze**.
 
----
-
 ## Getting Started
 
 Follow these steps to get started with Measurely:
@@ -37,8 +35,6 @@ Use our API documentation to integrate Measurely into your project.
 
 Log in to the dashboard to view, filter, and analyze your metrics in real time.
 
----
-
 ## API Documentation
 
 Check out our detailed [API documentation](https://measurely.dev/docs/getting-started/introduction) for:
@@ -48,14 +44,10 @@ Check out our detailed [API documentation](https://measurely.dev/docs/getting-st
 - Retrieving metrics for analysis
 - Implementing advanced metric types and visualizations
 
----
-
 ## Pricing
 
 Measurely offers flexible plans tailored to your needs.
 Explore our [pricing options](https://measurely.dev/pricing) to find the plan that works best for you.
-
----
 
 ## Support
 
@@ -63,13 +55,9 @@ For any questions, feedback, or assistance, reach out to us:
 
 - **Email**: info@measurely.dev
 
----
-
 ## About
 
 Measurely was created by [zxk-afz](https://github.com/zxk-afz) and [yasthegoat](https://github.com/yasthegoat) to simplify metric tracking and visualization for modern developers and businesses.
-
----
 
 ## License
 
