@@ -31,7 +31,11 @@ export default function SubLink({
   const [isOpen, setIsOpen] = useState(level == 0);
   // Base anchor component
   const Comp = (
-    <Anchor activeClassName='text-blue-500 font-medium' href={href}>
+    <Anchor
+      activeClassName='bg-accent'
+      className='flex items-center justify-center rounded-[10px] px-2 py-1'
+      href={href}
+    >
       {title}
     </Anchor>
   );
@@ -60,7 +64,7 @@ export default function SubLink({
         <CollapsibleContent>
           <div
             className={cn(
-              'ml-0.5 mt-2.5 flex flex-col items-start gap-3 text-sm text-neutral-800 dark:text-neutral-300/85',
+              'mt-2.5 flex flex-col items-start gap-1.5 text-sm text-neutral-800 dark:text-neutral-300/85',
               level > 0 && 'ml-1 border-l pl-4',
             )}
           >

@@ -1,4 +1,4 @@
-// Import core UI components, navigation elements and layout utilities 
+// Import core UI components, navigation elements and layout utilities
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '../ui/button';
 import { AlignLeftIcon } from 'lucide-react';
@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '../ui/sheet';
 // Contains navigation menu in a fixed scrollable container
 export function Leftbar() {
   return (
-    <aside className='sticky top-16 border-r mr-5 hidden h-[94.5vh] min-w-[230px] flex-[1] flex-col overflow-y-auto md:flex'>
+    <aside className='sticky top-16 hidden h-[94.5vh] min-w-[230px] flex-[1] flex-col overflow-y-auto md:flex'>
       <ScrollArea className='py-4'>
         <DocsMenu />
       </ScrollArea>

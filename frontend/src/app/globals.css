@@ -8,6 +8,8 @@
 
 html {
   background-color: var(--background);
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Adjust to your navbar height */
 }
 
 h1 {
