@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://measurely.dev/">
-    <img src="https://media.measurely.dev/avatar-(ProfilePictureMaker.com).png" width="140px" alt="Plausible Analytics" />
+    <img src="https://media.measurely.dev/avatar-(ProfilePictureMaker.com).png" width="140px" alt="Measurely" />
   </a>
 </p>
 <p align="center">
@@ -50,6 +50,14 @@ Use our API documentation to integrate Measurely into your project.
 
 Log in to the dashboard to view, filter, and analyze your metrics in real time.
 
+## SDKs
+
+We provide SDKs to help you easily integrate Measurely into your projects. Choose the SDK for your preferred programming language:
+
+- **[JavaScript/TypeScript SDK](https://github.com/measurely-dev/measurely-js)**
+- **[Go SDK](https://github.com/measurely-dev/measurely-go)**
+- **[Python SDK](https://github.com/measurely-dev/measurely-py)**
+
 ## API Documentation
 
 Check out our detailed [API documentation](https://measurely.dev/docs/getting-started/introduction) for:
@@ -77,4 +85,3 @@ Measurely was created by [zxk-afz](https://github.com/zxk-afz) and [yasthegoat](
 ## License
 
 This project is licensed under the Elastic License 2.0 - see the [LICENSE](LICENSE) file for details.
-
