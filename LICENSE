@@ -1,24 +1,32 @@
-Elastic License 2.0
+Elastic License 2.0 (ELv2)
 
-## Acceptance
-By using the software, you agree to all the terms of this license.
+Copyright 2025 Measurely-dev
 
-## Permitted Use
-You may use, copy, distribute, and make available the software, provided that you do not modify, create derivative works of, or reverse engineer any part of the software.
+Licensed under the Elastic License 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-## Non-Compete Restriction
-You may not provide the software to others as a managed or hosted service, whether directly or indirectly, where the software is part of a service that is similar to or competes with the original licensor’s offerings.
+    https://www.elastic.co/licensing/elastic-license-2.0
 
-## No Modification
-You may not alter, adapt, or create derivative works based on the software.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-## Limited License Termination
-If you violate the terms of this license, your rights under this license will automatically terminate.
+The software is governed by the Elastic License 2.0. By using, copying, modifying, or distributing the software, you agree to comply with the terms of the License.
 
-## Disclaimer
-The software is provided "as is," without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
+**Your Rights and Obligations:**
+- You can use the software for personal, commercial, or research purposes.
+- You may modify and create derivative works of the software.
+- You may not distribute, sublicense, or provide the software in a service offering unless the usage complies with the restrictions outlined in the License.
 
-## Additional Terms
-To request an alternative commercial license or an exception, contact the licensor.
+**Prohibited Uses:**
+- You may not use the software in any manner that competes with Elastic’s commercial offerings.
+- You may not sublicense the software or use it to build a competing product.
 
-For full details, see: https://www.elastic.co/licensing/elastic-license
+**Disclaimer of Warranty:**
+The software is provided "as-is," and Elastic makes no representations or warranties regarding the software’s functionality, performance, or accuracy. Elastic is not liable for any damages or issues arising from the use of the software.
+
+For the full license terms and conditions, visit:
+https://www.elastic.co/licensing/elastic-license-2.0
