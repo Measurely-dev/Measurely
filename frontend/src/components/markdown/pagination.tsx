@@ -19,7 +19,7 @@ export default function Pagination({ pathname }: { pathname: string }) {
             className={buttonVariants({
               variant: 'outline',
               className:
-                'flex w-full flex-col !items-start !py-8 pl-3 no-underline',
+                'flex w-full flex-col !items-start !rounded-[12px] !py-8 pl-3 no-underline',
             })}
             href={`/docs${res.prev.href}`}
           >
@@ -40,7 +40,7 @@ export default function Pagination({ pathname }: { pathname: string }) {
             className={buttonVariants({
               variant: 'outline',
               className:
-                'flex w-full flex-col !items-end !py-8 pr-3 no-underline',
+                'flex w-full flex-col !items-end !rounded-[12px] !py-8 pr-3 no-underline',
             })}
             href={`/docs${res.next.href}`}
           >

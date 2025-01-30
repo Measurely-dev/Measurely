@@ -612,7 +612,7 @@ export function calculatePrice(
   quantity: number,
   cycle: 'month' | 'year',
 ): number {
-  console.log(cycle)
+  console.log(cycle);
   let n = 0;
   const baseQuantity = 10000;
 
@@ -621,18 +621,14 @@ export function calculatePrice(
   } else if (plan === 'pro') {
     n = 0.378;
   }
-  
-  
-  
-  
+
   const k = basePrice / Math.pow(baseQuantity, n);
 
   let price = k * Math.pow(quantity, n);
-  
-  if(cycle === "year"){
+
+  if (cycle === 'year') {
     price *= 0.8;
   }
-  
 
   return Math.round(price * 100) / 100;
 }
@@ -650,7 +646,7 @@ export function getEventAmount(value: number): string {
     70: '4M',
     80: '6M',
     90: '8M',
-    100: '10M+',
+    100: '10M',
   };
   return valueMap[value] || 'N/A';
 }
@@ -670,4 +666,19 @@ export function getEventCount(value: number): number {
     100: 10000000,
   };
   return valueMap[value] || 0;
+}
+
+// Image optimization with Plaiceholder
+export async function getImagePlaceholder(url: string) {
+  try {
+    const res = await fetch(url); // Ensure URL is valid
+    if (!res.ok) throw new Error('Failed to fetch image');
+
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return { props: { blurDataURL: `data:image/jpeg;base64,${base64}` } };
+  } catch (error) {
+    console.error('Error generating placeholder:', error);
+    return { props: { blurDataURL: 'frontend/public/opengraph.png' } };
+  }
 }

@@ -21,8 +21,10 @@ const nextConfig = {
         hostname: 'media.measurely.dev',
       },
     ],
+    formats: ['image/avif', 'image/webp'], // Optional: adds AVIF and WebP support
+    minimumCacheTTL: 60 * 60 * 24, // Cache images for 24 hours
   },
-  trailingSlash: true,
+  trailingSlash: true, // Ensures URLs end with a trailing slash
 };
 
 export default nextConfig;
