@@ -98,7 +98,7 @@ export default function Footer(props: {
             <Button
               variant='outline'
               size={'icon'}
-              className='aspect-square h-full rounded-xl font-medium max-md:w-full'
+              className='aspect-square h-full rounded-xl'
             >
               <svg
                 xmlns='http://www.w3.org/2000/svg'
@@ -106,6 +106,7 @@ export default function Footer(props: {
                 height='20'
                 viewBox='0 0 93 92'
                 fill='none'
+                className='rounded-full bg-black'
               >
                 <rect
                   x='0.138672'
@@ -128,7 +129,7 @@ export default function Footer(props: {
             <Button
               variant='outline'
               size={'icon'}
-              className='mr-2 aspect-square h-full rounded-xl font-medium text-primary max-md:w-full'
+              className='mr-2 aspect-square h-full rounded-xl font-medium text-primary'
             >
               <GitHubLogoIcon className='size-5' />
             </Button>
