@@ -66,7 +66,7 @@ function Landing(props: { type: 'default' | 'waitlist' }) {
     <>
       <div className='flex h-[90vh] min-h-[550px] w-screen flex-col items-center justify-center gap-5 text-center max-md:h-fit max-md:min-h-[50vh] max-md:pb-[80px] max-md:pt-[120px]'>
         <Link
-          href={'/blog/1'}
+          href={'/blog/3'}
           className='group flex cursor-pointer select-none flex-row items-center gap-3 rounded-full border border-input bg-accent p-0.5 pr-1 text-sm shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-black/10 max-sm:scale-90'
         >
           <div className='rounded-full border bg-background px-3 py-1'>
