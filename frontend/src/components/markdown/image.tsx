@@ -30,8 +30,8 @@ export default function Image({
       alt={alt}
       width={width as Width}
       height={height as Height}
-      quality={40}
-      className='w-full max-w-[1000px] rounded-[12px] border'
+      quality={60}
+      className='aspect-video object-cover w-full max-w-[1000px] rounded-[12px] border'
       {...props}
     />
   );
