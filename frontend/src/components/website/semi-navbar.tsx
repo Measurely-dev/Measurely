@@ -23,7 +23,7 @@ export default function SemiNavbar(props: {
         <>
           <Separator className='h-5' orientation='vertical' />
           <Link href={`${props.href}`}>
-            <Button className='rounded-full text-sm' variant='secondary'>
+            <Button className='rounded-[12px] text-sm' variant='secondary'>
               {props.button}
             </Button>
           </Link>
@@ -50,7 +50,7 @@ export function AuthNavbarButton(props: {
       </Link>
       <Separator className='h-5' orientation='vertical' />
       <Button
-        className='rounded-full text-sm'
+        className='rounded-[12px] text-sm'
         variant='secondary'
         onClick={props.onClick}
       >
