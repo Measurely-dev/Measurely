@@ -86,7 +86,7 @@ export default async function BlogPage(props: PageProps) {
             alt='cover'
             width={10000}
             height={10000}
-            className='mx-auto mb-4 h-fit w-[90%] max-w-[1050px] rounded-[12px] border'
+            className='mx-auto mb-4 aspect-video h-fit w-[90%] max-w-[1050px] rounded-[12px] border bg-accent object-cover'
           />
         </div>
 
