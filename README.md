@@ -1,10 +1,25 @@
 # Measurely
 
+<p align="center">
+  <a href="https://measurely.dev/">
+    <img src="https://media.measurely.dev/avatar-(ProfilePictureMaker.com).png" width="140px" alt="Plausible Analytics" />
+  </a>
+</p>
+<p align="center">
+    <a href="https://measurely.dev/docs/getting-started/introduction">Documentation</a> |
+    <a href="https://measurely.dev/blog/1">Open Source</a> |
+    <a href="https://github.com/Measurely-dev/Measurely/blob/main/LICENSE">License</a> |
+    <a href="https://github.com/Measurely-dev/Measurely/blob/main/CONTRIBUTING.md">Contributing</a>
+    <br /><br />
+</p>
+
+---
+
 ![License](https://img.shields.io/badge/License-ELv2-blue?labelColor=gray&style=plastic)
 ![Open source](https://img.shields.io/badge/Open%20source-Yes-Default?labelColor=gray&style=plastic)
 ![Version](https://img.shields.io/badge/Version-0.1-violet?labelColor=gray&style=plastic)
 
-Measurely is an open-source analytics platform for tracking and visualizing metrics with ease.
+Measurely is an open-source analytics platform that makes tracking, analyzing, and visualizing metrics simple. With customizable metric types, real-time insights, and easy integrations, Measurely helps developers turn data into actionable insights for any project, all while maintaining full control over the data.
 
 ## Features
 
