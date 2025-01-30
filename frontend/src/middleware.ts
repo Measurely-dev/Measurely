@@ -16,6 +16,13 @@ export default async function middleware(request: NextRequest) {
   if (url === '/home' || url === '/home/') {
     return NextResponse.redirect(new URL('/', request.url), 308);
   }
+  // Redirect to main doc page
+  if (url === '/docs' || url === '/docs/') {
+    return NextResponse.redirect(
+      new URL('/docs/getting-started/introduction', request.url),
+      308,
+    );
+  }
 
   // Redirect /register/ to root path
   if (url === '/register/') {

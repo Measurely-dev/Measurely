@@ -32,7 +32,7 @@ export const PricingOptions = ({
     >
       {/* Event quantity slider section */}
       <div
-        className={`flex w-full max-w-[400px] max-md:w-[85%] flex-row items-center gap-4 ${type === 'dialog' ? 'mt-10' : 'mx-auto mb-10 mt-[40px]'}`}
+        className={`flex w-full max-w-[400px] flex-row items-center gap-4 max-md:w-[85%] ${type === 'dialog' ? 'mt-10' : 'mx-auto mb-10 mt-[40px]'}`}
       >
         <span className='font-mono text-sm font-medium text-primary'>10K</span>
         <Slider
@@ -41,11 +41,7 @@ export const PricingOptions = ({
           step={10}
           value={sliderValue}
           onValueChange={(e) => setSliderValue(e)}
-          formatLabel={(value) =>
-            getEventAmount(value) === '10M+'
-              ? `${getEventAmount(value)} events`
-              : `Up to ${getEventAmount(value)} events`
-          }
+          formatLabel={(value) => `Up to ${getEventAmount(value)} events`}
         />
         <span className='font-mono text-sm font-medium text-primary'>10M+</span>
       </div>

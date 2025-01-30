@@ -4,6 +4,7 @@ import { SheetLeftbar } from './leftbar';
 import { page_routes } from '@/lib/routes-config';
 import { Button } from '../ui/button';
 import { useMemo } from 'react';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 
 // Navigation links configuration for main navigation
 export const NAVLINKS = [
@@ -27,19 +28,19 @@ export function Navbar(props: { type: 'logged' | 'default' | 'waitlist' }) {
     switch (props.type) {
       case 'logged':
         return (
-          <Link href={'/dashboard'} className='max-md:hidden'>
+          <Link href={'/dashboard'}>
             <Button className='rounded-[12px]'>Dashboard</Button>
           </Link>
         );
       case 'default':
         return (
-          <Link href={'/register'} className='max-md:hidden'>
+          <Link href={'/register'}>
             <Button className='rounded-[12px]'>Get started</Button>
           </Link>
         );
       case 'waitlist':
         return (
-          <Link href={'/waitlist'} className='max-md:hidden'>
+          <Link href={'/waitlist'}>
             <Button className='rounded-[12px]'>Join waitlist</Button>
           </Link>
         );
@@ -86,7 +87,17 @@ export function Navbar(props: { type: 'logged' | 'default' | 'waitlist' }) {
           </div>
         </div>
         {/* Right section with CTA buttons */}
-        <>{CTA}</>
+        <div className='flex gap-2 max-md:hidden'>
+          <Link
+            href='https://github.com/measurely-dev/measurely'
+            target='_blank'
+          >
+            <Button variant='outline' size={'icon'} className='rounded-xl'>
+              <GitHubLogoIcon className='size-5' />
+            </Button>
+          </Link>
+          {CTA}
+        </div>
         <SheetLeftbar />
       </div>
     </nav>
