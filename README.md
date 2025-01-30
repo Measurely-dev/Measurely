@@ -73,4 +73,5 @@ Measurely was created by [zxk-afz](https://github.com/zxk-afz) and [yasthegoat](
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/Measurely/Measurely/blob/main/LICENSE).
+This project is licensed under the Elastic License 2.0 - see the [LICENSE](LICENSE) file for details.
+
