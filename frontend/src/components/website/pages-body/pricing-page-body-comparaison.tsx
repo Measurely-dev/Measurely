@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckIcon, XIcon } from 'lucide-react';
 import HeroTitle from '../hero-title';
+import { useRouter } from 'next/navigation';
 
 // Component for displaying pricing plan comparison
 export default function PricingBodyComparaison() {
+  const router = useRouter();
   // Define pricing plans data structure with features and options
   const pricingSection = [
     {
@@ -28,7 +30,9 @@ export default function PricingBodyComparaison() {
       support: { label: 'Priority support', state: false },
       action: {
         label: 'Get started',
-        onclick: () => {},
+        onclick: () => {
+          router.push('/waitlist');
+        },
       },
     },
     {
@@ -49,7 +53,9 @@ export default function PricingBodyComparaison() {
       support: { label: 'Priority support', state: true },
       action: {
         label: 'Get Plus',
-        onclick: () => {},
+        onclick: () => {
+          router.push('/waitlist');
+        },
       },
     },
     {
@@ -70,7 +76,9 @@ export default function PricingBodyComparaison() {
       support: { label: 'Priority support', state: true },
       action: {
         label: 'Get Pro',
-        onclick: () => {},
+        onclick: () => {
+          router.push('/waitlist');
+        },
       },
     },
   ];
