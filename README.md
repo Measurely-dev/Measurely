@@ -6,7 +6,7 @@
   </a>
 </p>
 <p align="center">
-    <a href="https://measurely.dev/docs/getting-started/introduction">Documentation</a> |
+    <a href="https://measurely.dev/docs/getting-started/introduction">Docs</a> |
     <a href="https://measurely.dev/blog/1">Open Source</a> |
     <a href="https://github.com/Measurely-dev/Measurely/blob/main/LICENSE">License</a> |
     <a href="https://github.com/Measurely-dev/Measurely/blob/main/CONTRIBUTING.md">Contributing</a>
