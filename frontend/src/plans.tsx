@@ -46,10 +46,10 @@ export const plans = [
         <strong className='text-black'>10</strong> metrics
       </div>,
       <div key='3'>
-        <strong className='text-black'>20</strong> filter categories per metric
+        <strong className='text-black'>8</strong> filter categories per metric
       </div>,
       <div key='4'>
-        <strong className='text-black'>3</strong> filters per filter category
+        <strong className='text-black'>15</strong> filters per filter category
       </div>,
       <div key='5'>
         <strong className='text-black'>5</strong> blocks
@@ -78,10 +78,10 @@ export const plans = [
         <strong className='text-black'>30</strong> metrics
       </div>,
       <div key='3'>
-        <strong className='text-black'>4</strong> filter categories per metric
+        <strong className='text-black'>20</strong> filter categories per metric
       </div>,
       <div key='4'>
-        <strong className='text-black'>3</strong> filters per filter category
+        <strong className='text-black'>35</strong> filters per filter category
       </div>,
       <div key='5'>
         <strong className='text-black'>20</strong> blocks
