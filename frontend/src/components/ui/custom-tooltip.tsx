@@ -13,7 +13,7 @@ export default function CustomTooltip(props: TooltipProps) {
           <span className='text-gray-50 dark:text-gray-50'> Date </span>
           <span className='font-medium text-gray-50 dark:text-gray-50'>
             {props.payload.length > 0
-              ? props.payload[0].payload.tooltiplabel
+              ? props.payload[0].payload.metadata.tooltipdate
               : props.label}
           </span>
         </p>
@@ -32,7 +32,11 @@ export default function CustomTooltip(props: TooltipProps) {
               <div className='flex items-center space-x-1'>
                 <span className='font-medium text-gray-900'>
                   {valueFormatter(item.value)}{' '}
-                  {props.payload[0].payload[`metric_unit_${item.category}`]}
+                  {
+                    props.payload[0].payload.metadata[
+                      `metric_unit_${item.category}`
+                    ]
+                  }
                 </span>
               </div>
             </div>

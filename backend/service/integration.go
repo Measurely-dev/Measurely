@@ -50,8 +50,8 @@ func (s *Service) stripeWorker(metric *types.Metric) {
 
 	// Use year 2000 as default start date if no previous timestamp
 	startDate := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
-	if metric.LastEventTimestamp.Valid {
-		startDate = metric.LastEventTimestamp.V
+	if metric.LastEventTimestamp != metric.Created {
+		startDate = metric.LastEventTimestamp
 	}
 
 	// Fetch all payment-related data
@@ -70,7 +70,7 @@ func (s *Service) stripeWorker(metric *types.Metric) {
 		log.Printf("Failed to update LastEventTimestamp: %v", err)
 		return
 	}
-	metric.LastEventTimestamp = sql.Null[time.Time]{V: now, Valid: true}
+	metric.LastEventTimestamp = now
 }
 
 // fetchStripePaymentIntents retrieves successful payment intents after startDate.

@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { parseFilterList } from '@/utils';
 
 // Dialog component for pushing numeric values to a metric with optional filters
 export const PushValueDialog = (props: {
@@ -41,7 +42,8 @@ export const PushValueDialog = (props: {
   const { projects, activeProject } = useContext(ProjectsContext);
 
   // State for managing filter selection
-  const [selectedFilterCategory, setSelectedFilterCategory] = useState<string>('');
+  const [selectedFilterCategory, setSelectedFilterCategory] =
+    useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<string>('');
   const [numberValue, setNumberValue] = useState<number>(0);
 
@@ -157,11 +159,12 @@ export const PushValueDialog = (props: {
                 <SelectItem value='no_category_selected'>
                   -- No category --
                 </SelectItem>
-                {Object.keys(props.metric?.filters || {}).length !== 0 ? (
+                {Object.keys(parseFilterList(props.metric.filters)).length !==
+                0 ? (
                   <>
                     <SelectSeparator />
                     <SelectLabel>Filter categories</SelectLabel>
-                    {Object.keys(props.metric?.filters || {}).map(
+                    {Object.keys(parseFilterList(props.metric?.filters)).map(
                       (category) => (
                         <SelectItem key={category} value={category}>
                           {category}
@@ -186,13 +189,13 @@ export const PushValueDialog = (props: {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Filters</SelectLabel>
-                    {props.metric.filters[selectedFilterCategory].map(
-                      (filter, i) => (
-                        <SelectItem key={i} value={filter.name}>
-                          {filter.name}
-                        </SelectItem>
-                      ),
-                    )}
+                    {parseFilterList(props.metric.filters)[
+                      selectedFilterCategory
+                    ].map((filter, i) => (
+                      <SelectItem key={i} value={filter.name}>
+                        {filter.name}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>

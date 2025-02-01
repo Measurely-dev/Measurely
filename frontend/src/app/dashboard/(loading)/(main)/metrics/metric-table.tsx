@@ -8,7 +8,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
-import { fetchEventVariation, getUnit, INTERVAL } from '@/utils';
+import { getUnit, INTERVAL } from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -172,65 +172,7 @@ const Item = (props: { metric: Metric; index: number }) => {
   };
 
   // Fetches and updates metric data
-  const load = async () => {
-    const variation = await fetchEventVariation(
-      props.metric.project_id,
-      props.metric.id,
-    );
-
-    if (variation.results === 0) {
-      variation.relative_event_count = props.metric.event_count;
-      variation.relative_total_pos = props.metric.total_pos;
-      variation.relative_total_neg = props.metric.total_neg;
-    }
-
-    if (props.metric.type === MetricType.Average) {
-      setDailyUpdate(variation.averagepercentdiff);
-      setAverage(
-        variation.relative_event_count === 0
-          ? 0
-          : (variation.relative_total_pos - variation.relative_total_neg) /
-              variation.relative_event_count,
-      );
-    } else {
-      let dailyValue;
-      const previousTotal =
-        variation.relative_total_pos -
-        variation.relative_total_neg -
-        (variation.pos - variation.neg);
-      const variationValue = variation.pos - variation.neg;
-      if (variationValue === 0) dailyValue = 0;
-      else if (previousTotal === 0)
-        dailyValue = variationValue < 0 ? -100 : 100;
-      else dailyValue = (variationValue / previousTotal) * 100;
-      setDailyUpdate(dailyValue);
-    }
-
-    if (
-      (props.metric.total_pos !== variation.relative_total_pos ||
-        props.metric.total_neg !== variation.relative_total_neg ||
-        props.metric.event_count !== variation.relative_event_count) &&
-      variation.results !== 0
-    ) {
-      setProjects(
-        projects.map((v) =>
-          v.id === props.metric?.project_id
-            ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === props.metric?.id
-                    ? Object.assign({}, m, {
-                        total_pos: variation.relative_total_pos,
-                        total_neg: variation.relative_total_neg,
-                        event_count: variation.relative_event_count,
-                      })
-                    : m,
-                ),
-              })
-            : v,
-        ),
-      );
-    }
-  };
+  const load = async () => {};
 
   // Load data initially and set up periodic refresh
   useEffect(() => {
@@ -296,9 +238,7 @@ const Item = (props: { metric: Metric; index: number }) => {
           </div>
         </TableCell>
         <TableCell className='text-nowrap text-muted-foreground'>
-          {formattedDate(
-            props.metric.last_event_timestamp?.V ?? props.metric.created,
-          )}
+          {formattedDate(props.metric.last_event_timestamp)}
         </TableCell>
         <TableCell>
           <div className='flex w-full justify-end'>

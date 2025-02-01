@@ -7,19 +7,14 @@ import {
 } from '@/components/ui/popover';
 import {
   Select,
-  SelectContent, 
+  SelectContent,
   SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import {
-  ChartColors,
-  DualMetricChartColors, 
-  Metric,
-  MetricType,
-} from '@/types';
+import { ChartColors, DualMetricChartColors, MetricType } from '@/types';
 import {
   Dispatch,
   ReactNode,
@@ -34,16 +29,11 @@ import {
  */
 function AdvancedOptions(props: {
   chartName: string;
-  metricId: string; 
+  metricId: string;
   metricType: MetricType;
   children: ReactNode;
   chartType: string;
   chartColor: string;
-  filters: {
-    [category: string]: Metric[];
-  };
-  activeFilter: Metric | null;
-  setActiveFilter: Dispatch<SetStateAction<Metric | null>>;
   dualMetricChartColor?: string;
   splitTrendChecked?: boolean;
   setChartType: Dispatch<SetStateAction<'stacked' | 'percent' | 'default'>>;

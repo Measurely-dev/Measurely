@@ -39,17 +39,15 @@ import {
   ChartColors,
   DualMetricChartColors,
   Metric,
+  MetricEvent,
   MetricType,
   UserRole,
 } from '@/types';
 import {
-  fetchNextEvent,
-  INTERVAL,
-  fetchChartData,
-  fetchEventVariation,
   valueFormatter,
-  calculateTrend,
   getUnit,
+  fetchMetricEvents,
+  processMetricEvents,
 } from '@/utils';
 import { Dialog } from '@/components/ui/dialog';
 import {
@@ -166,86 +164,85 @@ export default function DashboardMetricPage() {
     return null;
   }, [activeProject, projects, metricName]);
 
-  const [daily, setDaily] = useState<number>(0);
-  const [average, setAverage] = useState<number>(0);
+  const [dailyUpdate, setDailyUpdate] = useState<number>(0);
+  const [value, setValue] = useState<number>(0);
 
   // Load daily values for the metric
-  const loadDailyValues = async (metric: Metric) => {
-    if (metric === undefined) return;
-    const variation = await fetchEventVariation(metric.project_id, metric.id);
+  const loadDailyValues = async () => {
+    if (!metric) return;
+
+    const start = new Date();
+    const end = new Date();
+
+    const data = await fetchMetricEvents(start, end, metric, metric.project_id);
 
     if (metric.type === MetricType.Average) {
-      if (variation.results == 0) {
-        variation.relative_event_count = metric.event_count;
-        variation.relative_total_pos = metric.total_pos;
-        variation.relative_total_neg = metric.total_neg;
-      }
-
-      if (variation.relative_event_count === 0) {
-        setAverage(0);
-      } else {
-        setAverage(
-          (variation.relative_total_pos - variation.relative_total_neg) /
-            variation.relative_event_count,
-        );
-      }
-
-      if (variation.averagepercentdiff >= 0) {
-        setDaily(Math.round(variation.averagepercentdiff * 100) / 100);
-      }
-    } else {
-      let dailyValue;
-      const previousTotal =
-        variation.relative_total_pos -
-        variation.relative_total_neg -
-        (variation.pos - variation.neg);
-      const variationValue = variation.pos - variation.neg;
-      if (variationValue === 0) dailyValue = 0;
-      else if (previousTotal === 0)
-        dailyValue = variationValue < 0 ? -100 : 100;
-      else
-        dailyValue = Math.round((variationValue / previousTotal) * 10000) / 100;
-      setDaily(dailyValue);
-    }
-
-    if (
-      (metric.total_pos !== variation.relative_total_pos ||
-        metric.total_neg !== variation.relative_total_neg ||
-        metric.event_count !== variation.relative_event_count) &&
-      variation.results !== 0
-    ) {
-      setProjects(
-        projects.map((v) =>
-          v.id === metric.project_id
-            ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === metric.id
-                    ? Object.assign({}, m, {
-                        total_pos: variation.relative_total_pos,
-                        total_neg: variation.relative_total_neg,
-                        event_count: variation.relative_event_count,
-                      })
-                    : m,
-                ),
-              })
-            : v,
-        ),
+      setDailyUpdate(calculateAverageUpdate(data));
+      setValue(
+        metric.event_count === 0
+          ? 0
+          : (metric.total_pos - metric.total_pos) / metric.event_count,
       );
+    } else {
+      setDailyUpdate(calculateEventUpdate(data));
+      setValue(metric.total_pos - metric.total_neg);
     }
+  };
+
+  const calculateEventUpdate = (events: MetricEvent[]): number => {
+    if (!metric) return 0;
+    let total_update = 0;
+
+    events.forEach((event) => {
+      total_update += event.value_pos - event.value_neg;
+    });
+
+    const previous_total = metric.total_pos - metric.total_neg - total_update;
+
+    if (total_update === 0) return 0;
+    if (previous_total === 0) {
+      return total_update < 0 ? -100 : 100;
+    }
+    return Math.round((total_update / previous_total) * 100);
+  };
+
+  const calculateAverageUpdate = (events: MetricEvent[]) => {
+    const calculateAverage = (total: number, quantity: number): number => {
+      if (quantity === 0) return 0;
+      return total / quantity;
+    };
+
+    if (!metric) return 0;
+    let total_update = 0;
+    const event_count_update = events.length;
+
+    events.forEach((event) => {
+      total_update += event.value_pos - event.value_neg;
+    });
+
+    const previous_total = metric.total_pos - metric.total_neg - total_update;
+    const previous_event_count = metric.event_count - event_count_update;
+    const previous_average = calculateAverage(
+      previous_total,
+      previous_event_count,
+    );
+    const current_average = calculateAverage(
+      metric.total_pos - metric.total_neg,
+      metric.event_count,
+    );
+
+    const average_update = current_average - previous_average;
+
+    if (average_update === 0) return 0;
+    if (current_average === 0) {
+      return average_update < 0 ? -100 : 100;
+    }
+    return Math.round((average_update / previous_average) * 100);
   };
 
   // Load daily values on mount and set an interval to refresh them
   useEffect(() => {
-    if (metric) {
-      loadDailyValues(metric);
-      const interval = setInterval(() => {
-        loadDailyValues(metric);
-      }, INTERVAL);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
+    loadDailyValues();
   }, [metric]);
 
   // Update the document title and meta description based on the metric
@@ -425,15 +422,7 @@ export default function DashboardMetricPage() {
               </div>
               <div className='flex flex-row items-center gap-4 max-sm:flex-col max-sm:items-start'>
                 <div className='flex items-center gap-3'>
-                  {metric?.type === MetricType.Average ? (
-                    <>{valueFormatter(average)}</>
-                  ) : (
-                    <>
-                      {valueFormatter(
-                        (metric?.total_pos ?? 0) - (metric?.total_neg ?? 0),
-                      )}
-                    </>
-                  )}
+                  {valueFormatter(value)}
                   <UnitCombobox
                     unit={metric?.unit}
                     customUnits={projects[activeProject]?.units}
@@ -482,10 +471,10 @@ export default function DashboardMetricPage() {
                 <div>
                   <div className='flex flex-wrap justify-center gap-4'>
                     <span
-                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${todayBadgeColor(daily)}`}
+                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${todayBadgeColor(dailyUpdate)}`}
                     >
-                      {todayBadgeSign(daily)}
-                      {daily} %
+                      {todayBadgeSign(dailyUpdate)}
+                      {dailyUpdate} %
                     </span>
                   </div>
                 </div>
@@ -493,7 +482,7 @@ export default function DashboardMetricPage() {
             </div>
           </div>
           <Separator className='mb-8 mt-5' />
-          <Chart metric={metric} type='overview' />
+          <Chart metric={metric} type='event' />
           <Chart metric={metric} type='trend' />
         </div>
       </TooltipProvider>
@@ -504,7 +493,7 @@ export default function DashboardMetricPage() {
 // Chart component to display metric data
 function Chart(props: {
   metric: Metric | null | undefined;
-  type: 'trend' | 'overview';
+  type: 'trend' | 'event';
 }) {
   const [chartType, setChartType] = useState<'stacked' | 'percent' | 'default'>(
     'default',
@@ -524,218 +513,80 @@ function Chart(props: {
     to: new Date(),
   });
 
-  const [chartData, setChartData] = useState<any[] | null>(null);
+  const [metricEvents, setMetricEvents] = useState<MetricEvent[] | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [activeFilter, setActiveFilter] = useState<Metric | null>(null);
+  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [splitTrendChecked, setSplitTrendChecked] = useState(false);
-  const [rangeSummary, setRangeSummary] = useState<{
-    pos: number;
-    neg: number;
-    average: number;
-  }>({ pos: 0, neg: 0, average: 0 });
+  const [rangeSummary, setRangeSummary] = useState(0);
 
   // Load chart data based on the selected date range and filter
-  const loadChart = async (from: Date) => {
-    if (!props.metric) return;
-    let data = [];
+  const loadMetricEvents = async () => {
+    if (!props.metric || !date?.from || !date.to) return;
 
-    if (activeFilter !== null) {
-      data = await fetchChartData(
-        from,
-        range,
-        activeFilter,
-        activeFilter.project_id,
-        props.type,
-      );
+    const data = await fetchMetricEvents(
+      date.from,
+      date.to,
+      props.metric,
+      props.metric.project_id,
+    );
 
-      const { pos, neg, average } = await loadRangeSummary(data, activeFilter);
-      setRangeSummary({ pos, neg, average });
-      if (props.type === 'trend') {
-        data = calculateTrend(data, activeFilter, pos, neg, average);
-      }
+    if (props.metric.type === MetricType.Average) {
+      setRangeSummary(calculateRangeAverage(data));
     } else {
-      data = await fetchChartData(
-        from,
-        range,
-        props.metric,
-        props.metric.project_id,
-        props.type,
-      );
-
-      const { pos, neg, average } = await loadRangeSummary(data, props.metric);
-      setRangeSummary({ pos, neg, average });
-      if (props.type === 'trend') {
-        data = calculateTrend(data, props.metric, pos, neg, average);
-      }
+      setRangeSummary(calculateRangeTotal(data));
     }
 
-    setChartData(data);
+    setMetricEvents(data);
     setLoading(false);
     setLoadingLeft(false);
     setLoadingRight(false);
   };
 
-  // Calculate the summary of the range (positive, negative, and average values)
-  const loadRangeSummary = async (
-    data: any[],
-    metric: Metric,
-  ): Promise<{
-    pos: number;
-    neg: number;
-    average: number;
-  }> => {
-    if (props.type === 'trend') {
-      let pos = 0;
-      let neg = 0;
-      let average = 0;
-      let found = false;
-      for (let i = data.length - 1; i >= 0; i--) {
-        if (
-          data[i]['Positive Trend'] !== undefined &&
-          data[i]['Negative Trend'] !== undefined &&
-          data[i]['Average Trend']
-        ) {
-          found = true;
-          pos = data[i]['Positive Trend'];
-          neg = data[i]['Negative Trend'];
-          average = data[i]['Average Trend'];
-          break;
-        }
-      }
+  const calculateRangeTotal = (events: MetricEvent[]): number => {
+    let total = 0;
+    events.forEach((event) => {
+      total += event.value_pos - event.value_neg;
+    });
+    return total;
+  };
 
-      if (!found) {
-        if (date?.from === undefined) return { pos: 0, neg: 0, average: 0 };
-        const end = new Date(date.from);
-        end.setDate(end.getDate() + 1);
-        end.setHours(0);
-        end.setMinutes(0);
-        end.setSeconds(0);
+  const calculateRangeAverage = (events: MetricEvent[]): number => {
+    const event_count = events.length;
+    let total = 0;
+    events.forEach((event) => {
+      total += event.value_pos - event.value_neg;
+    });
 
-        const now = new Date();
-        if (end.getTime() > now.getTime()) {
-          return {
-            pos: metric.total_pos,
-            neg: metric.total_neg,
-            average:
-              metric.event_count === 0
-                ? 0
-                : (metric.total_pos - metric.total_neg) / metric.event_count,
-          };
-        }
-
-        const {
-          relative_total_pos,
-          relative_total_neg,
-          relative_event_count,
-          pos,
-          neg,
-          event_count,
-          results,
-        } = await fetchNextEvent(metric.project_id, metric.id, end);
-
-        if (results === 0) {
-          return {
-            pos: metric.total_pos,
-            neg: metric.total_neg,
-            average:
-              metric.event_count === 0
-                ? 0
-                : (metric.total_pos - metric.total_neg) / metric.event_count,
-          };
-        } else {
-          const previousEventCount = relative_event_count - event_count;
-          return {
-            pos: relative_total_pos - pos,
-            neg: relative_total_neg - neg,
-            average:
-              previousEventCount === 0
-                ? 0
-                : (relative_total_pos - pos - (relative_total_neg - neg)) /
-                  previousEventCount,
-          };
-        }
-      }
-
-      return { pos, neg, average };
-    } else {
-      let totalpos = 0;
-      let totalneg = 0;
-      let eventcount = 0;
-      let average = 0;
-
-      for (let i = 0; i < data.length; i++) {
-        if (metric.type === MetricType.Base) {
-          totalpos += data[i][metric.name] ?? 0;
-        } else if (metric.type === MetricType.Dual) {
-          totalpos += data[i][metric.name_pos ?? ''] ?? 0;
-          totalneg += data[i][metric.name_neg ?? ''] ?? 0;
-        } else if (metric.type === MetricType.Average) {
-          totalpos += data[i]['+'] ?? 0;
-          totalneg += data[i]['-'] ?? 0;
-        }
-
-        eventcount += data[i]['Event Count'] ?? 0;
-      }
-
-      if (metric.type === MetricType.Average) {
-        const total = totalpos - totalneg;
-
-        if (eventcount == 0 || total == 0) {
-          average = 0;
-        } else {
-          average = total / eventcount;
-        }
-      }
-
-      return {
-        pos: totalpos,
-        neg: totalneg,
-        average,
-      };
-    }
+    return event_count === 0 ? 0 : total / event_count;
   };
 
   // Load chart data when the date range, range, year, or active filter changes
   useEffect(() => {
-    let interval: any;
-    if (range >= 365) {
-      const start = new Date(year, 1, 0);
-      start.setDate(1);
-      if (!loadingLeft && !loadingRight) {
-        setLoading(true);
-      }
-      loadChart(start);
-    } else {
-      if (date !== undefined && date.from !== undefined) {
-        setYear(date.from.getFullYear());
-        const to = new Date(date.from);
-        to.setDate(date.from.getDate() - (range - 1));
-        const now = new Date();
-        if (now < to) {
-          setDate({
-            from: new Date(),
-          });
-        } else {
-          if (!loadingLeft && !loadingRight) {
-            setLoading(true);
-          }
-          loadChart(to);
-          setDate({
-            from: date.from,
-            to: to,
-          });
-        }
+    if (activeFilterId) {
+      if (!Object.keys(props.metric?.filters ?? {}).includes(activeFilterId)) {
+        setActiveFilterId(null);
+        return;
       }
     }
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [date?.from, range, year, activeFilter, props.metric]);
+    loadMetricEvents();
+  }, [date, range, year, activeFilterId, props.metric]);
+
+  const chartData = useMemo(() => {
+    if (!date?.from || !date?.to || !metricEvents || !props.metric) return [];
+    return processMetricEvents(
+      activeFilterId,
+      metricEvents,
+      props.type,
+      'D',
+      date?.from,
+      props.metric,
+    );
+  }, [metricEvents]);
 
   // Helper functions to convert between DateRange and RangeValue<DateValue>
   const toRangeValue = (
@@ -783,12 +634,12 @@ function Chart(props: {
   return (
     <>
       <CardHeader className='p-0'>
-        <CardTitle className={props.type === 'overview' ? '' : 'mt-5'}>
-          {props.type === 'overview' ? 'Overview' : 'Trend'}
+        <CardTitle className={props.type === 'event' ? '' : 'mt-5'}>
+          {props.type === 'event' ? 'Events' : 'Trend'}
         </CardTitle>
         <CardDescription>
-          {props.type === 'overview'
-            ? 'Chart displaying an overview of this metric.'
+          {props.type === 'event'
+            ? 'Chart displaying the events of this metric.'
             : 'Chart displaying the trend of this metric'}
         </CardDescription>
       </CardHeader>
@@ -802,9 +653,6 @@ function Chart(props: {
               onChange={(rangeValue) => {
                 const newDateRange = toDateRange(rangeValue);
                 setDate(newDateRange);
-                if (newDateRange?.from) {
-                  loadChart(newDateRange.from);
-                }
               }}
             >
               <div className='flex'>
@@ -836,7 +684,6 @@ function Chart(props: {
                   <RangeCalendar
                     value={toRangeValue(date)}
                     onChange={(rangeValue) => {
-                      console.log(rangeValue);
                       const newDateRange = toDateRange(rangeValue);
                       setDate(newDateRange);
                     }}
@@ -853,9 +700,6 @@ function Chart(props: {
                 metricType={props.metric?.type ?? MetricType.Base}
                 splitTrendChecked={splitTrendChecked}
                 setSplitTrendChecked={setSplitTrendChecked}
-                filters={props.metric?.filters ?? {}}
-                activeFilter={activeFilter}
-                setActiveFilter={setActiveFilter}
                 chartType={chartType}
                 chartColor={chartColor}
                 dualMetricChartColor={dualMetricChartColor}
@@ -892,14 +736,12 @@ function Chart(props: {
                   if (new_year < 1999) return;
                   setYear(new_year);
                   setLoadingLeft(true);
-                  loadChart(new Date(new_year, 0, 1));
                 } else {
                   const newFrom = new Date(date?.from || new Date());
                   newFrom.setDate(newFrom.getDate() - range);
                   if (newFrom.getFullYear() < 1999) return;
                   setDate({ from: newFrom, to: date?.to });
                   setLoadingLeft(true);
-                  loadChart(newFrom);
                 }
               }}
               onRight={() => {
@@ -909,7 +751,6 @@ function Chart(props: {
                   if (new_year > current_year) return;
                   setYear(new_year);
                   setLoadingRight(true);
-                  loadChart(new Date(new_year, 0, 1));
                 } else {
                   const newFrom = new Date(date?.from || new Date());
                   newFrom.setDate(newFrom.getDate() + range);
@@ -917,7 +758,6 @@ function Chart(props: {
                   if (newFrom > now) return;
                   setDate({ from: newFrom, to: date?.to });
                   setLoadingRight(true);
-                  loadChart(newFrom);
                 }
               }}
               isLoadingLeft={loadingLeft}
@@ -954,7 +794,7 @@ function Chart(props: {
           </div>
         </div>
 
-        {chartData === null ? (
+        {metricEvents === null ? (
           <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg bg-accent' />
         ) : (
           <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent p-5 shadow-sm shadow-black/5'>
@@ -964,23 +804,20 @@ function Chart(props: {
                   {range === 365 ? `Summary of ${year}` : 'Summary'}
                 </div>
                 <div className='text-xl font-medium'>
-                  {props.metric?.type === MetricType.Average ? (
-                    <>{valueFormatter(rangeSummary.average)}</>
-                  ) : (
-                    <>{valueFormatter(rangeSummary.pos - rangeSummary.neg)}</>
-                  )}{' '}
+                  {valueFormatter(rangeSummary)}
                   {getUnit(props.metric?.unit ?? '')}
                 </div>
               </div>
-              <Filters
-                metric={props.metric}
-                activeFilter={activeFilter}
-                setActiveFilter={(filter) => {
-                  setActiveFilter(filter);
-                }}
-                range={range}
-                start={date?.to || new Date()}
-              />
+              {props.metric ? (
+                <Filters
+                  metric={props.metric}
+                  activeFilterId={activeFilterId}
+                  setActiveFilterId={setActiveFilterId}
+                  events={metricEvents}
+                />
+              ) : (
+                <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg bg-accent' />
+              )}
             </div>
 
             <Separator className='my-4' />
@@ -997,10 +834,11 @@ function Chart(props: {
                 }
                 categories={
                   splitTrendChecked
-                    ? ['Positive Trend', 'Negative Trend']
-                    : activeFilter !== null
-                      ? [activeFilter.name ?? '']
-                      : [props.metric?.name ?? '']
+                    ? [
+                        props.metric?.name_pos ?? '',
+                        props.metric?.name_neg ?? '',
+                      ]
+                    : [props.metric?.name ?? '']
                 }
                 valueFormatter={(number: number) => valueFormatter(number)}
                 yAxisLabel='Total'
@@ -1021,11 +859,7 @@ function Chart(props: {
                 }
                 categories={
                   props.metric?.type !== MetricType.Dual
-                    ? [
-                        activeFilter !== null
-                          ? activeFilter.name
-                          : (props.metric?.name ?? ''),
-                      ]
+                    ? [props.metric?.name ?? '']
                     : [
                         props.metric?.name_pos ?? '',
                         props.metric?.name_neg ?? '',

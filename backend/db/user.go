@@ -78,8 +78,12 @@ func (db *DB) CreateUser(user types.User) (types.User, error) {
 		return types.User{}, err
 	}
 	defer rows.Close()
-	rows.Next()
-	rows.StructScan(&new_user)
+	for rows.Next() {
+		err := rows.StructScan(&new_user)
+		if err != nil {
+			return types.User{}, err
+		}
+	}
 	return new_user, err
 }
 
