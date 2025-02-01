@@ -48,6 +48,8 @@ import {
   getUnit,
   fetchMetricEvents,
   processMetricEvents,
+  calculateEventUpdate,
+  calculateAverageUpdate,
 } from '@/utils';
 import { Dialog } from '@/components/ui/dialog';
 import {
@@ -177,67 +179,16 @@ export default function DashboardMetricPage() {
     const data = await fetchMetricEvents(start, end, metric, metric.project_id);
 
     if (metric.type === MetricType.Average) {
-      setDailyUpdate(calculateAverageUpdate(data));
+      setDailyUpdate(calculateAverageUpdate(data, metric));
       setValue(
         metric.event_count === 0
           ? 0
-          : (metric.total_pos - metric.total_pos) / metric.event_count,
+          : (metric.total_pos - metric.total_neg) / metric.event_count,
       );
     } else {
-      setDailyUpdate(calculateEventUpdate(data));
+      setDailyUpdate(calculateEventUpdate(data, metric));
       setValue(metric.total_pos - metric.total_neg);
     }
-  };
-
-  const calculateEventUpdate = (events: MetricEvent[]): number => {
-    if (!metric) return 0;
-    let total_update = 0;
-
-    events.forEach((event) => {
-      total_update += event.value_pos - event.value_neg;
-    });
-
-    const previous_total = metric.total_pos - metric.total_neg - total_update;
-
-    if (total_update === 0) return 0;
-    if (previous_total === 0) {
-      return total_update < 0 ? -100 : 100;
-    }
-    return Math.round((total_update / previous_total) * 100);
-  };
-
-  const calculateAverageUpdate = (events: MetricEvent[]) => {
-    const calculateAverage = (total: number, quantity: number): number => {
-      if (quantity === 0) return 0;
-      return total / quantity;
-    };
-
-    if (!metric) return 0;
-    let total_update = 0;
-    const event_count_update = events.length;
-
-    events.forEach((event) => {
-      total_update += event.value_pos - event.value_neg;
-    });
-
-    const previous_total = metric.total_pos - metric.total_neg - total_update;
-    const previous_event_count = metric.event_count - event_count_update;
-    const previous_average = calculateAverage(
-      previous_total,
-      previous_event_count,
-    );
-    const current_average = calculateAverage(
-      metric.total_pos - metric.total_neg,
-      metric.event_count,
-    );
-
-    const average_update = current_average - previous_average;
-
-    if (average_update === 0) return 0;
-    if (current_average === 0) {
-      return average_update < 0 ? -100 : 100;
-    }
-    return Math.round((average_update / previous_average) * 100);
   };
 
   // Load daily values on mount and set an interval to refresh them

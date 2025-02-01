@@ -8,7 +8,13 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/dashboard/metric-dropdown';
-import { getUnit, INTERVAL } from '@/utils';
+import {
+  calculateAverageUpdate,
+  calculateEventUpdate,
+  fetchMetricEvents,
+  getUnit,
+  INTERVAL,
+} from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -150,9 +156,9 @@ const Item = (props: { metric: Metric; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [average, setAverage] = useState<number>(0);
+  const [value, setValue] = useState<number>(0);
 
   // Determines badge color based on value
   const todayBadgeColor = (v: number | null) => {
@@ -172,7 +178,29 @@ const Item = (props: { metric: Metric; index: number }) => {
   };
 
   // Fetches and updates metric data
-  const load = async () => {};
+  const load = async () => {
+    const start = new Date();
+    const end = new Date();
+
+    const data = await fetchMetricEvents(
+      start,
+      end,
+      props.metric,
+      props.metric.project_id,
+    );
+    if (props.metric.type === MetricType.Average) {
+      setDailyUpdate(calculateAverageUpdate(data, props.metric));
+      setValue(
+        props.metric.event_count === 0
+          ? 0
+          : (props.metric.total_pos - props.metric.total_neg) /
+              props.metric.event_count,
+      );
+    } else {
+      setDailyUpdate(calculateEventUpdate(data, props.metric));
+      setValue(props.metric.total_pos - props.metric.total_neg);
+    }
+  };
 
   // Load data initially and set up periodic refresh
   useEffect(() => {
@@ -208,20 +236,8 @@ const Item = (props: { metric: Metric; index: number }) => {
         </TableCell>
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
-            {props.metric.type === MetricType.Average ? (
-              <>
-                {valueFormatter(average)} {getUnit(props.metric.unit)}
-              </>
-            ) : (
-              <>
-                {valueFormatter(
-                  props.metric.total_pos - props.metric.total_neg,
-                )}
-                <span className='ml-1 text-sm'>
-                  {getUnit(props.metric.unit)}
-                </span>
-              </>
-            )}
+            {valueFormatter(value)}
+            <span className='ml-1 text-sm'>{getUnit(props.metric.unit)}</span>
           </div>
         </TableCell>
         <TableCell>
@@ -232,7 +248,6 @@ const Item = (props: { metric: Metric; index: number }) => {
               )}}`}
             >
               {todayBadgeSign(dailyUpdate)}
-
               {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate) + ' %'}
             </Badge>
           </div>

@@ -14,6 +14,8 @@ import {
 export const MAXFILESIZE = 500 * 1024; // 500KB max file size
 export const INTERVAL = 20000; // 20 second interval
 
+export type ChartPrecision = 'D' | 'W' | '15D' | 'M' | 'Y';
+
 const ALPHA_NUM_CHARS =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -100,7 +102,7 @@ export const fetchMetricEvents = async (
   end: Date,
   metric: Metric,
   project_id: string,
-) => {
+): Promise<MetricEvent[]> => {
   start.setHours(0);
   start.setMinutes(0);
   start.setSeconds(0);
@@ -134,7 +136,7 @@ export const processMetricEvents = (
   filter_id: string | null,
   metricEvents: MetricEvent[],
   chart_type: 'event' | 'trend',
-  precision: 'D' | 'W' | 'M' | 'Y',
+  precision: ChartPrecision,
   from: Date,
   metric: Metric,
 ): ChartPoint[] => {
@@ -146,6 +148,9 @@ export const processMetricEvents = (
       break;
     case 'W':
       data_length = 14;
+      break;
+    case '15D':
+      data_length = 15;
       break;
     case 'M':
       data_length = 30;
@@ -171,15 +176,17 @@ export const processMetricEvents = (
     const point: ChartPoint = {
       date: eventDate,
       metadata: {
-        tooltipdate: parseXAxis(eventDate, precision),
+        tooltipdate:
+          parseXAxis(eventDate, precision) +
+          ` ${precision === 'W' ? eventDate.getHours() + ' H' : ''}`,
         [`metric_unit_${metric.name}`]: unit,
       },
     };
 
     if (eventDate <= now) {
-      point[metric.type !== MetricType.Dual ? metric.name : metric.name_pos] =
-        0;
+      point[metric.name] = 0;
       if (metric.type === MetricType.Dual) {
+        point[metric.name_pos] = 0;
         point[metric.name_neg] = 0;
       }
     }
@@ -191,7 +198,7 @@ export const processMetricEvents = (
       dateCounter.setHours(dateCounter.getHours() + 1);
     } else if (precision === 'W') {
       dateCounter.setHours(dateCounter.getHours() + 12);
-    } else if (precision === 'M') {
+    } else if (precision === 'M' || precision === '15D') {
       dateCounter.setDate(dateCounter.getDate() + 1);
     } else {
       dateCounter.setDate(dateCounter.getDate() + 15);
@@ -239,7 +246,7 @@ export const processMetricEvents = (
 const processEventChart = (
   chartData: ChartPoint[],
   metricEvents: MetricEvent[],
-  precision: 'D' | 'W' | 'M' | 'Y',
+  precision: ChartPrecision,
   metric: Metric,
 ) => {
   metricEvents.forEach((event) => {
@@ -249,9 +256,9 @@ const processEventChart = (
         if (metric.type === MetricType.Dual) {
           point[metric.name_pos] += event.value_pos;
           point[metric.name_neg] += event.value_neg;
-        } else {
-          point[metric.name] += event.value_pos - event.value_neg;
         }
+
+        point[metric.name] += event.value_pos - event.value_neg;
       }
     });
   });
@@ -260,11 +267,12 @@ const processEventChart = (
 const processTrendChart = (
   chartData: ChartPoint[],
   metricEvents: MetricEvent[],
-  precision: 'D' | 'W' | 'M' | 'Y',
+  precision: ChartPrecision,
   metric: Metric,
 ) => {
   let total_pos = 0;
   let total_neg = 0;
+  const now = new Date();
   metricEvents.forEach((event) => {
     const event_date = new Date(event.date);
     chartData.forEach((point) => {
@@ -272,10 +280,12 @@ const processTrendChart = (
         total_pos += event.value_pos;
         total_neg += event.value_neg;
       }
-      point[metric.name] = total_pos - total_neg;
-      if (metric.type === MetricType.Dual) {
-        point[metric.name_pos] = total_pos;
-        point[metric.name_neg] = total_neg;
+      if (point.date <= now) {
+        point[metric.name] = total_pos - total_neg;
+        if (metric.type === MetricType.Dual) {
+          point[metric.name_pos] = total_pos;
+          point[metric.name_neg] = total_neg;
+        }
       }
     });
   });
@@ -284,7 +294,7 @@ const processTrendChart = (
 const processAverageChart = (
   chartData: ChartPoint[],
   metricEvents: MetricEvent[],
-  precision: 'D' | 'W' | 'M' | 'Y',
+  precision: ChartPrecision,
   metric: Metric,
   isTrend: boolean,
 ) => {
@@ -299,7 +309,8 @@ const processAverageChart = (
         total_neg += event.value_neg;
         event_count += 1;
       }
-      point[metric.name] = (total_pos - total_neg) / event_count;
+      point[metric.name] =
+        event_count === 0 ? 0 : (total_pos - total_neg) / event_count;
       if (!isTrend) {
         total_pos = 0;
         total_neg = 0;
@@ -312,11 +323,7 @@ const processAverageChart = (
 /**
  * Helper to check if dates match based on range
  */
-function datesMatch(
-  d1: Date,
-  d2: Date,
-  precision: 'D' | 'W' | 'M' | 'Y',
-): boolean {
+function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
   if (precision === 'D') {
     return (
       d1.getDate() === d2.getDate() &&
@@ -327,16 +334,17 @@ function datesMatch(
   }
 
   if (precision === 'W') {
+    const isSame12HourPeriod =
+      Math.floor(d1.getHours() / 12) === Math.floor(d2.getHours() / 12); // 0 for AM, 1 for PM
     return (
       d1.getDate() === d2.getDate() &&
       d1.getMonth() === d2.getMonth() &&
       d1.getFullYear() === d2.getFullYear() &&
-      d1.getHours() >= d2.getHours() &&
-      d1.getHours() < d2.getHours() + 12
+      isSame12HourPeriod
     );
   }
 
-  if (precision === 'M') {
+  if (precision === 'M' || precision === '15D') {
     return (
       d1.getMonth() === d2.getMonth() &&
       d1.getFullYear() === d2.getFullYear() &&
@@ -345,11 +353,13 @@ function datesMatch(
   }
 
   if (precision === 'Y') {
+    const isSame15DayPeriod =
+      Math.floor((d1.getDate() - 1) / 15) ===
+      Math.floor((d2.getDate() - 1) / 15); // 0 for days 1–15, 1 for 16–end
     return (
       d1.getMonth() === d2.getMonth() &&
       d1.getFullYear() === d2.getFullYear() &&
-      d1.getDate() >= d2.getDate() &&
-      d1.getDate() < d2.getDate() + 15
+      isSame15DayPeriod
     );
   }
 
@@ -359,14 +369,10 @@ function datesMatch(
 /**
  * Formats date for X-axis display
  */
-export const parseXAxis = (
-  value: Date,
-  precision: 'D' | 'W' | 'M' | 'Y',
-): string => {
+export const parseXAxis = (value: Date, precision: ChartPrecision): string => {
   if (precision === 'D') return `${value.getHours()} H`;
-  if (precision === 'W')
-    return `${getDaysFromDate(value)} ${value.getHours()} H`;
-  if (precision === 'M')
+  if (precision === 'W') return `${getDaysFromDate(value)}`;
+  if (precision === 'M' || precision === '15D')
     return `${getMonthsFromDate(value)} ${value.getDate()}`;
   if (precision === 'Y') {
     return `${getMonthsFromDate(value)} ${value.getDate()}`;
@@ -478,4 +484,61 @@ export const parseFilterList = (filters: Record<string, Filter>) => {
   }
 
   return output;
+};
+
+export const calculateEventUpdate = (
+  events: MetricEvent[],
+  metric: Metric,
+): number => {
+  if (!metric) return 0;
+  let total_update = 0;
+
+  events.forEach((event) => {
+    total_update += event.value_pos - event.value_neg;
+  });
+
+  const previous_total = metric.total_pos - metric.total_neg - total_update;
+
+  if (total_update === 0) return 0;
+  if (previous_total === 0) {
+    return total_update < 0 ? -100 : 100;
+  }
+  return Math.round((total_update / previous_total) * 100);
+};
+
+export const calculateAverageUpdate = (
+  events: MetricEvent[],
+  metric: Metric,
+) => {
+  const calculateAverage = (total: number, quantity: number): number => {
+    if (quantity === 0) return 0;
+    return total / quantity;
+  };
+
+  if (!metric) return 0;
+  let total_update = 0;
+  const event_count_update = events.length;
+
+  events.forEach((event) => {
+    total_update += event.value_pos - event.value_neg;
+  });
+
+  const previous_total = metric.total_pos - metric.total_neg - total_update;
+  const previous_event_count = metric.event_count - event_count_update;
+  const previous_average = calculateAverage(
+    previous_total,
+    previous_event_count,
+  );
+  const current_average = calculateAverage(
+    metric.total_pos - metric.total_neg,
+    metric.event_count,
+  );
+
+  const average_update = current_average - previous_average;
+
+  if (average_update === 0) return 0;
+  if (previous_average === 0) {
+    return average_update < 0 ? -100 : 100;
+  }
+  return Math.round((average_update / previous_average) * 100);
 };

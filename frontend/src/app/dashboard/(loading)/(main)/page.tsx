@@ -73,6 +73,7 @@ import { Label } from '@/components/ui/label';
 import {
   Block,
   BlockType,
+  ChartPoint,
   ChartType,
   Metric,
   MetricType,
@@ -80,11 +81,12 @@ import {
 } from '@/types';
 import { toast } from 'sonner';
 import {
-  fetchChartData,
-  fetchEventVariation,
+  ChartPrecision,
+  fetchMetricEvents,
   generateString,
   getMonthsFromDate,
   getUnit,
+  processMetricEvents,
   valueFormatter,
 } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -448,7 +450,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
   const [isHoveredDrag, setIsHoveredDrag] = useState(false);
   const [isOpen, setIsOpen] = useState(isHoveredMore);
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
-  const [chartData, setChartData] = useState<any[] | null>(null);
+  const [chartData, setChartData] = useState<ChartPoint[] | null>(null);
   const [range, setRange] = useState(7);
   const [isCopying, setIsCopying] = useState(false);
   const [disabledItem, setDisabledItem] = useState<string | null>(null);
@@ -551,177 +553,48 @@ function BlockContent(props: Block & { groupkey?: string }) {
     const loadData = async () => {
       if (metrics.length === 0) return;
 
-      const date = new Date();
-      date.setDate(date.getDate() - (range - 1));
-
-      let combinedData: any[] = [];
-      if (props.type === BlockType.Nested) {
-        if (
-          metrics[0].filters === null ||
-          metrics[0].filters?.[props.filter_categories[0]] === undefined
-        ) {
-          // Delete the nested block if the filter category has been deleted
-          deleteBlock();
-          return;
-        }
-        const dataPromises = metrics[0].filters[props.filter_categories[0]].map(
-          async (filter) => {
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(1);
-            startDate.setHours(0);
-            startDate.setMinutes(0);
-            startDate.setSeconds(0);
-
-            const numberOfDays = new Date(
-              startDate.getFullYear(),
-              startDate.getMonth() + 1,
-              0,
-            ).getDate();
-
-            endDate.setDate(numberOfDays);
-            endDate.setHours(23);
-            endDate.setMinutes(59);
-            endDate.setSeconds(59);
-
-            const data = await fetchEventVariation(
-              projects[activeProject].id,
-              filter.id,
-              startDate,
-              endDate,
-            );
-
-            let value = data.pos - data.neg;
-
-            if (metrics[0].type === MetricType.Average) {
-              if (data.event_count !== 0) {
-                value /= data.event_count;
-              }
-            }
-
-            return {
-              [filter.filter_category]: filter.name,
-              [metrics[0].name]: value,
-              name: filter.name,
-              value: value,
-              metadata: {
-                value: data.pos - data.neg,
-                event_count: data.event_count,
-                relative_total:
-                  data.relative_total_pos - data.relative_total_neg,
-                relative_event_count: data.relative_event_count,
-                date: startDate,
-              },
-            };
-          },
+      const end = new Date();
+      const start = new Date(end);
+      start.setDate(start.getDate() - (range - 1));
+      const promises = metrics.map(async (metric) => {
+        const data = await fetchMetricEvents(
+          start,
+          end,
+          metric,
+          metric.project_id,
         );
 
-        combinedData = await Promise.all(dataPromises);
-        if (combinedData.length > 6) {
-          const first6 = combinedData.slice(0, 6);
-          const others = combinedData.slice(6);
+        let precision: ChartPrecision = 'W';
+        if (range === 7) precision = 'W';
+        else if (range === 15) precision = '15D';
+        else if (range === 30) precision = 'M';
 
-          // Combine remaining elements into 'other'
-          const otherElement = {
-            [metrics[0].filters[props.filter_categories[0]][0].filter_category]:
-              'Other',
-            [metrics[0].name]: others.reduce(
-              (sum, item) => sum + item[metrics[0].name],
-              0,
-            ),
-            name: 'Other',
-            value: others.reduce((sum, item) => sum + item.value, 0),
-            metadata: {
-              value: others.reduce((sum, item) => sum + item.metadata.value, 0),
-              event_count: others.reduce(
-                (sum, item) => sum + item.metadata.event_count,
-                0,
-              ),
-              relative_total: others.reduce(
-                (sum, item) => sum + item.metadata.relative_total,
-                0,
-              ),
-              relative_event_count: others.reduce(
-                (sum, item) => sum + item.metadata.relative_event_count,
-                0,
-              ),
-              date: combinedData[0].metadata.date,
-            },
-          };
+        return processMetricEvents(
+          null,
+          data,
+          'event',
+          precision,
+          start,
+          metric,
+        );
+      });
 
-          combinedData = [...first6, otherElement];
-        }
-        if (combinedData.length > 0) {
-          setDate(combinedData[0].metadata.date);
-        }
-      } else {
-        const dataPromises = metrics.map((metric) =>
-          fetchChartData(
-            date,
-            range,
-            metric,
-            projects[activeProject].id,
-            'trend',
-          ).then((data) => {
-            if (metric.type === MetricType.Dual) {
-              data.forEach((item) => {
-                item[metric.name] =
-                  item[metric.name_pos] - item[metric.name_pos];
-              });
-            } else if (metric.type === MetricType.Average) {
-              data.forEach((item) => {
-                const pos = item['+'] ?? 0;
-                const neg = item['-'] ?? 0;
-                const eventCount = item['Event Count'] ?? 0;
-                item[metric.name] =
-                  eventCount === 0 ? 0 : (pos - neg) / eventCount;
-              });
-            }
-            return {
-              metric,
-              data,
-            };
+      const results = await Promise.all(promises);
+      const length = results[0].length; // Assuming all arrays have the same length
+      const combined: ChartPoint[] = Array.from({ length }, (_, i) =>
+        results.reduce(
+          (acc: any, curr) => ({
+            ...acc,
+            ...curr[i],
+            metadata: { ...acc.metadata, ...curr[i].metadata }, // Merge nested metadata
           }),
-        );
+          {},
+        ),
+      ) as ChartPoint[];
 
-        const results = await Promise.all(dataPromises);
+      console.log(combined);
 
-        results.forEach(({ metric, data }, index) => {
-          if (index === 0) {
-            data.forEach((item) => {
-              combinedData.push({
-                date: item.date,
-                tooltiplabel: item.tooltiplabel,
-                [metric.name]: item[metric.name],
-                [`metric_unit_${metric.name}`]:
-                  item[`metric_unit_${metric.name}`],
-                [metric.name + '+']: item['+'] ?? 0,
-                [metric.name + '-']: item['-'] ?? 0,
-                [metric.name + 'Event Count']: item['Event Count'] ?? 0,
-              });
-            });
-          } else {
-            data.forEach((item, i) => {
-              if (metric.type === MetricType.Average) {
-                combinedData[i][metric.name + '+'] = item['+'];
-                combinedData[i][metric.name + '-'] = item['-'];
-                combinedData[i][metric.name + 'Event Count'] =
-                  item['Event Count'];
-              }
-              combinedData[i][metric.name] = item[metric.name];
-              combinedData[i][`metric_unit_${metric.name}`] =
-                item[`metric_unit_${metric.name}`];
-
-              combinedData[i][metric.name + '+'] = item['+'] ?? 0;
-              combinedData[i][metric.name + '-'] = item['-'] ?? 0;
-              combinedData[i][metric.name + 'Event Count'] =
-                item['Event Count'] ?? 0;
-            });
-          }
-        });
-      }
-
-      setChartData(combinedData);
+      setChartData(combined);
     };
 
     loadData();
