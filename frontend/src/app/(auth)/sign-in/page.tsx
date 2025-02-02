@@ -52,7 +52,7 @@ export default function SignIn() {
       </div>
       <Content className='pb-20'>
         <AuthForm
-          title='Welcome back'
+          title='Welcome back!'
           providers={true}
           form={[
             {
