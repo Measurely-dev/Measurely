@@ -1,0 +1,83 @@
+---
+title: v1
+description: How to interact with the v1 API to update metric values.
+---
+
+import { Callout } from "nextra/components";
+
+# Version 1
+
+To interact with the Measurely API, you need to send a POST request to the endpoint with an application API key and the metric ID of the value you wish to update. You can also use filters to categorize or refine the metric data. Follow the steps below to understand how to use the API.
+
+## Prerequisites
+
+Before you can start using the Measurely API, you will need the following:
+
+- **API Key**: You need a project API key to authenticate your request.
+- **Metric ID**: The ID of the metric that you wish to update.
+
+<br />
+
+<Callout type="warning">
+  Always keep your API key secure. Do not expose it publicly in your code or
+  repositories.
+</Callout>
+
+## Making a Request
+
+To update a metric's value, you need to make a POST request to the following endpoint:
+
+```bash
+POST https://api.measurely.dev/event/v1/{METRIC_ID OR METRIC_NAME}
+```
+
+### Request Body
+
+The request body should contain the value you wish to add or remove. Additionally, you can include filters as a key-value structure to categorize the metric. The body format should be JSON:
+
+```bash
+{
+  "value": 100,
+  "filters": {
+    "region": "US",
+    "device": "mobile"
+  }
+}
+```
+
+### Code examples
+
+```bash
+# Replace {METRIC_ID} with your metric ID
+# Replace {API_KEY} with your API key
+# Replace {VALUE} with the value that you want to send
+
+curl -X POST https://api.measurely.dev/event/{METRIC_ID} \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer {API_KEY}" \
+    -d '{"value": {VALUE}, "filters": {"region": "US", "device": "mobile"}}'
+```
+
+## Response Codes
+
+The Measurely API responds with different status codes based on the outcome of your request. Here's what each response code means:
+
+### 200 - Success
+
+The metric value has been successfully updated, and the event summary has been created in the database.
+
+### 400 - Bad Request
+
+The request is invalid. This may occur due to missing or improperly formatted request data, or an issue with the metric value (e.g., a negative value for a base metric or a value of zero).
+
+### 401 - Unauthorized
+
+The provided API key or metric ID is invalid, or the request body failed to authenticate.
+
+### 429 - Too many requests
+
+The rate limit has been exceeded. This typically occurs when the number of requests surpasses the allowed limit for the user's plan.
+
+### 500 - Internal server error
+
+An error occurred while processing the request, such as a failure to update the metric. This should be very rare.
