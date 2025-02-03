@@ -1,9 +1,12 @@
 import type { MetaRecord } from "nextra";
 import { Code } from "nextra/components";
 
+// This is the metadata configuration for the documentation pages.
 const SETUP: MetaRecord = {
   quickstart: "",
 };
+
+// This is the metadata configuration for the documentation pages.
 const FEATURES: MetaRecord = {
   _: {
     type: "separator",
@@ -20,14 +23,17 @@ const FEATURES: MetaRecord = {
   integrations: "",
   templates: "",
 };
+// This is the metadata configuration for the documentation pages.
 const SDKS: MetaRecord = {
   "js-ts": <Code>JS/TS</Code>,
   python: <Code>Python</Code>,
   golang: <Code>Golang</Code>,
 };
+// This is the metadata configuration for the documentation pages.
 const API_REFERENCES: MetaRecord = {
   v1: "",
 };
+// This is the metadata configuration for the documentation pages.
 const metaConfig = {
   docs: {
     type: "page",
