@@ -1,0 +1,71 @@
+---
+sidebarTitle: Templates
+description: Learn how to use Measurely templates to simplify metric tracking with prebuilt solutions.
+---
+
+import { Callout, Steps, Table, Code } from "nextra/components";
+
+# Templates
+
+Measurely **Templates** provide prebuilt solutions to help you track key metrics with minimal setup. Whether you need website analytics, API monitoring, or user event tracking, templates allow you to integrate Measurely quickly.
+
+<Callout type="default" emoji="📝">
+  Templates eliminate the need for manual setup. Choose a template that fits
+  your needs and integrate it into your project effortlessly.
+</Callout>
+
+## Available & Upcoming Templates
+
+<br />
+<Table>
+  <thead>
+    <Table.Tr>
+      <Table.Th>Template</Table.Th>
+      <Table.Th>Status</Table.Th>
+    </Table.Tr>
+  </thead>
+  <tbody>
+    <Table.Tr>
+      <Table.Td>Website Tracking</Table.Td>
+      <Table.Td>✅ Available</Table.Td>
+    </Table.Tr>
+    <Table.Tr>
+      <Table.Td>API Monitoring</Table.Td>
+      <Table.Td>🚧 Coming Soon</Table.Td>
+    </Table.Tr>
+    <Table.Tr>
+      <Table.Td>Custom Event Tracking</Table.Td>
+      <Table.Td>🚧 Coming Soon</Table.Td>
+    </Table.Tr>
+  </tbody>
+</Table>
+
+## Website Tracking Template
+
+This template allows you to track page views and unique visitors automatically by adding a script tag to your website.
+
+### How to Use
+
+1. Copy the following script tag and add it to the `<head>` of your HTML file:
+
+   ```html
+   <!--Replace "YOUR_MEASURELY_API_KEY" with your actual API key.-->
+
+   <script
+     async
+     src="https://cdn.measurely.dev/track.js"
+     data-api-key="YOUR_MEASURELY_API_KEY"
+   />
+   ```
+
+<Callout type="warning">
+  {" "}
+  The script will only collect data if the correct API key is provided. Ensure
+  you are using a valid key.{" "}
+</Callout>
+**Upcoming Templates**
+
+- API Monitoring: Track API request counts, response times, and error rates.
+- Custom Event Tracking: Capture custom user interactions like button clicks or form submissions.
+
+More templates are coming soon to support various tracking needs. [Request a template](https://github.com/measurely-dev/measurely/issues/new?title=Request%20new%20template&labels=feedback)

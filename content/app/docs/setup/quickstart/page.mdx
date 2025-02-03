@@ -1,0 +1,98 @@
+---
+sidebarTitle: Quickstart
+description: A 5-minute guide to getting started with the Measurely API.
+---
+
+import { Steps, Tabs } from "nextra/components";
+
+# Quickstart
+
+5-minute guide to getting started with the Measurely API.
+
+## Quick Overview
+
+This guide will help you:
+
+1. Create a basic metric in the Measurely dashboard.
+2. Update the metric value using the API.
+
+## Guide
+
+<Steps>
+
+### Access the Metrics Page
+
+Navigate to the Metrics section in the Measurely dashboard.
+
+### Click Create Metric
+
+Here, you'll have the option to select between a Basic Metric or a Dual Metric. Choose Basic Metric.
+
+### Enter Metric Details
+
+Provide a name for your metric (e.g., "Sales Count").
+
+### API KEY Integration
+
+To send data to this metric, integrate your Measurely API KEY into your project.
+
+</Steps>
+
+To update a metric value:
+
+1. Make a POST request to the endpoint:
+   ```
+   POST https://api.measurely.dev/event/{API_KEY}/{METRIC_ID}
+   ```
+2. Include a JSON body with the value you want to add or remove:
+
+   ```json
+   {
+     "value": 100
+   }
+   ```
+
+   <br />
+
+## Code Examples
+
+<Tabs items={["Javascript", "Typescript"]}>
+  <Tabs.Tab>
+  ```javascript
+  export const updateMetric = async (API_KEY, METRIC_ID, value) => {
+    const response = await fetch(
+      `https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: value }),
+      },
+    );
+    return response.status;
+  };
+  ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+  ```typescript
+  export const updateMetric = async (
+    API_KEY: string,
+    METRIC_ID: string,
+    value: number,
+  ): Promise<number> => {
+    const response = await fetch(
+      `https://api.measurely.dev/event/${API_KEY}/${METRIC_ID}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: value }),
+      },
+    );
+    return response.status;
+  };
+  ```
+  </Tabs.Tab>
+</Tabs>

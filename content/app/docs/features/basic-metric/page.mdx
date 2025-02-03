@@ -1,0 +1,51 @@
+---
+sidebarTitle: Basic metric
+description: How to track and view single-value metrics with Measurely's Basic Metric feature.
+---
+
+import { Callout, Steps } from "nextra/components";
+
+# Basic metric
+
+The **Basic Metric** allows users to track and display a single value metric over time. Whether you're tracking the number of users, sales, or any other key metric, this feature provides a clear and concise way to visualize that data. It's perfect for scenarios where you need to monitor a singular value that reflects progress or performance.
+
+<Callout type="warning">
+  The value of a Basic Metric is always positive. This is because Basic Metrics
+  track a singular value, and any changes to this value represent increments,
+  counts, or other positive measurements. If you need to track both positive and
+  negative values, consider using a **Dual Metric** instead
+</Callout>
+
+## How to Create a Basic Metric
+
+<Steps>
+
+### Access the Metrics Page
+
+Navigate to the Metrics section in the Measurely dashboard.
+
+### Click Create Metric
+
+Here, you'll have the option to select between a Basic Metric or a Dual Metric. Choose Basic Metric.
+
+### Enter Metric Details
+
+Provide a name for your metric (e.g., "Sales Count").
+
+### API KEY Integration
+
+To send data to this metric, integrate your Measurely API KEY into your project.
+
+</Steps>
+
+## Viewing Your Basic Metric
+
+Once your basic metric is created, you can view it directly in the dashboard. Measurely provides an intuitive graphical representation, showing the trend of the tracked value over time.
+
+**Graphical Representation:** The chart will show a line or bar indicating how your metric has changed, allowing you to spot trends.
+
+## Example Use Cases
+
+- **Tracking Website Visits:** A basic metric could track daily website visits.
+- **Sales Reporting:** Monitor the total sales of a product or service within a set time frame.
+- **User Registration:** Track the number of new user sign-ups each day or week.
