@@ -45,7 +45,7 @@ jobs:
       - name: Build Next.js app
         if: steps.changes.outputs.skip == 'false'
         run: |
-          cd frontend
+          cd content
           pnpm run build
 
       - name: Railway Deploy
