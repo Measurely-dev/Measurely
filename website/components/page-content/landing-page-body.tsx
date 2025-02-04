@@ -40,7 +40,7 @@ export default function Body() {
   const bentoBoxType = window_width > 768 ? "horizontal-left" : "vertical";
 
   return (
-    <div className="z-10 w-screen bg-background pb-[150px]">
+    <div className="w-screen bg-background pb-[150px]">
       <Content>
         {/* Hero Section */}
         <BentoBox

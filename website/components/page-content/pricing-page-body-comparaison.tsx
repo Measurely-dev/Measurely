@@ -98,15 +98,14 @@ export default function PricingBodyComparaison() {
           // Individual pricing card container
           <div
             key={index}
-            className={`flex flex-col gap-4 rounded-[16px] border-y border-y-transparent py-4 md:py-7 ${plan.label === "Plus" && "md:border md:!border-input md:shadow-md"}`}
+            className={`flex flex-col rounded-[16px] gap-4 border-y border-y-transparent py-4 md:py-7 ${plan.label === "Plus" && "md:border md:!border-input md:shadow-md"}`}
           >
             {/* Plan name header */}
             <div className="px-7 pb-2 text-3xl font-medium">{plan.label}</div>
             <Separator />
-
             {/* Main features section */}
             {plan.mainFeatures.map((feature, idx) => (
-              <div key={`main-feature-${idx}`}>
+              <div key={`main-feature-${idx}`} className="flex gap-4 flex-col">
                 <div className="flex items-center gap-1 px-7 text-sm">
                   <div className="font-semibold">{feature.value}</div>
                   <div>{feature.label}</div>
@@ -125,7 +124,7 @@ export default function PricingBodyComparaison() {
 
             {/* Feature list with checkmark indicators */}
             {plan.features.map((feature, idx) => (
-              <div key={`feature-${idx}`}>
+              <div key={`feature-${idx}`} className="flex flex-col gap-4">
                 <div className="flex items-center gap-1 px-7 text-sm">
                   <div
                     className={`mr-1 flex size-5 items-center justify-center rounded-[6px] bg-accent ${feature.state ? "bg-blue-100 text-blue-600" : ""}`}
