@@ -62,7 +62,7 @@ export default function Footer(props: {
       {/* Main footer content grid */}
       <div className="max-md: grid w-full grid-cols-5 flex-col-reverse max-md:flex">
         {/* Navigation sections */}
-        <div className="z-10 col-span-4 mx-auto grid w-full grid-cols-4 max-sm:grid-cols-2">
+        <div className="col-span-4 mx-auto grid w-full grid-cols-4 max-sm:grid-cols-2">
           {footerData.map((section, i) => {
             return (
               <div className="flex flex-col gap-5 text-sm max-sm:mb-8" key={i}>
