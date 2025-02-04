@@ -102,7 +102,7 @@ export default async function RootLayout({
 }
 
 // Component to render authentication-specific action buttons
-function Actions(props: { type: "default" | "waitlist" | "logged" }) {
+function Actions(props: { type: "default" | "waitlist" }) {
   const render = () => {
     switch (props.type) {
       // Default state - Sign in and Get started buttons
@@ -125,24 +125,6 @@ function Actions(props: { type: "default" | "waitlist" | "logged" }) {
                 className="h-9 rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full"
               >
                 Get started
-              </Button>
-            </Link>
-          </>
-        );
-      // Logged in state - Dashboard button
-      case "logged":
-        return (
-          <>
-            <Link
-              href="https://app.measurely.dev/dashboard"
-              className="max-md:w-full"
-            >
-              <Button
-                variant="default"
-                size={"sm"}
-                className="h-9 rounded-xl border-primary px-4 py-[10px] font-medium max-md:w-full"
-              >
-                Dashboard
               </Button>
             </Link>
           </>
