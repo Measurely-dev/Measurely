@@ -92,6 +92,7 @@ export default async function RootLayout({
           footer={<Footer border bg="secondary" type="default" />}
           darkMode={false}
           nextThemes={{ defaultTheme: "light" }}
+          sidebar={{ autoCollapse: true }}
         >
           {children}
         </Layout>

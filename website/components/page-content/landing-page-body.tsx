@@ -12,7 +12,6 @@ import {
   MoveRight,
   SparklesIcon,
 } from "lucide-react";
-import LandingPageBodyPricing from "./landing-page-body-pricing";
 import Image1 from "../../public/measurely-image1.png";
 import Image2 from "../../public/measurely-image2.png";
 import Image4 from "../../public/measurely-image4.png";
@@ -28,6 +27,9 @@ import { Question } from "@/components/global/faq-questions";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import PricingCard from "../global/pricing-card";
+import { plans } from "@/plans";
+import { useRouter } from "next/navigation";
 
 // Main Body component that handles the landing page layout
 export default function Body(props: { type: "waitlist" | "register" }) {
@@ -312,6 +314,48 @@ function Box(props: {
         <div className="text-base text-muted-foreground">
           {props.description}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function LandingPageBodyPricing() {
+  // State for managing loading state and selected plan
+  const router = useRouter();
+
+  return (
+    <div className="mt-[145px] pt-12">
+      {/* Pricing section header */}
+      <HeroTitle
+        title="Pricing that fits your need"
+        subtitle="Transparent pricing"
+      />
+
+      {/* Grid of pricing cards */}
+      <div className="mt-[70px] grid grid-cols-3 max-md:grid-cols-1 max-md:gap-3">
+        {plans.map((plan, i) => {
+          return (
+            <PricingCard
+              key={i}
+              startingFrom
+              name={plan.name}
+              className={`md:first:rounded-e-none md:first:border-r-0 md:last:rounded-s-none md:last:border-l-0 ${plan.name === "Plus" ? "md:z-10 md:scale-105 md:bg-background md:shadow-xl" : ""}`}
+              description={plan.description}
+              price={plan.price}
+              recurrence={plan.reccurence}
+              target={plan.target}
+              list={plan.list}
+              button={
+                plan.identifier === "starter"
+                  ? "Get started"
+                  : "Continue with " + plan.name
+              }
+              onSelect={() => {
+                router.push("https://app.measurely.dev/waitlist");
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
