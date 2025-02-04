@@ -14,7 +14,6 @@ import {
   AccordionContent,
   AccordionItem,
 } from "@/components/ui/accordion";
-import Content from "@/components/content";
 import FooterHeader from "@/components/footer-header";
 import PricingBody from "@/components/page-content/pricing-page-body";
 import PricingBodyComparaison from "@/components/page-content/pricing-page-body-comparaison";
@@ -25,8 +24,7 @@ import { Metadata } from "next";
 
 export default function Pricing() {
   return (
-    <div className="w-full flex flex-col max-w-full text-primary">
-      <Content type="page" className="w-[90%] pt-16">
+    <div className="w-full flex flex-col pt-16 max-w-full text-primary">
         {/* PricingBody component to display pricing plans */}
         <PricingBody />
 
@@ -81,7 +79,6 @@ export default function Pricing() {
 
         {/* FooterHeader component for the waitlist section */}
         <FooterHeader type="waitlist" className="mt-[170px]" />
-      </Content>
     </div>
 
 );

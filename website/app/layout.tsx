@@ -60,10 +60,10 @@ const navbar = (
     logo={
       <div className="flex flex-row items-center gap-2">
         <Image
-          width={30}
-          height={30}
+          width={35}
+          height={35}
           src={Logo}
-          className="min-w-[30px] min-h-[30px]"
+          className="min-w-[35px] min-h-[35px]"
           alt="Logo"
         />
         <span className="text-lg font-semibold max-lg:hidden">Measurely</span>
