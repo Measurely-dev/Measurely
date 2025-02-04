@@ -1,0 +1,54 @@
+---
+sidebarTitle: Blog
+description: Blogs and articles made by our team. Learn more about Measurely.
+asIndexPage: true
+---
+
+import { Cards, Image } from "nextra/components";
+import { cloneElement } from "react";
+
+# Explore blogs
+
+Explore the latest updates and news about Measurely.
+
+<br/ >
+
+{/* prettier-ignore */}
+<Cards>
+  <>[![Measurely goes open source](./_covers/blog-3.png)](/blog/3)</>
+  <>[![The future of Measurely](./_covers/blog-2.png)](/blog/2)</>
+  <>[![Introduction](./_covers/blog-1.png)](/blog/1)</>
+</Cards>
+
+export default function MdxLayout(props) {
+  return cloneElement(props.children, {
+    components: {
+      img: (props) => (
+        <Image {...props} className="[aspect-ratio:12/6.3] object-cover" />
+      ),
+      a({ children, href }) {
+        const { alt } = children.props;
+        return (
+          <Cards.Card
+            href={href}
+            title={alt.replace(/ preview$/i, "")}
+            target="_blank"
+            rel="noreferrer"
+            arrow
+            className="!no-underline"
+          >
+            {children}
+          </Cards.Card>
+        );
+      },
+      p(props) {
+        return (
+          <p
+            {...props}
+            className="mt-4 mb-16 text-center text-lg text-gray-500 dark:text-gray-400"
+          />
+        );
+      },
+    },
+  });
+}

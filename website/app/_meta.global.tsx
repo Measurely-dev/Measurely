@@ -37,6 +37,14 @@ const API_REFERENCES: MetaRecord = {
 const metaConfig = {
   index: {
     display: "hidden",
+    theme: {
+      typesetting: "article",
+      layout: "full",
+      timestamp: false,
+      sidebar: false,
+      toc: false,
+      pagination: false,
+    },
   },
   pricing: {
     type: "page",
@@ -44,6 +52,60 @@ const metaConfig = {
       typesetting: "article",
       layout: "full",
       timestamp: false,
+      sidebar: false,
+      toc: false,
+      pagination: false,
+    },
+  },
+  blog: {
+    type: "page",
+    theme: {
+      typesetting: "article",
+      layout: "full",
+      timestamp: false,
+      toc: false,
+      sidebar: false,
+      pagination: false,
+    },
+    items: {
+      "3": {
+        display: "hidden",
+        title: "",
+        theme: {
+          typesetting: "article",
+          layout: "full",
+          timestamp: true,
+          toc: true,
+        },
+      },
+      "2": {
+        display: "hidden",
+        theme: {
+          typesetting: "article",
+          layout: "full",
+          timestamp: true,
+          toc: true,
+        },
+      },
+      "1": {
+        display: "hidden",
+        theme: {
+          typesetting: "article",
+          layout: "full",
+          timestamp: true,
+          toc: true,
+        },
+      },
+    },
+  },
+  about: {
+    type: "page",
+    theme: {
+      typesetting: "article",
+      layout: "full",
+      timestamp: false,
+      sidebar: false,
+      pagination: false,
     },
   },
   docs: {
@@ -56,14 +118,6 @@ const metaConfig = {
         items: SDKS,
       },
       "api-references": { items: API_REFERENCES },
-    },
-  },
-  about: {
-    type: "page",
-    theme: {
-      typesetting: "article",
-      layout: "full",
-      timestamp: false,
     },
   },
   brand: {

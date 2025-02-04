@@ -1,3 +1,12 @@
+---
+description:
+  Explore projects powered by Nextra, showcasing a diverse range of websites and
+  applications built with this powerful Next.js framework, from GraphQL tools to
+  JavaScript resources.
+asIndexPage: true
+sidebarTitle: "Pricing"
+---
+
 import { PricingQuestion } from "@/components/global/faq-questions";
 import {
   Accordion,
@@ -13,17 +22,9 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { Plus } from "lucide-react";
 import { Metadata } from "next";
 
-// Define metadata for SEO and page headers
-export const metadata: Metadata = {
-  title: "Pricing",
-  description:
-    "Explore Measurely’s flexible pricing plans designed to meet the needs of developers and teams. Whether you’re just getting started or managing large-scale projects, we have a plan to help you track metrics and analyze data with ease.",
-};
-
-// Main Pricing page component
 export default function Pricing() {
   return (
-    <div className="w-full flex flex-col max-w-full">
+    <div className="w-full flex flex-col max-w-full text-primary">
       <Content type="page" className="w-[90%] pt-16">
         {/* PricingBody component to display pricing plans */}
         <PricingBody />
@@ -81,5 +82,6 @@ export default function Pricing() {
         <FooterHeader type="waitlist" className="mt-[170px]" />
       </Content>
     </div>
-  );
+
+);
 }
