@@ -1,33 +1,33 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-frontend/node_modules
-frontend/.pnp
-frontend/.pnp.js
-frontend/.yarn/install-state.gz
+dashboard/node_modules
+dashboard/.pnp
+dashboard/.pnp.js
+dashboard/.yarn/install-state.gz
 
 # testing
-frontend/coverage
+dashboard/coverage
 
 # next.js
-frontend/.next/
-frontend/out/
+dashboard/.next/
+dashboard/out/
 
 # production
-frontend/build
+dashboard/build
 
 # misc
-frontend/.DS_Store
-frontend/*.pem
+dashboard/.DS_Store
+dashboard/*.pem
 
 # debug
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
+dashboard/npm-debug.log*
+dashboard/yarn-debug.log*
+dashboard/yarn-error.log*
 
 # local env files
-frontend/.env*.local
-frontend/.env
+dashboard/.env*.local
+dashboard/.env
 backend/.env
 backend/uploads
 
@@ -42,10 +42,10 @@ next-env.d.ts
 .DS.Store
 
 # sitemap and robots
-frontend/public/sitemap.xml
-frontend/public/sitemap-*.xml
-frontend/public/robots.txt
-frontend/public/sitemap-index.xml
+dashboard/public/sitemap.xml
+dashboard/public/sitemap-*.xml
+dashboard/public/robots.txt
+dashboard/public/sitemap-index.xml
 
 dump.rdb
 

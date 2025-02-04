@@ -1,0 +1,56 @@
+name: Deploy Dashboard Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "dashboard/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm
+
+      - name: Check for changes in dashboard directory
+        id: changes
+        run: |
+          echo "Checking for changes in the dashboard directory..."
+          if git diff --quiet HEAD^ HEAD -- dashboard/; then
+            echo "No changes detected in the dashboard directory."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in the dashboard directory."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.changes.outputs.skip == 'false'
+        run: |
+          cd dashboard
+          pnpm install
+
+      - name: Build Next.js app
+        if: steps.changes.outputs.skip == 'false'
+        run: |
+          cd dashboard
+          pnpm run build
+
+      - name: Railway Deploy
+        if: steps.changes.outputs.skip == 'false'
+        uses: bervProject/railway-deploy@main
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: "Dashboard"

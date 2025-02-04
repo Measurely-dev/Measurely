@@ -1,0 +1,56 @@
+name: Deploy Website Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "website/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm
+
+      - name: Check for changes in website directory
+        id: changes
+        run: |
+          echo "Checking for changes in the website directory..."
+          if git diff --quiet HEAD^ HEAD -- website/; then
+            echo "No changes detected in the website directory."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in the website directory."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.changes.outputs.skip == 'false'
+        run: |
+          cd website
+          pnpm install
+
+      - name: Build Next.js app
+        if: steps.changes.outputs.skip == 'false'
+        run: |
+          cd website
+          pnpm run build
+
+      - name: Railway Deploy
+        if: steps.changes.outputs.skip == 'false'
+        uses: bervProject/railway-deploy@main
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: "Website"
