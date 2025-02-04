@@ -57,7 +57,7 @@ export default function Footer(props: {
 
   return (
     <footer
-      className={`relative z-10 flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-16 ${props.bg ? (props.bg === "default" ? "bg-background" : "bg-[#fafafa]") : pathname === "/" || pathname === "/home/" ? "bg-background" : "bg-[#fafafa]"} ${props.border === true ? "border-t" : ""} `}
+      className={`relative flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-16 ${props.bg ? (props.bg === "default" ? "bg-background" : "bg-[#fafafa]") : pathname === "/" || pathname === "/home/" ? "bg-background" : "bg-[#fafafa]"} ${props.border === true ? "border-t" : ""} `}
     >
       {/* Main footer content grid */}
       <div className="max-md: grid w-full grid-cols-5 flex-col-reverse max-md:flex">
