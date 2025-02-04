@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function Pricing() {
   return (
     <div className="w-full flex flex-col max-w-full">
-      <Content type="page" className="w-[90%]">
+      <Content type="page" className="w-[90%] pt-16">
         {/* PricingBody component to display pricing plans */}
         <PricingBody />
 

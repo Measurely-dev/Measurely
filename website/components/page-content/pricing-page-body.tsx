@@ -29,9 +29,9 @@ export default function PricingBody() {
   return (
     <>
       <PageHeader
-        title="Grow with your project"
+        title="Pricing that grows with your project"
         description="Use Measurely for free to track your metrics. Upgrade to unlock more features and insights."
-        className="mx-auto mb-10"
+        className="mx-auto mb-10 max-w-[750px]"
         descriptionClassName="max-w-[600px]"
       />
       <PricingOptions
