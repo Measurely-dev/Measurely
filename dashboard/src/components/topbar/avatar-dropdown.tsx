@@ -37,7 +37,7 @@ const QuickActionsFloatingPanel = (props: { children: ReactNode }) => {
     {
       icon: <MessageCircleDashed className='h-4 w-4' />,
       label: 'Support',
-      action: () => router.push('/help'),
+      action: () => router.push('https://measurely.dev/help'),
     },
     {
       icon: <LogOut className='h-4 w-4' />,

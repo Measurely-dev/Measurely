@@ -2,9 +2,8 @@
 
 // Import required components and hooks
 import AuthForm from '@/components/auth-form';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { redirect, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -48,7 +47,7 @@ export default function Password() {
   }, []);
 
   return (
-    <Container>
+    <div className='flex flex-col'>
       <SemiNavbar href={`/register${back_query}`} button='Back' />
       <Content type='page'>
         <AuthForm
@@ -57,7 +56,7 @@ export default function Password() {
           form={[
             {
               label: 'Password',
-              placeholder: 'Password', 
+              placeholder: 'Password',
               name: 'password',
               type: 'password',
             },
@@ -126,12 +125,12 @@ export default function Password() {
                 });
                 set_loading(false);
               } else {
-                router.push('/dashboard');
+                router.push('/');
               }
             });
           }}
         />
       </Content>
-    </Container>
+    </div>
   );
 }

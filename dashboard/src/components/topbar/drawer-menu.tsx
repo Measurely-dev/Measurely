@@ -89,7 +89,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         <Separator className='my-2' orientation='horizontal' />
 
         {/* Action buttons section */}
-        <Link href={'/dashboard/new-metric'}>
+        <Link href={'/new-metric'}>
           <Button className='h-[35px] w-full gap-[8px] rounded-[12px]'>
             <Plus className='size-[16px]' />
             Create metric

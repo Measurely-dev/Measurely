@@ -162,7 +162,7 @@ export default function DashboardMetricPage() {
         return metricData;
       }
     }
-    router.push('/dashboard/metrics');
+    router.push('/metrics');
     return null;
   }, [activeProject, projects, metricName]);
 
@@ -268,7 +268,7 @@ export default function DashboardMetricPage() {
       (g) => g.name === metricName,
     );
     if (index === -1) {
-      router.push('/dashboard/metrics');
+      router.push('/metrics');
     }
   }, [activeProject, projects, metricName]);
 
@@ -289,7 +289,7 @@ export default function DashboardMetricPage() {
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbLink href='/dashboard/metrics'>
+          <BreadcrumbLink href='/metrics'>
             <BreadcrumbPage className='capitalize'>Metrics</BreadcrumbPage>
           </BreadcrumbLink>
           <BreadcrumbSeparator />

@@ -1,4 +1,4 @@
-import { ColorKey } from '@/app/dashboard/(loading)/(main)/page';
+import { ColorKey } from "@/app/(dashboard)/(loading)/(main)/page";
 
 export type ColorUtility = 'bg' | 'stroke' | 'fill' | 'text';
 export const colorSchemeMap: Record<

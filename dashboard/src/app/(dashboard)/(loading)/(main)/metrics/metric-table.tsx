@@ -245,7 +245,7 @@ const Item = (props: { metric: Metric; index: number }) => {
         onClick={() => {
           setIsLoading(true);
           router.push(
-            `/dashboard/metrics/${encodeURIComponent(props.metric.name)}`,
+            `/metrics/${encodeURIComponent(props.metric.name)}`,
           );
         }}
         className={`select-none`}

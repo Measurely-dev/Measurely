@@ -12,9 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { MetricType, UserRole } from '@/types';
 import { useRouter } from 'next/navigation';
 import {
@@ -146,7 +145,7 @@ export default function NewMetric() {
       projects[activeProject].user_role !== UserRole.Admin &&
       projects[activeProject].user_role !== UserRole.Owner
     ) {
-      router.push('/dashboard');
+      router.push('/');
     }
   }, [projects, activeProject, router]);
 
@@ -170,8 +169,8 @@ export default function NewMetric() {
 
   return (
     <div className='flex flex-col'>
-      <Container className='h-[100vh] min-h-[900px] w-[100vw]'>
-        <SemiNavbar href='/dashboard' button='Dashboard' />
+      <div className='flex h-[100vh] min-h-[900px] w-[100vw] flex-col'>
+        <SemiNavbar href='/' button='Dashboard' />
         <Content className='flex pt-[140px]'>
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>
             <Stepper initialStep={0} steps={steps} size='sm'>
@@ -193,7 +192,7 @@ export default function NewMetric() {
             </Stepper>
           </div>
         </Content>
-      </Container>
+      </div>
     </div>
   );
 }
@@ -255,7 +254,7 @@ function Step1({
             className='w-fit rounded-[12px]'
             variant={'secondary'}
             onClick={() => {
-              router.push('/dashboard/');
+              router.push('/');
             }}
           >
             Cancel
@@ -348,7 +347,7 @@ function Step3({ metricData }: { metricData: any }) {
         ),
       );
       toast.success('Metric was successfully created');
-      router.push(`/dashboard/metrics/${name}`);
+      router.push(`/metrics/${name}`);
     } else {
       response.text().then((text) => {
         toast.error(text);

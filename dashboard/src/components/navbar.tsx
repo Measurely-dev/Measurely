@@ -19,17 +19,17 @@ import { BookOpen } from 'react-feather';
 export const navItem = [
   {
     name: 'Overview',
-    href: '/dashboard/',
+    href: '/',
     svg: <HomeIcon className='size-5' />,
   },
   {
     name: 'Metrics',
-    href: '/dashboard/metrics/',
+    href: '/metrics/',
     svg: <Box className='size-5' />,
   },
   {
     name: 'Team',
-    href: '/dashboard/team/',
+    href: '/team/',
     svg: <Users className='size-5' />,
   },
 ];
@@ -39,7 +39,7 @@ export default function DashboardNavbar() {
   return (
     <div className='flex h-screen flex-col py-[15px] pl-5'>
       {/* Logo/Home link */}
-      <Link href='/'>
+      <Link href='https://measurely.dev'>
         <div className='flex size-[45px] min-h-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-input/75'>
           <LogoSvg className='size-[30px]' />
         </div>
@@ -64,7 +64,9 @@ export default function DashboardNavbar() {
           <Tooltip>
             <SettingDialog>
               <TooltipTrigger>
-                <div className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-transparent bg-background text-[20px] text-muted-foreground hover:border-input hover:bg-accent hover:text-primary`}>
+                <div
+                  className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-transparent bg-background text-[20px] text-muted-foreground hover:border-input hover:bg-accent hover:text-primary`}
+                >
                   <Settings className='size-5' />
                 </div>
               </TooltipTrigger>
@@ -88,23 +90,31 @@ function NavItem(props: { children: ReactNode; name: string; href: string }) {
   const pathname = usePathname();
 
   // Normalize paths by removing trailing slashes for comparison
-  const normalizedPathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-  const normalizedHref = props.href.endsWith('/') ? props.href.slice(0, -1) : props.href;
+  const normalizedPathname = pathname.endsWith('/')
+    ? pathname.slice(0, -1)
+    : pathname;
+  const normalizedHref = props.href.endsWith('/')
+    ? props.href.slice(0, -1)
+    : props.href;
 
   // Determine if current item is active
-  const isActive = normalizedPathname === normalizedHref || 
-    (normalizedHref === '/dashboard/metrics' && normalizedPathname.startsWith('/dashboard/metrics'));
+  const isActive =
+    normalizedPathname === normalizedHref ||
+    (normalizedHref === '/metrics' &&
+      normalizedPathname.startsWith('/metrics'));
 
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
         <TooltipTrigger>
           <Link href={props.href}>
-            <div className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${
-              isActive 
-                ? 'border-input bg-accent/75'
-                : 'border-transparent bg-background text-muted-foreground hover:bg-accent'
-            }`}>
+            <div
+              className={`flex h-[40px] min-h-[40px] w-[45px] min-w-[45px] items-center justify-center rounded-[12px] border text-[20px] ${
+                isActive
+                  ? 'border-input bg-accent/75'
+                  : 'border-transparent bg-background text-muted-foreground hover:bg-accent'
+              }`}
+            >
               {props.children}
             </div>
           </Link>
@@ -126,7 +136,7 @@ function ItemChip() {
   const itemList = [
     {
       label: 'Documentation',
-      href: '/docs/getting-started/introduction',
+      href: 'https://measurely.dev/docs',
       icon: <BookOpen className='size-[18px]' />,
     },
   ];
@@ -151,7 +161,9 @@ function ChipItem(props: { children: ReactNode; label: string; href: string }) {
       <Tooltip>
         <TooltipTrigger>
           <Link href={props.href} target='_blank'>
-            <div className={`flex items-center justify-center rounded-[12px] py-1.5 text-[20px] text-muted-foreground transition-all duration-200 hover:bg-background hover:text-primary`}>
+            <div
+              className={`flex items-center justify-center rounded-[12px] py-1.5 text-[20px] text-muted-foreground transition-all duration-200 hover:bg-background hover:text-primary`}
+            >
               {props.children}
             </div>
           </Link>

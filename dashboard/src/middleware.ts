@@ -12,11 +12,6 @@ export default async function middleware(request: NextRequest) {
   requestHeaders.set('is-authenticated', logged ? 'true' : 'false');
   requestHeaders.set('x-request-pathname', url);
 
-  // Redirect /home to root path
-  if (url === '/home' || url === '/home/' || url === '/') {
-    return NextResponse.redirect(new URL('/dashboard', request.url), 308);
-  }
-
   // Redirect /register/ to root path
   if (url === '/register/') {
     return NextResponse.redirect(new URL('/waitlist', request.url));
@@ -30,7 +25,7 @@ export default async function middleware(request: NextRequest) {
       url.includes('register') ||
       url.includes('waitlist')
     ) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
   } else {
     // Allow unauthenticated users to access auth pages
@@ -44,11 +39,7 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Protect routes that require authentication
-  if (
-    url.includes('dashboard') ||
-    url.includes('new-app') ||
-    url.includes('new-metric')
-  ) {
+  if (url === '/' || url.includes('new-app') || url.includes('new-metric')) {
     if (!logged) {
       return NextResponse.redirect(new URL('/sign-in', request.url));
     }
@@ -73,7 +64,6 @@ export const config = {
     '/waitlist',
     '/forgot-password',
     '/new-project',
-    '/dashboard',
-    '/dashboard/:appname*',
+    '/:appname*',
   ],
 };

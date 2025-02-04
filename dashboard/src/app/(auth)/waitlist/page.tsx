@@ -2,9 +2,8 @@
 
 // Import required components and hooks
 import AuthForm from '@/components/auth-form';
-import SemiNavbar from '@/components/auth/semi-navbar';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
+import SemiNavbar from '@/components/semi-navbar';
+import Content from '@/components/page-content';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -14,7 +13,7 @@ const Waitlist = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <Container className='min-h-[800px]'>
+    <div className='flex min-h-[800px] flex-col'>
       {/* Navigation section */}
       <div className='mb-[150px]'>
         <SemiNavbar href='/sign-in' button='Sign in' />
@@ -78,7 +77,7 @@ const Waitlist = () => {
           policies
         />
       </Content>
-    </Container>
+    </div>
   );
 };
 

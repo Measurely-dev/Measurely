@@ -4,9 +4,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { ProjectsContext } from '@/dash-context';
 import { useRouter } from 'next/navigation';
 import {
@@ -76,7 +75,7 @@ export default function NewProject() {
       newProject.members = null;
       setActiveProject(projects.length);
       setProjects((prevProjects) => [...prevProjects, newProject]);
-      router.push('/dashboard');
+      router.push('/');
     } catch {
       toast.error('An error occurred while creating the project');
       setLoading(false);
@@ -85,11 +84,11 @@ export default function NewProject() {
 
   return (
     <div className='flex flex-col'>
-      <Container className='h-[100vh] w-[100vw]'>
+      <div className='flex flex-col h-[100vh] w-[100vw]'>
         {projects.length === 0 ? (
           <SemiNavbar button={null} />
         ) : (
-          <SemiNavbar href='/dashboard' button='Dashboard' />
+          <SemiNavbar href='/' button='Dashboard' />
         )}
         <Content className='flex h-full items-center justify-center'>
           <div className='mx-auto flex w-full max-w-[600px] flex-col'>
@@ -113,7 +112,7 @@ export default function NewProject() {
             </Stepper>
           </div>
         </Content>
-      </Container>
+      </div>
     </div>
   );
 }

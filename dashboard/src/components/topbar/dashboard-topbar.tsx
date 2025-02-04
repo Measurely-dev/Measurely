@@ -41,7 +41,11 @@ export default function DashboardTopbar() {
           <div className='max-sm:hidden'>
             {projects[activeProject].user_role !== UserRole.Guest && (
               <ApiDialog projectid={projects[activeProject]?.id ?? ''}>
-                <Button size={'sm'} variant={'secondary'} className='h-6 gap-1.5 rounded-full'>
+                <Button
+                  size={'sm'}
+                  variant={'secondary'}
+                  className='h-6 gap-1.5 rounded-full'
+                >
                   <Code className='size-4' />
                   Api key
                 </Button>
@@ -52,7 +56,7 @@ export default function DashboardTopbar() {
 
         {/* Right section: Create Metric, Feedback, User Avatar - hidden on mobile */}
         <div className='flex flex-row gap-[12px] max-md:hidden'>
-          <Link href={'/dashboard/new-metric'}>
+          <Link href={'/new-metric'}>
             <Button
               className='h-[35px] gap-[8px] rounded-[12px]'
               disabled={

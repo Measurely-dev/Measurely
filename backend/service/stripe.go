@@ -46,7 +46,7 @@ func (s *Service) ManageBilling(w http.ResponseWriter, r *http.Request) {
 	// Create Stripe billing portal session
 	params := &stripe.BillingPortalSessionParams{
 		Customer:  stripe.String(user.StripeCustomerId),
-		ReturnURL: stripe.String(GetOrigin() + "/dashboard"),
+		ReturnURL: stripe.String(GetOrigin()),
 	}
 
 	result, err := bilsession.New(params)
@@ -149,8 +149,8 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	// Configure Stripe checkout session parameters
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(GetOrigin() + "/dashboard"),
-		CancelURL:  stripe.String(GetOrigin() + "/dashboard"),
+		SuccessURL: stripe.String(GetOrigin()),
+		CancelURL:  stripe.String(GetOrigin()),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				Price:    stripe.String(priceid),
@@ -198,7 +198,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			To:          user.Email,
 			Subject:     "You are now on the starter plan",
 			Content:     "You have been downgraded to the starter plan.",
-			Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
+			Link:        GetOrigin(),
 			ButtonTitle: "View Dashboard",
 		})
 	} else {
@@ -315,7 +315,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			To:          user.Email,
 			Subject:     "Thank you for subscribing!",
 			Content:     "Your " + planData.Name + " subscription has been successfully created.",
-			Link:        os.Getenv("FRONTEND_URL") + "/dashboard",
+			Link:        GetOrigin(),
 			ButtonTitle: "View Dashboard",
 		})
 
@@ -351,7 +351,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			To:          user.Email,
 			Subject:     "Invoice Paid",
 			Content:     "Your invoice has been successfully paid. Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
-			Link:        GetOrigin() + "/dashboard",
+			Link:        GetOrigin(),
 			ButtonTitle: "View Dashboard",
 		})
 
@@ -386,7 +386,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			To:          user.Email,
 			Subject:     "Invoice Failed",
 			Content:     "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "<br> Some features will be temporarly locked until this is resolved.",
-			Link:        GetOrigin() + "/dashboard",
+			Link:        GetOrigin(),
 			ButtonTitle: "View Dashboard",
 		})
 

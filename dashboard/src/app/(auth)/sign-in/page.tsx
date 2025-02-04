@@ -1,9 +1,8 @@
-'use client'
+'use client';
 // Import required components and hooks
 import AuthForm from '@/components/auth-form';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -46,7 +45,7 @@ export default function SignIn() {
   }, []);
 
   return (
-    <Container className='min-h-[800px]'>
+    <div className='flex min-h-[800px] flex-col'>
       <div className='mb-[150px]'>
         <SemiNavbar href='/waitlist' button='Join waitlist' />
       </div>
@@ -106,12 +105,12 @@ export default function SignIn() {
                 // Clear storage and redirect on successful login
                 localStorage.clear();
                 sessionStorage.clear();
-                router.push('/dashboard');
+                router.push('/');
               }
             });
           }}
         />
       </Content>
-    </Container>
+    </div>
   );
 }

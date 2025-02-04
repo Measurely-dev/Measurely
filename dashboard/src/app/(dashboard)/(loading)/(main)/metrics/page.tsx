@@ -4,7 +4,7 @@
 import DashboardContentContainer from '@/components/container';
 import {
   Breadcrumb,
-  BreadcrumbItem, 
+  BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
@@ -78,7 +78,9 @@ export default function DashboardMetrics() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className='pointer-events-none'>Dashboard</BreadcrumbLink>
+            <BreadcrumbLink className='pointer-events-none'>
+              Dashboard
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -98,7 +100,7 @@ export default function DashboardMetrics() {
             <div className='flex w-full flex-row gap-[10px] max-md:flex-col'>
               <SearchComponent search={search} setSearch={setSearch} />
               <FiltersComponent filter={filter} setFilter={setFilter} />
-              <Link href={'/dashboard/new-metric'}>
+              <Link href={'/new-metric'}>
                 <Button
                   className='h-full gap-[8px] rounded-[12px] max-md:w-full'
                   disabled={
@@ -123,7 +125,7 @@ export default function DashboardMetrics() {
                   projects[activeProject].user_role === UserRole.Admin
                     ? {
                         label: 'Create metric',
-                        onClick: () => router.push('/dashboard/new-metric'),
+                        onClick: () => router.push('/new-metric'),
                       }
                     : undefined
                 }
@@ -145,7 +147,7 @@ function FiltersComponent(props: {
 }) {
   return (
     <Select value={props.filter} onValueChange={props.setFilter}>
-      <SelectTrigger className='w-[220px] min-w-[220px] min-h-11 h-full max-md:w-full'>
+      <SelectTrigger className='h-full min-h-11 w-[220px] min-w-[220px] max-md:w-full'>
         <SelectValue placeholder='Select filter' />
       </SelectTrigger>
       <SelectContent>

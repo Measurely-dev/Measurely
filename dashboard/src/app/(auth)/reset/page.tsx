@@ -2,9 +2,8 @@
 
 // Import required components and hooks
 import AuthForm from '@/components/auth-form';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -40,7 +39,7 @@ export default function PasswordReset() {
   }, []);
 
   return (
-    <Container>
+    <div className='flex flex-col'>
       <div className=''>
         <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
@@ -233,6 +232,6 @@ export default function PasswordReset() {
           </div>
         </div>
       </Content>
-    </Container>
+    </div>
   );
 }

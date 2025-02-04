@@ -38,7 +38,7 @@ export default function DashboardContentLayout({
         0 &&
       !projectsLoading
     ) {
-      router.push('/dashboard/new-project');
+      router.push('/new-project');
     }
 
     // Load user data if not already loaded
@@ -90,7 +90,7 @@ export default function DashboardContentLayout({
           if (json === undefined) return;
           if (json === null) json = [];
           if (json.length === 0) {
-            router.push('/dashboard/new-project');
+            router.push('/new-project');
             return;
           }
 

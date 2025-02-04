@@ -139,7 +139,7 @@ export default function ProjectsSettings() {
   return (
     <Dialog>
       <AlertDialog>
-        <Link href={'/dashboard/new-project'}>
+        <Link href={'/new-project'}>
           <Button
             variant={'secondary'}
             size={'lg'}

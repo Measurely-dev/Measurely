@@ -1,7 +1,7 @@
 'use client';
 
 // Import dashboard components
-import DashboardContent from '@/components/content';
+import DashboardContent from '@/components/dashboard-content';
 import DashboardNavbar from '@/components/navbar';
 import DashboardTopbar from '@/components/topbar/dashboard-topbar';
 

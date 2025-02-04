@@ -1,9 +1,8 @@
 'use client';
 
 // Import required components and hooks
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
@@ -48,7 +47,7 @@ export default function PasswordReset() {
   }, []);
 
   return (
-    <Container>
+    <div className='flex flex-col'>
       <SemiNavbar href='/sign-in' button='Sign in' />
 
       <Content>
@@ -102,6 +101,6 @@ export default function PasswordReset() {
           </div>
         </div>
       </Content>
-    </Container>
+    </div>
   );
 }

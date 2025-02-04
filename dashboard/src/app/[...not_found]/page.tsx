@@ -1,6 +1,5 @@
 // Import required components from the website components directory
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
+import Content from '@/components/page-content';
 // Import Next.js Link component for client-side navigation
 import Link from 'next/link';
 
@@ -9,7 +8,7 @@ export default function NotFound() {
   return (
     // Main container div with full width and column layout
     <div className='flex w-screen flex-col justify-center'>
-      <Container>
+      <div className='flex flex-col'>
         {/* Content wrapper with minimum full viewport height */}
         <Content className='min-h-screen'>
           {/* Centered content container with vertical spacing */}
@@ -23,7 +22,7 @@ export default function NotFound() {
             </Link>
           </div>
         </Content>
-      </Container>
+      </div>
     </div>
   );
 }

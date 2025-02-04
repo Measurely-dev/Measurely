@@ -150,7 +150,7 @@ export default function ProjectsDropdown() {
             </div>
           ))}
           {/* Create new project button */}
-          <Link href={'/dashboard/new-project'}>
+          <Link href={'/new-project'}>
             <Button
               variant={'default'}
               className='flex h-fit w-full items-center gap-1 rounded-[10px] p-2 py-1.5 font-medium'

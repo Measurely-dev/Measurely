@@ -4,7 +4,7 @@
 import DashboardContentContainer from '@/components/container';
 import {
   Breadcrumb,
-  BreadcrumbItem, 
+  BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,

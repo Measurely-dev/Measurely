@@ -2,9 +2,8 @@
 
 // Import required components and dependencies
 import AuthForm from '@/components/auth-form';
-import Container from '@/components/auth/container';
-import Content from '@/components/auth/content';
-import SemiNavbar from '@/components/auth/semi-navbar';
+import Content from '@/components/page-content';
+import SemiNavbar from '@/components/semi-navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -39,7 +38,7 @@ export default function Register() {
   }, []);
 
   return (
-    <Container>
+    <div className='flex flex-col'>
       <div className='mb-[150px]'>
         <SemiNavbar href='/sign-in' button='Sign in' />
       </div>
@@ -128,6 +127,6 @@ export default function Register() {
           policies
         />
       </Content>
-    </Container>
+    </div>
   );
 }

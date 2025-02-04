@@ -373,7 +373,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		To:          user.Email,
 		Subject:     "New login detected",
 		Content:     "A new login to your Measurely account was detected. If this wasn't you, please update your password immediately.",
-		Link:        GetOrigin() + "/dashboard",
+		Link:        GetOrigin(),
 		ButtonTitle: "Update Password",
 	})
 }
@@ -515,7 +515,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 
 	SetupCacheControl(w, 0)
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, GetOrigin()+"/dashboard", http.StatusFound)
+	http.Redirect(w, r, GetOrigin(), http.StatusFound)
 }
 
 func (s *Service) DisconnectProvider(w http.ResponseWriter, r *http.Request) {
@@ -674,7 +674,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		To:          new_user.Email,
 		Subject:     "Thank you for joining Measurely.",
 		Content:     "You can now access your account's dashboard by using the following link.",
-		Link:        GetOrigin() + "/dashboard",
+		Link:        GetOrigin(),
 		ButtonTitle: "Access dashboard",
 	})
 }
@@ -2099,7 +2099,7 @@ func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {
 		Subject:     fmt.Sprintf("You have been added to %s as a team member", project.Name),
 		Content:     "",
 		ButtonTitle: "Dashboard",
-		Link:        GetOrigin() + "/dashboard",
+		Link:        GetOrigin(),
 	})
 }
 
@@ -2161,7 +2161,7 @@ func (s *Service) RemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 		Subject:     fmt.Sprintf("You have been removed from the project %s", project.Name),
 		Content:     "",
 		ButtonTitle: "Dashboard",
-		Link:        GetOrigin() + "/dashboard",
+		Link:        GetOrigin(),
 	})
 }
 
@@ -2241,9 +2241,10 @@ func (s *Service) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		Subject:     fmt.Sprintf("Your role has been changed in the project %s", project.Name),
 		Content:     "",
 		ButtonTitle: "Dashboard",
-		Link:        GetOrigin() + "/dashboard",
+		Link:        GetOrigin(),
 	})
 }
+
 // GetTeamMembers retrieves all team members associated with a project
 // Requires authentication token and project ID
 // Returns a list of users with sensitive data removed
