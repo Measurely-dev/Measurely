@@ -49,7 +49,7 @@ export default function Body(props: { type: "waitlist" | "register" }) {
   const bentoBoxType = window_width > 768 ? "horizontal-left" : "vertical";
 
   return (
-    <>
+    <div className="max-w-[1100px] mx-auto">
       <div className="flex text-primary pb-24 pt-10 w-full flex-col items-center gap-5 text-center max-md:h-fit max-md:min-h-[50vh]">
         <Link
           href={"/blog/1"}
@@ -208,7 +208,7 @@ export default function Body(props: { type: "waitlist" | "register" }) {
         {/* Footer */}
         <FooterHeader className="mt-[170px]" type="waitlist" />
       </div>
-    </>
+    </div>
   );
 }
 
