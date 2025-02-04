@@ -13,9 +13,9 @@ export default function PageHeader(props: {
       className={`flex flex-col gap-[30px] text-center max-w-[900px] ${props.className}`}
     >
       {/* Title text with large font size */}
-      <div className="text-6xl text-center text font-medium max-md:text-5xl max-sm:text-4xl">
+      <h1 className="!text-6xl text-center text font-medium max-md:!text-5xl max-sm:!text-4xl">
         {props.title}
-      </div>
+      </h1>
       {/* Optional description text if provided */}
       {props.description && (
         <div
