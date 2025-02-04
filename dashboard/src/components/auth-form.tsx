@@ -360,9 +360,11 @@ export default function AuthForm(props: {
               By continuing, you agree to our policies
             </div>
             <div className='flex items-center gap-2 text-center text-sm font-semibold'>
-              <Link href='/terms'>Terms of use</Link>
+              <Link href='https://measurely.dev/legal/terms'>Terms of use</Link>
               <div>•</div>
-              <Link href='/privacy'>Privacy policy</Link>
+              <Link href='https://measurely.dev/legal/privacy'>
+                Privacy policy
+              </Link>
             </div>
           </div>
         )}

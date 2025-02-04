@@ -27,17 +27,17 @@ export default function FooterHeader(props: {
       <div className="mt-2 flex gap-2">
         {/* Conditional rendering of primary CTA based on type prop */}
         {props.type === "waitlist" ? (
-          <Link href={"/waitlist"}>
+          <Link href={"https://app.measurely.dev/waitlist"}>
             <Button className="rounded-[12px]">Join waitlist</Button>
           </Link>
         ) : (
-          <Link href={"/register"}>
+          <Link href={"https://app.measurely.dev/register"}>
             <Button className="rounded-[12px]">Get started</Button>
           </Link>
         )}
 
         {/* Documentation link button */}
-        <Link href={"/docs/getting-started/introduction"}>
+        <Link href={"/docs/"}>
           <Button variant={"outline"} className="rounded-[12px]">
             Read docs
           </Button>

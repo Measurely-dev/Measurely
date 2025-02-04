@@ -99,11 +99,11 @@ export default function Footer(props: {
         </div>
         {/* Conditional rendering of CTA button based on type prop */}
         {props.type === "waitlist" ? (
-          <Link href={"/waitlist"}>
+          <Link href={"https://app.measurely.dev/waitlist"}>
             <Button className="rounded-[12px]">Join waitlist</Button>
           </Link>
         ) : (
-          <Link href={"/register"}>
+          <Link href={"https://app.measurely.dev/register"}>
             <Button className="rounded-[12px]">Get started</Button>
           </Link>
         )}

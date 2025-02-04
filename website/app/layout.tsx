@@ -88,7 +88,7 @@ export default async function RootLayout({
         <Layout
           navbar={navbar}
           pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/content"
+          docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
           footer={<Footer border bg="secondary" type="default" />}
           darkMode={false}
           nextThemes={{ defaultTheme: "light" }}
@@ -108,7 +108,7 @@ function Actions(props: { type: "default" | "waitlist" | "logged" }) {
       case "default":
         return (
           <>
-            <Link href="/sign-in">
+            <Link href="https://app.measurely.dev/sign-in">
               <Button
                 variant="outline"
                 size={"sm"}
@@ -117,7 +117,7 @@ function Actions(props: { type: "default" | "waitlist" | "logged" }) {
                 Sign in
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="https://app.measurely.dev/register">
               <Button
                 variant="default"
                 size={"sm"}
@@ -132,7 +132,10 @@ function Actions(props: { type: "default" | "waitlist" | "logged" }) {
       case "logged":
         return (
           <>
-            <Link href="/dashboard" className="max-md:w-full">
+            <Link
+              href="https://app.measurely.dev/dashboard"
+              className="max-md:w-full"
+            >
               <Button
                 variant="default"
                 size={"sm"}
@@ -147,7 +150,7 @@ function Actions(props: { type: "default" | "waitlist" | "logged" }) {
       case "waitlist":
         return (
           <>
-            <Link href="/sign-in">
+            <Link href="https://app.measurely.dev/sign-in">
               <Button
                 variant="outline"
                 size={"sm"}
@@ -156,7 +159,7 @@ function Actions(props: { type: "default" | "waitlist" | "logged" }) {
                 Sign in
               </Button>
             </Link>
-            <Link href="/waitlist">
+            <Link href="https://app.measurely.dev/waitlist">
               <Button
                 variant="default"
                 size={"sm"}

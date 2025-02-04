@@ -12,7 +12,7 @@ export default function SemiNavbar(props: {
   return (
     <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
       {/* Logo and brand name link */}
-      <Link href='/'>
+      <Link href='https://measurely.dev'>
         <div className='flex cursor-pointer items-center gap-[10px]'>
           <LogoSvg className='size-8' />
           <div className='text-sm font-semibold max-md:hidden'>Measurely</div>
@@ -42,7 +42,7 @@ export function AuthNavbarButton(props: {
   return (
     <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-[30px] px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
       {/* Logo and brand name link */}
-      <Link href='/'>
+      <Link href='https://measurely.dev'>
         <div className='flex cursor-pointer items-center gap-[10px]'>
           <LogoSvg className='size-8' />
           <div className='text-sm font-semibold max-md:hidden'>Measurely</div>

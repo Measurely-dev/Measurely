@@ -39,7 +39,7 @@ export default function LandingPageBodyPricing() {
                   : "Continue with " + plan.name
               }
               onSelect={() => {
-                router.push("/waitlist");
+                router.push("https://app.measurely.dev/waitlist");
               }}
             />
           );

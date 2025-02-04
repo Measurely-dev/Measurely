@@ -19,7 +19,7 @@ export default async function middleware(request: NextRequest) {
 
   // Redirect /register/ to root path
   if (url === '/register/') {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/waitlist', request.url));
   }
 
   // Handle authentication redirects
@@ -75,6 +75,5 @@ export const config = {
     '/new-project',
     '/dashboard',
     '/dashboard/:appname*',
-    '/docs/:slug*',
   ],
 };

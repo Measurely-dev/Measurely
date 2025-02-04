@@ -92,15 +92,21 @@ function Landing(props: { type: "default" | "waitlist" }) {
           </span>
         </div>
         <div className="mt-4 flex gap-2">
-          <Link href={props.type === "waitlist" ? "/waitlist" : "/register"}>
+          <Link
+            href={
+              props.type === "waitlist"
+                ? "https://app.measurely.dev/waitlist"
+                : "https://app.measurely.dev/register"
+            }
+          >
             <Button className="rounded-[12px]">
               {props.type === "waitlist" ? "Join wailist" : "Start tracking"}
             </Button>
           </Link>
-          <Link href={"/docs/getting-started/introduction"}>
+          <Link href={"/docs/"}>
             <Button variant={"outline"} className="rounded-[12px]">
               Read docs
-              <ChevronRight className="ml-2 size-4" />
+              <ChevronRight className="size-4" />
             </Button>
           </Link>
         </div>
