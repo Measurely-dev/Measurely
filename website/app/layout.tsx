@@ -84,7 +84,7 @@ export default async function RootLayout({
           navbar={<NavbarComponent />}
           pageMap={await getPageMap()}
           docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
-          footer={<Footer border bg="secondary" type="default" />}
+          footer={<Footer border bg="secondary" type="waitlist" />}
           sidebar={{ autoCollapse: true }}
           search={<Search placeholder="Search Measurely..." />}
           darkMode={false}

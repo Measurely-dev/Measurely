@@ -65,7 +65,7 @@ export default function Body(props: { type: "waitlist" | "register" }) {
     <div className="max-w-[1100px] mx-auto">
       <div className="flex text-primary pb-24 pt-10 w-full flex-col items-center gap-5 text-center max-md:h-fit max-md:min-h-[50vh]">
         <Link
-          href={"/blog/1"}
+          href={"/blog/3"}
           className="group flex cursor-pointer select-none flex-row items-center gap-3 rounded-full border border-input bg-accent p-0.5 pr-1 text-sm shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-black/10 max-sm:scale-90"
         >
           <div className="rounded-full border bg-background px-3 py-1">
