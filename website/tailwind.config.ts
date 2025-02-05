@@ -78,13 +78,19 @@ const config = {
         },
         "skew-scroll": {
           "0%": {
-            transform: "rotateX(20deg) rotateZ(-20deg) skewX(20deg)",
+            transform:
+              "rotateX(20deg) rotateZ(-20deg) skewX(20deg) translateY(0%)",
           },
-          "100%": {
+          "50%": {
             transform:
               "rotateX(20deg) rotateZ(-20deg) skewX(20deg) translateY(-100%)",
           },
+          "100%": {
+            transform:
+              "rotateX(20deg) rotateZ(-20deg) skewX(20deg) translateY(0%)",
+          },
         },
+
         "accordion-down": {
           from: {
             height: "0",
@@ -138,7 +144,7 @@ const config = {
       },
       animation: {
         orbit: "orbit calc(var(--duration)*1s) linear infinite",
-        "skew-scroll": "skew-scroll 20s linear infinite",
+        "skew-scroll": "skew-scroll 20s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         gradient: "animatedgradient 12s ease infinite alternate",

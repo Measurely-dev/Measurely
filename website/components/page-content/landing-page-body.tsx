@@ -55,6 +55,11 @@ export default function Body(props: { type: "waitlist" | "register" }) {
     { id: "3", text: "Page views" },
     { id: "4", text: "Conversion rate" },
     { id: "5", text: "Bounce rate" },
+    { id: "6", text: "Exit rate" },
+    { id: "7", text: "Time on page" },
+    { id: "8", text: "Pages per session" },
+    { id: "9", text: "returning visitors" },
+    { id: "10", text: "Traffic sources" },
   ];
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -142,9 +147,9 @@ export default function Body(props: { type: "waitlist" | "register" }) {
               <div className="w-full  h-full max-h-fit pb-5 flex items-center flex-col overflow-hidden">
                 <Safari
                   url="measurely.dev"
-                  lightModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-05-57.png"
-                  darkModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-43-21.png"
-                  className="size-full"
+                  lightModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-05%2012-46-11.png"
+                  darkModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-05%2012-46-00.png"
+                  className="size-full border shadow-sm shadow-black/5 rounded-[6px] p-0"
                 />
               </div>
             }

@@ -482,7 +482,7 @@ export default function DashboardMetricPage() {
                 <div>
                   <div className='flex flex-wrap justify-center gap-4'>
                     <span
-                      className={`inline-flex items-center gap-x-1 rounded-md border border-card px-2 py-1 text-sm font-semibold ${todayBadgeColor(daily)} `}
+                      className={`inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm font-semibold ${todayBadgeColor(daily)}`}
                     >
                       {todayBadgeSign(daily)}
                       {daily} %
