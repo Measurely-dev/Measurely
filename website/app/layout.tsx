@@ -87,6 +87,7 @@ export default async function RootLayout({
           footer={<Footer border bg="secondary" type="default" />}
           sidebar={{ autoCollapse: true }}
           search={<Search placeholder="Search Measurely..." />}
+          darkMode={false}
         >
           {children}
         </Layout>
