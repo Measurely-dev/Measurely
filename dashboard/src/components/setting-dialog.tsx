@@ -74,7 +74,7 @@ function Navbar(props: {
   settings: SettingPage[];
 }) {
   return (
-    <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
+    <div className='max-md:min-w-none h-full min-w-[230px] border-r border-input bg-accent dark:bg-card px-2 pt-8 max-md:h-fit max-md:border-b max-md:pb-4'>
       <div className='ml-4 text-xs font-medium text-muted-foreground'>Settings</div>
       <div className='mt-3 flex flex-col gap-2'>
         {props.settings.map((item, i) => {
@@ -114,7 +114,7 @@ function Content(props: {
     }
   }
   return (
-    <div className='flex h-full w-full flex-col gap-5 overflow-y-scroll bg-white p-8 pl-10 pt-11 max-md:px-4'>
+    <div className='flex h-full w-full flex-col gap-5 overflow-y-scroll bg-background p-8 pl-10 pt-11 max-md:px-4'>
       <div className='mb-3 text-2xl font-semibold'>
         {props.settings.map((setting) => {
           return setting.value === props.page ? setting.name : undefined;

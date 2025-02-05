@@ -3,9 +3,9 @@
 // Import required components and utilities
 import LogoSvg from "@/components/global/logo-svg";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Button } from "./ui/button";
-
+import { Footer as NextraFooter } from "nextra-theme-docs";
+import { ThemeToggle } from "./ui/theme-toogle";
 // Footer navigation data structure
 const footerData = [
   {
@@ -53,12 +53,8 @@ export default function Footer(props: {
   bg?: "default" | "secondary";
   type: "default" | "waitlist";
 }) {
-  const pathname = usePathname();
-
   return (
-    <footer
-      className={`relative flex w-screen flex-col items-center justify-center border-t px-10 pb-10 pt-16 ${props.bg ? (props.bg === "default" ? "bg-background" : "bg-[#fafafa]") : pathname === "/" || pathname === "/home/" ? "bg-background" : "bg-[#fafafa]"} ${props.border === true ? "border-t" : ""} `}
-    >
+    <NextraFooter className="flex-col items-center">
       {/* Main footer content grid */}
       <div className="max-md: grid w-full grid-cols-5 flex-col-reverse max-md:flex">
         {/* Navigation sections */}
@@ -83,7 +79,7 @@ export default function Footer(props: {
           })}
         </div>
         {/* Logo section */}
-        <div className="flex w-full flex-col items-end gap-5 max-md:mb-10 max-md:items-start">
+        <div className="flex w-full dark:invert flex-col items-end gap-5 max-md:mb-10 max-md:items-start">
           <Link href="/">
             <LogoSvg className="size-10" aria-hidden="true" />
             <span className="sr-only">Go to homepage</span>
@@ -94,7 +90,7 @@ export default function Footer(props: {
       {/* Footer bottom section with social links and CTA */}
       <div className="mt-24 flex w-full items-center justify-between text-sm text-muted-foreground max-md:mt-16 max-sm:mt-6">
         <div className="flex items-center gap-1">
-          © {new Date().getFullYear()}{" "}
+          <ThemeToggle className="mr-2" />© {new Date().getFullYear()}{" "}
           <span className="max-md:hidden">Measurely.dev</span>
         </div>
         {/* Conditional rendering of CTA button based on type prop */}
@@ -108,7 +104,7 @@ export default function Footer(props: {
           </Link>
         )}
       </div>
-    </footer>
+    </NextraFooter>
   );
 }
 

@@ -47,7 +47,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   return (
     <div
       {...additionalProps}
-      className={`relative flex w-full flex-col gap-[10px] rounded-[16px] border px-[30px] py-[50px] shadow-sm shadow-black/5 ${className} ${popular ? "rounded-tl-2xl" : ""}`}
+      className={`relative flex bg-card w-full flex-col gap-[10px] rounded-[16px] border px-[30px] py-[50px] shadow-sm shadow-black/5 ${className} ${popular ? "rounded-tl-2xl" : ""}`}
     >
       {/* Popular badge */}
       {popular && (

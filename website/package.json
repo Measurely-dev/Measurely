@@ -23,6 +23,7 @@
     "lucide-react": "^0.474.0",
     "measurely-js": "^1.0.7",
     "next": "15.1.6",
+    "next-themes": "^0.4.4",
     "nextra": "^4.2.1",
     "nextra-theme-docs": "^4.2.1",
     "react": "^19.0.0",

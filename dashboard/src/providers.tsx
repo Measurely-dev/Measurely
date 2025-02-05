@@ -7,7 +7,7 @@ export const providers: any = [
     description: 'Platform for code hosting',
     logo: (
       <svg
-        className='size-6'
+        className='size-6 dark:invert'
         fill='none'
         aria-hidden='true'
         focusable='false'

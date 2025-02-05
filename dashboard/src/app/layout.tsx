@@ -1,10 +1,9 @@
-// Required imports for Next.js application
+// app/layout.tsx
 import type { Metadata } from 'next';
-import './globals.css';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
-import { Toaster } from '@/components/ui/sonner';
-import Head from 'next/head';
+import './globals.css';
+import { ThemeProvider } from 'next-themes';
 
 // Application metadata configuration for SEO and social sharing
 export const metadata: Metadata = {
@@ -88,13 +87,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <Head>
-        <link rel='preconnect' href='https://fonts.gstatic.com' />
-        <title>Measurely</title>
-      </Head>
-      <body className={GeistSans.className + ' ' + GeistMono.variable}>
-        {children}
-        <Toaster richColors theme='light' position='bottom-right' closeButton />
+      <body className={`${GeistSans.className} ${GeistMono.variable}`}>
+        <ThemeProvider attribute='class' enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

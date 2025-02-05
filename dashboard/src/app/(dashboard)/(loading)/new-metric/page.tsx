@@ -409,7 +409,7 @@ function Metric(props: {
         props.comingSoon
           ? 'cursor-not-allowed bg-accent'
           : props.state === props.value
-            ? 'cursor-pointer bg-accent/50 ring-2 ring-primary'
+            ? 'cursor-pointer bg-accent/50 ring-2 ring-primary/75'
             : 'cursor-pointer hover:bg-accent/50'
       }`}
       onClick={() => {

@@ -1,17 +1,17 @@
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Metadata } from "next";
-import Image from "next/image";
 import { Layout, Navbar } from "nextra-theme-docs";
 import { Head } from "nextra/components";
 import { GitHubIcon } from "nextra/icons";
 import { getPageMap } from "nextra/page-map";
-import Logo from "../public/logos/measurely-icon.png";
 import "./docs.css";
 import "./globals.css";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import LogoSvg from "@/components/global/logo-svg";
+import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   description: "Track metrics efficiently and analyze data with ease.",
@@ -59,13 +59,7 @@ const navbar = (
     logoLink={"/"}
     logo={
       <div className="flex flex-row items-center gap-2">
-        <Image
-          width={35}
-          height={35}
-          src={Logo}
-          className="min-w-[35px] min-h-[35px]"
-          alt="Logo"
-        />
+        <LogoSvg className="size-9 min-w-9 min-h-9 dark:invert" />
         <span className="text-lg font-semibold max-lg:hidden">Measurely</span>
       </div>
     }
@@ -85,17 +79,18 @@ export default async function RootLayout({
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <Head />
       <body className={GeistSans.className + " " + GeistMono.variable}>
-        <Layout
-          navbar={navbar}
-          pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
-          footer={<Footer border bg="secondary" type="default" />}
-          darkMode={false}
-          nextThemes={{ defaultTheme: "light" }}
-          sidebar={{ autoCollapse: true }}
-        >
-          {children}
-        </Layout>
+        <ThemeProvider attribute="class" enableSystem>
+          <Layout
+            navbar={navbar}
+            pageMap={await getPageMap()}
+            docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
+            footer={<Footer border bg="secondary" type="default" />}
+            sidebar={{ autoCollapse: true }}
+            darkMode={false}
+          >
+            {children}
+          </Layout>
+        </ThemeProvider>
       </body>
     </html>
   );

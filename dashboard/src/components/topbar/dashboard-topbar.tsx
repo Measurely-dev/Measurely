@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { useContext } from 'react';
 import { ProjectsContext, UserContext } from '@/dash-context';
 import { UserRole } from '@/types';
+import { ThemeToggle } from '../ui/theme-toggle';
 
 // Dashboard top navigation bar component
 export default function DashboardTopbar() {
@@ -32,8 +33,8 @@ export default function DashboardTopbar() {
       <div className='flex h-[40px] w-full flex-row items-center justify-between'>
         {/* Left section: Logo, Projects, API Key */}
         <div className='flex items-center justify-center gap-4'>
-          <Link href='/' className='md:hidden'>
-            <LogoSvg className='size-[35px]' />
+          <Link href='https://measurely.dev' className='md:hidden'>
+            <LogoSvg className='size-[35px] dark:invert' />
           </Link>
           <Separator className='h-[20px] md:hidden' orientation='vertical' />
           <ProjectsDropdown />
@@ -56,6 +57,7 @@ export default function DashboardTopbar() {
 
         {/* Right section: Create Metric, Feedback, User Avatar - hidden on mobile */}
         <div className='flex flex-row gap-[12px] max-md:hidden'>
+          <ThemeToggle className='my-auto' />
           <Link href={'/new-metric'}>
             <Button
               className='h-[35px] gap-[8px] rounded-[12px]'

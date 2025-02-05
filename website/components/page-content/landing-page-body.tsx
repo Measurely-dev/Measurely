@@ -225,7 +225,7 @@ function BentoBox(props: {
       case "horizontal-left":
         return (
           <div
-            className={`grid w-full grid-cols-[4fr,1fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+            className={`grid w-full bg-card grid-cols-[4fr,1fr] overflow-hidden rounded-[16px] border p-0 !pb-0 shadow-sm ${props.className}`}
           >
             <div className="flex h-full w-full flex-col justify-between p-[30px] pr-0">
               <div className="text-xl font-semibold">{props.title}</div>
@@ -247,7 +247,7 @@ function BentoBox(props: {
       case "horizontal-right":
         return (
           <div
-            className={`grid w-full grid-cols-[1fr,4fr] overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+            className={`grid w-full grid-cols-[1fr,4fr] overflow-hidden rounded-[16px] border bg-card p-0 !pb-0 shadow-sm ${props.className}`}
           >
             <div className="min-w-[400px]">
               <Image
@@ -269,7 +269,7 @@ function BentoBox(props: {
       case "vertical":
         return (
           <div
-            className={`grid w-full overflow-hidden rounded-[16px] border bg-background p-0 !pb-0 shadow-sm ${props.className}`}
+            className={`grid w-full overflow-hidden rounded-[16px] border bg-card p-0 !pb-0 shadow-sm ${props.className}`}
           >
             <div className="flex h-fit w-full flex-col justify-between gap-8 p-[30px]">
               <div className="text-xl font-semibold">{props.title}</div>
@@ -302,7 +302,7 @@ function Box(props: {
   description: string;
 }) {
   return (
-    <div className="flex h-[350px] flex-col items-center gap-[30px] rounded-[16px] border bg-white px-[25px] py-5 pt-16 shadow-sm shadow-black/5">
+    <div className="flex h-[350px] flex-col items-center gap-[30px] rounded-[16px] border bg-card px-[25px] py-5 pt-16 shadow-sm shadow-black/5">
       <div className="flex size-[80px] items-center justify-center rounded-full border bg-accent/50">
         {props.icon}
       </div>

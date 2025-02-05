@@ -49,7 +49,7 @@ export default function PaymentSettings() {
       {/* Display metrics and usage statistics */}
       <MetricStats
         differ
-        className='grid !grid-cols-1 gap-3 divide-x-0 rounded-[12px]'
+        className='grid !grid-cols-1 gap-3 divide-x-0 bg-accent dark:bg-card rounded-[12px]'
         stats={[
           {
             title: `Metrics limit`,
@@ -70,7 +70,7 @@ export default function PaymentSettings() {
       <div
         className={`flex w-full flex-row items-center justify-between rounded-[12px] px-5 py-3 max-md:flex-col max-md:gap-4 ${
           projects[activeProject].plan.name.toLowerCase() === 'starter'
-            ? 'bg-accent'
+            ? 'bg-accent dark:bg-card'
             : 'animate-gradient bg-background bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white'
         }`}
       >

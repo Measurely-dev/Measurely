@@ -104,10 +104,10 @@ p {
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 0 0% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 0 0% 9%;
     --card-foreground: 0 0% 98%;
 
     --popover: 240 10% 3.9%;
@@ -133,7 +133,6 @@ p {
     --ring: 240 4.9% 83.9%;
   }
 }
-
 @layer base {
   * {
     @apply border-border;

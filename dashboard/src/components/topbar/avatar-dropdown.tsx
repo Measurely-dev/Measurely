@@ -73,7 +73,7 @@ const QuickActionsFloatingPanel = (props: { children: ReactNode }) => {
               <motion.div key={index}>
                 <FloatingPanelButton
                   onClick={action.action}
-                  className={`flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 transition-colors ${action.label === 'Logout' ? 'hover:bg-destructive/10 hover:text-destructive' : 'hover:bg-muted'}`}
+                  className={`flex w-full items-center space-x-2 rounded-[10px] px-4 py-2 transition-colors ${action.label === 'Logout' ? 'hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/30 dark:hover:text-red-500' : 'hover:bg-accent'}`}
                 >
                   {action.icon}
                   <span>{action.label}</span>

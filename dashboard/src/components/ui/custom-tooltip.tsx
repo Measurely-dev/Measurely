@@ -18,11 +18,11 @@ export default function CustomTooltip(props: TooltipProps) {
           </span>
         </p>
       </div>
-      <div className='mt-1 w-full space-y-2 rounded-md border border-gray-500/10 bg-white px-4 py-2 text-sm shadow-md'>
+      <div className='mt-1 w-full space-y-2 rounded-md border border-gray-500/10 bg-background px-4 py-2 text-sm shadow-md'>
         {props.payload.map((item, i) => {
           return (
             <div className='flex w-full justify-between gap-10' key={i}>
-              <span className='flex items-center gap-2 text-gray-700'>
+              <span className='flex items-center gap-2 text-secondary'>
                 <div
                   className='size-1.5 rounded-full'
                   style={{ backgroundColor: item.color }}
@@ -30,7 +30,7 @@ export default function CustomTooltip(props: TooltipProps) {
                 {item.category}
               </span>
               <div className='flex items-center space-x-1'>
-                <span className='font-medium text-gray-900'>
+                <span className='font-medium text-primary'>
                   {valueFormatter(item.value)}{' '}
                   {props.payload[0].payload[`metric_unit_${item.category}`]}
                 </span>

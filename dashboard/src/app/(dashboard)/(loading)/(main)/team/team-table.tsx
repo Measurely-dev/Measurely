@@ -155,7 +155,7 @@ export const TeamTable = (props: { members: User[] }) => {
         <>
           <Table className='overflow-hidden rounded-[16px]'>
             <TableHeader>
-              <TableRow className='bg-accent/60'>
+              <TableRow className='bg-accent dark:bg-card'>
                 <TableHead colSpan={2}>Member</TableHead>
                 <TableHead colSpan={3} className='text-nowrap'>
                   Email
@@ -524,10 +524,7 @@ function MemberOption({
       >
         {children}
       </FloatingPanelTrigger>
-      <FloatingPanelContent
-        className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
-        side='right'
-      >
+      <FloatingPanelContent side='right'>
         <FloatingPanelBody className='p-1'>
           {(projects[activeProject].user_role === UserRole.Admin ||
             (projects[activeProject].user_role === UserRole.Owner &&

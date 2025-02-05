@@ -127,7 +127,7 @@ export default function PricingBodyComparaison() {
               <div key={`feature-${idx}`} className="flex flex-col gap-4">
                 <div className="flex items-center gap-1 px-7 text-sm">
                   <div
-                    className={`mr-1 flex size-5 items-center justify-center rounded-[6px] bg-accent ${feature.state ? "bg-blue-100 text-blue-600" : ""}`}
+                    className={`mr-1 flex size-5 items-center justify-center rounded-[6px] bg-accent ${feature.state ? "bg-blue-100 text-blue-600 dark:bg-blue-300 dark:text-blue-900" : ""}`}
                   >
                     {feature.state ? (
                       <CheckIcon className="size-3" />
@@ -150,7 +150,7 @@ export default function PricingBodyComparaison() {
             <Separator />
             <div className="flex items-center gap-1 px-7 text-sm">
               <div
-                className={`mr-1 flex size-5 items-center justify-center rounded-[6px] bg-accent ${plan.support.state ? "bg-blue-100 text-blue-600" : ""}`}
+                className={`mr-1 flex size-5 items-center justify-center rounded-[6px] bg-accent ${plan.support.state ? "bg-blue-100 text-blue-600 dark:bg-blue-300 dark:text-blue-900" : ""}`}
               >
                 {plan.support.state ? (
                   <CheckIcon className="size-3" />

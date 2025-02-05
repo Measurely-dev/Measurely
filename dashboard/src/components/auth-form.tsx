@@ -125,7 +125,7 @@ export default function AuthForm(props: {
         props.action(formData);
       }}
     >
-      <div className='flex w-[500px] flex-col gap-[10px] rounded-[16px] border bg-accent p-[30px] shadow-sm shadow-black/5'>
+      <div className='flex w-[500px] flex-col gap-[10px] rounded-[16px] border bg-accent p-[30px] shadow-sm shadow-black/5 dark:bg-card'>
         <div
           className={`${props.description ? '' : 'mb-5'} text-2xl font-medium`}
         >
@@ -345,10 +345,7 @@ export default function AuthForm(props: {
           </Button>
 
           {props.forgot_password && (
-            <Link
-              className='w-fit text-sm text-muted-foreground'
-              href={'/reset'}
-            >
+            <Link className='w-fit text-sm text-blue-500' href={'/reset'}>
               Forgot password?
             </Link>
           )}
@@ -360,9 +357,17 @@ export default function AuthForm(props: {
               By continuing, you agree to our policies
             </div>
             <div className='flex items-center gap-2 text-center text-sm font-semibold'>
-              <Link href='https://measurely.dev/legal/terms'>Terms of use</Link>
+              <Link
+                href='https://measurely.dev/legal/terms'
+                className='text-blue-500'
+              >
+                Terms of use
+              </Link>
               <div>•</div>
-              <Link href='https://measurely.dev/legal/privacy'>
+              <Link
+                href='https://measurely.dev/legal/privacy'
+                className='text-blue-500'
+              >
                 Privacy policy
               </Link>
             </div>

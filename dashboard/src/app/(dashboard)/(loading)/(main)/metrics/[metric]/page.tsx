@@ -134,8 +134,8 @@ const todayBadgeColor = (v: number | null) => {
   if (v === null || v === 0)
     return 'border-zinc-200 bg-zinc-500/10 text-zinc-500';
   return v > 0
-    ? 'bg-green-100 border-green-200 text-green-600'
-    : 'bg-red-100 border-red-200 text-red-600';
+    ? 'bg-green-500/20 dark:bg-green-500/30 text-green-600 dark:text-green-500'
+    : 'bg-red-500/20 dark:bg-red-500/30 text-red-600 dark:text-red-500';
 };
 
 // Main component for the dashboard metric page
@@ -482,7 +482,7 @@ export default function DashboardMetricPage() {
                 <div>
                   <div className='flex flex-wrap justify-center gap-4'>
                     <span
-                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${todayBadgeColor(daily)}`}
+                      className={`inline-flex items-center gap-x-1 rounded-md border border-card px-2 py-1 text-sm font-semibold ${todayBadgeColor(daily)} `}
                     >
                       {todayBadgeSign(daily)}
                       {daily} %
@@ -955,9 +955,9 @@ function Chart(props: {
         </div>
 
         {chartData === null ? (
-          <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg bg-accent' />
+          <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg' />
         ) : (
-          <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent p-5 shadow-sm shadow-black/5'>
+          <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent p-5 shadow-sm shadow-black/5 dark:bg-card'>
             <div className='flex w-full items-center justify-between gap-5'>
               <div className='flex flex-col'>
                 <div className='text-md text-muted-foreground'>

@@ -167,7 +167,9 @@ export function FloatingPanelTrigger({
         style={{ borderRadius: 'inherit' }}
         initial={{ border: '1.5px solid transparent' }}
         animate={{
-          border: isOpen ? '1.5px dashed #e4e4e7' : '1px solid transparent',
+          border: isOpen
+            ? '1.5px dashed hsl(var(--input))'
+            : '1px solid transparent',
         }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
       />
@@ -293,7 +295,7 @@ export function FloatingPanelContent({
             ref={contentRef}
             layoutId={`floating-panel-${uniqueId}`}
             className={cn(
-              'fixed z-50 overflow-hidden border border-input bg-white shadow-lg outline-none dark:border-zinc-50/10 dark:bg-zinc-800',
+              'fixed z-50 overflow-hidden border border-input bg-background shadow-lg outline-none',
               className,
             )}
             style={{
@@ -324,11 +326,11 @@ function FloatingPanelTitle(props: { title: string; description: string }) {
   return (
     <motion.div
       layoutId={`floating-panel-label-container-${uniqueId}`}
-      className='flex flex-col bg-white px-4 py-2 dark:bg-zinc-800'
+      className='flex flex-col bg-background px-4 py-2'
     >
       <motion.div
         layoutId={`floating-panel-label-${uniqueId}`}
-        className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'
+        className='text-sm font-semibold text-primary'
         id={`floating-panel-title-${uniqueId}`}
       >
         {props.title}
@@ -336,7 +338,7 @@ function FloatingPanelTitle(props: { title: string; description: string }) {
       {props.description && (
         <motion.div
           layoutId={`floating-panel-description-${uniqueId}`}
-          className='text-sm text-zinc-600 dark:text-zinc-400'
+          className='text-sm text-secondary'
         >
           {props.description}
         </motion.div>
@@ -440,10 +442,7 @@ export function FloatingPanelHeader({
 }: FloatingPanelHeaderProps) {
   return (
     <motion.div
-      className={cn(
-        'px-4 py-2 font-semibold text-zinc-900 dark:text-zinc-100',
-        className,
-      )}
+      className={cn('px-4 py-2 font-semibold text-primary', className)}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
@@ -503,9 +502,7 @@ interface FloatingPanelCloseButtonProps {
 
 export function FloatingPanelCloseButton({
   className,
-  icon = (
-    <ArrowLeftIcon size={16} className='text-zinc-900 dark:text-zinc-100' />
-  ), // Default icon
+  icon = <ArrowLeftIcon size={16} className='text-primary' />, // Default icon
   ariaLabel = 'Close floating panel', // Default aria-label
 }: FloatingPanelCloseButtonProps) {
   const { closeFloatingPanel } = useFloatingPanel();
@@ -652,7 +649,7 @@ export function FloatingPanelSubMenu({
               left: subMenuPosition.left,
             }}
           >
-            <div className='w-[200px] rounded-[12px] border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'>
+            <div className='w-[200px] rounded-[12px] border border-input bg-background shadow-sm'>
               {/* Submenu Body */}
               <div className='p-1'>{children}</div>
             </div>

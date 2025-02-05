@@ -31,7 +31,8 @@ export default function MetricDropdown(props: {
     const isConfirmed = await confirm({
       title: `Delete '${props.metric.name.charAt(0).toUpperCase()}${props.metric.name.slice(1).toLowerCase()}'`,
       icon: <Trash className='size-6 text-destructive' />,
-      description: 'Are you sure you want to delete this metric? You will lose all the data linked to this metric forever.',
+      description:
+        'Are you sure you want to delete this metric? You will lose all the data linked to this metric forever.',
       confirmText: 'Yes, Delete',
       cancelText: 'Cancel',
       cancelButton: {
@@ -71,7 +72,9 @@ export default function MetricDropdown(props: {
               v.id === props.metric.project_id
                 ? {
                     ...v,
-                    metrics: v.metrics?.filter((m) => m.id !== props.metric.id) ?? null,
+                    metrics:
+                      v.metrics?.filter((m) => m.id !== props.metric.id) ??
+                      null,
                   }
                 : v,
             ),
@@ -95,10 +98,7 @@ export default function MetricDropdown(props: {
       >
         {props.children}
       </FloatingPanelTrigger>
-      <FloatingPanelContent
-        className='w-[200px] rounded-lg border border-zinc-950/10 bg-white shadow-sm dark:border-zinc-50/10 dark:bg-zinc-800'
-        side='right'
-      >
+      <FloatingPanelContent side='right'>
         <FloatingPanelBody className='p-1'>
           {/* Show edit button for admin/owner users */}
           {(projects[activeProject].user_role === UserRole.Owner ||

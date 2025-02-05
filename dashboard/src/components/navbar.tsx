@@ -41,7 +41,7 @@ export default function DashboardNavbar() {
       {/* Logo/Home link */}
       <Link href='https://measurely.dev'>
         <div className='flex size-[45px] min-h-[45px] min-w-[45px] items-center justify-center rounded-[12px] border border-input/75'>
-          <LogoSvg className='size-[30px]' />
+          <LogoSvg className='size-[30px] dark:invert' />
         </div>
       </Link>
 

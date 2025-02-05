@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { navItem } from '../navbar';
 import { DialogClose } from '@/components/ui/dialog';
 import SettingDialog from '../setting-dialog';
+import { ThemeToggle } from '../ui/theme-toggle';
 
 // Drawer menu component that provides navigation and user controls
 export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
@@ -61,10 +62,11 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
               <User className='size-1/2' />
             </AvatarFallback>
           </Avatar>
-          <div className='flex gap-1'>
-            <div>{Capitalize(user?.first_name ?? 'Unknown')}</div>
+          <div className='w-full'>
+            {Capitalize(user?.first_name ?? 'Unknown')}
             {Capitalize(user?.last_name ?? '')}
           </div>
+          <ThemeToggle className='my-auto ml-auto w-[95px]' />
         </Label>
         <Separator className='my-2' orientation='horizontal' />
 
@@ -102,8 +104,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
           projectid={projects?.[activeProject]?.id ?? ''}
         >
           <Button
-            variant={'secondary'}
-            className='h-[35px] w-full gap-[8px] rounded-[12px] hover:text-primary'
+            variant={'outline'}
+            className='h-[35px] w-full gap-[8px] rounded-[12px]'
           >
             <Code className='size-4' />
             Api key
@@ -114,7 +116,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         <Link href={'/docs/getting-started/introduction'}>
           <Button
             className='h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary'
-            variant='secondary'
+            variant='outline'
           >
             <Book className='size-[16px]' />
             Documentation
@@ -125,7 +127,7 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         <SettingDialog>
           <Button
             className='h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary'
-            variant='secondary'
+            variant='outline'
           >
             <Settings className='size-[16px]' />
             Settings
