@@ -72,7 +72,7 @@ const metaConfig = {
         display: "hidden",
         title: "",
         theme: {
-          typesetting: "article",
+          typesetting: "default",
           layout: "full",
           timestamp: true,
           toc: true,
@@ -81,7 +81,7 @@ const metaConfig = {
       "2": {
         display: "hidden",
         theme: {
-          typesetting: "article",
+          typesetting: "default",
           layout: "full",
           timestamp: true,
           toc: true,
@@ -90,7 +90,7 @@ const metaConfig = {
       "1": {
         display: "hidden",
         theme: {
-          typesetting: "article",
+          typesetting: "default",
           layout: "full",
           timestamp: true,
           toc: true,
