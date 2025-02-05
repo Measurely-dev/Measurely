@@ -36,6 +36,7 @@ import { OrbitingCircles } from "../ui/orbiting-circles";
 export default function Body(props: { type: "waitlist" | "register" }) {
   // Track window width for responsive layout
   const [window_width, set_window_width] = useState(0);
+
   useEffect(() => {
     const handleResize = () => {
       set_window_width(window.innerWidth);
@@ -141,9 +142,8 @@ export default function Body(props: { type: "waitlist" | "register" }) {
               <div className="w-full h-full max-h-full pb-5 flex items-center flex-col overflow-hidden">
                 <Safari
                   url="measurely.dev"
-                  src={
-                    "https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-05-57.png"
-                  }
+                  lightModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-05-57.png"
+                  darkModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-43-21.png"
                   className="size-full"
                 />
               </div>

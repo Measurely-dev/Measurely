@@ -2,13 +2,15 @@ import type { SVGProps } from "react";
 
 export interface SafariProps extends SVGProps<SVGSVGElement> {
   url?: string;
-  src?: string;
   width?: number;
   height?: number;
+  lightModeUrl?: string;
+  darkModeUrl?: string;
 }
 
 export function Safari({
-  src,
+  lightModeUrl,
+  darkModeUrl,
   url,
   width = 1203,
   height = 753,
@@ -128,12 +130,23 @@ export function Safari({
           />
         </g>
         <image
-          href={src}
+          href={lightModeUrl}
           width="1200"
           height="700"
           x="1"
           y="52"
           preserveAspectRatio="xMidYMid slice"
+          className="dark:hidden"
+          clipPath="url(#roundedBottom)"
+        />
+        <image
+          href={darkModeUrl}
+          width="1200"
+          height="700"
+          x="1"
+          y="52"
+          preserveAspectRatio="xMidYMid slice"
+          className="hidden dark:block"
           clipPath="url(#roundedBottom)"
         />
       </g>
