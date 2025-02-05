@@ -2,7 +2,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Metadata } from "next";
 import { Layout, Navbar } from "nextra-theme-docs";
-import { Head } from "nextra/components";
+import { Head, Search } from "nextra/components";
 import { GitHubIcon } from "nextra/icons";
 import { getPageMap } from "nextra/page-map";
 import "./docs.css";
@@ -86,6 +86,7 @@ export default async function RootLayout({
           docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
           footer={<Footer border bg="secondary" type="default" />}
           sidebar={{ autoCollapse: true }}
+          search={<Search placeholder="Search Measurely..." />}
         >
           {children}
         </Layout>
