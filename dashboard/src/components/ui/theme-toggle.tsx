@@ -1,6 +1,8 @@
+'use client';
 import { useTheme } from 'next-themes';
 import { Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface ThemeToggleProps {
   className?: string;
@@ -8,12 +10,15 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
+  const [mounted, setMounted] = useState(false);
 
-  const toggleTheme = () => {
-    const newTheme = isDark ? 'light' : 'dark';
-    setTheme(newTheme);
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className={cn('h-8 w-16', className)} />; // Prevent hydration issues
+
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <div
@@ -24,12 +29,13 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           : 'border border-input bg-background',
         className,
       )}
-      onClick={toggleTheme}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
       role='button'
       tabIndex={0}
     >
       <div className='flex w-full items-center justify-between'>
         <div
+          suppressHydrationWarning
           className={cn(
             'flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300',
             isDark
@@ -41,18 +47,6 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
             <Moon className='h-4 w-4 text-white' strokeWidth={1.5} />
           ) : (
             <Sun className='h-4 w-4 text-gray-700' strokeWidth={1.5} />
-          )}
-        </div>
-        <div
-          className={cn(
-            'flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300',
-            isDark ? 'bg-transparent' : '-translate-x-8 transform',
-          )}
-        >
-          {isDark ? (
-            <Sun className='h-4 w-4 text-gray-500' strokeWidth={1.5} />
-          ) : (
-            <Moon className='h-4 w-4 text-black' strokeWidth={1.5} />
           )}
         </div>
       </div>

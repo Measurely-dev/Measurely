@@ -10,6 +10,9 @@ import {
 import { plans } from "@/plans";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
+  ChartArea,
+  ChartColumn,
+  ChartScatter,
   ChevronRight,
   Gauge,
   LayoutGridIcon,
@@ -17,24 +20,22 @@ import {
   Plus,
   SparklesIcon,
 } from "lucide-react";
-import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import Image1 from "../../public/measurely-image1.png";
-import Image2 from "../../public/measurely-image2.png";
-import Image4 from "../../public/measurely-image4.png";
-import Image5 from "../../public/measurely-image5.png";
 import FooterHeader from "../footer-header";
 import PricingCard from "../global/pricing-card";
 import HeroTitle from "../hero-title";
 import { Button } from "../ui/button";
+import { TiltedScroll } from "../ui/tilted-scroll";
+import { Globe } from "../ui/globe";
+import { Safari } from "../ui/safari";
+import { OrbitingCircles } from "../ui/orbiting-circles";
 
 // Main Body component that handles the landing page layout
 export default function Body(props: { type: "waitlist" | "register" }) {
   // Track window width for responsive layout
   const [window_width, set_window_width] = useState(0);
-
   useEffect(() => {
     const handleResize = () => {
       set_window_width(window.innerWidth);
@@ -47,7 +48,13 @@ export default function Body(props: { type: "waitlist" | "register" }) {
 
   // Determine BentoBox layout based on screen width
   const bentoBoxType = window_width > 768 ? "horizontal-left" : "vertical";
-
+  const customItems = [
+    { id: "1", text: "Unique visitors" },
+    { id: "2", text: "Average session duration" },
+    { id: "3", text: "Page views" },
+    { id: "4", text: "Conversion rate" },
+    { id: "5", text: "Bounce rate" },
+  ];
   return (
     <div className="max-w-[1100px] mx-auto">
       <div className="flex text-primary pb-24 pt-10 w-full flex-col items-center gap-5 text-center max-md:h-fit max-md:min-h-[50vh]">
@@ -100,26 +107,47 @@ export default function Body(props: { type: "waitlist" | "register" }) {
         {/* Hero Section */}
         <BentoBox
           type={bentoBoxType}
+          className="group"
           title="Simplify Your Metrics"
           description="Measurely is your all-in-one solution for tracking and analyzing key metrics. With our API integration, monitor data in real-time and access detailed insights at your fingertips."
-          img={Image1}
+          content={
+            <div className="h-[300px] overflow-hidden items-end flex flex-col relative">
+              <TiltedScroll items={customItems} className="my-auto" />
+            </div>
+          }
         />
 
         {/* Feature Grid */}
         <div className="grid grid-cols-2 gap-5 max-md:grid-cols-1 max-md:grid-rows-2">
           <BentoBox
             type="vertical"
-            className="mt-5"
-            title="Visualize Your Data, Your Way"
-            description="Transform your data into clear, actionable charts with advanced customization options."
-            img={Image5}
+            className="mt-5 relative"
+            title="Track Metrics in Real Time"
+            description="Visualize live data changes across your metrics. Stay updated with real-time insights and effortlessly track key metrics as they evolve."
+            content={
+              <div className="w-full h-full min-h-[300px] max-h-full flex items-center flex-col overflow-hidden">
+                <Globe className="top-44 gradient-mask-tr-40" />
+              </div>
+            }
           />
+
           <BentoBox
             type="vertical"
             className="mt-5 max-md:mt-0"
             title="Seamless Integration"
+            contentClassName="!w-full !min-w-none max-w-[90%]"
             description="Start tracking your metrics effortlessly with our straightforward API & SDKs setup."
-            img={Image4}
+            content={
+              <div className="w-full h-full max-h-full pb-5 flex items-center flex-col overflow-hidden">
+                <Safari
+                  url="measurely.dev"
+                  src={
+                    "https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-05-57.png"
+                  }
+                  className="size-full"
+                />
+              </div>
+            }
           />
         </div>
 
@@ -129,7 +157,41 @@ export default function Body(props: { type: "waitlist" | "register" }) {
           className="mt-5"
           title="Multiple Metric Types"
           description="Track both single and dual metrics. Single metrics monitor growth, while dual metrics capture positive and negative trends for deeper analysis."
-          img={Image2}
+          content={
+            <div className="relative [mask-composite:intersect] [mask-image:linear-gradient(to_right,transparent,black_5rem),linear-gradient(to_left,transparent,black_5rem),linear-gradient(to_bottom,transparent,black_5rem),linear-gradient(to_top,transparent,black_5rem)] flex h-[350px] p-10 w-full flex-col items-center justify-center overflow-hidden">
+              <span className="pointer-events-none z-0 whitespace-pre-wrap bg-gradient-to-b from-black to-gray-300 bg-clip-text text-center text-7xl font-semibold leading-none text-transparent dark:from-white dark:to-black">
+                Metrics
+              </span>
+
+              {/* Inner Circles */}
+              <OrbitingCircles
+                className="size-[35px] border-input -z-10"
+                duration={20}
+                delay={20}
+                radius={80}
+              >
+                <ChartColumn className="size-4" />
+              </OrbitingCircles>
+              <OrbitingCircles
+                className="size-[35px] border-input"
+                duration={20}
+                delay={10}
+                radius={80}
+              >
+                <ChartArea className="size-4" />
+              </OrbitingCircles>
+
+              {/* Outer Circles (reverse) */}
+              <OrbitingCircles
+                className="size-[50px] border-none"
+                radius={190}
+                duration={20}
+                reverse
+              >
+                <ChartScatter className="size-5" />
+              </OrbitingCircles>
+            </div>
+          }
         />
 
         {/* Subscription Section */}
@@ -218,7 +280,8 @@ function BentoBox(props: {
   type: "horizontal-left" | "horizontal-right" | "vertical";
   title: string;
   description: string;
-  img: string | StaticImageData;
+  contentClassName?: string;
+  content: ReactNode;
 }) {
   const render = () => {
     switch (props.type) {
@@ -233,14 +296,8 @@ function BentoBox(props: {
                 {props.description}
               </div>
             </div>
-            <div className="min-w-[400px]">
-              <Image
-                src={props.img}
-                draggable={false}
-                alt="Image"
-                width={400}
-                height={1000}
-              />
+            <div className={`min-w-[400px] ${props.contentClassName}`}>
+              {props.content}
             </div>
           </div>
         );
@@ -249,14 +306,8 @@ function BentoBox(props: {
           <div
             className={`grid w-full grid-cols-[1fr,4fr] overflow-hidden rounded-[16px] border bg-card p-0 !pb-0 shadow-sm ${props.className}`}
           >
-            <div className="min-w-[400px]">
-              <Image
-                src={props.img}
-                alt="Image"
-                draggable={false}
-                width={400}
-                height={1000}
-              />
+            <div className={`min-w-[400px] ${props.contentClassName}`}>
+              {props.content}
             </div>
             <div className="flex h-full w-full flex-col justify-between p-[30px] pl-0">
               <div className="text-xl font-semibold">{props.title}</div>
@@ -277,15 +328,10 @@ function BentoBox(props: {
                 {props.description}
               </div>
             </div>
-            <div className="min-w-none mx-auto flex h-fit max-h-[500px] max-w-[450px] items-center justify-center">
-              <Image
-                src={props.img}
-                alt="Image"
-                className="max-h-[500px]"
-                draggable={false}
-                height={340}
-                width={1000}
-              />
+            <div
+              className={`min-w-none mx-auto flex h-fit max-h-[500px] max-w-[450px] items-center justify-center ${props.contentClassName}`}
+            >
+              {props.content}
             </div>
           </div>
         );

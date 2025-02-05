@@ -5,7 +5,6 @@ import LogoSvg from "@/components/global/logo-svg";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Footer as NextraFooter } from "nextra-theme-docs";
-import { ThemeToggle } from "./ui/theme-toogle";
 // Footer navigation data structure
 const footerData = [
   {
@@ -53,6 +52,8 @@ export default function Footer(props: {
   bg?: "default" | "secondary";
   type: "default" | "waitlist";
 }) {
+  const year = new Date().getFullYear();
+
   return (
     <NextraFooter className="flex-col items-center">
       {/* Main footer content grid */}
@@ -90,7 +91,7 @@ export default function Footer(props: {
       {/* Footer bottom section with social links and CTA */}
       <div className="mt-24 flex w-full items-center justify-between text-sm text-muted-foreground max-md:mt-16 max-sm:mt-6">
         <div className="flex items-center gap-1">
-          <ThemeToggle className="mr-2" />© {new Date().getFullYear()}{" "}
+          <span>© {year}</span>
           <span className="max-md:hidden">Measurely.dev</span>
         </div>
         {/* Conditional rendering of CTA button based on type prop */}

@@ -1,4 +1,5 @@
 import animate from "tailwindcss-animate";
+import gradientMask from "tailwind-gradient-mask-image";
 
 const config = {
   darkMode: ["class"],
@@ -65,6 +66,25 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        orbit: {
+          "0%": {
+            transform:
+              "rotate(0deg) translateY(calc(var(--radius) * 1px)) rotate(0deg)",
+          },
+          "100%": {
+            transform:
+              "rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg)",
+          },
+        },
+        "skew-scroll": {
+          "0%": {
+            transform: "rotateX(20deg) rotateZ(-20deg) skewX(20deg)",
+          },
+          "100%": {
+            transform:
+              "rotateX(20deg) rotateZ(-20deg) skewX(20deg) translateY(-100%)",
+          },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -117,6 +137,8 @@ const config = {
         "300%": "300%",
       },
       animation: {
+        orbit: "orbit calc(var(--duration)*1s) linear infinite",
+        "skew-scroll": "skew-scroll 20s linear infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         gradient: "animatedgradient 12s ease infinite alternate",
@@ -125,7 +147,7 @@ const config = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [animate, gradientMask],
 };
 
 export default config;

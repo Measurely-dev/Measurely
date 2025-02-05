@@ -11,7 +11,6 @@ import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import LogoSvg from "@/components/global/logo-svg";
-import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   description: "Track metrics efficiently and analyze data with ease.",
@@ -54,21 +53,23 @@ export const metadata: Metadata = {
   },
 };
 
-const navbar = (
-  <Navbar
-    logoLink={"/"}
-    logo={
-      <div className="flex flex-row items-center gap-2">
-        <LogoSvg className="size-9 min-w-9 min-h-9 dark:invert" />
-        <span className="text-lg font-semibold max-lg:hidden">Measurely</span>
-      </div>
-    }
-    projectLink="https://github.com/measurely-dev/measurely"
-    projectIcon={<GitHubIcon className="size-6 max-sm:hidden" />}
-  >
-    {<Actions type="waitlist" />}
-  </Navbar>
-);
+function NavbarComponent() {
+  return (
+    <Navbar
+      logoLink={"/"}
+      logo={
+        <div className="flex flex-row items-center gap-2">
+          <LogoSvg className="size-9 min-w-9 min-h-9 dark:invert" />
+          <span className="text-lg font-semibold max-lg:hidden">Measurely</span>
+        </div>
+      }
+      projectLink="https://github.com/measurely-dev/measurely"
+      projectIcon={<GitHubIcon className="size-6 max-sm:hidden" />}
+    >
+      <Actions type="waitlist" />
+    </Navbar>
+  );
+}
 
 export default async function RootLayout({
   children,
@@ -79,18 +80,15 @@ export default async function RootLayout({
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <Head />
       <body className={GeistSans.className + " " + GeistMono.variable}>
-        <ThemeProvider attribute="class" enableSystem>
-          <Layout
-            navbar={navbar}
-            pageMap={await getPageMap()}
-            docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
-            footer={<Footer border bg="secondary" type="default" />}
-            sidebar={{ autoCollapse: true }}
-            darkMode={false}
-          >
-            {children}
-          </Layout>
-        </ThemeProvider>
+        <Layout
+          navbar={<NavbarComponent />}
+          pageMap={await getPageMap()}
+          docsRepositoryBase="https://github.com/Measurely-dev/Measurely/tree/main/website"
+          footer={<Footer border bg="secondary" type="default" />}
+          sidebar={{ autoCollapse: true }}
+        >
+          {children}
+        </Layout>
       </body>
     </html>
   );
