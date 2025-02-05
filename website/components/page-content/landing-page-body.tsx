@@ -136,10 +136,10 @@ export default function Body(props: { type: "waitlist" | "register" }) {
             type="vertical"
             className="mt-5 max-md:mt-0"
             title="Seamless Integration"
-            contentClassName="!w-full !min-w-none max-w-[90%]"
+            contentClassName="!w-full !min-w-none max-w-[90%] min-h-none h-fit"
             description="Start tracking your metrics effortlessly with our straightforward API & SDKs setup."
             content={
-              <div className="w-full h-full max-h-full pb-5 flex items-center flex-col overflow-hidden">
+              <div className="w-full  h-full max-h-fit pb-5 flex items-center flex-col overflow-hidden">
                 <Safari
                   url="measurely.dev"
                   lightModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-04%2023-05-57.png"
