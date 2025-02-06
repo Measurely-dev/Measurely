@@ -20,6 +20,7 @@ const FEATURES: MetaRecord = {
     title: "Core features",
   },
   filters: "",
+  blocks: "",
   integrations: "",
   templates: "",
 };

@@ -1,6 +1,67 @@
 ---
 sidebarTitle: Filters
+description: Learn how to use filters in Measurely to organize and categorize your data with precision for more accurate metric tracking.
 ---
+
+import { Callout, Steps } from "nextra/components";
 
 # Filters
 
+Filters allows you to organize and categorize your data with precision. By defining filters, you can segment your metrics into specific categories, making it easier to analyze and visualize data based on distinct criteria. For example, you can create a filter category called **Countries** and add filters like **Canada**, **USA**, **France**, etc., to push data into these specific segments.
+
+<Callout type="info">
+  Filters help you refine your data for more granular insights. Use them to
+  categorize, segment, and analyze metrics effectively.
+</Callout>
+
+## How Filters Work
+
+Filters are a powerful way to refine your data. They enable you to:
+
+- **Categorize Data:** Group data into meaningful segments (e.g., by country, device, or user type).
+- **Segment Metrics:** Analyze specific subsets of your data (e.g., revenue from the USA or API performance for mobile devices).
+
+## Creating and Using Filters
+
+<Steps>
+
+### Define a Filter Category
+
+1. Go to the selected **metric** page in your dashboard.
+2. Click **Filter Manager**.
+3. Click **Create Category**.
+3. Name your category (e.g., "countries" or "devices").
+3. Add filters (e.g., "canada, usa" or "mobile, desktop").
+
+### Push Data to Filters
+
+1. Use the Measurely SDK or API to push data to specific filters.
+2. For example, when tracking revenue, you can assign data to the "USA" filter in the "Countries" category.
+
+```js
+measurely.capture("metric-identifier", {
+  value: 100,
+  filters: {
+    countries: "usa",
+    devices: "mobile",
+  },
+});
+```
+
+### Analyze Filtered Data
+
+1. Navigate to your selected metric page.
+2. Select filters on the charts to visualize data for specific segments.
+
+</Steps>
+
+## Example Use Cases
+
+- **Geographic Analysis:** Use a "Countries" filter to track metrics like revenue or user activity by region.
+- **Device Segmentation:** Create a "Devices" filter to analyze performance or engagement across mobile, desktop, and tablet users.
+- **User Types:** Use a "User Type" filter to differentiate between free and premium users in your metrics.
+
+<Callout type="warning">
+  Ensure your filters are well-defined and consistent to avoid data
+  fragmentation or misclassification.
+</Callout>
