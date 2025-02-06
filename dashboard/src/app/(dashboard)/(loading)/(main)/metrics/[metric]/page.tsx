@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/card';
 import customTooltip from '@/components/ui/custom-tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +32,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ProjectsContext, UserContext } from '@/dash-context';
-import { cn } from '@/lib/utils';
 import {
   AllowedColors,
   ChartColors,
@@ -68,8 +66,6 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import {
   cloneElement,
-  Dispatch,
-  SetStateAction,
   useContext,
   useEffect,
   useMemo,
@@ -80,15 +76,7 @@ import { toast } from 'sonner';
 import FilterManagerDialog from './filter-manager';
 import { PushValueDialog } from '../../push-value';
 import { UnitCombobox } from '@/components/ui/unit-combobox';
-import { RangeCalendar } from '@/components/ui/calendar-rac';
-import { CalendarIcon } from '@radix-ui/react-icons';
-import { DateInput, dateInputStyle } from '@/components/ui/datefield-rac';
 import {
-  DateRangePicker,
-  Group,
-  Popover as AriaPopover,
-  Dialog as AriaDialog,
-  Button as AriaButton,
   DateValue,
 } from 'react-aria-components';
 import Filters from './filter-selector';
