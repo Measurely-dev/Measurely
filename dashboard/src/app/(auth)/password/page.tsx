@@ -72,6 +72,7 @@ export default function Password() {
           action={async (formdata) => {
             set_loading(true);
 
+
             // Extract and sanitize form data
             const email = searchParams
               .get('email')
@@ -94,12 +95,15 @@ export default function Password() {
               first_name === '' ||
               last_name === ''
             ) {
+
               toast.error('Please fill in all fields');
               set_loading(false);
               return;
             }
 
             if (password !== retype) {
+
+              console.log("hey")
               toast.error('The passwords must be the same');
               set_loading(false);
               return;
@@ -119,13 +123,14 @@ export default function Password() {
                 password: password,
               }),
             }).then((res) => {
-              if (!res.ok) {
+              if (res.ok) {
+                router.push("/sign-in")
+                toast.warning("We sent you an email, please verify your email address")
+              } else {
                 res.text().then((text) => {
                   toast.error(text);
                 });
                 set_loading(false);
-              } else {
-                router.push('/');
               }
             });
           }}

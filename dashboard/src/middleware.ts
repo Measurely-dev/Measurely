@@ -13,7 +13,7 @@ export default async function middleware(request: NextRequest) {
   requestHeaders.set('x-request-pathname', url);
 
   // Redirect /register/ to root path
-  if (url === '/register/') {
+  if (url === '/register/' && process.env.NEXT_PUBLIC_ENV === "production") {
     return NextResponse.redirect(new URL('/waitlist', request.url));
   }
 
@@ -39,7 +39,7 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Protect routes that require authentication
-  if (url === '/' || url.includes('new-app') || url.includes('new-metric')) {
+  if (url === '/' || url.includes('new-project') || url.includes('new-metric')) {
     if (!logged) {
       return NextResponse.redirect(new URL('/sign-in', request.url));
     }
@@ -57,13 +57,6 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/home',
-    '/pricing',
-    '/sign-in',
-    '/register',
-    '/waitlist',
-    '/forgot-password',
-    '/new-project',
-    '/:appname*',
+    '/:slug*',
   ],
 };

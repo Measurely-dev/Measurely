@@ -355,27 +355,45 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create auth cookie
-	cookie, err := CreateCookie(&user, w)
-	if err != nil {
-		log.Println("Error creating auth cookie:", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	if !user.Verified {
+		http.Error(w, "Please verify your email address", http.StatusForbidden)
+		verification, err := s.db.CreateVerificationCode(user.Id)
+		if err == nil {
+			// send email
+			go s.email.SendEmail(email.MailFields{
+				To:          user.Email,
+				Subject:     "Verify your email address",
+				Content:     "Click on the following link to verify the email address linked to your measurely account",
+				Link:        GetOrigin() + "/verify?code=" + verification.Id.String(),
+				ButtonTitle: "Verify",
+			})
+
+		}
 		return
+	} else {
+		// Create auth cookie
+		cookie, err := CreateCookie(&user, w)
+		if err != nil {
+			log.Println("Error creating auth cookie:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Set cache control and set cookie
+		SetupCacheControl(w, 0)
+		http.SetCookie(w, &cookie)
+		w.WriteHeader(http.StatusOK)
+
+		// Send notification email about the new login
+		go s.email.SendEmail(email.MailFields{
+			To:          user.Email,
+			Subject:     "New login detected",
+			Content:     "A new login to your Measurely account was detected. If this wasn't you, please update your password immediately.",
+			Link:        GetOrigin(),
+			ButtonTitle: "Update Password",
+		})
 	}
 
-	// Set cache control and set cookie
-	SetupCacheControl(w, 0)
-	http.SetCookie(w, &cookie)
-	w.WriteHeader(http.StatusOK)
-
-	// Send notification email about the new login
-	go s.email.SendEmail(email.MailFields{
-		To:          user.Email,
-		Subject:     "New login detected",
-		Content:     "A new login to your Measurely account was detected. If this wasn't you, please update your password immediately.",
-		Link:        GetOrigin(),
-		ButtonTitle: "Update Password",
-	})
 }
 
 func (s *Service) Oauth(w http.ResponseWriter, r *http.Request) {
@@ -657,6 +675,19 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	verification, err := s.db.CreateVerificationCode(new_user.Id)
+	if err == nil {
+		// send email
+		go s.email.SendEmail(email.MailFields{
+			To:          new_user.Email,
+			Subject:     "Verify your email address",
+			Content:     "Click on the following link to verify the email address linked to your measurely account",
+			Link:        GetOrigin() + "/verify?code=" + verification.Id.String(),
+			ButtonTitle: "Verify",
+		})
+
+	}
+
 	w.WriteHeader(http.StatusCreated)
 
 	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
@@ -671,20 +702,6 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		ButtonTitle: "Access dashboard",
 	})
 
-	go func() {
-		verification, err := s.db.CreateVerificationCode(new_user.Id)
-		if err == nil {
-			// send email
-			go s.email.SendEmail(email.MailFields{
-				To:          new_user.Email,
-				Subject:     "Verify your email address",
-				Content:     "Click on the following link to verify the email address linked to your measurely account",
-				Link:        GetOrigin() + "/verify?code=" + verification.Id,
-				ButtonTitle: "Verify",
-			})
-
-		}
-	}()
 }
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
@@ -1053,6 +1070,42 @@ func (s *Service) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Service) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		VerificationId uuid.UUID `json:"verification_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	verification, err := s.db.GetEmailVerification(request.VerificationId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Verification code not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal server error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	user, err := s.db.GetUserById(verification.UserId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User account not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal server error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	s.db.UpdateUserVerifiedState(user.Id, true)
+	s.db.DeleteVerificationCode(user.Id)
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		RequestId uuid.UUID `json:"request_id"`
@@ -1101,6 +1154,8 @@ func (s *Service) UpdateUserEmail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error: Failed to clean up email change request", http.StatusInternalServerError)
 		return
 	}
+
+	s.db.UpdateUserVerifiedState(user.Id, false)
 
 	SetupCacheControl(w, 0)
 	cookie := DeleteCookie()

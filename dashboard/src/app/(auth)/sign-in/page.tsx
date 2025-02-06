@@ -96,16 +96,20 @@ export default function SignIn() {
                 password: password,
               }),
             }).then((res) => {
-              if (!res.ok) {
-                res.text().then((text) => {
-                  toast.error(text);
-                });
-                setLoading(false);
-              } else {
+              if (res.ok) {
+
                 // Clear storage and redirect on successful login
                 localStorage.clear();
                 sessionStorage.clear();
                 router.push('/');
+              }else if (res.status === 403){
+                toast.warning("We sent you an email, please verify your email address")
+                setLoading(false);
+              } else {
+                res.text().then((text) => {
+                    toast.error(text);
+                });
+                setLoading(false);
               }
             });
           }}
