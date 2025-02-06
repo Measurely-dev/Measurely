@@ -455,7 +455,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 						http.Redirect(w, r, GetOrigin()+"/sign-in?error=account already exists", http.StatusFound)
 					} else {
-						log.Println("Error creatiing user: ", err)
+						log.Println("Error creating user: ", err)
 						http.Redirect(w, r, GetOrigin()+"/sign-in?error=internal error", http.StatusFound)
 					}
 					return
@@ -484,6 +484,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if os.Getenv("ENV") != "production" {
+			log.Println(user.Id)
 			provider, err = s.db.CreateProvider(types.UserProvider{
 				UserId:         user.Id,
 				Type:           chosenProvider.Type,
@@ -1541,16 +1542,14 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Name           string     `json:"name"`
-		ProjectId      uuid.UUID  `json:"project_id"`
-		Type           int        `json:"type"`
-		BaseValue      int64      `json:"base_value"`
-		NamePos        string     `json:"name_pos"`
-		NameNeg        string     `json:"name_neg"`
-		ParentMetricId *uuid.UUID `json:"parent_metric_id,omitempty"`
-		FilterCategory string     `json:"filter_category"`
-		Unit           string     `json:"unit"`
-		StripeApiKey   string     `json:"stripeapikey"`
+		Name         string    `json:"name"`
+		ProjectId    uuid.UUID `json:"project_id"`
+		Type         int       `json:"type"`
+		BaseValue    int64     `json:"base_value"`
+		NamePos      string    `json:"name_pos"`
+		NameNeg      string    `json:"name_neg"`
+		Unit         string    `json:"unit"`
+		StripeApiKey string    `json:"stripeapikey"`
 	}
 
 	// Try to unmarshal the request body
@@ -1562,7 +1561,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 	request.Name = strings.TrimSpace(request.Name)
 	request.NamePos = strings.TrimSpace(request.NamePos)
 	request.NameNeg = strings.TrimSpace(request.NameNeg)
-	request.FilterCategory = strings.TrimSpace(strings.ToLower(request.FilterCategory))
 
 	match, reerr := regexp.MatchString(`^[a-zA-Z0-9 _\-/\$%#&\*\(\)!~]+$`, request.Name)
 	if reerr != nil {
@@ -1613,14 +1611,6 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var parentMetricId sql.Null[string]
-	if request.ParentMetricId == nil {
-		parentMetricId.Valid = false
-	} else {
-		parentMetricId.Valid = true
-		parentMetricId.V = request.ParentMetricId.String()
-	}
-
 	var stripeApiKey sql.Null[string]
 	if request.Type == types.STRIPE_METRIC {
 		if request.StripeApiKey != "" {
@@ -1633,15 +1623,13 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 
 	// Create the metric
 	metric, err := s.db.CreateMetric(types.Metric{
-		Name:           request.Name,
-		ProjectId:      request.ProjectId,
-		Type:           request.Type,
-		NamePos:        request.NamePos,
-		NameNeg:        request.NameNeg,
-		ParentMetricId: parentMetricId,
-		FilterCategory: request.FilterCategory,
-		Unit:           request.Unit,
-		StripeApiKey:   stripeApiKey,
+		Name:         request.Name,
+		ProjectId:    request.ProjectId,
+		Type:         request.Type,
+		NamePos:      request.NamePos,
+		NameNeg:      request.NameNeg,
+		Unit:         request.Unit,
+		StripeApiKey: stripeApiKey,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -1890,7 +1878,7 @@ func (s *Service) UpdateMetricUnit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
-
+	log.Println("delete category")
 	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
@@ -1898,9 +1886,9 @@ func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parent_metric_id"`
-		ProjectId      uuid.UUID `json:"project_id"`
-		Category       string    `json:"category"`
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		Category  string    `json:"category"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1923,12 +1911,14 @@ func (s *Service) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.db.DeleteMetricByCategory(request.ParentMetricId, request.ProjectId, request.Category)
+	err = s.db.DeleteCategory(request.MetricId, request.ProjectId, request.Category)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to delete category", http.StatusInternalServerError)
+		log.Println(err, " here")
+		http.Error(w, "Failed to delete filter category", http.StatusInternalServerError)
 		return
 	}
+
+	log.Println("succeeded")
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -1941,10 +1931,10 @@ func (s *Service) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ParentMetricId uuid.UUID `json:"parent_metric_id"`
-		ProjectId      uuid.UUID `json:"project_id"`
-		OldName        string    `json:"old_name"`
-		NewName        string    `json:"new_name"`
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		OldName   string    `json:"old_name"`
+		NewName   string    `json:"new_name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1967,43 +1957,186 @@ func (s *Service) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.db.UpdateCategoryName(request.OldName, request.NewName, request.ParentMetricId, request.ProjectId)
+	err = s.db.UpdateCategoryName(request.MetricId, request.ProjectId, request.OldName, request.NewName)
 	if err != nil {
-		http.Error(w, "Failed to update category", http.StatusInternalServerError)
+		http.Error(w, "Failed to create new filter", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) SearchUsers(w http.ResponseWriter, r *http.Request) {
-	_, ok := r.Context().Value(types.TOKEN).(types.Token)
+func (s *Service) UpdateFilterName(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
 	if !ok {
 		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	search := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("search")))
+	var request struct {
+		ProjectId uuid.UUID `json:"project_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		FilterId  uuid.UUID `json:"filter_id"`
+		Name      string    `json:"name"`
+	}
 
-	users, err := s.db.SearchUsers(search)
-	if err != nil && err != sql.ErrNoRows {
-		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	for i := range users {
-		users[i].Password = ""
-		users[i].StripeCustomerId = ""
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Println("Error fetching project:", err)
+		http.Error(w, "Failed to retrieve project", http.StatusInternalServerError)
+		return
 	}
 
-	body, err := json.Marshal(users)
+	if project.UserRole != types.TEAM_ADMIN && project.UserRole != types.TEAM_OWNER {
+		http.Error(w, "You do not have the necessary role to perform this action.", http.StatusUnauthorized)
+		return
+	}
+
+	err = s.db.UpdateFilterName(request.MetricId, request.ProjectId, request.FilterId, request.Name)
 	if err != nil {
-		http.Error(w, "Internal error, please try again later", http.StatusInternalServerError)
+		http.Error(w, "Failed to create new filter", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Service) CreateFilter(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		Filters   []types.Filter `json:"filters"`
+		MetricId  uuid.UUID      `json:"metric_id"`
+		ProjectId uuid.UUID      `json:"project_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusForbidden)
+		return
+	}
+
+	// Get the metric
+	//
+	metric, err := s.db.GetMetricById(request.MetricId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Metric not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	newFilters := make(map[uuid.UUID]types.Filter)
+	for _, filter := range request.Filters {
+		var exists = false
+		for _, metricFilter := range metric.Filters {
+			if metricFilter.Name == filter.Name && metricFilter.Category == filter.Category {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			filter_id := uuid.New()
+			newFilters[filter_id] = filter
+		} else {
+			http.Error(w, "A metric with the same name and category already exists", http.StatusForbidden)
+			return
+		}
+	}
+
+	log.Println(request.Filters)
+	log.Println(newFilters)
+
+	body, err := json.Marshal(newFilters)
+	if err != nil {
+		http.Error(w, "Internal server error, please try again later", http.StatusInternalServerError)
+		return
+	}
+
+	err = s.db.AddFilters(request.MetricId, request.ProjectId, &body)
+	if err != nil {
+		http.Error(w, "Failed to create new filter", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
+
+}
+
+func (s *Service) DeleteFilter(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(types.TOKEN).(types.Token)
+	if !ok {
+		http.Error(w, "Authentication error: Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	var request struct {
+		FilterId  uuid.UUID `json:"filter_id"`
+		MetricId  uuid.UUID `json:"metric_id"`
+		ProjectId uuid.UUID `json:"project_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the project
+	project, err := s.db.GetProject(request.ProjectId, token.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Project not found", http.StatusNotFound)
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal server error, please try again later", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.UserRole != types.TEAM_OWNER && project.UserRole != types.TEAM_ADMIN {
+		http.Error(w, "You do not have the necessary role to perform this action", http.StatusForbidden)
+		return
+	}
+
+	err = s.db.DeleteFilter(request.MetricId, request.ProjectId, request.FilterId)
+	if err != nil {
+		http.Error(w, "Failed to delete filter", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Service) AddTeamMember(w http.ResponseWriter, r *http.Request) {

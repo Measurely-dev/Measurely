@@ -78,9 +78,7 @@ export default function DashboardMetrics() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className='pointer-events-none'>
-              Dashboard
-            </BreadcrumbLink>
+            <BreadcrumbLink className='pointer-events-none'>Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -147,7 +145,7 @@ function FiltersComponent(props: {
 }) {
   return (
     <Select value={props.filter} onValueChange={props.setFilter}>
-      <SelectTrigger className='h-full min-h-11 w-[220px] min-w-[220px] max-md:w-full'>
+      <SelectTrigger className='w-[220px] min-w-[220px] min-h-11 h-full max-md:w-full'>
         <SelectValue placeholder='Select filter' />
       </SelectTrigger>
       <SelectContent>

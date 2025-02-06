@@ -10,7 +10,7 @@ import {
   Tag,
   Trash2,
 } from 'lucide-react';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import {
   Dialog,
   DialogClose,
@@ -41,6 +41,7 @@ import {
   AccordionContent,
   AccordionItem,
 } from '@/components/ui/accordion';
+import { parseFilterList } from '@/utils';
 
 // Main dialog component for managing metric filters
 export default function FilterManagerDialog(props: {
@@ -62,7 +63,7 @@ export default function FilterManagerDialog(props: {
   );
   const [creationInputValue, setCreationInputValue] = useState<string>('');
   const [badgeDialogOpen, setBadgeDialogOpen] = useState<boolean>(false);
-  const [filterToEdit, setFilterToEdit] = useState<Metric | undefined>();
+  const [filterToEditId, setFilterToEditId] = useState<string | undefined>();
   const [filterInputValue, setFilterInputValue] = useState<string>('');
   const confirm = useConfirm();
   const [tags, setTags] = useState<any[]>([]);
@@ -101,11 +102,15 @@ export default function FilterManagerDialog(props: {
   };
 
   // Initialize badge edit dialog
-  const handleBadgeEdit = (filter: Metric) => {
-    setFilterToEdit(filter);
-    setFilterInputValue(filter.name);
+  const handleBadgeEdit = (filter_name: string, filter_id: string) => {
+    setFilterToEditId(filter_id);
+    setFilterInputValue(filter_name);
     setBadgeDialogOpen(true);
   };
+
+  const parsedFilters = useMemo(() => {
+    return parseFilterList(props.metric.filters);
+  }, [props.metric]);
 
   // Handle creation of new filters/categories
   const handleCreation = async () => {
@@ -122,68 +127,47 @@ export default function FilterManagerDialog(props: {
     }
 
     // Create new tags/filters via API
-    const tagCreationPromises = filterTags.map(
-      async (tag): Promise<Metric | undefined> => {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/metric`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: tag.text.toLowerCase(),
-              type: props.metric.type,
-              name_pos: '',
-              name_neg: '',
-              base_value: 0,
-              project_id: props.metric.project_id,
-              parent_metric_id: props.metric.id,
-              filter_category: category.toLowerCase(),
-            }),
-          },
-        );
-
-        if (response.ok) {
-          const data = response.json();
-          return data;
-        }
-
-        const error = await response.text();
-        toast.error(error);
-        return undefined;
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/filter`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({
+        filters: filterTags.map((tag) => {
+          return {
+            name: tag.text,
+            category: category.toLowerCase(),
+          };
+        }),
+        project_id: props.metric.project_id,
+        metric_id: props.metric.id,
+      }),
+    });
 
-    // Update UI with new filters
-    const results = await Promise.all(tagCreationPromises);
-    const filters = props.metric.filters ?? {};
-
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
-      if (result) {
-        if (filters[result.filter_category] === undefined) {
-          filters[result.filter_category] = [];
-        }
-        filters[result.filter_category].push(result);
-      }
+    if (response.ok) {
+      const data = await response.json();
+      setProjects(
+        projects.map((proj) =>
+          proj.id === props.metric.project_id
+            ? Object.assign({}, proj, {
+                metrics: proj.metrics?.map((m) =>
+                  m.id === props.metric.id
+                    ? Object.assign({}, m, {
+                        filters: { ...m.filters, ...data },
+                      })
+                    : m,
+                ),
+              })
+            : proj,
+        ),
+      );
+      setActiveAccordion(category);
+    } else {
+      const error = await response.text();
+      toast.error(error);
     }
 
-    setProjects(
-      projects.map((proj) =>
-        proj.id === props.metric.project_id
-          ? Object.assign({}, proj, {
-              metrics: proj.metrics?.map((m) =>
-                m.id === props.metric.id
-                  ? Object.assign({}, m, { filters: filters })
-                  : m,
-              ),
-            })
-          : proj,
-      ),
-    );
-    setActiveAccordion(category);
     handleCloseCreationDialog();
   };
 
@@ -212,9 +196,9 @@ export default function FilterManagerDialog(props: {
       },
     });
 
-    if (isConfirmed && filterToEdit) {
+    if (isConfirmed && filterToEditId) {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/metric`,
+        `${process.env.NEXT_PUBLIC_API_URL}/filter`,
         {
           method: 'DELETE',
           headers: {
@@ -222,32 +206,37 @@ export default function FilterManagerDialog(props: {
           },
           credentials: 'include',
           body: JSON.stringify({
-            metric_id: filterToEdit.id,
+            filter_id: filterToEditId,
+            metric_id: props.metric.id,
             project_id: props.metric.project_id,
           }),
         },
       );
 
       if (response.ok) {
-        const filters = props.metric.filters;
-        const newFilters = filters[filterToEdit.filter_category].filter(
-          (m) => m.id !== filterToEdit.id,
+        const filters = Object.fromEntries(
+          Object.entries(props.metric.filters).filter(
+            ([id, _]) => id !== filterToEditId,
+          ),
         );
-        filters[filterToEdit.filter_category] = newFilters;
 
         setProjects(
           projects.map((proj) =>
-            proj.id === props.metric.id
+            proj.id === props.metric.project_id
               ? Object.assign({}, proj, {
                   metrics: proj.metrics?.map((m) =>
                     m.id === props.metric.id
-                      ? Object.assign({}, m, { filters: newFilters })
+                      ? Object.assign({}, m, {
+                          filters: filters,
+                        })
                       : m,
                   ),
                 })
               : proj,
           ),
         );
+
+        setFilterToEditId(undefined);
       } else {
         toast.error('Failed to delete filter.');
       }
@@ -291,28 +280,35 @@ export default function FilterManagerDialog(props: {
           },
           body: JSON.stringify({
             project_id: props.metric.project_id,
-            parent_metric_id: props.metric.id,
-            category: category,
+            metric_id: props.metric.id,
+            category: category.toLowerCase(),
           }),
         },
       );
 
       if (response.ok) {
-        const filters = props.metric.filters;
-        delete filters[category];
+        const filters = Object.fromEntries(
+          Object.entries(props.metric.filters).filter(
+            ([_, item]) => item.category !== category.toLowerCase(),
+          ),
+        );
         setProjects(
           projects.map((proj) =>
             proj.id === props.metric.project_id
               ? Object.assign({}, proj, {
                   metrics: proj.metrics?.map((m) =>
                     m.id === props.metric.id
-                      ? Object.assign({}, m, { filters: filters })
+                      ? Object.assign({}, m, {
+                          filters: filters,
+                        })
                       : m,
                   ),
                 })
               : proj,
           ),
         );
+
+        setFilterToEditId(undefined);
       } else {
         const errorText = await response.text();
         toast.error(errorText);
@@ -323,9 +319,9 @@ export default function FilterManagerDialog(props: {
 
   // Handle filter renaming
   const handleFilterRename = () => {
-    if (!filterToEdit) return;
+    if (!filterToEditId) return;
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/metric`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/filter`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -333,19 +329,14 @@ export default function FilterManagerDialog(props: {
       },
       body: JSON.stringify({
         project_id: props.metric.project_id,
-        metric_id: filterToEdit.id,
-        name: filterInputValue,
-        name_pos: filterToEdit.name_pos,
-        name_neg: filterToEdit.name_neg,
+        metric_id: props.metric.id,
+        filter_id: filterToEditId,
+        name: filterInputValue.toLowerCase(),
       }),
-    }).then((resp) => {
+    }).then(async (resp) => {
       if (resp.ok) {
         const filters = props.metric.filters;
-        const index = filters[filterToEdit.filter_category].findIndex(
-          (m) => m.id === filterToEdit.id,
-        );
-        if (index !== -1) return;
-        filters[filterToEdit.filter_category][index].name = filterInputValue;
+        filters[filterToEditId].name = filterInputValue.toLowerCase();
 
         setProjects(
           projects.map((proj) =>
@@ -381,16 +372,19 @@ export default function FilterManagerDialog(props: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        parent_metric_id: props.metric.id,
+        metric_id: props.metric.id,
         project_id: props.metric.project_id,
-        new_name: renameInputValue,
-        old_name: categoryToRename,
+        new_name: renameInputValue.toLowerCase(),
+        old_name: categoryToRename.toLowerCase(),
       }),
     }).then((resp) => {
       if (resp.ok) {
         const filters = props.metric.filters;
-        filters[renameInputValue] = props.metric.filters[categoryToRename];
-        delete filters[categoryToRename];
+        Object.entries(filters).map(([_, item]) => {
+          if (item.category == categoryToRename.toLowerCase()) {
+            item.category = renameInputValue.toLowerCase();
+          }
+        });
         setProjects(
           projects.map((proj) =>
             proj.id === props.metric.project_id
@@ -437,7 +431,7 @@ export default function FilterManagerDialog(props: {
             <Tag className='size-4' />
             Create category
           </Button>
-          {Object.keys(props.metric.filters ?? {}).length === 0 ? (
+          {Object.keys(parsedFilters).length === 0 ? (
             <EmptyState
               title='Create new filter category'
               description='Create a new category to organize your filters.'
@@ -464,7 +458,7 @@ export default function FilterManagerDialog(props: {
                 value={activeAccordion}
                 onValueChange={setActiveAccordion}
               >
-                {Object.keys(props.metric.filters ?? {}).map((category) => (
+                {Object.keys(parsedFilters).map((category) => (
                   <>
                     <AccordionItem
                       key={category}
@@ -528,12 +522,12 @@ export default function FilterManagerDialog(props: {
                           Add filter
                         </Button>
                         <div className='grid grid-cols-3 gap-2'>
-                          {props.metric.filters?.[category].map((filter) => (
+                          {parsedFilters[category].map((filter) => (
                             <Badge
                               key={filter.id}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleBadgeEdit(filter);
+                                handleBadgeEdit(filter.name, filter.id);
                               }}
                               className='group relative col-span-1 w-fit cursor-pointer select-none overflow-hidden rounded-full border border-input bg-accent/80 text-sm font-medium text-muted-foreground shadow-none transition-all duration-200 hover:bg-accent hover:pl-7 hover:text-blue-500'
                             >
@@ -550,7 +544,7 @@ export default function FilterManagerDialog(props: {
               <div className='flex h-[60px] items-center justify-between rounded-b-[12px] bg-accent px-5'>
                 <div className='text-sm font-medium text-primary'>Total</div>
                 <div className='flex size-9 items-center justify-center rounded-[12px] bg-input/60 text-sm font-medium text-primary'>
-                  {Object.keys(props.metric.filters ?? {}).length}
+                  {Object.keys(parsedFilters).length}
                 </div>
               </div>
             </>
@@ -713,7 +707,10 @@ export default function FilterManagerDialog(props: {
                 handleFilterRename();
               }}
               disabled={
-                filterInputValue === filterToEdit?.name ||
+                (filterToEditId
+                  ? filterInputValue ===
+                    props.metric.filters[filterToEditId ?? ''].name
+                  : true) ||
                 filterInputValue.length < 2 ||
                 filterInputValue.trim() === ''
               }

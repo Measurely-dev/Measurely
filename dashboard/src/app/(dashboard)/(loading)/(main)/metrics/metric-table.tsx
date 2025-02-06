@@ -8,7 +8,13 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import MetricDropdown from '@/components/metric-dropdown';
-import { fetchEventVariation, getUnit, INTERVAL } from '@/utils';
+import {
+  calculateAverageUpdate,
+  calculateEventUpdate,
+  fetchMetricEvents,
+  getUnit,
+  INTERVAL,
+} from '@/utils';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -106,7 +112,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
           <>
             <Table className='overflow-hidden'>
               <TableHeader>
-                <TableRow className='bg-accent dark:bg-card'>
+                <TableRow className='bg-accent/60'>
                   <TableHead colSpan={2}>Metric</TableHead>
                   <TableHead colSpan={1.5} className='text-nowrap'>
                     Value
@@ -150,16 +156,14 @@ const Item = (props: { metric: Metric; index: number }) => {
   const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { projects, setProjects, activeProject } = useContext(ProjectsContext);
+  const { projects, activeProject } = useContext(ProjectsContext);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [average, setAverage] = useState<number>(0);
+  const [value, setValue] = useState<number>(0);
 
   // Determines badge color based on value
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) return '';
-    return v > 0
-      ? 'bg-green-100 dark:bg-green-300 dark:text-green-800 text-green-600'
-      : 'bg-red-100 dark:bg-red-400 dark:text-red-800 text-red-600';
+    return v > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
   };
 
   // Determines if a plus sign should be shown before positive values
@@ -175,62 +179,26 @@ const Item = (props: { metric: Metric; index: number }) => {
 
   // Fetches and updates metric data
   const load = async () => {
-    const variation = await fetchEventVariation(
+    const start = new Date();
+    const end = new Date();
+
+    const data = await fetchMetricEvents(
+      start,
+      end,
+      props.metric,
       props.metric.project_id,
-      props.metric.id,
     );
-
-    if (variation.results === 0) {
-      variation.relative_event_count = props.metric.event_count;
-      variation.relative_total_pos = props.metric.total_pos;
-      variation.relative_total_neg = props.metric.total_neg;
-    }
-
     if (props.metric.type === MetricType.Average) {
-      setDailyUpdate(variation.averagepercentdiff);
-      setAverage(
-        variation.relative_event_count === 0
+      setDailyUpdate(calculateAverageUpdate(data, props.metric));
+      setValue(
+        props.metric.event_count === 0
           ? 0
-          : (variation.relative_total_pos - variation.relative_total_neg) /
-              variation.relative_event_count,
+          : (props.metric.total_pos - props.metric.total_neg) /
+              props.metric.event_count,
       );
     } else {
-      let dailyValue;
-      const previousTotal =
-        variation.relative_total_pos -
-        variation.relative_total_neg -
-        (variation.pos - variation.neg);
-      const variationValue = variation.pos - variation.neg;
-      if (variationValue === 0) dailyValue = 0;
-      else if (previousTotal === 0)
-        dailyValue = variationValue < 0 ? -100 : 100;
-      else dailyValue = (variationValue / previousTotal) * 100;
-      setDailyUpdate(dailyValue);
-    }
-
-    if (
-      (props.metric.total_pos !== variation.relative_total_pos ||
-        props.metric.total_neg !== variation.relative_total_neg ||
-        props.metric.event_count !== variation.relative_event_count) &&
-      variation.results !== 0
-    ) {
-      setProjects(
-        projects.map((v) =>
-          v.id === props.metric?.project_id
-            ? Object.assign({}, v, {
-                metrics: v.metrics?.map((m) =>
-                  m.id === props.metric?.id
-                    ? Object.assign({}, m, {
-                        total_pos: variation.relative_total_pos,
-                        total_neg: variation.relative_total_neg,
-                        event_count: variation.relative_event_count,
-                      })
-                    : m,
-                ),
-              })
-            : v,
-        ),
-      );
+      setDailyUpdate(calculateEventUpdate(data, props.metric));
+      setValue(props.metric.total_pos - props.metric.total_neg);
     }
   };
 
@@ -246,7 +214,9 @@ const Item = (props: { metric: Metric; index: number }) => {
       <TableRow
         onClick={() => {
           setIsLoading(true);
-          router.push(`/metrics/${encodeURIComponent(props.metric.name)}`);
+          router.push(
+            `/metrics/${encodeURIComponent(props.metric.name)}`,
+          );
         }}
         className={`select-none`}
       >
@@ -254,11 +224,11 @@ const Item = (props: { metric: Metric; index: number }) => {
           <div className='flex flex-row items-center gap-[10px] truncate text-[15px]'>
             <div className='rounded-full bg-accent p-2'>
               {isLoading ? (
-                <Loader className='size-4 animate-spin text-primary' />
+                <Loader className='size-4 animate-spin text-black' />
               ) : props.metric.type === 0 ? (
-                <ArrowUpFromDot className='size-4 text-primary' />
+                <ArrowUpFromDot className='size-4 text-black' />
               ) : (
-                <ArrowUpDown className='size-4 text-primary' />
+                <ArrowUpDown className='size-4 text-black' />
               )}
             </div>
             <div className='w-full truncate'>{props.metric.name}</div>
@@ -266,20 +236,8 @@ const Item = (props: { metric: Metric; index: number }) => {
         </TableCell>
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
-            {props.metric.type === MetricType.Average ? (
-              <>
-                {valueFormatter(average)} {getUnit(props.metric.unit)}
-              </>
-            ) : (
-              <>
-                {valueFormatter(
-                  props.metric.total_pos - props.metric.total_neg,
-                )}
-                <span className='ml-1 text-sm'>
-                  {getUnit(props.metric.unit)}
-                </span>
-              </>
-            )}
+            {valueFormatter(value)}
+            <span className='ml-1 text-sm'>{getUnit(props.metric.unit)}</span>
           </div>
         </TableCell>
         <TableCell>
@@ -290,15 +248,12 @@ const Item = (props: { metric: Metric; index: number }) => {
               )}}`}
             >
               {todayBadgeSign(dailyUpdate)}
-
               {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate) + ' %'}
             </Badge>
           </div>
         </TableCell>
         <TableCell className='text-nowrap text-muted-foreground'>
-          {formattedDate(
-            props.metric.last_event_timestamp?.V ?? props.metric.created,
-          )}
+          {formattedDate(props.metric.last_event_timestamp)}
         </TableCell>
         <TableCell>
           <div className='flex w-full justify-end'>

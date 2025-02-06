@@ -3,20 +3,20 @@
  * Contains core project information, user roles, metrics, and subscription details.
  */
 export interface Project {
-  id: string;                       // Unique project identifier
-  api_key: string;                  // API key for project access
-  name: string;                     // Project name
-  image: string;                    // Project image/logo
-  units: Unit[];                    // Measurement units used in project
-  user_role: UserRole;             // User's role in this project
-  metrics: null | Metric[];         // Project metrics
-  members: null | User[];          // Project team members
-  blocks: null | Blocks;           // Block configurations for project
-  current_plan: string;            // Current subscription plan name
-  subscription_type: SubscriptionType;  // Monthly/yearly subscription
-  max_event_per_month: number;     // Maximum events allowed per month
-  monthly_event_count: number;     // Current month's event count
-  plan: Plan;                      // Detailed plan information
+  id: string; // Unique project identifier
+  api_key: string; // API key for project access
+  name: string; // Project name
+  image: string; // Project image/logo
+  units: Unit[]; // Measurement units used in project
+  user_role: UserRole; // User's role in this project
+  metrics: null | Metric[]; // Project metrics
+  members: null | User[]; // Project team members
+  blocks: null | Blocks; // Block configurations for project
+  current_plan: string; // Current subscription plan name
+  subscription_type: SubscriptionType; // Monthly/yearly subscription
+  max_event_per_month: number; // Maximum events allowed per month
+  monthly_event_count: number; // Current month's event count
+  plan: Plan; // Detailed plan information
 }
 
 /**
@@ -24,102 +24,101 @@ export interface Project {
  * Tracks various metric measurements and filtering options.
  */
 export interface Metric {
-  id: string;                      // Unique metric identifier
-  project_id: string;              // Associated project ID
-  unit: string;                    // Measurement unit
-  name: string;                    // Metric name
-  type: MetricType;                // Type of metric
-  event_count: number;             // Total number of events
-  total_pos: number;               // Total positive value
-  total_neg: number;               // Total negative value
-  name_pos: string;                // Label for positive values
-  name_neg: string;                // Label for negative values
-  filters: {                       // Metric filtering options
-    [category: string]: Metric[];
-  };
-  filter_category: string;         // Category for filtering
-  created: Date;                   // Creation timestamp
-  last_event_timestamp: { Valid: boolean; V: Date }; // Last event time
+  id: string; // Unique metric identifier
+  project_id: string; // Associated project ID
+  unit: string; // Measurement unit
+  name: string; // Metric name
+  type: MetricType; // Type of metric
+  event_count: number; // Total number of events
+  total_pos: number; // Total positive value
+  total_neg: number; // Total negative value
+  name_pos: string; // Label for positive values
+  name_neg: string; // Label for negative values
+  filters: Record<string, Filter>;
+  created: Date; // Creation timestamp
+  last_event_timestamp: Date; // Last event time
+}
+
+export interface Filter {
+  name: string;
+  category: string;
 }
 
 /**
  * Interface for individual metric events tracking both absolute and relative values
  */
 export interface MetricEvent {
-  id: string;                      // Event identifier
-  date: Date;                      // Event timestamp
-  value_pos: number;               // Positive value
-  value_neg: number;               // Negative value
-  event_count: number;             // Number of events
-  relative_total_pos: number;      // Relative positive total
-  relative_total_neg: number;      // Relative negative total
-  relative_event_count: number;    // Relative event count
+  id: string; // Event identifier
+  date: Date; // Event timestamp
+  value_pos: number; // Positive value
+  value_neg: number; // Negative value
+  filters: string[];
 }
 
 /**
  * User interface containing basic user information and authentication details
  */
 export interface User {
-  id: string;                      // User identifier
-  first_name: string;              // First name
-  last_name: string;               // Last name
-  image: string;                   // Profile image URL
-  email: string;                   // Email address
-  user_role: UserRole;             // User permission level
-  invoice_status: InvoiceStatus;   // Payment status
-  providers: UserProvider[];       // Authentication providers
+  id: string; // User identifier
+  first_name: string; // First name
+  last_name: string; // Last name
+  image: string; // Profile image URL
+  email: string; // Email address
+  user_role: UserRole; // User permission level
+  invoice_status: InvoiceStatus; // Payment status
+  providers: UserProvider[]; // Authentication providers
 }
 
 /**
  * Interface for user authentication providers
  */
 export interface UserProvider {
-  id: string;                      // Provider identifier
-  type: Provider;                  // Provider type (GitHub/Google)
+  id: string; // Provider identifier
+  type: Provider; // Provider type (GitHub/Google)
 }
 
 /**
  * Subscription plan interface with usage limits
  */
 export interface Plan {
-  name: string;                    // Plan name
-  metric_limit: number;            // Maximum metrics allowed
-  team_member_limit: number;       // Maximum team members
-  range: number;                   // Data retention range
+  name: string; // Plan name
+  metric_limit: number; // Maximum metrics allowed
+  team_member_limit: number; // Maximum team members
+  range: number; // Data retention range
 }
 
 /**
  * Interface for organizing blocks of content/charts
  */
 export interface Blocks {
-  user_id: string;                 // Owner user ID
-  project_id: string;              // Associated project ID
-  layout: Block[];                 // Block layout configuration
-  labels: LabelType[];             // Label definitions
+  user_id: string; // Owner user ID
+  project_id: string; // Associated project ID
+  layout: Block[]; // Block layout configuration
+  labels: LabelType[]; // Label definitions
 }
 
 /**
  * Individual block interface for chart/content elements
  */
 export interface Block {
-  unique_key: string;              // Unique block identifier
-  id: number;                      // Block ID
-  name: string;                    // Block name
-  nested?: Block[];                // Nested block elements
-  metric_ids: string[];            // Associated metric IDs
-  filter_categories: string[];     // Filter categories
-  chart_type?: ChartType;         // Type of chart
-  type: BlockType;                 // Block type
-  label: string;                   // Block label
-  color: string;                   // Block color
+  unique_key: string; // Unique block identifier
+  id: number; // Block ID
+  name: string; // Block name
+  nested?: Block[]; // Nested block elements
+  metric_ids: string[]; // Associated metric IDs
+  filter_categories: string[]; // Filter categories
+  chart_type?: ChartType; // Type of chart
+  type: BlockType; // Block type
+  label: string; // Block label
+  color: string; // Block color
 }
 
 /**
  * Interface for block label styling
  */
 export interface LabelType {
-  name: string;                    // Label name
-  default_color: string;           // Default label color
+  name: string; // Label name
+  default_color: string; // Default label color
 }
 
 /**
@@ -184,8 +183,8 @@ export enum InvoiceStatus {
  * Unit definition interface
  */
 export interface Unit {
-  name: string;                    // Unit name
-  symbol: string;                  // Unit symbol
+  name: string; // Unit name
+  symbol: string; // Unit symbol
 }
 
 /**
@@ -202,6 +201,12 @@ export const chartTypeMetricLimits: Record<
   [ChartType.Radar]: { min: 1, max: 1 },
   [ChartType.BarList]: { min: 1, max: 1 },
 };
+
+export interface ChartPoint {
+  [key: string]: any;
+  date: string | Date;
+  metadata: { tooltipdate: string; [key: string]: any };
+}
 
 /**
  * Block layout types

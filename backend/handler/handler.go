@@ -97,7 +97,6 @@ func (h *Handler) setup_api() {
 	authRouter.Patch("/role", h.service.UpdateMemberRole)
 	authRouter.Delete("/member", h.service.RemoveTeamMember)
 	authRouter.Post("/member", h.service.AddTeamMember)
-	authRouter.Get("/members", h.service.SearchUsers)
 
 	authRouter.Get("/metrics", h.service.GetMetrics)
 	authRouter.Get("/events", h.service.GetMetricEvents)
@@ -107,6 +106,9 @@ func (h *Handler) setup_api() {
 	authRouter.Delete("/metric", h.service.DeleteMetric)
 	authRouter.Delete("/category", h.service.DeleteCategory)
 	authRouter.Patch("/category", h.service.UpdateCategory)
+	authRouter.Delete("/filter", h.service.DeleteFilter)
+	authRouter.Patch("/filter", h.service.UpdateFilterName)
+	authRouter.Post("/filter", h.service.CreateFilter)
 	authRouter.Patch("/metric-unit", h.service.UpdateMetricUnit)
 
 	authRouter.Get("/billing", h.service.ManageBilling)
