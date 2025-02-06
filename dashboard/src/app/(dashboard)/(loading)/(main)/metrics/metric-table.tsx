@@ -52,9 +52,9 @@ const formattedDate = (date: Date) => {
 
 // Sorts metrics by creation date
 function sortbyDate(a: Metric, b: Metric, order: string): number {
-  if (a.created < b.created) {
+  if (a.last_event_timestamp < b.last_event_timestamp) {
     return order === 'new' ? 1 : -1;
-  } else if (a.created > b.created) {
+  } else if (a.last_event_timestamp > b.last_event_timestamp) {
     return order === 'new' ? -1 : 1;
   }
   return 0;

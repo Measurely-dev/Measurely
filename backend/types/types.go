@@ -92,7 +92,7 @@ type Metric struct {
 	NameNeg            string               `db:"name_neg" json:"name_neg"`
 	Filters            map[uuid.UUID]Filter `db:"filters" json:"filters"`
 	Created            time.Time            `db:"created" json:"created"`
-	LastEventTimestamp time.Time            `db:"last_event_timestamp"`
+	LastEventTimestamp time.Time            `db:"last_event_timestamp" json:"last_event_timestamp"`
 	StripeApiKey       sql.Null[string]     `db:"stripe_api_key" json:"-"`
 }
 
