@@ -43,7 +43,7 @@ import { FloatingPanelRoot } from '@/components/ui/floating-panel';
 // Formats a date to relative time (e.g. "2 hours ago")
 const formattedDate = (date: Date) => {
   try {
-    return formatDistanceToNow(date, { addSuffix: true });
+    return formatDistanceToNow(date, { addSuffix: true, includeSeconds : true });
   } catch (error) {
     console.error('Date formatting error:', error);
     return 'Invalid Date';

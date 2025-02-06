@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProjectsContext } from '@/dash-context';
-import { Metric, MetricType, Project } from '@/types';
+import { Metric, MetricType } from '@/types';
 import { Dispatch, SetStateAction, useContext, useState, useId } from 'react';
 import { toast } from 'sonner';
 import { useCharacterLimit } from '@/lib/character-limit';
@@ -24,10 +24,10 @@ import { useCharacterLimit } from '@/lib/character-limit';
 export default function EditMetricDialogContent(props: {
   metric: Metric | null | undefined;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  onUpdate?: (new_name: string) => void;
+  onUpdate?: (update: {name : string, name_pos : string, name_neg : string}) => void;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
-  const { projects, setProjects } = useContext(ProjectsContext);
+  const { projects} = useContext(ProjectsContext);
 
   // Generate unique IDs for form fields
   const maxLength = 30;
@@ -71,8 +71,8 @@ export default function EditMetricDialogContent(props: {
       <form
         onSubmit={async (e) => {
           e.preventDefault();
+          if (!props.metric) return
           setLoading(true);
-          let metric = props.metric;
 
           // Validate metric name
           if (name === '') {
@@ -82,7 +82,7 @@ export default function EditMetricDialogContent(props: {
           }
 
           // Additional validation for dual metrics
-          if (props.metric?.type === MetricType.Dual) {
+          if (props.metric.type === MetricType.Dual) {
             if (posName === '' || negName === '') {
               toast.error('A dual metric must have variable names');
               setLoading(false);
@@ -97,9 +97,15 @@ export default function EditMetricDialogContent(props: {
             }
           }
 
+          let update = {
+            name :props.metric.name,
+            name_pos : props.metric.name_pos ?? '',
+            name_neg : props.metric.name_neg ?? ''
+          }
+
           // Only update if values have changed
           if (
-            name !== props.metric?.name ||
+            name !== props.metric.name ||
             posName !== props.metric.name_pos ||
             negName !== props.metric.name_neg
           ) {
@@ -109,8 +115,8 @@ export default function EditMetricDialogContent(props: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                project_id: props.metric?.project_id,
-                metric_id: props.metric?.id,
+                project_id: props.metric.project_id,
+                metric_id: props.metric.id,
                 name: name,
                 name_pos: posName,
                 name_neg: negName,
@@ -118,38 +124,20 @@ export default function EditMetricDialogContent(props: {
               credentials: 'include',
             });
 
-            if (res.ok && projects !== null) {
-              metric = Object.assign({}, metric, {
-                name: name,
-                name_pos: posName,
-                name_neg: negName,
-              });
-            }
-          }
+            if (res.ok && projects !== null && props.onUpdate) {
+              update = {
+                name : name,
+                name_pos : posName,
+                name_neg : negName
+              }
 
-          // Update local project state
-          if (projects !== null) {
-            setProjects(
-              projects.map((v: Project) =>
-                v.id === props.metric?.project_id
-                  ? Object.assign({}, v, {
-                      metrics: v.metrics?.map((m) =>
-                        m.id === props.metric?.id
-                          ? Object.assign({}, m, metric)
-                          : m,
-                      ),
-                    })
-                  : v,
-              ),
-            );
+              props.onUpdate(update)
+            }
           }
 
           setLoading(false);
           props.setOpen(false);
           toast.success('Metric successfully edited');
-          if (props.onUpdate) {
-            props.onUpdate(name);
-          }
         }}
         className='flex flex-col gap-4'
       >

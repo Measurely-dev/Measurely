@@ -143,7 +143,7 @@ export default function DashboardMetricPage() {
   const router = useRouter();
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
   const { user } = useContext(UserContext);
-  const metricName = decodeURIComponent(useParams().metric as string);
+  const [metricName, setMetricName] = useState(decodeURIComponent(useParams().metric as string))
   const [open, setOpen] = useState(false);
   const [filterManagerOpen, setFilterManagerOpen] = useState(false);
   const [pushValueOpen, setPushValueOpen] = useState(false);
@@ -250,22 +250,15 @@ export default function DashboardMetricPage() {
         <EditMetricDialogContent
           metric={metric}
           setOpen={setOpen}
-          onUpdate={(new_name: string) => {
-            setProjects(
-              projects.map((proj) =>
-                proj.id === metric?.id
-                  ? Object.assign({}, proj, {
-                      metrics: proj.metrics?.map((m) =>
-                        m.id === metric.id
-                          ? Object.assign({}, m, {
-                              name: new_name,
-                            })
-                          : m,
-                      ),
-                    })
-                  : proj,
-              ),
-            );
+          onUpdate={(update) => {
+            if (update.name !== metric?.name){
+              router.push(`/metrics/${update.name}`)
+              setMetricName(update.name)
+            }
+            setProjects(projects.map((proj, i) =>i === activeProject ? Object.assign({}, proj, {
+              metrics : proj.metrics?.map(m => m.id === metric?.id ? Object.assign({}, m, update) : m)
+            })  : proj))
+
           }}
         />
       </Dialog>
