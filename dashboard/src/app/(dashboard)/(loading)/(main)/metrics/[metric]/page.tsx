@@ -132,10 +132,10 @@ const todayBadgeSign = (v: number | null) => {
 
 const todayBadgeColor = (v: number | null) => {
   if (v === null || v === 0)
-    return 'border-zinc-200 bg-zinc-500/10 text-zinc-500';
+    return 'border-input bg-zinc-500/10 text-zinc-500';
   return v > 0
-    ? 'bg-green-100 border-green-200 text-green-600'
-    : 'bg-red-100 border-red-200 text-red-600';
+  ? 'bg-green-100 border-green-500 dark:bg-green-500/30 dark:text-green-500 text-green-600'
+  : 'bg-red-100 border-red-500 dark:bg-red-500/30 dark:text-red-500 text-red-600';
 };
 
 // Main component for the dashboard metric page
@@ -748,7 +748,7 @@ function Chart(props: {
         {metricEvents === null ? (
           <Skeleton className='mt-2 h-[calc(40vh+125px)] w-full min-w-[600px] rounded-lg bg-accent' />
         ) : (
-          <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent p-5 shadow-sm shadow-black/5'>
+          <div className='mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent dark:bg-card p-5 shadow-sm shadow-black/5'>
             <div className='flex w-full items-center justify-between gap-5'>
               <div className='flex flex-col'>
                 <div className='text-md text-muted-foreground'>

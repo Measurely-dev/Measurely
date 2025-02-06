@@ -443,7 +443,7 @@ export default function FilterManagerDialog(props: {
             />
           ) : (
             <>
-              <div className='flex h-[60px] items-center justify-between rounded-t-[12px] border-b bg-accent px-5'>
+              <div className='flex h-[60px] items-center justify-between rounded-t-[12px] border bg-accent dark:bg-card px-5'>
                 <div className='text-sm font-medium text-muted-foreground'>
                   Category
                 </div>
@@ -541,7 +541,7 @@ export default function FilterManagerDialog(props: {
                   </>
                 ))}
               </Accordion>
-              <div className='flex h-[60px] items-center justify-between rounded-b-[12px] bg-accent px-5'>
+              <div className='flex h-[60px] items-center justify-between rounded-b-[12px] border bg-accent dark:bg-card border-t-0 px-5'>
                 <div className='text-sm font-medium text-primary'>Total</div>
                 <div className='flex size-9 items-center justify-center rounded-[12px] bg-input/60 text-sm font-medium text-primary'>
                   {Object.keys(parsedFilters).length}

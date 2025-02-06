@@ -112,7 +112,7 @@ export default function MetricTable(props: { search: string; filter: string }) {
           <>
             <Table className='overflow-hidden'>
               <TableHeader>
-                <TableRow className='bg-accent/60'>
+                <TableRow className='bg-accent dark:bg-card dark:hover:bg-card'>
                   <TableHead colSpan={2}>Metric</TableHead>
                   <TableHead colSpan={1.5} className='text-nowrap'>
                     Value
@@ -163,7 +163,9 @@ const Item = (props: { metric: Metric; index: number }) => {
   // Determines badge color based on value
   const todayBadgeColor = (v: number | null) => {
     if (v === null || v === 0) return '';
-    return v > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
+    return v > 0
+    ? 'bg-green-100 border-green-500 dark:bg-green-500/30 dark:text-green-500 text-green-600'
+    : 'bg-red-100 border-red-500 dark:bg-red-500/30 dark:text-red-500 text-red-600';
   };
 
   // Determines if a plus sign should be shown before positive values
@@ -224,11 +226,11 @@ const Item = (props: { metric: Metric; index: number }) => {
           <div className='flex flex-row items-center gap-[10px] truncate text-[15px]'>
             <div className='rounded-full bg-accent p-2'>
               {isLoading ? (
-                <Loader className='size-4 animate-spin text-black' />
+                <Loader className='size-4 animate-spin text-primary' />
               ) : props.metric.type === 0 ? (
-                <ArrowUpFromDot className='size-4 text-black' />
+                <ArrowUpFromDot className='size-4 text-primary' />
               ) : (
-                <ArrowUpDown className='size-4 text-black' />
+                <ArrowUpDown className='size-4 text-primary' />
               )}
             </div>
             <div className='w-full truncate'>{props.metric.name}</div>
