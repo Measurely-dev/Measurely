@@ -27,7 +27,7 @@ export function EmptyState({
       className={cn(
         'border-border bg-background text-center hover:border-border/80',
         'w-full rounded-xl border-2 border-dashed p-14 py-32',
-        'group transition duration-500 hover:bg-muted/50 hover:duration-200',
+        'group transition duration-500 hover:bg-muted/50 dark:hover:bg-card hover:duration-200',
         className,
       )}
     >

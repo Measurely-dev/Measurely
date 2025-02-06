@@ -94,6 +94,7 @@ import {
 import Filters from './filter-selector';
 import AdvancedOptions from './advanced-options';
 import { Separator } from '@/components/ui/separator';
+import { RangeSelector } from './range-selector';
 
 // Define color configurations for dual metric charts
 const dualMetricChartColors: DualMetricChartColors = {
@@ -590,8 +591,8 @@ function Chart(props: {
       <div className='mb-5 overflow-x-auto'>
         <div className='mt-5 flex w-fit flex-row items-center gap-2'>
           <div className='flex gap-2'>
-            <RangeSelector range={range} setRange={setRange} />
-            <DateRangePicker
+            <RangeSelector />
+            {/* <DateRangePicker
               className='h-[34px] w-fit space-y-2'
               value={toRangeValue(date)}
               onChange={(rangeValue) => {
@@ -634,7 +635,7 @@ function Chart(props: {
                   />
                 </AriaDialog>
               </AriaPopover>
-            </DateRangePicker>
+            </DateRangePicker> */}
           </div>
           <div className='flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between'>
             <Tooltip delayDuration={300}>
@@ -886,72 +887,69 @@ function OffsetBtns(props: {
   );
 }
 
-// Range selector component for choosing the date range
-function RangeSelector(props: {
-  range: number;
-  setRange: Dispatch<SetStateAction<number>>;
-}) {
-  const { projects, activeProject } = useContext(ProjectsContext);
+// function RangeSelector(props: {
+//   range: number;
+//   setRange: Dispatch<SetStateAction<number>>;
+// }) {
+//   const { projects, activeProject } = useContext(ProjectsContext);
 
-  const handleRangeChange = (value: string) => {
-    const range = parseInt(value);
+//   const handleRangeChange = (value: string) => {
+//     const range = parseInt(value);
 
-    // Check if the user is trying to select the 12M option and is on the Starter plan
-    if (
-      range === 365 &&
-      projects[activeProject].plan.name.toLowerCase() === 'starter'
-    ) {
-      toast.warning(
-        'Your current plan allows viewing up to 30 days of data. Upgrade to unlock extended date ranges.',
-      );
-      return; // Prevent changing the range
-    }
+//     if (
+//       range === 365 &&
+//       projects[activeProject].plan.name.toLowerCase() === 'starter'
+//     ) {
+//       toast.warning(
+//         'Your current plan allows viewing up to 30 days of data. Upgrade to unlock extended date ranges.',
+//       );
+//       return; // Prevent changing the range
+//     }
 
-    // Update the range if it's different from the current range
-    if (range !== props.range) {
-      props.setRange(range);
-    }
-  };
+//     if (range !== props.range) {
+//       props.setRange(range);
+//     }
+//   };
 
-  return (
-    <ToggleGroup
-      type='single'
-      defaultValue='1' // Set to a valid default value
-      size={'sm'}
-      className='h-[34px] max-h-[34px] w-fit gap-1 rounded-[12px] border bg-background !p-1'
-      onValueChange={handleRangeChange}
-      value={props.range.toString()}
-    >
-      <ToggleGroupItem
-        value={'1'}
-        className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
-      >
-        D
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value='7'
-        className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
-      >
-        7D
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value='15'
-        className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
-      >
-        15D
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value='30'
-        className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
-      >
-        30D
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value='365'
-        className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
-      >
-        12M
-      </ToggleGroupItem>
-    </ToggleGroup>
-  );
-}
+//   return (
+//     <ToggleGroup
+//       type='single'
+//       defaultValue='1'
+//       size={'sm'}
+//       className='h-[34px] max-h-[34px] w-fit gap-1 rounded-[12px] border bg-background !p-1'
+//       onValueChange={handleRangeChange}
+//       value={props.range.toString()}
+//     >
+//       <ToggleGroupItem
+//         value={'1'}
+//         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
+//       >
+//         D
+//       </ToggleGroupItem>
+//       <ToggleGroupItem
+//         value='7'
+//         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
+//       >
+//         7D
+//       </ToggleGroupItem>
+//       <ToggleGroupItem
+//         value='15'
+//         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
+//       >
+//         15D
+//       </ToggleGroupItem>
+//       <ToggleGroupItem
+//         value='30'
+//         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
+//       >
+//         30D
+//       </ToggleGroupItem>
+//       <ToggleGroupItem
+//         value='365'
+//         className='h-[28px] rounded-[8px] data-[state=on]:pointer-events-none'
+//       >
+//         12M
+//       </ToggleGroupItem>
+//     </ToggleGroup>
+//   );
+// }

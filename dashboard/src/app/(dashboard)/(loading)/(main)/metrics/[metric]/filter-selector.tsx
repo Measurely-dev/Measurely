@@ -98,7 +98,8 @@ function Filters(props: {
                 No filter to show at the moment
                 <br />
                 <a
-                  href='/docs/features/filters'
+                  href='https://measurely.dev/docs/features/filters'
+                  target='_blank'
                   className='cursor-pointer text-blue-500 underline'
                 >
                   How to create one
