@@ -149,7 +149,7 @@ export default function Body(props: { type: "waitlist" | "register" }) {
                   url="measurely.dev"
                   lightModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-05%2012-46-11.png"
                   darkModeUrl="https://media.measurely.dev/Screenshot%20From%202025-02-05%2012-46-00.png"
-                  className="size-full border shadow-sm shadow-black/5 rounded-[6px] p-0"
+                  className="size-full"
                 />
               </div>
             }
