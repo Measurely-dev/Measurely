@@ -32,7 +32,7 @@ export default function EditMetricDialogContent(props: {
   // Generate unique IDs for form fields
   const maxLength = 30;
   const nameId = useId();
-  const posNameId = useId(); 
+  const posNameId = useId();
   const negNameId = useId();
 
   // Setup character-limited input handlers for metric names
@@ -112,8 +112,8 @@ export default function EditMetricDialogContent(props: {
                 project_id: props.metric?.project_id,
                 metric_id: props.metric?.id,
                 name: name,
-                namepos: posName,
-                nameneg: negName,
+                name_pos: posName,
+                name_neg: negName,
               }),
               credentials: 'include',
             });
@@ -121,8 +121,8 @@ export default function EditMetricDialogContent(props: {
             if (res.ok && projects !== null) {
               metric = Object.assign({}, metric, {
                 name: name,
-                namepos: posName,
-                nameneg: negName,
+                name_pos: posName,
+                name_neg: negName,
               });
             }
           }
