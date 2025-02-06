@@ -450,6 +450,7 @@ func (s *Service) Callback(w http.ResponseWriter, r *http.Request) {
 					FirstName:        strings.ToLower(strings.TrimSpace(providerUser.Name)),
 					LastName:         "",
 					StripeCustomerId: c.ID,
+					Verified:         true,
 				})
 				if err != nil {
 					if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -643,6 +644,7 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		FirstName:        request.FirstName,
 		LastName:         request.LastName,
 		StripeCustomerId: c.ID,
+		Verified:         false,
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -655,16 +657,6 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create auth cookie
-	cookie, cerr := CreateCookie(&new_user, w)
-	if cerr != nil {
-		log.Println(cerr)
-		http.Error(w, "Internal server error. Please try again later.", http.StatusInternalServerError)
-		return
-	}
-
-	SetupCacheControl(w, 0)
-	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 
 	go measurely.Capture(metricIds["users"], measurely.CapturePayload{Value: 1})
@@ -678,6 +670,21 @@ func (s *Service) Register(w http.ResponseWriter, r *http.Request) {
 		Link:        GetOrigin(),
 		ButtonTitle: "Access dashboard",
 	})
+
+	go func() {
+		verification, err := s.db.CreateVerificationCode(new_user.Id)
+		if err == nil {
+			// send email
+			go s.email.SendEmail(email.MailFields{
+				To:          new_user.Email,
+				Subject:     "Verify your email address",
+				Content:     "Click on the following link to verify the email address linked to your measurely account",
+				Link:        GetOrigin() + "/verify?code=" + verification.Id,
+				ButtonTitle: "Verify",
+			})
+
+		}
+	}()
 }
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {

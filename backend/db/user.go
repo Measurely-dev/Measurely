@@ -69,8 +69,8 @@ func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
 	rows, err := db.Conn.NamedQuery(`
 		INSERT INTO users (
-			email, first_name, last_name, password, stripe_customer_id
-		) VALUES (:email, :first_name, :last_name, :password, :stripe_customer_id)
+			email, first_name, last_name, password, stripe_customer_id, verified
+		) VALUES (:email, :first_name, :last_name, :password, :stripe_customer_id, :verified)
 		RETURNING *`,
 		user,
 	)

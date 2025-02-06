@@ -175,3 +175,13 @@ type Unit struct {
 	Name   string `json:"name"`
 	Symbol string `json:"symbol"`
 }
+
+type EmailVerification struct {
+	Id     uuid.UUID `json:"id" db:"id"`
+	UserId uuid.UUID `json:"user_id" db:"user_id"`
+}
+
+type TeamInvite struct {
+	Id     uuid.UUID `json:"id" db:"id"`
+	UserId uuid.UUID `json:"user_id" db:"user_id"`
+}
