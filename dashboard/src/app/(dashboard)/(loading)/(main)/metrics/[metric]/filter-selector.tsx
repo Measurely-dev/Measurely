@@ -62,6 +62,7 @@ function Filters(props: {
     updateFilters();
   }, [props.metric, props.events]);
 
+
   return (
     <Popover>
       {/* Filter selection button */}
@@ -106,7 +107,7 @@ function Filters(props: {
             </CommandEmpty>
 
             {/* "None" filter option */}
-            {props.metric?.filters ? (
+            {Object.keys(filters).length !== 0 ? (
               <CommandGroup>
                 <CommandItem
                   className='truncate rounded-[10px]'
