@@ -3,8 +3,6 @@
 // Import necessary components and libraries
 import DashboardContentContainer from "@/components/container";
 import EditMetricDialogContent from "@/components/edit-metric-dialog-content";
-import { AreaChart } from "@/components/ui/area-chart";
-import { BarChart } from "@/components/ui/bar-chart";
 import { RangeValue } from "@react-types/shared";
 import { CalendarDate } from "@internationalized/date";
 import {
@@ -75,6 +73,22 @@ import Filters from "./filter-selector";
 import AdvancedOptions from "./advanced-options";
 import { Separator } from "@/components/ui/separator";
 import { RangeSelector } from "./range-selector";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 // Define color configurations for dual metric charts
 const dualMetricChartColors: DualMetricChartColors = {
@@ -422,7 +436,6 @@ export default function DashboardMetricPage() {
     </DashboardContentContainer>
   );
 }
-
 // Chart component to display metric data
 function Chart(props: {
   metric: Metric | null | undefined;
@@ -564,6 +577,20 @@ function Chart(props: {
     };
   };
 
+  const barChartConfig = {
+    [props.metric?.name ?? "value"]: {
+      label: props.metric?.name ?? "Value",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
+
+  const areaChartConfig = {
+    [props.metric?.name ?? "value"]: {
+      label: props.metric?.name ?? "Value",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
+
   return (
     <>
       <CardHeader className="p-0">
@@ -580,50 +607,6 @@ function Chart(props: {
         <div className="mt-5 flex w-fit flex-row items-center gap-2">
           <div className="flex gap-2">
             <RangeSelector />
-            {/* <DateRangePicker
-              className='h-[34px] w-fit space-y-2'
-              value={toRangeValue(date)}
-              onChange={(rangeValue) => {
-                const newDateRange = toDateRange(rangeValue);
-                setDate(newDateRange);
-              }}
-            >
-              <div className='flex'>
-                <Group
-                  className={cn(
-                    dateInputStyle,
-                    '!h-full !rounded-[12px] pe-9 shadow-sm shadow-black/5',
-                  )}
-                >
-                  <DateInput slot='start' unstyled />
-                  <span
-                    aria-hidden='true'
-                    className='px-2 text-muted-foreground/70'
-                  >
-                    -
-                  </span>
-                  <DateInput slot='end' unstyled />
-                </Group>
-                <AriaButton className='z-10 -me-px -ms-9 flex w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-ring/70'>
-                  <CalendarIcon className='size-5' strokeWidth={2} />
-                </AriaButton>
-              </div>
-              <AriaPopover
-                placement='bottom'
-                className='z-50 rounded-[12px] border border-border bg-background text-popover-foreground shadow-lg shadow-black/5 outline-none data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[entering]:zoom-in-95 data-[exiting]:zoom-out-95 data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2'
-                offset={3}
-              >
-                <AriaDialog className='max-h-[inherit] overflow-auto p-2'>
-                  <RangeCalendar
-                    value={toRangeValue(date)}
-                    onChange={(rangeValue) => {
-                      const newDateRange = toDateRange(rangeValue);
-                      setDate(newDateRange);
-                    }}
-                  />
-                </AriaDialog>
-              </AriaPopover>
-            </DateRangePicker> */}
           </div>
           <div className="flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between">
             <Tooltip delayDuration={300}>
@@ -755,57 +738,79 @@ function Chart(props: {
 
             <Separator className="my-4" />
             {props.type === "trend" ? (
-              <AreaChart
-                className="min-h-[40vh] w-full"
-                data={chartData}
-                index="date"
-                customTooltip={customTooltip}
-                colors={
-                  splitTrendChecked
-                    ? dualMetricChartConfig.colors
-                    : [chartColor]
-                }
-                categories={
-                  splitTrendChecked
-                    ? [
-                        props.metric?.name_pos ?? "",
-                        props.metric?.name_neg ?? "",
-                      ]
-                    : [props.metric?.name ?? ""]
-                }
-                valueFormatter={(number: number) => valueFormatter(number)}
-                yAxisLabel="Total"
-                onValueChange={() => {}}
-              />
+              <ChartContainer
+                config={areaChartConfig}
+                className="min-h-[50vh] max-h-[50vh] w-full"
+              >
+                <AreaChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{
+                    left: 12,
+                    right: 12,
+                    top: 20,
+                  }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <YAxis tickLine={false} tickMargin={10} axisLine={false} />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Area
+                    dataKey={props.metric?.name ?? "value"}
+                    type="linear"
+                    fill={`hsl(var(--chart-1))`}
+                    fillOpacity={0.4}
+                    stroke={`hsl(var(--chart-1))`}
+                  />
+                </AreaChart>
+              </ChartContainer>
             ) : (
-              <BarChart
-                className="min-h-[40vh] w-full"
-                data={chartData}
-                customTooltip={customTooltip}
-                index="date"
-                tabIndex={0}
-                type={chartType}
-                colors={
-                  props.metric?.type === MetricType.Dual
-                    ? dualMetricChartConfig.colors
-                    : [chartColor]
-                }
-                categories={
-                  props.metric?.type !== MetricType.Dual
-                    ? [props.metric?.name ?? ""]
-                    : [
-                        props.metric?.name_pos ?? "",
-                        props.metric?.name_neg ?? "",
-                      ]
-                }
-                valueFormatter={(number: number) =>
-                  `${Intl.NumberFormat("us").format(number).toString()}`
-                }
-                yAxisLabel="Total"
-                onValueChange={
-                  props.metric?.type === MetricType.Dual ? () => {} : undefined
-                }
-              />
+              <ChartContainer
+                config={barChartConfig}
+                className="min-h-[50vh] max-h-[50vh] w-full"
+              >
+                <BarChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{
+                    top: 20,
+                  }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                  />
+                  <YAxis tickLine={false} tickMargin={10} axisLine={false} />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent />}
+                  />
+                  <Bar
+                    dataKey={props.metric?.name ?? "value"}
+                    fill="hsl(var(--chart-1))"
+                    radius={8}
+                  >
+                    <LabelList
+                      position="top"
+                      offset={12}
+                      className="fill-foreground"
+                      fontSize={12}
+                      formatter={(value: number) => (value === 0 ? "" : value)}
+                    />
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
             )}
           </div>
         )}

@@ -52,7 +52,7 @@ export default function ColorDropdown(props: {
         </div>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className='max-h-[300px] overflow-y-auto'>
+        <DropdownMenuSubContent className='max-h-[300px]overflow-y-auto'>
           <DropdownMenuLabel>Select a color</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {Object.entries(colors).map(([key, value]) => (
