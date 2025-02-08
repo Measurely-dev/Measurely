@@ -434,7 +434,7 @@ function IndividualBlock(props: Block & { groupkey?: string }) {
         }}
       >
         <Card
-          className={`flex w-full min-w-[900px] flex-col rounded-[12px] bg-accent shadow-sm shadow-black/5 ${props.type === BlockType.Group ? "min-w-[1000px] !bg-accent/50" : ""} ${props.type === BlockType.Nested ? "rounded[10px] min-w-[280px]" : ""}`}
+          className={`flex w-full min-w-[900px] flex-col rounded-[12px] bg-accent shadow-sm shadow-black/5 ${props.type === BlockType.Group ? "min-w-[1000px] !bg-card" : ""} ${props.type === BlockType.Nested ? "rounded[10px] min-w-[280px]" : ""}`}
           style={cardStyle(props.color)}
         >
           <BlockContent {...props} />

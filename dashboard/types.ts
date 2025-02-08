@@ -221,27 +221,27 @@ export enum BlockType {
  * Available color options for charts and UI elements
  */
 export type AllowedColors =
-  | 'blue'
-  | 'red'
-  | 'green'
-  | 'pink'
-  | 'gray'
-  | 'fuchsia'
-  | 'cyan'
-  | 'violet'
-  | 'lime'
-  | 'purple'
-  | 'orange'
-  | 'yellow'
-  | 'indigo'
-  | 'magenta'
-  | 'teal'
-  | 'amber'
-  | 'rose'
-  | 'sky'
-  | 'emerald'
-  | 'coral'
-  | 'mint';
+  | "blue"
+  | "red"
+  | "green"
+  | "pink"
+  | "gray"
+  | "fuchsia"
+  | "cyan"
+  | "violet"
+  | "lime"
+  | "purple"
+  | "orange"
+  | "yellow"
+  | "indigo"
+  | "magenta"
+  | "teal"
+  | "amber"
+  | "rose"
+  | "sky"
+  | "emerald"
+  | "coral"
+  | "mint";
 
 /**
  * Interface mapping color names to their values
@@ -320,3 +320,45 @@ export interface DualMetricChartColors {
     negative: AllowedColors;
   };
 }
+
+export const colors = [
+  {
+    name: "Blue",
+    index: 1,
+  },
+  {
+    name: "Teal",
+    index: 2,
+  },
+  {
+    name: "Orange",
+    index: 3,
+  },
+  {
+    name: "Purple",
+    index: 4,
+  },
+  {
+    name: "Pink",
+    index: 5,
+  },
+];
+
+export const dualColors = [
+  {
+    name: "Default",
+    indexes: [1, 2],
+  },
+  {
+    name: "Cool",
+    indexes: [2, 3],
+  },
+  {
+    name: "Warm",
+    indexes: [3, 4],
+  },
+  {
+    name: "Hot",
+    indexes: [4, 5],
+  },
+];

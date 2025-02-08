@@ -609,42 +609,6 @@ function Chart(props: {
             <RangeSelector />
           </div>
           <div className="flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between">
-            <Tooltip delayDuration={300}>
-              <AdvancedOptions
-                chartName={props.type}
-                metricId={props.metric?.id ?? ""}
-                metricType={props.metric?.type ?? MetricType.Base}
-                splitTrendChecked={splitTrendChecked}
-                setSplitTrendChecked={setSplitTrendChecked}
-                chartType={chartType}
-                chartColor={chartColor}
-                dualMetricChartColor={dualMetricChartColor}
-                setChartColor={setChartColor}
-                setChartType={setChartType}
-                setDualMetricChartColor={
-                  props.metric?.type === MetricType.Base
-                    ? undefined
-                    : setDualMetricChartColor
-                }
-              >
-                <TooltipTrigger asChild>
-                  <Button
-                    size={"icon"}
-                    className="h-[34px] rounded-[12px] border-input !bg-background !text-primary hover:opacity-50"
-                  >
-                    <Sliders className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-              </AdvancedOptions>
-              <TooltipContent
-                side="bottom"
-                sideOffset={5}
-                className="rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary"
-              >
-                Advanced options
-              </TooltipContent>
-            </Tooltip>
-
             <OffsetBtns
               onLeft={() => {
                 if (range >= 365) {
@@ -700,6 +664,41 @@ function Chart(props: {
                 }
               }, [date, year, range])}
             />
+            <Tooltip delayDuration={300}>
+              <AdvancedOptions
+                chartName={props.type}
+                metricId={props.metric?.id ?? ""}
+                metricType={props.metric?.type ?? MetricType.Base}
+                splitTrendChecked={splitTrendChecked}
+                setSplitTrendChecked={setSplitTrendChecked}
+                chartType={chartType}
+                chartColor={chartColor}
+                dualMetricChartColor={dualMetricChartColor}
+                setChartColor={setChartColor}
+                setChartType={setChartType}
+                setDualMetricChartColor={
+                  props.metric?.type === MetricType.Base
+                    ? undefined
+                    : setDualMetricChartColor
+                }
+              >
+                <TooltipTrigger asChild>
+                  <Button
+                    size={"icon"}
+                    className="h-[34px] rounded-[12px] border-input !bg-background !text-primary hover:opacity-50"
+                  >
+                    <Sliders className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+              </AdvancedOptions>
+              <TooltipContent
+                side="bottom"
+                sideOffset={5}
+                className="rounded-[6px] border bg-accent !p-0.5 !px-1 text-xs font-medium text-primary"
+              >
+                Advanced options
+              </TooltipContent>
+            </Tooltip>
             {loading ? (
               <div className="p-1">
                 <Loader className="size-4 animate-spin" />
@@ -719,9 +718,11 @@ function Chart(props: {
                 <div className="text-md text-muted-foreground">
                   {range === 365 ? `Summary of ${year}` : "Summary"}
                 </div>
-                <div className="text-xl font-medium">
+                <div className="text-xl font-medium font-mono">
                   {valueFormatter(rangeSummary)}
-                  {getUnit(props.metric?.unit ?? "")}
+                  <span className="text-lg ml-1 text-muted-foreground">
+                    {getUnit(props.metric?.unit ?? "")}
+                  </span>
                 </div>
               </div>
               {props.metric ? (
@@ -748,7 +749,7 @@ function Chart(props: {
                   margin={{
                     left: 12,
                     right: 12,
-                    top: 20,
+                    top: 25,
                   }}
                 >
                   <CartesianGrid vertical={false} />
@@ -760,8 +761,32 @@ function Chart(props: {
                   />
                   <YAxis tickLine={false} tickMargin={10} axisLine={false} />
                   <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, name) => (
+                          <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
+                            <div
+                              className="size-2 rounded-[2px] mr-1.5"
+                              style={{
+                                backgroundColor:
+                                  areaChartConfig[
+                                    name as keyof typeof areaChartConfig
+                                  ]?.color || "grey",
+                              }}
+                            />
+                            {areaChartConfig[
+                              name as keyof typeof areaChartConfig
+                            ]?.label || name}
+                            <div className="ml-auto flex items-baseline gap-1 font-mono font-medium tabular-nums text-foreground">
+                              {value}
+                              <span className="font-normal text-muted-foreground">
+                                {getUnit(props.metric?.unit ?? "")}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      />
+                    }
                   />
                   <Area
                     dataKey={props.metric?.name ?? "value"}
@@ -781,7 +806,7 @@ function Chart(props: {
                   accessibilityLayer
                   data={chartData}
                   margin={{
-                    top: 20,
+                    top: 25,
                   }}
                 >
                   <CartesianGrid vertical={false} />
