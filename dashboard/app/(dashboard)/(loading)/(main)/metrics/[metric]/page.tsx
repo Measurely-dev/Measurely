@@ -436,6 +436,7 @@ export default function DashboardMetricPage() {
     </DashboardContentContainer>
   );
 }
+
 // Chart component to display metric data
 function Chart(props: {
   metric: Metric | null | undefined;

@@ -17,8 +17,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Step, StepItem, Stepper, useStepper } from "@/components/ui/stepper";
 import { useCharacterLimit } from "@/utils";
+import { Step, StepProgressBar, useStep } from "@/components/ui/step";
 
 // Main component for creating a new project
 export default function NewProject() {
@@ -28,13 +28,8 @@ export default function NewProject() {
     useContext(ProjectsContext);
   const router = useRouter();
 
-  // Define the steps for the project creation wizard
-  const steps = [
-    { label: "Step 1" },
-    { label: "Step 2" },
-    { label: "Step 3" },
-    { label: "Step 4" },
-  ] satisfies StepItem[];
+  // Define steps and useStep hook for navigation
+  const { step, nextStep, prevStep } = useStep(4); // 4 steps in total
 
   // Handle project creation submission
   const handleCreateProject = async () => {
@@ -83,33 +78,41 @@ export default function NewProject() {
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-col h-[100vh] w-[100vw]">
+    <div className="flex flex-col h-screen overflow-y-auto">
+      <div className="flex flex-col flex-grow">
         {projects.length === 0 ? (
           <SemiNavbar button={null} />
         ) : (
           <SemiNavbar href="/" button="Dashboard" />
         )}
-        <Content className="flex h-full items-center justify-center">
-          <div className="mx-auto flex w-full max-w-[600px] flex-col">
-            <Stepper initialStep={0} steps={steps} size="sm">
-              <Step label="Step 1">
-                <Step1 setName={setName} />
+        <Content className="flex flex-grow pt-[150px] pb-10">
+          <div className="mx-auto flex w-full max-w-[600px] flex-col px-4">
+            <StepProgressBar step={step + 1} totalSteps={4} />
+            {step === 0 && (
+              <Step>
+                <Step1 name={name} setName={setName} nextStep={nextStep} />
               </Step>
-              <Step label="Step 2">
-                <Step2 />
+            )}
+            {step === 1 && (
+              <Step>
+                <Step2 nextStep={nextStep} prevStep={prevStep} />
               </Step>
-              <Step label="Step 3">
-                <Step3 />
+            )}
+            {step === 2 && (
+              <Step>
+                <Step3 nextStep={nextStep} prevStep={prevStep} />
               </Step>
-              <Step label="Step 4">
+            )}
+            {step === 3 && (
+              <Step>
                 <Step4
                   name={name}
                   onCreate={handleCreateProject}
                   loading={loading}
+                  prevStep={prevStep}
                 />
               </Step>
-            </Stepper>
+            )}
           </div>
         </Content>
       </div>
@@ -119,22 +122,25 @@ export default function NewProject() {
 
 // Step 1: Project name input component
 function Step1({
+  name,
   setName,
+  nextStep,
 }: {
+  name: string;
   setName: Dispatch<React.SetStateAction<string>>;
+  nextStep: () => void;
 }) {
-  const { nextStep } = useStepper();
   const { projects } = useContext(ProjectsContext);
   const maxLength = 20;
   const id = useId();
 
-  // Initialize character limit hook
+  // Initialize character limit hook with initial value
   const {
     value,
     characterCount,
     handleChange: handleCharacterLimitChange,
     maxLength: limit,
-  } = useCharacterLimit({ maxLength });
+  } = useCharacterLimit({ maxLength, initialValue: name });
 
   // Keep name state in sync with input value
   useEffect(() => {
@@ -181,9 +187,9 @@ function Step1({
           </div>
         </div>
       </div>
-      <div className="mt-5 flex w-full justify-end">
+      <div className="mt-5 flex w-full">
         <Button
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           onClick={nextStep}
           disabled={value === "" || exists}
         >
@@ -195,16 +201,20 @@ function Step1({
 }
 
 // Step 2: Plan selection component
-function Step2() {
-  const { nextStep, prevStep } = useStepper();
-
+function Step2({
+  nextStep,
+  prevStep,
+}: {
+  nextStep: () => void;
+  prevStep: () => void;
+}) {
   return (
     <div className="flex flex-col gap-[5px] md:mt-5">
       <div className="text-xl font-medium">Choose Plan</div>
       <div className="text-sm text-muted-foreground">
         Select a plan for your project. (Placeholder for plan selection)
       </div>
-      <div className="mt-5 flex w-full justify-between">
+      <div className="mt-5 flex w-full justify-end gap-2">
         <Button
           className="w-fit rounded-[12px]"
           variant="secondary"
@@ -221,9 +231,13 @@ function Step2() {
 }
 
 // Step 3: Additional settings component
-function Step3() {
-  const { nextStep, prevStep } = useStepper();
-
+function Step3({
+  nextStep,
+  prevStep,
+}: {
+  nextStep: () => void;
+  prevStep: () => void;
+}) {
   return (
     <div className="flex flex-col gap-[5px] md:mt-5">
       <div className="text-xl font-medium">Additional Settings</div>
@@ -231,7 +245,7 @@ function Step3() {
         Configure additional settings for your project. (Placeholder for
         settings)
       </div>
-      <div className="mt-5 flex w-full justify-between">
+      <div className="mt-5 flex w-full justify-end gap-2">
         <Button
           className="w-fit rounded-[12px]"
           variant="secondary"
@@ -246,30 +260,47 @@ function Step3() {
     </div>
   );
 }
-
 // Step 4: Project overview and creation component
 function Step4({
   name,
   onCreate,
   loading,
+  prevStep,
 }: {
   name: string;
   onCreate: () => void;
   loading: boolean;
+  prevStep: () => void;
 }) {
-  const { prevStep } = useStepper();
-
   return (
     <div className="flex flex-col gap-[5px] md:mt-5">
       <div className="text-xl font-medium">Overview</div>
       <div className="text-sm text-muted-foreground">
         Review your project details before creating it.
       </div>
-      <div className="mt-5 flex w-full flex-col gap-3">
-        <Label>Project Name</Label>
-        <div className="rounded-[12px] bg-background p-3">{name}</div>
+      <div className="mt-5 flex w-full flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <Label>Project Name</Label>
+          <div className="rounded-[12px] bg-card min-h-[45px] h-[45px] flex items-center px-6 text-sm">
+            {name}
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Label>Selected Plan</Label>
+          <div className="rounded-[12px] bg-card min-h-[45px] h-[45px] flex items-center px-2 text-sm">
+            <div className="bg-background p-1 px-3 border rounded-full w-fit">
+              Free Plan
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Label>Additional Settings</Label>
+          <div className="rounded-[12px] bg-card min-h-[45px] h-[45px] flex items-center px-6 text-sm">
+            Default Settings
+          </div>
+        </div>
       </div>
-      <div className="mt-5 flex w-full justify-between">
+      <div className="mt-5 flex w-full justify-end gap-2">
         <Button
           className="w-fit rounded-[12px]"
           variant="secondary"

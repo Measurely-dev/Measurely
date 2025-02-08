@@ -239,7 +239,7 @@ const Item = (props: { metric: Metric; index: number }) => {
         <TableCell colSpan={1.5}>
           <div className='my-auto line-clamp-1 h-fit w-full items-center font-mono text-[15px]'>
             {valueFormatter(value)}
-            <span className='ml-1 text-sm'>{getUnit(props.metric.unit)}</span>
+            <span className='ml-1 text-sm text-muted-foreground'>{getUnit(props.metric.unit)}</span>
           </div>
         </TableCell>
         <TableCell>
