@@ -125,7 +125,6 @@ const BaseValueInput = ({ value, onChange }: any) => (
     </div>
   </NumberField>
 );
-
 const DualMetricInputs = ({
   namingType,
   setNamingType,
@@ -133,67 +132,62 @@ const DualMetricInputs = ({
   setNamePos,
   nameNeg,
   setNameNeg,
-}: any) => (
-  <>
-    <Label className="flex flex-col gap-3">
-      Variable names
-      <Select
-        defaultValue={"auto"}
-        value={namingType}
-        onValueChange={(e) => {
-          setNamingType(e);
-          if (e === "manual") {
-            setNamePos("");
-            setNameNeg("");
-          } else {
-            setNamePos("added");
-            setNameNeg("removed");
-          }
-        }}
-      >
-        <SelectTrigger className="h-11 border">
-          <SelectValue placeholder="Select a type of naming" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectItem value={"auto"}>Automatic</SelectItem>
-            <SelectItem value={"manual"}>Manual</SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-      <Label className="text-xs font-normal leading-tight text-muted-foreground">
-        Customize the names for positive and negative values to match your
-        specific use case and improve clarity.
+}: any) => {
+  console.log(namingType);
+  return (
+    <>
+      <Label className="flex flex-col gap-3">
+        Variable names
+        <Select
+          defaultValue="auto"
+          onValueChange={(e) => {
+            setNamingType(e);
+          }}
+        >
+          <SelectTrigger className="h-11 border">
+            <SelectValue placeholder="Select a type of naming" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="auto">Automatic</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Label className="text-xs font-normal leading-tight text-muted-foreground">
+          Customize the names for positive and negative values to match your
+          specific use case and improve clarity.
+        </Label>
       </Label>
-    </Label>
 
-    {namingType === "manual" && (
-      <>
-        <Separator className="my-2" />
-        <div className="flex w-full flex-col gap-3">
-          <Label>Positive variable name</Label>
-          <Input
-            placeholder="Account created, transfer sent"
-            type="text"
-            className="h-11 rounded-[12px]"
-            value={namePos}
-            onChange={(e) => setNamePos(e.target.value.trimStart())}
-          />
-        </div>
-        <div className="flex w-full flex-col gap-3">
-          <Label>Negative variable name</Label>
-          <Input
-            placeholder="Account deleted, transfer kept"
-            type="text"
-            className="h-11 rounded-[12px]"
-            value={nameNeg}
-            onChange={(e) => setNameNeg(e.target.value.trimStart())}
-          />
-        </div>
-      </>
-    )}
-  </>
-);
+      {namingType === "manual" ? (
+        <>
+          <Separator className="my-2" />
+          <div className="flex w-full flex-col gap-3">
+            <Label>Positive variable name</Label>
+            <Input
+              placeholder="Account created, transfer sent"
+              type="text"
+              className="h-11 rounded-[12px]"
+              value={namePos}
+              onChange={(e) => setNamePos(e.target.value.trimStart())}
+            />
+          </div>
+          <div className="flex w-full flex-col gap-3">
+            <Label>Negative variable name</Label>
+            <Input
+              placeholder="Account deleted, transfer kept"
+              type="text"
+              className="h-11 rounded-[12px]"
+              value={nameNeg}
+              onChange={(e) => setNameNeg(e.target.value.trimStart())}
+            />
+          </div>
+        </>
+      ) : null}
+    </>
+  );
+};
 
 export default function NewMetric() {
   const [tab, setTab] = useState("metrics");
@@ -380,13 +374,13 @@ function Step1({
         ))}
         <div className="flex w-full flex-row justify-between gap-2 max-md:flex-col">
           <Button
-            className="w-fit rounded-[12px]"
+            className="w-full rounded-[12px]"
             variant="secondary"
             onClick={() => router.push("/")}
           >
             Cancel
           </Button>
-          <Button className="w-fit rounded-[12px]" onClick={nextStep}>
+          <Button className="w-full rounded-[12px]" onClick={nextStep}>
             Next
           </Button>
         </div>
@@ -484,7 +478,7 @@ function Step3({ formData, setFormData, value, prevStep }: any) {
         <Button
           type="button"
           variant="secondary"
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           onClick={prevStep}
         >
           Back
@@ -493,7 +487,7 @@ function Step3({ formData, setFormData, value, prevStep }: any) {
           type="button"
           variant="default"
           loading={loading}
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           onClick={handleSubmit}
         >
           Create
@@ -625,7 +619,7 @@ function MetricConfigurationStep({
           <Button
             type="button"
             variant="secondary"
-            className="w-fit rounded-[12px]"
+            className="w-full rounded-[12px]"
             onClick={prevStep}
           >
             Back
@@ -633,7 +627,7 @@ function MetricConfigurationStep({
           <Button
             type="button"
             variant="default"
-            className="w-fit rounded-[12px]"
+            className="w-full rounded-[12px]"
             onClick={nextStep}
             disabled={
               !formData.name ||

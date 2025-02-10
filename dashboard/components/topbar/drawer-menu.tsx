@@ -1,23 +1,28 @@
 // UI Component imports
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Book, Code, LogOut, Plus, Settings, User } from 'lucide-react';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Book, Code, LogOut, Plus, Settings, User } from "lucide-react";
 
 // Next.js imports
-import Link from 'next/link';
-import { ReactNode, useContext } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import Link from "next/link";
+import { ReactNode, useContext } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 // Context and component imports
-import { ProjectsContext, UserContext } from '@/dash-context';
-import ApiDialog from '../api-dialog';
-import { Separator } from '@/components/ui/separator';
-import { navItem } from '../navbar';
-import { DialogClose } from '@/components/ui/dialog';
-import SettingDialog from '../setting-dialog';
-import { ThemeToggle } from '../ui/theme-toggle';
+import { ProjectsContext, UserContext } from "@/dash-context";
+import ApiDialog from "../api-dialog";
+import { Separator } from "@/components/ui/separator";
+import { navItem } from "../navbar";
+import { DialogClose } from "@/components/ui/dialog";
+import SettingDialog from "../setting-dialog";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 // Drawer menu component that provides navigation and user controls
 export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
@@ -33,42 +38,43 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
 
   // Handles user logout process
   const handleLogout = () => {
-    fetch(process.env.NEXT_PUBLIC_API_URL + '/logout', {
-      method: 'POST',
+    fetch(process.env.NEXT_PUBLIC_API_URL + "/logout", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
     })
       .then(() => {
-        router.push('/sign-in');
+        router.push("/sign-in");
         window.location.reload();
       })
       .catch((error) => {
-        console.error('Logout failed:', error);
+        console.error("Logout failed:", error);
       });
   };
 
   return (
     <Drawer>
       {/* Drawer trigger only visible on mobile */}
-      <DrawerTrigger className='md:hidden'>{props.children}</DrawerTrigger>
-      <DrawerContent className='flex flex-col gap-2 p-10 !pt-0 max-sm:p-2'>
+      <DrawerTrigger className="md:hidden">{props.children}</DrawerTrigger>
+      <DrawerContent className="flex flex-col gap-2 p-10 !pt-0 max-sm:p-2">
+        <DrawerTitle className="sr-only">Menu</DrawerTitle>
         {/* User profile section */}
-        <Label className='flex flex-row items-center gap-4 rounded-[12px] p-2'>
-          <Avatar className='size-[35px] cursor-pointer border text-muted-foreground hover:text-primary'>
-            <AvatarImage src={props.image} className='rounded-full' />
+        <Label className="flex flex-row items-center gap-4 rounded-[12px] p-2">
+          <Avatar className="size-[35px] cursor-pointer border text-muted-foreground hover:text-primary">
+            <AvatarImage src={props.image} className="rounded-full" />
             <AvatarFallback>
-              <User className='size-1/2' />
+              <User className="size-1/2" />
             </AvatarFallback>
           </Avatar>
-          <div className='w-full'>
-            {Capitalize(user?.first_name ?? 'Unknown')}
-            {Capitalize(user?.last_name ?? '')}
+          <div className="w-full">
+            {Capitalize(user?.first_name ?? "Unknown")}
+            {Capitalize(user?.last_name ?? "")}
           </div>
-          <ThemeToggle className='my-auto ml-auto w-[95px]' />
+          <ThemeToggle className="my-auto ml-auto w-[95px]" />
         </Label>
-        <Separator className='my-2' orientation='horizontal' />
+        <Separator className="my-2" orientation="horizontal" />
 
         {/* Navigation items */}
         {navItem?.map((item, i) => {
@@ -77,8 +83,8 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
               <Link href={item.href}>
                 <Button
                   key={i}
-                  variant={'ghost'}
-                  className={`${pathname === item.href ? 'bg-accent' : ''} w-full justify-start gap-1.5 rounded-[12px]`}
+                  variant={"ghost"}
+                  className={`${pathname === item.href ? "bg-accent" : ""} w-full justify-start gap-1.5 rounded-[12px]`}
                 >
                   {item.svg}
                   {item.name}
@@ -88,37 +94,37 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
           );
         })}
 
-        <Separator className='my-2' orientation='horizontal' />
+        <Separator className="my-2" orientation="horizontal" />
 
         {/* Action buttons section */}
-        <Link href={'/new-metric'}>
-          <Button className='h-[35px] w-full gap-[8px] rounded-[12px]'>
-            <Plus className='size-[16px]' />
+        <Link href={"/new-metric"}>
+          <Button className="h-[35px] w-full gap-[8px] rounded-[12px]">
+            <Plus className="size-[16px]" />
             Create metric
           </Button>
         </Link>
 
         {/* Mobile-only API key button */}
         <ApiDialog
-          className='w-full sm:hidden'
-          projectid={projects?.[activeProject]?.id ?? ''}
+          className="w-full sm:hidden"
+          projectid={projects?.[activeProject]?.id ?? ""}
         >
           <Button
-            variant={'outline'}
-            className='h-[35px] w-full gap-[8px] rounded-[12px]'
+            variant={"outline"}
+            className="h-[35px] w-full gap-[8px] rounded-[12px]"
           >
-            <Code className='size-4' />
+            <Code className="size-4" />
             Api key
           </Button>
         </ApiDialog>
 
         {/* Documentation link */}
-        <Link href={'/docs/getting-started/introduction'}>
+        <Link href={"/docs/getting-started/introduction"}>
           <Button
-            className='h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary'
-            variant='outline'
+            className="h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary"
+            variant="outline"
           >
-            <Book className='size-[16px]' />
+            <Book className="size-[16px]" />
             Documentation
           </Button>
         </Link>
@@ -126,21 +132,21 @@ export const DrawerMenu = (props: { image: any; children: ReactNode }) => {
         {/* Settings dialog */}
         <SettingDialog>
           <Button
-            className='h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary'
-            variant='outline'
+            className="h-[35px] w-full gap-[8px] rounded-[12px] text-muted-foreground hover:text-primary"
+            variant="outline"
           >
-            <Settings className='size-[16px]' />
+            <Settings className="size-[16px]" />
             Settings
           </Button>
         </SettingDialog>
 
         {/* Logout button */}
         <Button
-          className='h-[35px] w-full gap-[8px] rounded-[12px]'
-          variant='destructiveOutline'
+          className="h-[35px] w-full gap-[8px] rounded-[12px]"
+          variant="destructiveOutline"
           onClick={handleLogout}
         >
-          <LogOut className='size-[16px]' />
+          <LogOut className="size-[16px]" />
           Logout
         </Button>
       </DrawerContent>

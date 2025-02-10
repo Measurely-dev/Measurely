@@ -76,6 +76,8 @@ import { RangeSelector } from "./range-selector";
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -796,6 +798,7 @@ function Chart(props: {
                     fillOpacity={0.4}
                     stroke={`hsl(var(--chart-1))`}
                   />
+                  <ChartLegend content={<ChartLegendContent />} />
                 </AreaChart>
               </ChartContainer>
             ) : (
@@ -835,6 +838,7 @@ function Chart(props: {
                       formatter={(value: number) => (value === 0 ? "" : value)}
                     />
                   </Bar>
+                  <ChartLegend content={<ChartLegendContent />} />
                 </BarChart>
               </ChartContainer>
             )}

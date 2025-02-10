@@ -216,13 +216,13 @@ function Step2({
       </div>
       <div className="mt-5 flex w-full justify-end gap-2">
         <Button
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           variant="secondary"
           onClick={prevStep}
         >
           Back
         </Button>
-        <Button className="w-fit rounded-[12px]" onClick={nextStep}>
+        <Button className="w-full rounded-[12px]" onClick={nextStep}>
           Next
         </Button>
       </div>
@@ -247,13 +247,13 @@ function Step3({
       </div>
       <div className="mt-5 flex w-full justify-end gap-2">
         <Button
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           variant="secondary"
           onClick={prevStep}
         >
           Back
         </Button>
-        <Button className="w-fit rounded-[12px]" onClick={nextStep}>
+        <Button className="w-full rounded-[12px]" onClick={nextStep}>
           Next
         </Button>
       </div>
@@ -302,14 +302,14 @@ function Step4({
       </div>
       <div className="mt-5 flex w-full justify-end gap-2">
         <Button
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           variant="secondary"
           onClick={prevStep}
         >
           Back
         </Button>
         <Button
-          className="w-fit rounded-[12px]"
+          className="w-full rounded-[12px]"
           onClick={onCreate}
           loading={loading}
         >
