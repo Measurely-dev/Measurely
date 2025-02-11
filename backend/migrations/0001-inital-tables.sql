@@ -1,3 +1,4 @@
+-- CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 SET
@@ -12,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     stripe_customer_id TEXT NOT NULL UNIQUE,
     image TEXT NOT NULL DEFAULT '',
-    invoice_status SMALLINT NOT NULL DEFAULT 0
+    invoice_status SMALLINT NOT NULL DEFAULT 0,
+    verified BOOLEAN NOT NULL DEFAULT false
 );
 
 -- Create Providers table
@@ -53,15 +55,13 @@ CREATE TABLE IF NOT EXISTS metrics (
     total_neg BIGINT NOT NULL DEFAULT 0,
     name_pos VARCHAR(50) NOT NULL DEFAULT '',
     name_neg VARCHAR(50) NOT NULL DEFAULT '',
-    created TIMESTAMP NOT NULL DEFAULT timezone ('UTC', CURRENT_TIMESTAMP),
-    filter_category TEXT NOT NULL DEFAULT '',
-    parent_metric_id UUID,
     event_count BIGINT NOT NULL DEFAULT 0,
-    last_event_timestamp TIMESTAMP,
+    filters JSONB NOT NULL DEFAULT '{}',
     stripe_api_key TEXT,
-    UNIQUE (parent_metric_id, name, filter_category),
-    FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
-    FOREIGN KEY (parent_metric_id) REFERENCES metrics (id) ON DELETE CASCADE
+    created TIMESTAMP NOT NULL DEFAULT timezone ('UTC', CURRENT_TIMESTAMP),
+    last_event_timestamp TIMESTAMP DEFAULT timezone ('UTC', CURRENT_TIMESTAMP),
+    UNIQUE (name, project_id),
+    FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
 
 -- Create Metric events table
@@ -70,11 +70,8 @@ CREATE TABLE IF NOT EXISTS metric_events (
     metric_id UUID NOT NULL,
     value_pos INT NOT NULL,
     value_neg INT NOT NULL,
-    relative_total_pos BIGINT NOT NULL,
-    relative_total_neg BIGINT NOT NULL,
     date TIMESTAMP NOT NULL,
-    relative_event_count BIGINT NOT NULL DEFAULT 0,
-    event_count INT NOT NULL DEFAULT 1,
+    filters TEXT NOT NULL DEFAULT '',
     UNIQUE (metric_id, date),
     FOREIGN KEY (metric_id) REFERENCES metrics (id) ON DELETE CASCADE
 );
@@ -133,6 +130,21 @@ CREATE TABLE IF NOT EXISTS blocks (
     FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS email_verification (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    user_id UUID NOT NULL UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS team_invite (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    email TEXT NOT NULL,
+    project_id UUID NOT NULL,
+    role SMALLINT NOT NULL,
+    UNIQUE (email, project_id, role),
+    FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+);
+
 -- Create Migrations table
 CREATE TABLE IF NOT EXISTS migrations (filename TEXT NOT NULL);
 
@@ -151,10 +163,6 @@ CREATE INDEX IF NOT EXISTS idx_metrics_projectid ON metrics (project_id);
 CREATE INDEX IF NOT EXISTS idx_projects_userid ON projects (user_id);
 
 CREATE INDEX IF NOT EXISTS idx_providers_userid_type ON providers (user_id, type);
-
-CREATE INDEX IF NOT EXISTS idx_metrics_parentmetricid ON metrics (parent_metric_id);
-
-CREATE INDEX IF NOT EXISTS idx_metrics_filtercategory ON metrics (filter_category);
 
 CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics (name);
 

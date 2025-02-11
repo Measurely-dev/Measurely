@@ -69,8 +69,8 @@ func (db *DB) CreateUser(user types.User) (types.User, error) {
 	var new_user types.User
 	rows, err := db.Conn.NamedQuery(`
 		INSERT INTO users (
-			email, first_name, last_name, password, stripe_customer_id
-		) VALUES (:email, :first_name, :last_name, :password, :stripe_customer_id)
+			email, first_name, last_name, password, stripe_customer_id, verified
+		) VALUES (:email, :first_name, :last_name, :password, :stripe_customer_id, :verified)
 		RETURNING *`,
 		user,
 	)
@@ -78,8 +78,12 @@ func (db *DB) CreateUser(user types.User) (types.User, error) {
 		return types.User{}, err
 	}
 	defer rows.Close()
-	rows.Next()
-	rows.StructScan(&new_user)
+	for rows.Next() {
+		err := rows.StructScan(&new_user)
+		if err != nil {
+			return types.User{}, err
+		}
+	}
 	return new_user, err
 }
 
@@ -143,6 +147,11 @@ func (db *DB) UpdateUserEmail(id uuid.UUID, newemail string) error {
 
 func (db *DB) UpdateUserImage(id uuid.UUID, image string) error {
 	_, err := db.Conn.Exec("UPDATE users SET image = $1 WHERE id = $2", image, id)
+	return err
+}
+
+func (db *DB) UpdateUserVerifiedState(id uuid.UUID, verified bool) error {
+	_, err := db.Conn.Exec("UPDATE users SET verified = $1 WHERE id = $2", verified, id)
 	return err
 }
 
@@ -211,4 +220,27 @@ func (db *DB) DeleteAccountRecovery(id uuid.UUID) error {
 func (db *DB) UpdateUserInvoiceStatus(id uuid.UUID, status int) error {
 	_, err := db.Conn.Exec("UPDATE users SET invoice_status = $1 WHERE id = $2", status, id)
 	return err
+}
+
+func (db *DB) CreateVerificationCode(id uuid.UUID) (types.EmailVerification, error) {
+	var verification_code types.EmailVerification
+	err := db.Conn.QueryRowx(`
+		INSERT INTO email_verification (user_id)
+		VALUES ($1)
+		ON CONFLICT (user_id)
+		DO UPDATE SET user_id = email_verification.user_id
+		RETURNING *
+	`, id).StructScan(&verification_code)
+	return verification_code, err
+}
+
+func (db *DB) DeleteVerificationCode(id uuid.UUID) error {
+	_, err := db.Conn.Exec("DELETE FROM email_verification WHERE user_id = $1", id)
+	return err
+}
+
+func (db *DB) GetEmailVerification(id uuid.UUID) (types.EmailVerification, error) {
+	var verification_code types.EmailVerification
+	err := db.Conn.Select(&verification_code, "SELECT * FROM email_verification WHERE user_id = $1", id)
+	return verification_code, err
 }

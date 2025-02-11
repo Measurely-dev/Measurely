@@ -188,7 +188,7 @@ func SetupCors() *cors.Cors {
 // Returns appropriate origin URL based on environment
 func GetOrigin() string {
 	if os.Getenv("ENV") == "production" {
-		return "https://app.measurely.dev"
+		return "https://measurely.dev"
 	}
 	return "http://localhost:3000"
 }

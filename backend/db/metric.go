@@ -3,55 +3,51 @@ package db
 import (
 	"Measurely/types"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+type TmpMetric struct {
+	types.Metric
+	Filters []byte `db:"filters"`
+}
+
 func (db *DB) CreateMetric(metric types.Metric) (types.Metric, error) {
-	var newMetric types.Metric
+	var new_metric types.Metric
 	query := `INSERT INTO metrics
-		(project_id, name, type, name_pos, name_neg, parent_metric_id, filter_category, unit, stripe_api_key)
-		VALUES (:project_id, :name, :type, :name_pos, :name_neg, :parent_metric_id, :filter_category, :unit, :stripe_api_key) RETURNING *`
+		(project_id, name, type, name_pos, name_neg,  unit, stripe_api_key)
+		VALUES (:project_id, :name, :type, :name_pos, :name_neg, :unit, :stripe_api_key) RETURNING *`
 
 	rows, err := db.Conn.NamedQuery(query, metric)
 	if err != nil {
 		return types.Metric{}, err
 	}
 	defer rows.Close()
-	rows.Next()
-	err = rows.StructScan(&newMetric)
-	if err != nil {
-		return types.Metric{}, err
+	for rows.Next() {
+		var tmp_metric TmpMetric
+		err := rows.StructScan(&tmp_metric)
+		if err != nil {
+			return types.Metric{}, err
+		}
+
+		var metric_filters map[uuid.UUID]types.Filter
+		if err := json.Unmarshal(tmp_metric.Filters, &metric_filters); err != nil {
+			return types.Metric{}, err
+		}
+
+		new_metric = tmp_metric.Metric
+		new_metric.Filters = metric_filters
 	}
 
-	return newMetric, err
+	return new_metric, err
 }
 
 func (db *DB) DeleteMetric(id, projectId uuid.UUID) error {
 	_, err := db.Conn.Exec("DELETE FROM metrics WHERE id = $1 AND project_id = $2", id, projectId)
-	return err
-}
-
-func (db *DB) DeleteMetricByCategory(parentMetricId, projectId uuid.UUID, category string) error {
-	_, err := db.Conn.Exec(`
-		DELETE FROM metrics
-		WHERE parent_metric_id = $1
-		AND project_id = $2
-		AND filter_category = $3`,
-		parentMetricId, projectId, category)
-	return err
-}
-
-func (db *DB) UpdateCategoryName(oldName, newName string, parentMetricId, projectId uuid.UUID) error {
-	_, err := db.Conn.Exec(`
-		UPDATE metrics
-		SET filter_category = $1
-		WHERE parent_metric_id = $2
-		AND project_id = $3
-		AND filter_category = $4`,
-		newName, parentMetricId, projectId, oldName)
 	return err
 }
 
@@ -67,22 +63,48 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to begin transaction: %v", err), 0
 	}
 
-	var totalPos, totalNeg, eventCount int64
+	now := time.Now().UTC()
+
 	var metricType int
+	var filtersData []byte
 
 	err = tx.QueryRowx(`
 		UPDATE metrics
 		SET total_pos = total_pos + $1,
 			total_neg = total_neg + $2,
-			event_count = event_count + 1
-		WHERE id = $3
-		RETURNING total_pos, total_neg,  type, event_count`,
-		toAdd, toRemove, metricId,
-	).Scan(&totalPos, &totalNeg, &metricType, &eventCount)
+			event_count = event_count + 1,
+			last_event_timestamp = $3
+		WHERE id = $4
+		RETURNING type, filters`,
+		toAdd, toRemove, now, metricId,
+	).Scan(&metricType, &filtersData)
 
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
+	}
+
+	var metric_filters map[uuid.UUID]types.Filter
+	if err := json.Unmarshal(filtersData, &metric_filters); err != nil {
+		tx.Rollback()
+		log.Println(err)
+		return fmt.Errorf("Failed to fetch metric filters"), 0
+	}
+
+	var filter_list []uuid.UUID
+
+	for filter_id, filter_value := range metric_filters {
+		for category, name := range *filters {
+			if filter_value.Name == name && filter_value.Category == category {
+				filter_list = append(filter_list, filter_id)
+			}
+		}
+	}
+
+	marshaled_filters, err := json.Marshal(filter_list)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to include the chosen filters in the event %v", err), 0
 	}
 
 	var monthlyCount int
@@ -98,89 +120,14 @@ func (db *DB) UpdateMetricAndCreateEvent(
 		return fmt.Errorf("failed to update user's monthly event count: %v", err), 0
 	}
 
-	now := time.Now().UTC().Truncate(time.Second)
-	minute := now.Minute()
-	roundedMinute := 0
+	_, err = tx.Exec(`
+		INSERT INTO metric_events ( metric_id, value_pos, value_neg, date, filters)
+		VALUES ($1, $2, $3,$4, $5)
+	`, metricId, toAdd, toRemove, now, marshaled_filters)
 
-	switch {
-	case minute < 20:
-		roundedMinute = 0
-	case minute < 40:
-		roundedMinute = 20
-	default:
-		roundedMinute = 40
-	}
-
-	date := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), roundedMinute, 0, 0, time.UTC)
-
-	event := types.MetricEvent{
-		RelativeTotalPos:   totalPos,
-		RelativeTotalNeg:   totalNeg,
-		RelativeEventCount: eventCount,
-		MetricId:           metricId,
-		ValuePos:           toAdd,
-		ValueNeg:           toRemove,
-		Date:               date,
-	}
-
-	const upsertEventQuery = `
-		INSERT INTO metric_events (
-			metric_id, value_pos, value_neg,
-			relative_total_pos, relative_total_neg,
-			relative_event_count, date
-		) VALUES (
-			:metric_id, :value_pos, :value_neg,
-			:relative_total_pos, :relative_total_neg,
-			:relative_event_count, :date
-		) ON CONFLICT (metric_id, date) DO UPDATE SET
-			value_pos = metric_events.value_pos + EXCLUDED.value_pos,
-			value_neg = metric_events.value_neg + EXCLUDED.value_neg,
-			event_count = metric_events.event_count + 1,
-			relative_total_pos = EXCLUDED.relative_total_pos,
-			relative_total_neg = EXCLUDED.relative_total_neg,
-			relative_event_count = EXCLUDED.relative_event_count`
-
-	_, err = tx.NamedExec(upsertEventQuery, event)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to insert metric event: %v", err), 0
-	}
-
-	for key, value := range *filters {
-		var filterTotalPos, filterTotalNeg, filterEventCount int64
-		var filterId uuid.UUID
-
-		err = tx.QueryRowx(`
-			UPDATE metrics
-			SET total_pos = metrics.total_pos + $1,
-				total_neg = metrics.total_neg + $2
-			WHERE parent_metric_id = $3
-			AND filter_category = $4
-			AND name = $5
-			RETURNING id, total_pos, total_neg, event_count`,
-			toAdd, toRemove, metricId, key, value,
-		).Scan(&filterId, &filterTotalPos, &filterTotalNeg, &filterEventCount)
-
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to insert or update filter metrics: %v", err), 0
-		}
-
-		filterEvent := types.MetricEvent{
-			RelativeTotalPos:   filterTotalPos,
-			RelativeTotalNeg:   filterTotalNeg,
-			RelativeEventCount: filterEventCount,
-			MetricId:           filterId,
-			ValuePos:           toAdd,
-			ValueNeg:           toRemove,
-			Date:               date,
-		}
-
-		_, err = tx.NamedExec(upsertEventQuery, filterEvent)
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to insert filter metric event: %v", err), 0
-		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -196,7 +143,7 @@ func (db *DB) GetMetricsCount(projectId uuid.UUID) (int, error) {
 		SELECT COUNT(*)
 		FROM metrics
 		WHERE project_id = $1
-		AND parent_metric_id IS NULL`, projectId)
+	`, projectId)
 	return count, err
 }
 
@@ -218,79 +165,91 @@ func (db *DB) GetMetrics(projectId uuid.UUID) ([]types.Metric, error) {
 	}
 	defer rows.Close()
 
-	metricsMap := make(map[string]map[string][]types.Metric)
 	var metrics []types.Metric
 
 	for rows.Next() {
-		var metric types.Metric
-		err := rows.StructScan(&metric)
+		var tmp_metric TmpMetric
+		err := rows.StructScan(&tmp_metric)
 		if err != nil {
 			return nil, err
 		}
 
-		if metric.ParentMetricId.Valid {
-			if metricsMap[metric.ParentMetricId.V] == nil {
-				metricsMap[metric.ParentMetricId.V] = make(map[string][]types.Metric)
-			}
-			metricsMap[metric.ParentMetricId.V][metric.FilterCategory] = append(
-				metricsMap[metric.ParentMetricId.V][metric.FilterCategory],
-				metric,
-			)
-		} else {
-			metrics = append(metrics, metric)
+		var metric_filters map[uuid.UUID]types.Filter
+		if err := json.Unmarshal(tmp_metric.Filters, &metric_filters); err != nil {
+			return nil, err
 		}
-	}
 
-	for i, metric := range metrics {
-		metrics[i].Filters = metricsMap[metric.Id.String()]
+		var metric types.Metric
+		metric = tmp_metric.Metric
+		metric.Filters = metric_filters
+
+		metrics = append(metrics, metric)
+
 	}
 
 	return metrics, nil
 }
 
 func (db *DB) GetAllIntegrationMetrics() ([]types.Metric, error) {
-	rows, err := db.Conn.Query("SELECT * FROM metrics WHERE type > 2 AND parent_metric_id IS NULL")
+	rows, err := db.Conn.Queryx("SELECT * FROM metrics WHERE type > 2")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	metricsMap := make(map[string]map[string][]types.Metric)
 	var metrics []types.Metric
 
 	for rows.Next() {
-		var metric types.Metric
-		err := rows.Scan(&metric)
+		var tmp_metric TmpMetric
+		err := rows.StructScan(&tmp_metric)
 		if err != nil {
 			return nil, err
 		}
 
-		if metric.ParentMetricId.Valid {
-			if metricsMap[metric.ParentMetricId.V] == nil {
-				metricsMap[metric.ParentMetricId.V] = make(map[string][]types.Metric)
-			}
-			metricsMap[metric.ParentMetricId.V][metric.FilterCategory] = append(metricsMap[metric.ParentMetricId.V][metric.FilterCategory], metric)
-		} else {
-			metrics = append(metrics, metric)
+		var metric_filters map[uuid.UUID]types.Filter
+		if err := json.Unmarshal(tmp_metric.Filters, &metric_filters); err != nil {
+			return nil, err
 		}
-	}
 
-	for i, metric := range metrics {
-		metrics[i].Filters = metricsMap[metric.Id.String()]
+		var metric types.Metric
+		metric = tmp_metric.Metric
+		metric.Filters = metric_filters
+
+		metrics = append(metrics, metric)
 	}
 
 	return metrics, nil
 }
 
 func (db *DB) GetMetricByName(name string, projectId uuid.UUID) (types.Metric, error) {
+	var tmp_metric TmpMetric
+	err := db.Conn.Get(&tmp_metric, "SELECT * FROM metrics WHERE project_id = $1 AND name = $2", projectId, name)
+
+	filters := make(map[uuid.UUID]types.Filter)
+	if err := json.Unmarshal(tmp_metric.Filters, &filters); err != nil {
+		return types.Metric{}, err
+	}
+
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE project_id = $1 AND name = $2", projectId, name)
+	metric = tmp_metric.Metric
+	metric.Filters = filters
+
 	return metric, err
 }
 
 func (db *DB) GetMetricById(id uuid.UUID) (types.Metric, error) {
+	var tmp_metric TmpMetric
+	err := db.Conn.Get(&tmp_metric, "SELECT * FROM metrics WHERE id = $1", id)
+
+	filters := make(map[uuid.UUID]types.Filter)
+	if err := json.Unmarshal(tmp_metric.Filters, &filters); err != nil {
+		return types.Metric{}, err
+	}
+
 	var metric types.Metric
-	err := db.Conn.Get(&metric, "SELECT * FROM metrics WHERE id = $1", id)
+	metric = tmp_metric.Metric
+	metric.Filters = filters
+
 	return metric, err
 }
 
@@ -329,10 +288,19 @@ func (db *DB) GetMetricEvents(metricId uuid.UUID, start time.Time, end time.Time
 	var events []types.MetricEvent
 	for rows.Next() {
 		var event types.MetricEvent
-		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.RelativeTotalPos, &event.RelativeTotalNeg, &event.Date, &event.RelativeEventCount, &event.EventCount)
+		var filter_list []byte
+		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.Date, &filter_list)
 		if err != nil {
 			return []types.MetricEvent{}, err
 		}
+
+		var filters []uuid.UUID
+		err = json.Unmarshal(filter_list, &filters)
+		if err != nil {
+			return []types.MetricEvent{}, err
+		}
+
+		event.Filters = filters
 		events = append(events, event)
 	}
 
@@ -350,10 +318,30 @@ func (db *DB) GetVariationEvents(metricId uuid.UUID, start time.Time, end time.T
 		ORDER BY date DESC LIMIT 1)
 	`
 
-	var events []types.MetricEvent
-	err := db.Conn.Select(&events, query, metricId, start, end)
+	rows, err := db.Conn.Query(query, metricId, start, end)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch variation events: %v", err)
+	}
+
+	defer rows.Close()
+
+	var events []types.MetricEvent
+	for rows.Next() {
+		var event types.MetricEvent
+		var filter_list []byte
+		err := rows.Scan(&event.Id, &event.MetricId, &event.ValuePos, &event.ValueNeg, &event.Date, &filter_list)
+		if err != nil {
+			return []types.MetricEvent{}, err
+		}
+
+		var filters []uuid.UUID
+		err = json.Unmarshal(filter_list, &filters)
+		if err != nil {
+			return []types.MetricEvent{}, err
+		}
+
+		event.Filters = filters
+		events = append(events, event)
 	}
 
 	return events, nil
@@ -377,5 +365,64 @@ func (db *DB) UpdateMetricLastEventTimestamp(id uuid.UUID, date time.Time) error
 
 func (db *DB) UpdateMetricUnit(id uuid.UUID, project_id uuid.UUID, unit string) error {
 	_, err := db.Conn.Exec(`UPDATE metrics SET unit = $1 WHERE id = $2 AND project_id = $3 `, unit, id, project_id)
+	return err
+}
+
+func (db *DB) AddFilters(id uuid.UUID, project_id uuid.UUID, newFilters *[]byte) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET filters = filters || $1 WHERE id = $2 AND project_id = $3", *newFilters, id, project_id)
+	return err
+}
+
+func (db *DB) DeleteFilter(id uuid.UUID, project_id uuid.UUID, filter_id uuid.UUID) error {
+	_, err := db.Conn.Exec("UPDATE metrics SET filters = filters - $1 WHERE id = $2 AND project_id = $3", filter_id, id, project_id)
+	return err
+}
+
+func (db *DB) UpdateFilterName(id uuid.UUID, project_id uuid.UUID, filter_id uuid.UUID, name string) error {
+	_, err := db.Conn.Exec(`
+		UPDATE metrics
+        SET filters = jsonb_set(
+            filters,
+            ARRAY[$1, 'name'],
+            to_jsonb($2::text)
+        )
+        WHERE filters ? $1 AND id = $3 AND project_id = $4;
+		`, filter_id, name, id, project_id)
+	return err
+}
+
+func (db *DB) UpdateCategoryName(id uuid.UUID, project_id uuid.UUID, category string, new_category string) error {
+	_, err := db.Conn.Exec(`
+		UPDATE metrics
+	    SET filters = (
+	        SELECT jsonb_object_agg(key,
+	            CASE
+	                WHEN value->>'category' = $1
+	                THEN jsonb_set(value, '{category}', to_jsonb($2::text))
+	                ELSE value
+	            END
+	        )
+	        FROM jsonb_each(filters)
+	    )
+		WHERE id = $3 AND project_id = $4
+		`, category, new_category, id, project_id)
+
+	return err
+}
+
+func (db *DB) DeleteCategory(id uuid.UUID, project_id uuid.UUID, category string) error {
+	_, err := db.Conn.Exec(`
+		UPDATE metrics
+		SET filters = COALESCE(
+		  (
+		    SELECT jsonb_object_agg(key, value)
+		    FROM jsonb_each(filters) AS elem(key, value)
+		    WHERE value->>'category' <> $1
+		  ),
+		  '{}'::jsonb
+		)
+		WHERE id = $2 AND project_id = $3
+		`, category, id, project_id)
+
 	return err
 }

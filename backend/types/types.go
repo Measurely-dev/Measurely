@@ -54,6 +54,7 @@ type User struct {
 	Image            string    `db:"image" json:"image"`
 	InvoiceStatus    int       `db:"invoice_status" json:"invoice_status"`
 	UserRole         int       `json:"user_role" db:"user_role"`
+	Verified         bool      `json:"verified" db:"verified"`
 }
 
 type UserProvider struct {
@@ -79,34 +80,29 @@ type Project struct {
 }
 
 type Metric struct {
-	Id                 uuid.UUID           `db:"id" json:"id"`
-	ProjectId          uuid.UUID           `db:"project_id" json:"project_id"`
-	Unit               string              `json:"unit" db:"unit"`
-	FilterCategory     string              `db:"filter_category" json:"filter_category"`
-	ParentMetricId     sql.Null[string]    `db:"parent_metric_id" json:"-"`
-	Name               string              `db:"name" json:"name"`
-	Type               int                 `db:"type" json:"type"`
-	EventCount         int64               `db:"event_count" json:"event_count"`
-	TotalPos           int64               `db:"total_pos" json:"total_pos"`
-	TotalNeg           int64               `db:"total_neg" json:"total_neg"`
-	NamePos            string              `db:"name_pos" json:"name_pos"`
-	NameNeg            string              `db:"name_neg" json:"name_neg"`
-	Filters            map[string][]Metric `db:"filters" json:"filters"`
-	Created            time.Time           `db:"created" json:"created"`
-	LastEventTimestamp sql.Null[time.Time] `db:"last_event_timestamp"`
-	StripeApiKey       sql.Null[string]    `db:"stripe_api_key" json:"-"`
+	Id                 uuid.UUID            `db:"id" json:"id"`
+	ProjectId          uuid.UUID            `db:"project_id" json:"project_id"`
+	Unit               string               `json:"unit" db:"unit"`
+	Name               string               `db:"name" json:"name"`
+	Type               int                  `db:"type" json:"type"`
+	EventCount         int64                `db:"event_count" json:"event_count"`
+	TotalPos           int64                `db:"total_pos" json:"total_pos"`
+	TotalNeg           int64                `db:"total_neg" json:"total_neg"`
+	NamePos            string               `db:"name_pos" json:"name_pos"`
+	NameNeg            string               `db:"name_neg" json:"name_neg"`
+	Filters            map[uuid.UUID]Filter `db:"filters" json:"filters"`
+	Created            time.Time            `db:"created" json:"created"`
+	LastEventTimestamp time.Time            `db:"last_event_timestamp" json:"last_event_timestamp"`
+	StripeApiKey       sql.Null[string]     `db:"stripe_api_key" json:"-"`
 }
 
 type MetricEvent struct {
-	Id                 uuid.UUID `db:"id" json:"id"`
-	MetricId           uuid.UUID `db:"metric_id" json:"metric_id"`
-	Date               time.Time `db:"date" json:"date"`
-	EventCount         int       `db:"event_count" json:"event_count"`
-	ValuePos           int       `db:"value_pos" json:"value_pos"`
-	ValueNeg           int       `db:"value_neg" json:"value_neg"`
-	RelativeEventCount int64     `db:"relative_event_count" json:"relative_event_count"`
-	RelativeTotalPos   int64     `db:"relative_total_pos" json:"relative_total_pos"`
-	RelativeTotalNeg   int64     `db:"relative_total_neg" json:"relative_total_neg"`
+	Id       uuid.UUID   `db:"id" json:"id"`
+	MetricId uuid.UUID   `db:"metric_id" json:"metric_id"`
+	ValuePos int         `db:"value_pos" json:"value_pos"`
+	ValueNeg int         `db:"value_neg" json:"value_neg"`
+	Date     time.Time   `db:"date" json:"date"`
+	Filters  []uuid.UUID `db:"filters" json:"filters"`
 }
 
 type AccountRecovery struct {
@@ -144,6 +140,11 @@ type TeamRelation struct {
 	Role      int       `db:"role" json:"rol"`
 }
 
+type Filter struct {
+	Name     string `json:"name"`
+	Category string `json:"category"`
+}
+
 type Blocks struct {
 	TeamRelationId sql.Null[string] `db:"team_relation_id"`
 	UserId         uuid.UUID        `db:"user_id"`
@@ -173,4 +174,14 @@ type Label struct {
 type Unit struct {
 	Name   string `json:"name"`
 	Symbol string `json:"symbol"`
+}
+
+type EmailVerification struct {
+	Id     uuid.UUID `json:"id" db:"id"`
+	UserId uuid.UUID `json:"user_id" db:"user_id"`
+}
+
+type TeamInvite struct {
+	Id     uuid.UUID `json:"id" db:"id"`
+	UserId uuid.UUID `json:"user_id" db:"user_id"`
 }
