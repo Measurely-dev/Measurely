@@ -129,7 +129,7 @@ function AdvancedOptions(props: {
                 <SelectTrigger className="h-11 border">
                   <SelectValue placeholder="Select chart type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120]">
                   <SelectGroup>
                     <SelectItem value={"default"}>Default</SelectItem>
                     <SelectItem value={"stacked"}>Stacked</SelectItem>
