@@ -17,7 +17,6 @@
 
 ![License](https://img.shields.io/badge/License-ELv2-blue?labelColor=gray&style=plastic)
 ![Open source](https://img.shields.io/badge/Open%20source-Yes-Default?labelColor=gray&style=plastic)
-![Version](https://img.shields.io/badge/Version-0.1-violet?labelColor=gray&style=plastic)
 
 Measurely is an open-source analytics platform that makes tracking, analyzing, and visualizing metrics simple. With customizable metric types, real-time insights, and easy integrations, Measurely helps developers turn data into actionable insights for any project, all while maintaining full control over the data.
 
