@@ -31,7 +31,7 @@ export default function PricingBodyComparaison() {
       action: {
         label: "Get started",
         onclick: () => {
-          router.push("/waitlist");
+          router.push("https://app.measurely.dev/waitlist");
         },
       },
     },
@@ -54,7 +54,7 @@ export default function PricingBodyComparaison() {
       action: {
         label: "Get Plus",
         onclick: () => {
-          router.push("/waitlist");
+          router.push("https://app.measurely.dev/waitlist");
         },
       },
     },
@@ -77,7 +77,7 @@ export default function PricingBodyComparaison() {
       action: {
         label: "Get Pro",
         onclick: () => {
-          router.push("/waitlist");
+          router.push("https://app.measurely.dev/waitlist");
         },
       },
     },
