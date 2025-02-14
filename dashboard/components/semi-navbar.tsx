@@ -1,9 +1,9 @@
 // Import necessary components and dependencies
-import LogoSvg from '@/components/global/logo-svg';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import Link from 'next/link';
-import { ThemeToggle } from './ui/theme-toggle';
+import LogoSvg from "@/components/global/logo-svg";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
+import { ThemeToggle } from "./ui/theme-toggle";
 
 // SemiNavbar component that renders a navigation bar with optional button
 export default function SemiNavbar(props: {
@@ -11,22 +11,22 @@ export default function SemiNavbar(props: {
   href?: any; // Link destination for the button
 }) {
   return (
-    <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-5 px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
+    <div className="ml-[40px] mt-[40px] flex w-fit items-center gap-5 px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5">
       {/* Logo and brand name link */}
-      <Link href='https://measurely.dev'>
-        <div className='flex cursor-pointer items-center gap-[10px]'>
-          <LogoSvg className='size-8 dark:invert' />
-          <div className='text-sm font-semibold max-md:hidden'>Measurely</div>
+      <Link href="https://measurely.dev">
+        <div className="flex cursor-pointer items-center gap-[10px]">
+          <LogoSvg className="size-8 dark:invert" />
+          <div className="text-sm font-semibold max-md:hidden">Measurely</div>
         </div>
       </Link>
-      <Separator className='h-5' orientation='vertical' />
-      <ThemeToggle className='my-auto' />
+      <Separator className="h-5" orientation="vertical" />
+      <ThemeToggle className="my-auto" />
       {/* Conditional rendering of button with separator */}
       {props.button === null ? null : (
         <>
-          <Separator className='h-5' orientation='vertical' />
+          <Separator className="h-5" orientation="vertical" />
           <Link href={`${props.href}`}>
-            <Button className='rounded-[12px] text-sm' variant='outline'>
+            <Button className="rounded-[12px] text-sm" variant="outline">
               {props.button}
             </Button>
           </Link>
@@ -43,20 +43,20 @@ export function AuthNavbarButton(props: {
   onClick: () => void; // Click handler for the button
 }) {
   return (
-    <div className='absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-5 px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5'>
+    <div className="absolute z-10 ml-[40px] mt-[40px] flex w-fit items-center gap-5 px-5 py-3 max-md:ml-[0px] max-md:mt-[20px] max-md:px-5">
       {/* Logo and brand name link */}
-      <Link href='https://measurely.dev'>
-        <div className='flex cursor-pointer items-center gap-[10px]'>
-          <LogoSvg className='size-8 dark:invert' />
-          <div className='text-sm font-semibold max-md:hidden'>Measurely</div>
+      <Link href="https://measurely.dev">
+        <div className="flex cursor-pointer items-center gap-[10px]">
+          <LogoSvg className="size-8 dark:invert" />
+          <div className="text-sm font-semibold max-md:hidden">Measurely</div>
         </div>
       </Link>
-      <Separator className='h-5' orientation='vertical' />
-      <ThemeToggle className='my-auto' />
-      <Separator className='h-5' orientation='vertical' />
+      <Separator className="h-5" orientation="vertical" />
+      <ThemeToggle className="my-auto" />
+      <Separator className="h-5" orientation="vertical" />
       <Button
-        className='rounded-[12px] text-sm'
-        variant='outline'
+        className="rounded-[12px] text-sm"
+        variant="outline"
         onClick={props.onClick}
       >
         {props.button}

@@ -293,7 +293,7 @@ export default function NewMetric() {
     <div className="flex flex-col h-screen overflow-y-auto">
       <div className="flex flex-col flex-grow">
         <SemiNavbar href="/" button="Dashboard" />
-        <Content className="flex flex-grow pt-[150px] pb-10">
+        <Content className="flex flex-grow pt-[50px] pb-10">
           <div className="mx-auto flex w-full max-w-[600px] flex-col px-4">
             <StepProgressBar step={step + 1} totalSteps={3} />
             {step === 0 && (
