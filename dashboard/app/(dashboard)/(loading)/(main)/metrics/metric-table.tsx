@@ -1,6 +1,6 @@
 "use client";
 // UI Component Imports
-import { Badge } from "@/components/ui/badge";
+import { Badge, BadgeColor, BadgeSign } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProjectsContext } from "@/dash-context";
 import { Metric, MetricType, UserRole } from "@/types";
@@ -151,31 +151,12 @@ export default function MetricTable(props: { search: string; filter: string }) {
 
 // Individual metric row component
 const Item = (props: { metric: Metric; index: number }) => {
-  const [dailyUpdate, setDailyUpdate] = useState<number | null>(null);
+  const [dailyUpdate, setDailyUpdate] = useState<number>(0);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { projects, activeProject } = useContext(ProjectsContext);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [value, setValue] = useState<number>(0);
-
-  // Determines badge color based on value
-  const todayBadgeColor = (v: number | null) => {
-    if (v === null || v === 0) return "";
-    return v > 0
-      ? "bg-green-100 border-green-500 dark:bg-green-500/30 dark:text-green-500 text-green-600"
-      : "bg-red-100 border-red-500 dark:bg-red-500/30 dark:text-red-500 text-red-600";
-  };
-
-  // Determines if a plus sign should be shown before positive values
-  const todayBadgeSign = (v: number | null) => {
-    if (v === null || v === 0 || v < 0)
-      return <Minus className="-ml-0.5 size-4" aria-hidden={true} />;
-    return v < 0 ? (
-      <ArrowDown className="-ml-0.5 size-4" aria-hidden={true} />
-    ) : (
-      <ArrowUp className="-ml-0.5 size-4" aria-hidden={true} />
-    );
-  };
 
   // Fetches and updates metric data
   const load = async () => {
@@ -193,8 +174,7 @@ const Item = (props: { metric: Metric; index: number }) => {
       setValue(
         props.metric.event_count === 0
           ? 0
-          : (props.metric.total) /
-              props.metric.event_count,
+          : props.metric.total / props.metric.event_count,
       );
     } else {
       setDailyUpdate(calculateEventUpdate(data, props.metric));
@@ -243,12 +223,12 @@ const Item = (props: { metric: Metric; index: number }) => {
         <TableCell>
           <div className="flex items-center">
             <Badge
-              className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${todayBadgeColor(
+              className={`pointer-events-none h-fit w-fit rounded-[6px] bg-zinc-500/10 font-medium text-zinc-500 shadow-none ${BadgeColor(
                 dailyUpdate,
               )}}`}
             >
-              {todayBadgeSign(dailyUpdate)}
-              {valueFormatter(dailyUpdate === null ? 0 : dailyUpdate) + " %"}
+              {BadgeSign(dailyUpdate)}
+              {valueFormatter(Math.abs(dailyUpdate))} %
             </Badge>
           </div>
         </TableCell>

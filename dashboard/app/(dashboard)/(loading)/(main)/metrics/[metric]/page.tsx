@@ -91,25 +91,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ca } from "date-fns/locale";
-
-// Determines if a plus sign should be shown before positive values
-const todayBadgeSign = (v: number | null) => {
-  if (v === null || v === 0 || v < 0)
-    return <Minus className="-ml-0.5 size-4" aria-hidden={true} />;
-  return v < 0 ? (
-    <ArrowDown className="-ml-0.5 size-4" aria-hidden={true} />
-  ) : (
-    <ArrowUp className="-ml-0.5 size-4" aria-hidden={true} />
-  );
-};
-
-const todayBadgeColor = (v: number | null) => {
-  if (v === null || v === 0) return "border-input bg-zinc-500/10 text-zinc-500";
-  return v > 0
-    ? "bg-green-100 border-green-500 dark:bg-green-500/30 dark:text-green-500 text-green-600"
-    : "bg-red-100 border-red-500 dark:bg-red-500/30 dark:text-red-500 text-red-600";
-};
+import { BadgeColor, BadgeSign } from "@/components/ui/badge";
 
 // Main component for the dashboard metric page
 export default function DashboardMetricPage() {
@@ -395,10 +377,10 @@ export default function DashboardMetricPage() {
                 <div>
                   <div className="flex flex-wrap justify-center gap-4">
                     <span
-                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${todayBadgeColor(dailyUpdate)}`}
+                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${BadgeColor(dailyUpdate)}`}
                     >
-                      {todayBadgeSign(dailyUpdate)}
-                      {dailyUpdate} %
+                      {BadgeSign(dailyUpdate)}
+                      {Math.abs(dailyUpdate)} %
                     </span>
                   </div>
                 </div>
@@ -549,7 +531,6 @@ function Chart(props: {
 
   const config = useMemo(() => {
     if (props.metric?.type === MetricType.Dual) {
-      console.log("hey");
       return {
         [props.metric?.name ?? ""]: {
           label: props.metric?.name ?? "",
