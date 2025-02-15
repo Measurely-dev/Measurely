@@ -592,8 +592,6 @@ function BlockContent(props: Block & { groupkey?: string }) {
         ),
       ) as ChartPoint[];
 
-      console.log(combined);
-
       setChartData(combined);
     };
 

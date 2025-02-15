@@ -5,7 +5,6 @@ export function calculatePrice(
   quantity: number,
   cycle: "month" | "year",
 ): number {
-  console.log(cycle);
   let n = 0;
   const baseQuantity = 10000;
 

@@ -133,7 +133,6 @@ const DualMetricInputs = ({
   nameNeg,
   setNameNeg,
 }: any) => {
-  console.log(namingType);
   return (
     <>
       <Label className="flex flex-col gap-3">

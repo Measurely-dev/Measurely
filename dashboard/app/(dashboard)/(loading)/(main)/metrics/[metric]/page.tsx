@@ -495,10 +495,10 @@ function Chart(props: {
     return processMetricEvents(
       activeFilterId,
       metricEvents,
-      props.type,
       "D",
       date?.from,
       props.metric,
+      props.type === "trend",
     );
   }, [metricEvents]);
 
