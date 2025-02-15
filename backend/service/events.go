@@ -120,9 +120,10 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 
 	// Parse and validate request
 	var request struct {
-		Value   int               `json:"value"`
+		Value   float32           `json:"value"`
 		Filters map[string]string `json:"filters"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -187,11 +188,11 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Process value
-	pos, neg := 0, 0
+	var pos, neg int32 = 0, 0
 	if request.Value > 0 {
-		pos = request.Value
+		pos = int32(request.Value * 100)
 	} else {
-		neg = -request.Value
+		neg = -int32(request.Value * 100)
 	}
 
 	// Update metric

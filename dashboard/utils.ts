@@ -74,6 +74,11 @@ export async function loadMetrics(project_id: string): Promise<Metric[]> {
   const json = await res.json();
   if (!json) return [];
 
+  for (let i = 0; i < json.length; i++) {
+    const metric = json[i] as Metric;
+    metric.total /= 100;
+  }
+
   // Apply names to nested filters
   return json;
 }
@@ -126,7 +131,10 @@ export const fetchMetricEvents = async (
   if (!events) return [];
   events.forEach((event) => {
     if (!event.filters) event.filters = [];
+    event.value_pos /= 100;
+    event.value_neg /= 100;
   });
+
   return events;
 };
 
@@ -372,7 +380,7 @@ function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
  */
 export const parseXAxis = (value: Date, precision: ChartPrecision): string => {
   const hour = value.getHours();
-  if (precision === "D") return `${hour < 10 ? '0' + hour.toString(): hour} H`;
+  if (precision === "D") return `${hour < 10 ? "0" + hour.toString() : hour} H`;
   if (precision === "W") return `${getDaysFromDate(value)}`;
   if (precision === "M" || precision === "15D")
     return `${getMonthsFromDate(value)} ${value.getDate()}`;
@@ -499,7 +507,7 @@ export const calculateEventUpdate = (
     total_update += event.value_pos - event.value_neg;
   });
 
-  const previous_total = metric.total_pos - metric.total_neg - total_update;
+  const previous_total = metric.total - total_update;
 
   if (total_update === 0) return 0;
   if (previous_total === 0) {
@@ -525,16 +533,13 @@ export const calculateAverageUpdate = (
     total_update += event.value_pos - event.value_neg;
   });
 
-  const previous_total = metric.total_pos - metric.total_neg - total_update;
+  const previous_total = metric.total - total_update;
   const previous_event_count = metric.event_count - event_count_update;
   const previous_average = calculateAverage(
     previous_total,
     previous_event_count,
   );
-  const current_average = calculateAverage(
-    metric.total_pos - metric.total_neg,
-    metric.event_count,
-  );
+  const current_average = calculateAverage(metric.total, metric.event_count);
 
   const average_update = current_average - previous_average;
 

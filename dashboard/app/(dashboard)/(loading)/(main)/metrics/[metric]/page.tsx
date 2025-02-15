@@ -154,13 +154,11 @@ export default function DashboardMetricPage() {
     if (metric.type === MetricType.Average) {
       setDailyUpdate(calculateAverageUpdate(data, metric));
       setValue(
-        metric.event_count === 0
-          ? 0
-          : (metric.total_pos - metric.total_neg) / metric.event_count,
+        metric.event_count === 0 ? 0 : metric.total / metric.event_count,
       );
     } else {
       setDailyUpdate(calculateEventUpdate(data, metric));
-      setValue(metric.total_pos - metric.total_neg);
+      setValue(metric.total);
     }
   };
 
@@ -561,8 +559,6 @@ function Chart(props: {
       color: `hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`,
     },
   } satisfies ChartConfig;
-
-  console.log(chartData);
 
   return (
     <>

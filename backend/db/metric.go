@@ -54,8 +54,8 @@ func (db *DB) DeleteMetric(id, projectId uuid.UUID) error {
 func (db *DB) UpdateMetricAndCreateEvent(
 	metricId uuid.UUID,
 	projectId uuid.UUID,
-	toAdd int,
-	toRemove int,
+	toAdd int32,
+	toRemove int32,
 	filters *map[string]string,
 ) (error, int) {
 	tx, err := db.Conn.Beginx()
@@ -68,10 +68,11 @@ func (db *DB) UpdateMetricAndCreateEvent(
 	var metricType int
 	var filtersData []byte
 
+	log.Println(toAdd, toRemove)
+
 	err = tx.QueryRowx(`
 		UPDATE metrics
-		SET total_pos = total_pos + $1,
-			total_neg = total_neg + $2,
+		SET total = total + ( CAST($1 AS BIGINT) - CAST($2 AS BIGINT) ),
 			event_count = event_count + 1,
 			last_event_timestamp = $3
 		WHERE id = $4
@@ -122,7 +123,7 @@ func (db *DB) UpdateMetricAndCreateEvent(
 
 	_, err = tx.Exec(`
 		INSERT INTO metric_events ( metric_id, value_pos, value_neg, date, filters)
-		VALUES ($1, $2, $3,$4, $5)
+		VALUES ($1, $2, $3, $4, $5)
 	`, metricId, toAdd, toRemove, now, marshaled_filters)
 
 	if err != nil {

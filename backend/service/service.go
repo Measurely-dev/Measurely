@@ -1717,7 +1717,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 				if err == nil {
 					resp, err := http.DefaultClient.Do(req)
 					if err == nil && resp.StatusCode == 200 {
-						metric.TotalPos = request.BaseValue
+						metric.Total = request.BaseValue
 					}
 				}
 			}

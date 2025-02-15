@@ -86,8 +86,7 @@ type Metric struct {
 	Name               string               `db:"name" json:"name"`
 	Type               int                  `db:"type" json:"type"`
 	EventCount         int64                `db:"event_count" json:"event_count"`
-	TotalPos           int64                `db:"total_pos" json:"total_pos"`
-	TotalNeg           int64                `db:"total_neg" json:"total_neg"`
+	Total              int64                `db:"total" json:"total"`
 	NamePos            string               `db:"name_pos" json:"name_pos"`
 	NameNeg            string               `db:"name_neg" json:"name_neg"`
 	Filters            map[uuid.UUID]Filter `db:"filters" json:"filters"`
@@ -99,8 +98,8 @@ type Metric struct {
 type MetricEvent struct {
 	Id       uuid.UUID   `db:"id" json:"id"`
 	MetricId uuid.UUID   `db:"metric_id" json:"metric_id"`
-	ValuePos int         `db:"value_pos" json:"value_pos"`
-	ValueNeg int         `db:"value_neg" json:"value_neg"`
+	ValuePos int32       `db:"value_pos" json:"value_pos"`
+	ValueNeg int32       `db:"value_neg" json:"value_neg"`
 	Date     time.Time   `db:"date" json:"date"`
 	Filters  []uuid.UUID `db:"filters" json:"filters"`
 }

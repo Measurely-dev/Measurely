@@ -30,8 +30,7 @@ export interface Metric {
   name: string; // Metric name
   type: MetricType; // Type of metric
   event_count: number; // Total number of events
-  total_pos: number; // Total positive value
-  total_neg: number; // Total negative value
+  total: number; // Total negative value shifted by 2 places for decimal precision
   name_pos: string; // Label for positive values
   name_neg: string; // Label for negative values
   filters: Record<string, Filter>;
