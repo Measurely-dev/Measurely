@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	netmail "net/mail"
 	"os"
@@ -211,4 +212,23 @@ func SetupCacheControl(w http.ResponseWriter, maxAge int) {
 		maxAgeStr := strconv.Itoa(maxAge)
 		w.Header().Set("Cache-Control", "max-age="+maxAgeStr+", public")
 	}
+}
+
+func CalculateSubscriptionPrice(max_events int, base_price int, plan_name string, subscrition_type int) float32 {
+	n := float32(0)
+	baseQuantity := float32(10000)
+	if plan_name == "plus" {
+		n = 0.41
+	} else if plan_name == "pro" {
+		n = 0.378
+	}
+
+	k := float64(base_price) / math.Pow(float64(baseQuantity), float64(n))
+	price := k * math.Pow(float64(max_events), float64(n))
+
+	if subscrition_type == types.SUBSCRIPTION_YEARLY {
+		price *= 0.8
+	}
+
+	return float32(math.Round(price*100) / 100)
 }

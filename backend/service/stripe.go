@@ -18,6 +18,7 @@ import (
 	"github.com/stripe/stripe-go/v79"
 	bilsession "github.com/stripe/stripe-go/v79/billingportal/session"
 	"github.com/stripe/stripe-go/v79/checkout/session"
+	"github.com/stripe/stripe-go/v79/price"
 	"github.com/stripe/stripe-go/v79/subscription"
 )
 
@@ -134,42 +135,9 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Determine price ID based on subscription type
-	var priceid string
-	if request.SubscriptionType == types.SUBSCRIPTION_YEARLY {
-		priceid = plan.YearlyPriceId
-	} else {
-		priceid = plan.MonthlyPriceId
-	}
-
 	// Set max events for starter plan
 	if request.Plan == "starter" {
 		request.MaxEvent = s.plans["starter"].MaxEventPerMonth
-	}
-
-	// Configure Stripe checkout session parameters
-	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(GetOrigin()),
-		CancelURL:  stripe.String(GetOrigin()),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				Price:    stripe.String(priceid),
-				Quantity: stripe.Int64(int64(request.MaxEvent)),
-			},
-		},
-		Mode:     stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		Customer: stripe.String(user.StripeCustomerId),
-		Metadata: map[string]string{"plan": request.Plan, "priceid": priceid, "projectid": project.Id.String(), "maxevent": strconv.Itoa(request.MaxEvent)},
-		ConsentCollection: &stripe.CheckoutSessionConsentCollectionParams{
-			PaymentMethodReuseAgreement: &stripe.CheckoutSessionConsentCollectionPaymentMethodReuseAgreementParams{
-				Position: stripe.String(string(stripe.CheckoutSessionConsentCollectionPaymentMethodReuseAgreementPositionHidden)),
-			},
-		},
-		CustomText: &stripe.CheckoutSessionCustomTextParams{
-			AfterSubmit: &stripe.CheckoutSessionCustomTextAfterSubmitParams{
-				Message: stripe.String("You can cancel your subscription at any time in your Measurely dashboard."),
-			},
-		},
 	}
 
 	// Handle starter plan subscription
@@ -202,8 +170,42 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			ButtonTitle: "View Dashboard",
 		})
 	} else {
+
+		calculated_price := CalculateSubscriptionPrice(request.MaxEvent, plan.BasePrice, request.Plan, request.SubscriptionType)
+
+		priceParams := &stripe.PriceParams{
+			UnitAmount: stripe.Int64(int64(calculated_price)), // Calculated price
+			Currency:   stripe.String(string(stripe.CurrencyUSD)),
+			Product:    stripe.String(plan.ProductID), // Product ID
+			Recurring: &stripe.PriceRecurringParams{
+				Interval: stripe.String(string(stripe.PriceRecurringIntervalMonth)), // Monthly billing
+			},
+		}
+
+		price, err := price.New(priceParams)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error. Failed to create checkout session", http.StatusInternalServerError)
+			return
+		}
+
+		checkoutSessionParams := &stripe.CheckoutSessionParams{
+			PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
+			LineItems: []*stripe.CheckoutSessionLineItemParams{
+				{
+					Price:    stripe.String(price.ID), // Use the price created above
+					Quantity: stripe.Int64(1),         // Usually 1 for the subscription
+				},
+			},
+			Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)), // Subscription mode
+			SuccessURL: stripe.String(GetOrigin()),
+			CancelURL:  stripe.String(GetOrigin()),
+			Customer:   stripe.String(user.StripeCustomerId),
+			Metadata:   map[string]string{"plan": request.Plan, "projectid": project.Id.String(), "maxevent": strconv.Itoa(request.MaxEvent)},
+		}
+
 		// Create checkout session for paid plans
-		new_session, err := session.New(params)
+		new_session, err := session.New(checkoutSessionParams)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error. Failed to create checkout session", http.StatusInternalServerError)
@@ -223,7 +225,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		SetupCacheControl(w, 0)
 		w.Write(bytes)
 		w.Header().Set("Content-Type", "application/json")
-					
+
 	}
 }
 

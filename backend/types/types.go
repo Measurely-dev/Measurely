@@ -124,8 +124,8 @@ type Feedback struct {
 
 type Plan struct {
 	Name             string `json:"name"`
-	MonthlyPriceId   string `json:"-"`
-	YearlyPriceId    string `json:"-"`
+	ProductID        string `json:"product_id"`
+	BasePrice        int    `json:"base_price"`
 	MetricLimit      int    `json:"metric_limit"`
 	TeamMemberLimit  int    `json:"team_member_limit"`
 	Range            int    `json:"range"`
