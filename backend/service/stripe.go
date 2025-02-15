@@ -223,6 +223,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		SetupCacheControl(w, 0)
 		w.Write(bytes)
 		w.Header().Set("Content-Type", "application/json")
+					
 	}
 }
 
@@ -346,15 +347,6 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 		s.db.ResetProjectsMonthlyEventCount(user.Id)
 		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_ACTIVE)
 
-		// Notify user via email
-		go s.email.SendEmail(email.MailFields{
-			To:          user.Email,
-			Subject:     "Invoice Paid",
-			Content:     "Your invoice has been successfully paid. Amount Paid: US$" + strconv.FormatFloat(float64(invoice.AmountPaid)/100, 'f', 2, 64),
-			Link:        GetOrigin(),
-			ButtonTitle: "View Dashboard",
-		})
-
 	case "invoice.payment_failed":
 		// Process failed payment
 		var invoice stripe.Invoice
@@ -380,15 +372,6 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 
 		// Update invoice status
 		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_FAILED)
-
-		// Notify user via email
-		go s.email.SendEmail(email.MailFields{
-			To:          user.Email,
-			Subject:     "Invoice Failed",
-			Content:     "Your invoice payment has failed. Amount Due: US$" + strconv.FormatFloat(float64(invoice.AmountDue)/100, 'f', 2, 64) + "<br> Some features will be temporarly locked until this is resolved.",
-			Link:        GetOrigin(),
-			ButtonTitle: "View Dashboard",
-		})
 
 	default:
 	}

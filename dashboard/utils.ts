@@ -371,7 +371,8 @@ function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
  * Formats date for X-axis display
  */
 export const parseXAxis = (value: Date, precision: ChartPrecision): string => {
-  if (precision === "D") return `${value.getHours()} H`;
+  const hour = value.getHours();
+  if (precision === "D") return `${hour < 10 ? '0' + hour.toString(): hour} H`;
   if (precision === "W") return `${getDaysFromDate(value)}`;
   if (precision === "M" || precision === "15D")
     return `${getMonthsFromDate(value)} ${value.getDate()}`;

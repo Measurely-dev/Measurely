@@ -14,11 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import {
-  colors,
-  dualColors,
-  MetricType,
-} from "@/types";
+import { colors, dualColors, MetricType } from "@/types";
 import {
   Dispatch,
   ReactNode,
@@ -168,18 +164,17 @@ function AdvancedOptions(props: {
                 }}
               >
                 <SelectTrigger className="h-11 border">
-                  <ColorItem name={colors[props.chartColor].name} index={colors[props.chartColor].index}/>
+                  <ColorItem
+                    name={colors[props.chartColor].name}
+                    index={colors[props.chartColor].index}
+                  />
                 </SelectTrigger>
                 <SelectContent className="z-[120]">
                   <SelectGroup>
                     {colors.map((color, i) => {
                       return (
-                        <SelectItem
-                          key={i}
-                          value={i.toString()}
-                        >
-                          
-                          <ColorItem name={color.name} index={color.index}/>
+                        <SelectItem key={i} value={i.toString()}>
+                          <ColorItem name={color.name} index={color.index} />
                         </SelectItem>
                       );
                     })}
@@ -217,20 +212,20 @@ function AdvancedOptions(props: {
   );
 }
 
-
-function ColorItem(props : {name : string, index : number}) {
-  
-  return                   <div className="flex flex-row capitalize items-center gap-2">
-                      <div className="flex gap-1">
-                        <div
-                          className="size-2 rounded-full"
-                          style={{
-                            backgroundColor: `hsl(var(--chart-${props.index.toString()}))`,
-                          }}
-                        />
-                      </div>
-                      {props.name}
-                    </div>
+function ColorItem(props: { name: string; index: number }) {
+  return (
+    <div className="flex flex-row capitalize items-center gap-2">
+      <div className="flex gap-1">
+        <div
+          className="size-2 rounded-full"
+          style={{
+            backgroundColor: `hsl(var(--chart-${props.index.toString()}))`,
+          }}
+        />
+      </div>
+      {props.name}
+    </div>
+  );
 }
 
 export default AdvancedOptions;

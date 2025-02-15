@@ -751,31 +751,25 @@ function Chart(props: {
                     }
                   />
 
-                  {props.metric?.type === MetricType.Dual ? (
-                    <>
-                      <Area
-                        dataKey={props.metric?.name_pos ?? ""}
-                        type="linear"
-                        fill={`hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`}
-                        fillOpacity={0.4}
-                        stroke={`hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`}
-                      />
+                  <Area
+                    dataKey={
+                      (props.metric?.type === MetricType.Dual
+                        ? props.metric?.name_pos
+                        : props.metric?.name) ?? ""
+                    }
+                    type="linear"
+                    fill={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
+                    fillOpacity={0.05}
+                    stroke={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
+                  />
 
-                      <Area
-                        dataKey={props.metric?.name_neg ?? ""}
-                        type="linear"
-                        fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
-                        fillOpacity={0.4}
-                        stroke={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
-                      />
-                    </>
-                  ) : (
+                  {props.metric?.type === MetricType.Dual && (
                     <Area
-                      dataKey={props.metric?.name ?? "value"}
+                      dataKey={props.metric?.name_neg ?? ""}
                       type="linear"
-                      fill={`hsl(var(--chart-${colors[chartColor].index}))`}
-                      fillOpacity={0.4}
-                      stroke={`hsl(var(--chart-${colors[chartColor].index}))`}
+                      fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                      fillOpacity={0.05}
+                      stroke={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
                     />
                   )}
                   <ChartLegend content={<ChartLegendContent />} />
@@ -825,44 +819,30 @@ function Chart(props: {
                       />
                     }
                   />
-                  {props.metric?.type === MetricType.Dual ? (
-                    <>
-                      <Bar
-                        dataKey={props.metric?.name_pos ?? ""}
-                        fill={`hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`}
-                        radius={[8, 8, 0, 0]}
-                      >
-                        <LabelList
-                          position="top"
-                          offset={12}
-                          className="fill-foreground"
-                          fontSize={12}
-                          formatter={(value: number) =>
-                            value === 0 ? "" : value
-                          }
-                        />
-                      </Bar>
-                      <Bar
-                        dataKey={props.metric?.name_neg ?? ""}
-                        fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
-                        radius={8}
-                      >
-                        <LabelList
-                          position="top"
-                          offset={12}
-                          className="fill-foreground"
-                          fontSize={12}
-                          formatter={(value: number) =>
-                            value === 0 ? "" : value
-                          }
-                        />
-                      </Bar>
-                    </>
-                  ) : (
+
+                  <Bar
+                    dataKey={
+                      (props.metric?.type === MetricType.Dual
+                        ? props.metric?.name_pos
+                        : props.metric?.name) ?? ""
+                    }
+                    fill={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
+                    radius={[4, 4, 0, 0]}
+                  >
+                    <LabelList
+                      position="top"
+                      offset={12}
+                      className="fill-foreground"
+                      fontSize={12}
+                      formatter={(value: number) => (value === 0 ? "" : value)}
+                    />
+                  </Bar>
+
+                  {props.metric?.type === MetricType.Dual && (
                     <Bar
-                      dataKey={props.metric?.name ?? ""}
-                      fill={`hsl(var(--chart-${colors[chartColor].index}))`}
-                      radius={[8, 8, 0, 0]}
+                      dataKey={props.metric?.name_neg ?? ""}
+                      fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                      radius={[4, 4, 0, 0]}
                     >
                       <LabelList
                         position="top"
