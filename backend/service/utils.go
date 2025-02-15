@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"net/http"
 	netmail "net/mail"
@@ -215,16 +216,18 @@ func SetupCacheControl(w http.ResponseWriter, maxAge int) {
 }
 
 func CalculateSubscriptionPrice(max_events int, base_price int, plan_name string, subscrition_type int) float32 {
-	n := float32(0)
-	baseQuantity := float32(10000)
+	n := float64(0)
+	baseQuantity := 10000
 	if plan_name == "plus" {
 		n = 0.41
 	} else if plan_name == "pro" {
 		n = 0.378
 	}
 
-	k := float64(base_price) / math.Pow(float64(baseQuantity), float64(n))
-	price := k * math.Pow(float64(max_events), float64(n))
+	log.Println(base_price, baseQuantity, n, max_events)
+
+	k := float64(base_price) / math.Pow(float64(baseQuantity), n)
+	price := k * math.Pow(float64(max_events), n)
 
 	if subscrition_type == types.SUBSCRIPTION_YEARLY {
 		price *= 0.8

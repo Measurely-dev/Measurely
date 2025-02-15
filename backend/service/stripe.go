@@ -86,7 +86,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 	// Define subscription request structure
 	var request struct {
 		Plan             string    `json:"plan"`
-		MaxEvent         int       `json:"max_events"`
+		MaxEvents        int       `json:"max_events"`
 		ProjectId        uuid.UUID `json:"project_id"`
 		SubscriptionType int       `json:"subscription_type"`
 	}
@@ -137,7 +137,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	// Set max events for starter plan
 	if request.Plan == "starter" {
-		request.MaxEvent = s.plans["starter"].MaxEventPerMonth
+		request.MaxEvents = s.plans["starter"].MaxEventPerMonth
 	}
 
 	// Handle starter plan subscription
@@ -171,10 +171,10 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 		})
 	} else {
 
-		calculated_price := CalculateSubscriptionPrice(request.MaxEvent, plan.BasePrice, request.Plan, request.SubscriptionType)
+		calculated_price := CalculateSubscriptionPrice(request.MaxEvents, plan.BasePrice, request.Plan, request.SubscriptionType)
 
 		priceParams := &stripe.PriceParams{
-			UnitAmount: stripe.Int64(int64(calculated_price)), // Calculated price
+			UnitAmount: stripe.Int64(int64(calculated_price * 100)), // Calculated price
 			Currency:   stripe.String(string(stripe.CurrencyUSD)),
 			Product:    stripe.String(plan.ProductID), // Product ID
 			Recurring: &stripe.PriceRecurringParams{
@@ -201,7 +201,7 @@ func (s *Service) Subscribe(w http.ResponseWriter, r *http.Request) {
 			SuccessURL: stripe.String(GetOrigin()),
 			CancelURL:  stripe.String(GetOrigin()),
 			Customer:   stripe.String(user.StripeCustomerId),
-			Metadata:   map[string]string{"plan": request.Plan, "projectid": project.Id.String(), "maxevent": strconv.Itoa(request.MaxEvent)},
+			Metadata:   map[string]string{"plan": request.Plan, "project_id": project.Id.String(), "max_events": strconv.Itoa(request.MaxEvents)},
 		}
 
 		// Create checkout session for paid plans
@@ -281,7 +281,7 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		projectid, err := uuid.Parse(session.Metadata["projectid"])
+		projectid, err := uuid.Parse(session.Metadata["project_id"])
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Invalid project id", http.StatusBadRequest)
@@ -305,8 +305,15 @@ func (s *Service) Webhook(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		max_events, err := strconv.Atoi(session.Metadata["max_events"])
+		if err != nil {
+			log.Println("Failed to parse max_events: ", err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+
 		// Update project plan and metrics
-		s.db.UpdateProjectPlan(project.Id, session.Metadata["plan"], session.Subscription.ID, int(session.LineItems.Data[0].Quantity))
+		s.db.UpdateProjectPlan(project.Id, session.Metadata["plan"], session.Subscription.ID, max_events)
 		s.db.UpdateUserInvoiceStatus(user.Id, types.INVOICE_ACTIVE)
 		s.projectsCache.Delete(project.ApiKey)
 
