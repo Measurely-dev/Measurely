@@ -279,11 +279,10 @@ const processEventChart = (
         }
       });
 
+      point[metric.name] = total_pos - total_neg;
       if (metric.type === MetricType.Dual) {
         point[metric.name_pos] = total_pos;
         point[metric.name_neg] = total_neg;
-      } else {
-        point[metric.name] = total_pos - total_neg;
       }
     }
   });

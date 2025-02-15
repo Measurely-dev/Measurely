@@ -569,14 +569,7 @@ function BlockContent(props: Block & { groupkey?: string }) {
         else if (range === 15) precision = "15D";
         else if (range === 30) precision = "M";
 
-        return processMetricEvents(
-          null,
-          data,
-          "event",
-          precision,
-          start,
-          metric,
-        );
+        return processMetricEvents(null, data, precision, start, metric, false);
       });
 
       const results = await Promise.all(promises);

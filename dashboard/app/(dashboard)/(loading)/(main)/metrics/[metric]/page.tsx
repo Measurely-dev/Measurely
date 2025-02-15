@@ -59,6 +59,7 @@ import {
   Loader,
   Minus,
   Sliders,
+  Split,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { cloneElement, useContext, useEffect, useMemo, useState } from "react";
@@ -90,6 +91,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ca } from "date-fns/locale";
 
 // Determines if a plus sign should be shown before positive values
 const todayBadgeSign = (v: number | null) => {
@@ -545,20 +547,32 @@ function Chart(props: {
     };
   };
 
-  const config = {
-    [props.metric?.name ?? ""]: {
-      label: props.metric?.name ?? "",
-      color: `hsl(var(--chart-${colors[chartColor].index}))`,
-    },
-    [props.metric?.name_pos ?? ""]: {
-      label: props.metric?.name_pos ?? "",
-      color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
-    },
-    [props.metric?.name_neg ?? ""]: {
-      label: props.metric?.name_neg ?? "",
-      color: `hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`,
-    },
-  } satisfies ChartConfig;
+  const config = useMemo(() => {
+    if (props.metric?.type === MetricType.Dual) {
+      console.log("hey");
+      return {
+        [props.metric?.name ?? ""]: {
+          label: props.metric?.name ?? "",
+          color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
+        },
+        [props.metric?.name_pos ?? ""]: {
+          label: props.metric?.name_pos ?? "",
+          color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
+        },
+        [props.metric?.name_neg ?? ""]: {
+          label: props.metric?.name_neg ?? "",
+          color: `hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`,
+        },
+      } satisfies ChartConfig;
+    } else {
+      return {
+        [props.metric?.name ?? ""]: {
+          label: props.metric?.name ?? "",
+          color: `hsl(var(--chart-${colors[chartColor].index}))`,
+        },
+      } satisfies ChartConfig;
+    }
+  }, [chartColor]);
 
   return (
     <>
@@ -749,7 +763,8 @@ function Chart(props: {
 
                   <Area
                     dataKey={
-                      (props.metric?.type === MetricType.Dual
+                      (props.metric?.type === MetricType.Dual &&
+                      splitTrendChecked
                         ? props.metric?.name_pos
                         : props.metric?.name) ?? ""
                     }
@@ -759,15 +774,16 @@ function Chart(props: {
                     stroke={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
                   />
 
-                  {props.metric?.type === MetricType.Dual && (
-                    <Area
-                      dataKey={props.metric?.name_neg ?? ""}
-                      type="linear"
-                      fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
-                      fillOpacity={0.05}
-                      stroke={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
-                    />
-                  )}
+                  {props.metric?.type === MetricType.Dual &&
+                    splitTrendChecked && (
+                      <Area
+                        dataKey={props.metric?.name_neg ?? ""}
+                        type="linear"
+                        fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                        fillOpacity={0.05}
+                        stroke={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                      />
+                    )}
                   <ChartLegend content={<ChartLegendContent />} />
                 </AreaChart>
               </ChartContainer>
