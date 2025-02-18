@@ -69,13 +69,21 @@ const metaConfig = {
       pagination: false,
     },
     items: {
+      "4": {
+        display: "hidden",
+        title: "",
+        theme: {
+          typesetting: "default",
+          layout: "full",
+          toc: true,
+        },
+      },
       "3": {
         display: "hidden",
         title: "",
         theme: {
           typesetting: "default",
           layout: "full",
-          timestamp: true,
           toc: true,
         },
       },
@@ -84,7 +92,6 @@ const metaConfig = {
         theme: {
           typesetting: "default",
           layout: "full",
-          timestamp: true,
           toc: true,
         },
       },
@@ -93,7 +100,6 @@ const metaConfig = {
         theme: {
           typesetting: "default",
           layout: "full",
-          timestamp: true,
           toc: true,
         },
       },
