@@ -1,8 +1,8 @@
 // Tremor ComboChart [v0.0.0]
 
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 import {
   Bar,
   CartesianGrid,
@@ -15,8 +15,8 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
-import { AxisDomain } from 'recharts/types/util/types';
+} from "recharts";
+import { AxisDomain } from "recharts/types/util/types";
 
 import {
   AvailableChartColors,
@@ -25,18 +25,18 @@ import {
   getColorClassName,
   getYAxisDomain,
   hasOnlyOneValueForKey,
-} from '@/lib/chartUtils';
-import { useOnWindowResize } from '@/lib/onWindowResize';
-import { cx } from '@/lib/utils';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+} from "@/lib/chartUtils";
+import { useOnWindowResize } from "@/lib/onWindowResize";
+import { cx } from "@/lib/utils";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 //#region Shape
 function deepEqual<T>(obj1: T, obj2: T): boolean {
   if (obj1 === obj2) return true;
 
   if (
-    typeof obj1 !== 'object' ||
-    typeof obj2 !== 'object' ||
+    typeof obj1 !== "object" ||
+    typeof obj2 !== "object" ||
     obj1 === null ||
     obj2 === null
   ) {
@@ -94,7 +94,7 @@ interface LegendItemProps {
   color: AvailableChartColorsKeys;
   onClick?: (name: string, color: AvailableChartColorsKeys) => void;
   activeLegend?: string;
-  chartType: 'bar' | 'line';
+  chartType: "bar" | "line";
 }
 
 const LegendItem = ({
@@ -105,16 +105,16 @@ const LegendItem = ({
   chartType,
 }: LegendItemProps) => {
   const hasOnValueChange = !!onClick;
-  const colorClass = getColorClassName(color, 'bg');
+  const colorClass = getColorClassName(color, "bg");
 
   return (
     <li
       className={cx(
         // base
-        'group inline-flex flex-nowrap items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 transition',
+        "group inline-flex flex-nowrap items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 transition",
         hasOnValueChange
-          ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800'
-          : 'cursor-default',
+          ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+          : "cursor-default",
       )}
       onClick={(e) => {
         e.stopPropagation();
@@ -123,25 +123,25 @@ const LegendItem = ({
     >
       <span
         className={cx(
-          { 'size-2 rounded-sm': chartType === 'bar' },
+          { "size-2 rounded-sm": chartType === "bar" },
           {
-            'h-[3px] w-3.5 shrink-0 rounded-full': chartType === 'line',
+            "h-[3px] w-3.5 shrink-0 rounded-full": chartType === "line",
           },
-          'shrink-0',
+          "shrink-0",
           colorClass,
-          activeLegend && activeLegend !== name ? 'opacity-40' : 'opacity-100',
+          activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
         aria-hidden={true}
       />
       <p
         className={cx(
           // base
-          'truncate whitespace-nowrap text-xs',
+          "truncate whitespace-nowrap text-xs",
           // text color
-          'text-gray-700 dark:text-gray-300',
+          "text-gray-700 dark:text-gray-300",
           hasOnValueChange &&
-            'group-hover:text-gray-900 dark:group-hover:text-gray-50',
-          activeLegend && activeLegend !== name ? 'opacity-40' : 'opacity-100',
+            "group-hover:text-gray-900 dark:group-hover:text-gray-50",
+          activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
       >
         {name}
@@ -181,13 +181,13 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
 
   return (
     <button
-      type='button'
+      type="button"
       className={cx(
         // base
-        'group inline-flex size-5 items-center truncate rounded transition',
+        "group inline-flex size-5 items-center truncate rounded transition",
         disabled
-          ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
-          : 'cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50',
+          ? "cursor-not-allowed text-gray-400 dark:text-gray-600"
+          : "cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50",
       )}
       disabled={disabled}
       onClick={(e) => {
@@ -203,13 +203,13 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
         setIsPressed(false);
       }}
     >
-      <Icon className='size-full' aria-hidden='true' />
+      <Icon className="size-full" aria-hidden="true" />
     </button>
   );
 };
 
 interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
-  categories: { name: string; chartType: 'bar' | 'line' }[];
+  categories: { name: string; chartType: "bar" | "line" }[];
   barCategoryColors: Map<string, AvailableChartColorsKeys>;
   lineCategoryColors: Map<string, AvailableChartColorsKeys>;
   onClickLegendItem?: (
@@ -253,17 +253,17 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
   }, [setHasScroll]);
 
   const scrollToTest = React.useCallback(
-    (direction: 'left' | 'right') => {
+    (direction: "left" | "right") => {
       const element = scrollableRef?.current;
       const width = element?.clientWidth ?? 0;
 
       if (element && enableLegendSlider) {
         element.scrollTo({
           left:
-            direction === 'left'
+            direction === "left"
               ? element.scrollLeft - width
               : element.scrollLeft + width,
-          behavior: 'smooth',
+          behavior: "smooth",
         });
         setTimeout(() => {
           checkScroll();
@@ -275,10 +275,10 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
 
   React.useEffect(() => {
     const keyDownHandler = (key: string) => {
-      if (key === 'ArrowLeft') {
-        scrollToTest('left');
-      } else if (key === 'ArrowRight') {
-        scrollToTest('right');
+      if (key === "ArrowLeft") {
+        scrollToTest("left");
+      } else if (key === "ArrowRight") {
+        scrollToTest("right");
       }
     };
     if (isKeyDowned) {
@@ -294,7 +294,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
 
   const keyDown = (e: KeyboardEvent) => {
     e.stopPropagation();
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
       setIsKeyDowned(e.key);
     }
@@ -308,31 +308,31 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
     const scrollable = scrollableRef?.current;
     if (enableLegendSlider) {
       checkScroll();
-      scrollable?.addEventListener('keydown', keyDown);
-      scrollable?.addEventListener('keyup', keyUp);
+      scrollable?.addEventListener("keydown", keyDown);
+      scrollable?.addEventListener("keyup", keyUp);
     }
 
     return () => {
-      scrollable?.removeEventListener('keydown', keyDown);
-      scrollable?.removeEventListener('keyup', keyUp);
+      scrollable?.removeEventListener("keydown", keyDown);
+      scrollable?.removeEventListener("keyup", keyUp);
     };
   }, [checkScroll, enableLegendSlider]);
 
   return (
     <ol
       ref={ref}
-      className={cx('relative overflow-hidden', className)}
+      className={cx("relative overflow-hidden", className)}
       {...other}
     >
       <div
         ref={scrollableRef}
         className={cx(
-          'flex h-full',
+          "flex h-full",
           enableLegendSlider
             ? hasScroll?.right || hasScroll?.left
-              ? 'snap-mandatory items-center overflow-auto pl-4 pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-              : ''
-            : 'flex-wrap',
+              ? "snap-mandatory items-center overflow-auto pl-4 pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              : ""
+            : "flex-wrap",
         )}
       >
         {categories.map((category, index) => {
@@ -345,7 +345,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
               chartType={category.chartType}
               onClick={onClickLegendItem}
               activeLegend={activeLegend}
-              color={category.chartType === 'bar' ? barColor! : lineColor!}
+              color={category.chartType === "bar" ? barColor! : lineColor!}
             />
           );
         })}
@@ -355,16 +355,16 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
           <div
             className={cx(
               // base
-              'absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1',
+              "absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1",
               // background color
-              'bg-white dark:bg-gray-950',
+              "bg-white dark:bg-gray-950",
             )}
           >
             <ScrollButton
               icon={ArrowLeft}
               onClick={() => {
                 setIsKeyDowned(null);
-                scrollToTest('left');
+                scrollToTest("left");
               }}
               disabled={!hasScroll?.left}
             />
@@ -372,7 +372,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
               icon={ArrowRight}
               onClick={() => {
                 setIsKeyDowned(null);
-                scrollToTest('right');
+                scrollToTest("right");
               }}
               disabled={!hasScroll?.right}
             />
@@ -383,7 +383,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
   );
 });
 
-Legend.displayName = 'Legend';
+Legend.displayName = "Legend";
 
 const ChartLegend = (
   { payload }: any,
@@ -393,7 +393,7 @@ const ChartLegend = (
   activeLegend: string | undefined,
   onClick?: (category: string, color: AvailableChartColorsKeys) => void,
   enableLegendSlider?: boolean,
-  legendPosition?: 'left' | 'center' | 'right',
+  legendPosition?: "left" | "center" | "right",
   barYAxisWidth?: number,
   lineYAxisWidth?: number,
 ) => {
@@ -405,12 +405,12 @@ const ChartLegend = (
     setLegendHeight(calculateHeight(legendRef.current?.clientHeight));
   });
 
-  const filteredPayload = payload.filter((item: any) => item.type !== 'none');
+  const filteredPayload = payload.filter((item: any) => item.type !== "none");
 
   const paddingLeft =
-    legendPosition === 'left' && barYAxisWidth ? barYAxisWidth - 8 : 0;
+    legendPosition === "left" && barYAxisWidth ? barYAxisWidth - 8 : 0;
   const paddingRight =
-    (legendPosition === 'right' || legendPosition === undefined) &&
+    (legendPosition === "right" || legendPosition === undefined) &&
     lineYAxisWidth
       ? lineYAxisWidth - 8
       : 52;
@@ -420,18 +420,18 @@ const ChartLegend = (
       style={{ paddingLeft: paddingLeft, paddingRight: paddingRight }}
       ref={legendRef}
       className={cx(
-        'flex items-center',
-        { 'justify-center': legendPosition === 'center' },
+        "flex items-center",
+        { "justify-center": legendPosition === "center" },
         {
-          'justify-start': legendPosition === 'left',
+          "justify-start": legendPosition === "left",
         },
-        { 'justify-end': legendPosition === 'right' },
+        { "justify-end": legendPosition === "right" },
       )}
     >
       <Legend
         categories={filteredPayload.map((entry: any) => ({
           name: entry.value,
-          chartType: entry.type === 'rect' ? 'bar' : entry.type,
+          chartType: entry.type === "rect" ? "bar" : entry.type,
         }))}
         barCategoryColors={barCategoryColors}
         lineCategoryColors={lineCategoryColors}
@@ -445,7 +445,7 @@ const ChartLegend = (
 
 //#region Tooltip
 
-type TooltipProps = Pick<ChartTooltipProps, 'active' | 'payload' | 'label'>;
+type TooltipProps = Pick<ChartTooltipProps, "active" | "payload" | "label">;
 
 type PayloadItem = {
   category: string;
@@ -453,7 +453,7 @@ type PayloadItem = {
   index: string;
   barColor: AvailableChartColorsKeys;
   lineColor: AvailableChartColorsKeys;
-  chartType: 'bar' | 'line';
+  chartType: "bar" | "line";
   type: string;
   payload: any;
 };
@@ -474,51 +474,51 @@ const ChartTooltip = ({
   lineValueFormatter = (value: number): string => value.toString(),
 }: ChartTooltipProps) => {
   if (active && payload && payload.length) {
-    const filteredPayload = payload.filter((item: any) => item.type !== 'none');
+    const filteredPayload = payload.filter((item: any) => item.type !== "none");
     return (
       <div
         className={cx(
           // base
-          'rounded-md border text-sm shadow-md',
+          "rounded-md border text-sm shadow-md",
           // border color
-          'border-gray-200 dark:border-gray-800',
+          "border-gray-200 dark:border-gray-800",
           // background color
-          'bg-white dark:bg-gray-950',
+          "bg-white dark:bg-gray-950",
         )}
       >
-        <div className={cx('border-b border-inherit px-4 py-2')}>
+        <div className={cx("border-b border-inherit px-4 py-2")}>
           <p
             className={cx(
               // base
-              'font-medium',
+              "font-medium",
               // text color
-              'text-gray-900 dark:text-gray-50',
+              "text-gray-900 dark:text-gray-50",
             )}
           >
             {label}
           </p>
         </div>
-        <div className={cx('space-y-1 px-4 py-2')}>
+        <div className={cx("space-y-1 px-4 py-2")}>
           {filteredPayload.map(
             ({ value, category, barColor, lineColor, chartType }, index) => (
               <div
                 key={`id-${index}`}
-                className='flex items-center justify-between space-x-8'
+                className="flex items-center justify-between space-x-8"
               >
-                <div className='flex items-center space-x-2'>
-                  <div className='flex w-5 items-center justify-center'>
+                <div className="flex items-center space-x-2">
+                  <div className="flex w-5 items-center justify-center">
                     <span
-                      aria-hidden='true'
+                      aria-hidden="true"
                       className={cx(
-                        { 'size-2 rounded-sm': chartType === 'bar' },
+                        { "size-2 rounded-sm": chartType === "bar" },
                         {
-                          'h-[3px] w-3.5 shrink-0 rounded-full':
-                            chartType === 'line',
+                          "h-[3px] w-3.5 shrink-0 rounded-full":
+                            chartType === "line",
                         },
-                        'shrink-0',
+                        "shrink-0",
                         getColorClassName(
-                          chartType === 'bar' ? barColor : lineColor,
-                          'bg',
+                          chartType === "bar" ? barColor : lineColor,
+                          "bg",
                         ),
                       )}
                     />
@@ -526,9 +526,9 @@ const ChartTooltip = ({
                   <p
                     className={cx(
                       // base
-                      'whitespace-nowrap text-right',
+                      "whitespace-nowrap text-right",
                       // text color
-                      'text-gray-700 dark:text-gray-300',
+                      "text-gray-700 dark:text-gray-300",
                     )}
                   >
                     {category}
@@ -537,12 +537,12 @@ const ChartTooltip = ({
                 <p
                   className={cx(
                     // base
-                    'whitespace-nowrap text-right font-medium tabular-nums',
+                    "whitespace-nowrap text-right font-medium tabular-nums",
                     // text color
-                    'text-gray-900 dark:text-gray-50',
+                    "text-gray-900 dark:text-gray-50",
                   )}
                 >
-                  {chartType === 'bar'
+                  {chartType === "bar"
                     ? barValueFormatter(value)
                     : lineValueFormatter(value)}
                 </p>
@@ -562,7 +562,7 @@ interface ActiveDot {
 }
 
 type BaseEventProps = {
-  eventType: 'category' | 'bar' | 'dot';
+  eventType: "category" | "bar" | "dot";
   categoryClicked: string;
   [key: string]: number | string;
 };
@@ -589,18 +589,18 @@ interface ComboChartProps extends React.HTMLAttributes<HTMLDivElement> {
   showXAxis?: boolean;
   xAxisLabel?: string;
   showGridLines?: boolean;
-  intervalType?: 'preserveStartEnd' | 'equidistantPreserveStart';
+  intervalType?: "preserveStartEnd" | "equidistantPreserveStart";
   showLegend?: boolean;
   showTooltip?: boolean;
   onValueChange?: (value: ComboChartEventProps) => void;
   enableLegendSlider?: boolean;
-  legendPosition?: 'left' | 'center' | 'right';
+  legendPosition?: "left" | "center" | "right";
   tickGap?: number;
   enableBiaxial?: boolean;
   tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void;
   customTooltip?: React.ComponentType<TooltipProps>;
   barSeries: ChartSeries & {
-    type?: 'default' | 'stacked';
+    type?: "default" | "stacked";
   };
   lineSeries?: ChartSeries & {
     connectNulls?: boolean;
@@ -617,7 +617,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
       yAxisWidth: 56,
       yAxisLabel: undefined,
       allowDecimals: true,
-      type: 'default',
+      type: "default",
       autoMinValue: false,
       minValue: undefined,
       maxValue: undefined,
@@ -635,10 +635,10 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
       startEndOnly = false,
       showXAxis = true,
       showGridLines = true,
-      intervalType = 'equidistantPreserveStart',
+      intervalType = "equidistantPreserveStart",
       showTooltip = true,
       showLegend = true,
-      legendPosition = 'right',
+      legendPosition = "right",
       enableLegendSlider = false,
       onValueChange,
       tickGap = 5,
@@ -702,7 +702,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
       mergedLineSeries.maxValue,
     );
     const hasOnValueChange = !!onValueChange;
-    const stacked = barSeries.type === 'stacked';
+    const stacked = barSeries.type === "stacked";
 
     function onBarClick(data: any, _: any, event: React.MouseEvent) {
       event.stopPropagation();
@@ -718,7 +718,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
           value: data.value,
         });
         onValueChange?.({
-          eventType: 'bar',
+          eventType: "bar",
           categoryClicked: data.tooltipPayload?.[0]?.dataKey,
           ...data.payload,
         });
@@ -747,7 +747,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
           dataKey: itemData.dataKey,
         });
         onValueChange?.({
-          eventType: 'dot',
+          eventType: "dot",
           categoryClicked: itemData.dataKey,
           ...itemData.payload,
         });
@@ -766,7 +766,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
       ) {
         setActiveLegend(dataKey);
         onValueChange?.({
-          eventType: 'category',
+          eventType: "category",
           categoryClicked: dataKey,
         });
       } else {
@@ -774,7 +774,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
         setActiveBar(undefined);
         setActiveDot(undefined);
         onValueChange?.({
-          eventType: 'category',
+          eventType: "category",
           categoryClicked: dataKey,
         });
       }
@@ -783,8 +783,8 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
     return (
       <div
         ref={forwardedRef}
-        className={cx('h-80 w-full', className)}
-        tremor-id='tremor-raw'
+        className={cx("h-80 w-full", className)}
+        tremor-id="tremor-raw"
         {...other}
       >
         <ResponsiveContainer>
@@ -809,7 +809,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
           >
             {showGridLines ? (
               <CartesianGrid
-                className={cx('stroke-gray-200 stroke-1 dark:stroke-gray-800')}
+                className={cx("stroke-gray-200 stroke-1 dark:stroke-gray-800")}
                 horizontal={true}
                 vertical={false}
               />
@@ -817,15 +817,15 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
             <XAxis
               hide={!showXAxis}
               tick={{
-                transform: 'translate(0, 6)',
+                transform: "translate(0, 6)",
               }}
-              fill=''
-              stroke=''
+              fill=""
+              stroke=""
               className={cx(
                 // base
-                'mt-4 text-xs',
+                "mt-4 text-xs",
                 // text fill
-                'fill-gray-500 dark:fill-gray-500',
+                "fill-gray-500 dark:fill-gray-500",
               )}
               tickLine={false}
               axisLine={false}
@@ -835,7 +835,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                 right: paddingValue,
               }}
               dataKey={index}
-              interval={startEndOnly ? 'preserveStartEnd' : intervalType}
+              interval={startEndOnly ? "preserveStartEnd" : intervalType}
               ticks={
                 startEndOnly
                   ? [data[0][index], data[data.length - 1][index]]
@@ -844,43 +844,43 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
             >
               {xAxisLabel && (
                 <Label
-                  position='insideBottom'
+                  position="insideBottom"
                   offset={-20}
-                  className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
+                  className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
                 >
                   {xAxisLabel}
                 </Label>
               )}
             </XAxis>
             <YAxis
-              yAxisId={enableBiaxial ? 'left' : undefined}
+              yAxisId={enableBiaxial ? "left" : undefined}
               width={mergedBarSeries.yAxisWidth}
               hide={!mergedBarSeries.showYAxis}
               axisLine={false}
               tickLine={false}
-              fill=''
-              stroke=''
+              fill=""
+              stroke=""
               className={cx(
                 // base
-                'text-xs',
+                "text-xs",
                 // text fill
-                'fill-gray-500 dark:fill-gray-500',
+                "fill-gray-500 dark:fill-gray-500",
               )}
               tick={{
-                transform: 'translate(-3, 0)',
+                transform: "translate(-3, 0)",
               }}
-              type='number'
+              type="number"
               domain={barYAxisDomain as AxisDomain}
               tickFormatter={mergedBarSeries.valueFormatter}
               allowDecimals={mergedBarSeries.allowDecimals}
             >
               {mergedBarSeries.yAxisLabel && (
                 <Label
-                  position='insideLeft'
-                  style={{ textAnchor: 'middle' }}
+                  position="insideLeft"
+                  style={{ textAnchor: "middle" }}
                   angle={-90}
                   offset={-15}
-                  className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
+                  className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
                 >
                   {mergedBarSeries.yAxisLabel}
                 </Label>
@@ -889,35 +889,35 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
 
             {enableBiaxial ? (
               <YAxis
-                yAxisId='right'
-                orientation='right'
+                yAxisId="right"
+                orientation="right"
                 width={mergedLineSeries.yAxisWidth}
                 hide={!mergedLineSeries.showYAxis}
                 axisLine={false}
                 tickLine={false}
-                fill=''
-                stroke=''
+                fill=""
+                stroke=""
                 className={cx(
                   // base
-                  'text-xs',
+                  "text-xs",
                   // text fill
-                  'fill-gray-500 dark:fill-gray-500',
+                  "fill-gray-500 dark:fill-gray-500",
                 )}
                 tick={{
-                  transform: 'translate(3, 0)',
+                  transform: "translate(3, 0)",
                 }}
-                type='number'
+                type="number"
                 domain={lineYAxisDomain as AxisDomain}
                 tickFormatter={mergedLineSeries.valueFormatter}
                 allowDecimals={mergedLineSeries.allowDecimals}
               >
                 {mergedLineSeries.yAxisLabel && (
                   <Label
-                    position='insideRight'
-                    style={{ textAnchor: 'middle' }}
+                    position="insideRight"
+                    style={{ textAnchor: "middle" }}
                     angle={-90}
                     offset={-15}
-                    className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
+                    className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
                   >
                     {mergedLineSeries.yAxisLabel}
                   </Label>
@@ -926,16 +926,16 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
             ) : null}
 
             <Tooltip
-              wrapperStyle={{ outline: 'none' }}
+              wrapperStyle={{ outline: "none" }}
               isAnimationActive={true}
               animationDuration={100}
-              cursor={{ stroke: '#d1d5db', strokeWidth: 1 }}
+              cursor={{ stroke: "#d1d5db", strokeWidth: 1 }}
               offset={20}
               position={{
                 y: 0,
               }}
               content={({ active, payload, label }) => {
-                const cleanPayload: TooltipProps['payload'] = payload
+                const cleanPayload: TooltipProps["payload"] = payload
                   ? payload.map((item: any) => ({
                       category: item.dataKey,
                       value: item.value,
@@ -947,8 +947,8 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                         item.dataKey,
                       ) as AvailableChartColorsKeys,
                       chartType: barCategoryColors.get(item.dataKey)
-                        ? 'bar'
-                        : ('line' as PayloadItem['chartType']),
+                        ? "bar"
+                        : ("line" as PayloadItem["chartType"]),
                       type: item.type,
                       payload: item.payload,
                     }))
@@ -985,7 +985,7 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
             />
             {showLegend ? (
               <RechartsLegend
-                verticalAlign='top'
+                verticalAlign="top"
                 height={legendHeight}
                 content={({ payload }) =>
                   ChartLegend(
@@ -1008,21 +1008,21 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
             ) : null}
             {mergedBarSeries.categories.map((category) => (
               <Bar
-                yAxisId={enableBiaxial ? 'left' : undefined}
+                yAxisId={enableBiaxial ? "left" : undefined}
                 className={cx(
                   getColorClassName(
                     barCategoryColors.get(category) as AvailableChartColorsKeys,
-                    'fill',
+                    "fill",
                   ),
-                  onValueChange ? 'cursor-pointer' : '',
+                  onValueChange ? "cursor-pointer" : "",
                 )}
                 key={category}
                 name={category}
-                type='linear'
+                type="linear"
                 dataKey={category}
-                stackId={stacked ? 'stack' : undefined}
+                stackId={stacked ? "stack" : undefined}
                 isAnimationActive={true}
-                fill=''
+                fill=""
                 shape={(props: any) =>
                   renderShape(props, activeBar, activeLegend)
                 }
@@ -1033,17 +1033,17 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
             {onValueChange
               ? mergedLineSeries.categories.map((category) => (
                   <Line
-                    yAxisId={enableBiaxial ? 'right' : undefined}
-                    className={cx('cursor-pointer')}
+                    yAxisId={enableBiaxial ? "right" : undefined}
+                    className={cx("cursor-pointer")}
                     strokeOpacity={0}
                     key={category}
                     name={category}
-                    type='linear'
+                    type="linear"
                     dataKey={category}
-                    stroke='transparent'
-                    fill='transparent'
-                    legendType='none'
-                    tooltipType='none'
+                    stroke="transparent"
+                    fill="transparent"
+                    legendType="none"
+                    tooltipType="none"
                     strokeWidth={12}
                     isAnimationActive={true}
                     connectNulls={mergedLineSeries.connectNulls}
@@ -1057,15 +1057,15 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
               : null}
             {mergedLineSeries.categories.map((category) => (
               <Line
-                yAxisId={enableBiaxial ? 'right' : undefined}
+                yAxisId={enableBiaxial ? "right" : undefined}
                 className={cx(
                   getColorClassName(
                     lineCategoryColors.get(
                       category,
                     ) as AvailableChartColorsKeys,
-                    'stroke',
+                    "stroke",
                   ),
-                  hasOnValueChange && 'cursor-pointer',
+                  hasOnValueChange && "cursor-pointer",
                 )}
                 strokeOpacity={
                   activeDot || (activeLegend && activeLegend !== category)
@@ -1085,19 +1085,19 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                   return (
                     <Dot
                       className={cx(
-                        'stroke-white dark:stroke-gray-950',
-                        onValueChange ? 'cursor-pointer' : '',
+                        "stroke-white dark:stroke-gray-950",
+                        onValueChange ? "cursor-pointer" : "",
                         getColorClassName(
                           lineCategoryColors.get(
                             dataKey,
                           ) as AvailableChartColorsKeys,
-                          'fill',
+                          "fill",
                         ),
                       )}
                       cx={cxCoord}
                       cy={cyCoord}
                       r={5}
-                      fill=''
+                      fill=""
                       stroke={stroke}
                       strokeLinecap={strokeLinecap}
                       strokeLinejoin={strokeLinejoin}
@@ -1134,18 +1134,18 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                         cy={cyCoord}
                         r={5}
                         stroke={stroke}
-                        fill=''
+                        fill=""
                         strokeLinecap={strokeLinecap}
                         strokeLinejoin={strokeLinejoin}
                         strokeWidth={strokeWidth}
                         className={cx(
-                          'stroke-white dark:stroke-gray-950',
-                          onValueChange ? 'cursor-pointer' : '',
+                          "stroke-white dark:stroke-gray-950",
+                          onValueChange ? "cursor-pointer" : "",
                           getColorClassName(
                             lineCategoryColors.get(
                               dataKey,
                             ) as AvailableChartColorsKeys,
-                            'fill',
+                            "fill",
                           ),
                         )}
                       />
@@ -1155,12 +1155,12 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
                 }}
                 key={`${category}-line-id`}
                 name={category}
-                type='bump'
+                type="bump"
                 dataKey={category}
-                stroke=''
+                stroke=""
                 strokeWidth={2}
-                strokeLinejoin='round'
-                strokeLinecap='round'
+                strokeLinejoin="round"
+                strokeLinecap="round"
                 isAnimationActive={false}
                 connectNulls={mergedLineSeries.connectNulls}
                 onClick={(props: any, event) => {
@@ -1177,6 +1177,6 @@ const ComboChart = React.forwardRef<HTMLDivElement, ComboChartProps>(
   },
 );
 
-ComboChart.displayName = 'ComboChart';
+ComboChart.displayName = "ComboChart";
 
 export { ComboChart, type ComboChartEventProps, type TooltipProps };

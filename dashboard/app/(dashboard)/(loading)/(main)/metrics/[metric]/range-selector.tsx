@@ -7,7 +7,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 export function RangeSelector() {
   return (
@@ -32,5 +32,5 @@ export function RangeSelector() {
         </SelectGroup>
       </SelectContent>
     </Select>
-  )
+  );
 }

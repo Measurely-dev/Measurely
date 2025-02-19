@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 // Import required components and hooks
-import AuthForm from '@/components/auth-form';
-import SemiNavbar from '@/components/semi-navbar';
-import Content from '@/components/page-content';
-import React, { useState } from 'react';
-import { toast } from 'sonner';
+import AuthForm from "@/components/auth-form";
+import SemiNavbar from "@/components/semi-navbar";
+import Content from "@/components/page-content";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 // Component for handling waitlist signups
 const Waitlist = () => {
@@ -13,53 +13,53 @@ const Waitlist = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className='flex min-h-[800px] flex-col'>
+    <div className="flex min-h-[800px] flex-col">
       {/* Navigation section */}
-      <div className='mb-[150px]'>
-        <SemiNavbar href='/sign-in' button='Sign in' />
+      <div className="mb-[150px]">
+        <SemiNavbar href="/sign-in" button="Sign in" />
       </div>
 
       <Content>
         {/* Waitlist signup form */}
         <AuthForm
-          title='Join our waitlist'
-          description='As soon as Measurely release, you will be notified.'
+          title="Join our waitlist"
+          description="As soon as Measurely release, you will be notified."
           providers={false}
           form={[
             {
-              label: 'Name',
-              name: 'name',
-              placeholder: 'name',
-              type: 'name',
+              label: "Name",
+              name: "name",
+              placeholder: "name",
+              type: "name",
             },
             {
-              label: 'Email',
-              name: 'email',
-              placeholder: 'john.doe@exemple.com',
-              type: 'email',
+              label: "Email",
+              name: "email",
+              placeholder: "john.doe@exemple.com",
+              type: "email",
             },
           ]}
-          button='Join waitlist'
+          button="Join waitlist"
           btn_loading={loading}
           action={(form) => {
             setLoading(true);
 
             // Extract and format form data
-            const email = form.get('email')?.toString().toLowerCase().trim();
-            const name = form.get('name')?.toString().toLowerCase().trim();
+            const email = form.get("email")?.toString().toLowerCase().trim();
+            const name = form.get("name")?.toString().toLowerCase().trim();
 
             // Submit waitlist signup request to API
             fetch(`${process.env.NEXT_PUBLIC_API_URL}/waitlist`, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({ email, name }),
             })
               .then((res) => {
                 // Handle different response statuses
                 if (res.status === 200) {
-                  toast.success('Succesfully joined the waitlist');
+                  toast.success("Succesfully joined the waitlist");
                 } else {
                   res.text().then((text) => {
                     if (res.status === 208) {

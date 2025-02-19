@@ -1,6 +1,6 @@
-'use client';
-import confetti from 'canvas-confetti';
-import type { ReactNode } from 'react';
+"use client";
+import confetti from "canvas-confetti";
+import type { ReactNode } from "react";
 import React, {
   createContext,
   forwardRef,
@@ -9,21 +9,21 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
-} from 'react';
+} from "react";
 
 import type {
   GlobalOptions as ConfettiGlobalOptions,
   CreateTypes as ConfettiInstance,
   Options as ConfettiOptions,
-} from 'canvas-confetti';
-import { Button } from './/button';
-import type { ButtonProps } from './button';
+} from "canvas-confetti";
+import { Button } from ".//button";
+import type { ButtonProps } from "./button";
 
 interface Api {
   fire: (options?: ConfettiOptions) => void;
 }
 
-type Props = React.ComponentPropsWithRef<'canvas'> & {
+type Props = React.ComponentPropsWithRef<"canvas"> & {
   options?: ConfettiOptions;
   globalOptions?: ConfettiGlobalOptions;
   manualstart?: boolean;
@@ -93,7 +93,7 @@ const Confetti = forwardRef<ConfettiRef, Props>((props, ref) => {
   );
 });
 
-Confetti.displayName = 'Confetti';
+Confetti.displayName = "Confetti";
 
 interface ConfettiButtonProps extends ButtonProps {
   options?: ConfettiOptions &

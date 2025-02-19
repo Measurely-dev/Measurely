@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { useContext, useEffect, useState } from 'react';
-import { ProjectsContext } from '@/dash-context';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ApiDialog from '../api-dialog';
-import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import { useContext, useEffect, useState } from "react";
+import { ProjectsContext } from "@/dash-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ApiDialog from "../api-dialog";
+import Link from "next/link";
 import {
   FileQuestion,
   Key,
@@ -11,20 +11,20 @@ import {
   Plus,
   Search,
   Trash,
-} from 'lucide-react';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import EditAppDialogContent from '../edit-project-dialog-content';
-import { AlertDialog } from '@/components/ui/alert-dialog';
+} from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import EditAppDialogContent from "../edit-project-dialog-content";
+import { AlertDialog } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Project, UserRole } from '@/types';
-import { EmptyState } from '@/components/ui/empty-state';
-import { useConfirm } from '@omit/react-confirm-dialog';
-import { toast } from 'sonner';
+} from "@/components/ui/dropdown-menu";
+import { Project, UserRole } from "@/types";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@omit/react-confirm-dialog";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -34,7 +34,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 
 // Main component for managing project settings and displaying project list
 export default function ProjectsSettings() {
@@ -48,40 +48,40 @@ export default function ProjectsSettings() {
   // Handles project deletion with confirmation
   const DeleteProject = async (project: Project) => {
     const isConfirmed = await confirm({
-      title: 'Delete ' + project.name,
-      icon: <Trash className='size-6 text-destructive' />,
+      title: "Delete " + project.name,
+      icon: <Trash className="size-6 text-destructive" />,
       description:
-        'Are you sure you want to delete this app? You will loose all the data linked to this app forever.',
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+        "Are you sure you want to delete this app? You will loose all the data linked to this app forever.",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
       cancelButton: {
-        size: 'default',
-        variant: 'outline',
-        className: 'rounded-[12px]',
+        size: "default",
+        variant: "outline",
+        className: "rounded-[12px]",
       },
       confirmButton: {
-        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+        className: "bg-red-500 hover:bg-red-600 text-white rounded-[12px]",
       },
       alertDialogTitle: {
-        className: 'flex items-center gap-2',
+        className: "flex items-center gap-2",
       },
       alertDialogContent: {
-        className: '!rounded-[12px]',
+        className: "!rounded-[12px]",
       },
     });
 
     if (isConfirmed) {
       // API call to delete project
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/project`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ project_id: project.id }),
       }).then(async (resp) => {
         if (resp.status === 200) {
-          toast.success('Successfully deleted project: ' + project.name);
+          toast.success("Successfully deleted project: " + project.name);
 
           // Handle single project case
           if (projects?.length === 1 || projects === undefined) {
@@ -139,33 +139,33 @@ export default function ProjectsSettings() {
   return (
     <Dialog>
       <AlertDialog>
-        <Link href={'/new-project'}>
+        <Link href={"/new-project"}>
           <Button
-            variant={'secondary'}
-            size={'lg'}
-            className='w-full rounded-[12px] py-5'
+            variant={"secondary"}
+            size={"lg"}
+            className="w-full rounded-[12px] py-5"
           >
-            <Plus className='mr-2 size-4' />
+            <Plus className="mr-2 size-4" />
             Start a new project
           </Button>
         </Link>
-        <div className='flex flex-col gap-4'>
+        <div className="flex flex-col gap-4">
           {sortedProjects.length === 0 ? (
             <EmptyState
-              title='No Project Found'
-              description='Try creating one.'
+              title="No Project Found"
+              description="Try creating one."
               icons={[Search, FileQuestion]}
             />
           ) : (
-            <div className='flex flex-col divide-y'>
-              <Table className='overflow-hidden rounded-[12px]'>
+            <div className="flex flex-col divide-y">
+              <Table className="overflow-hidden rounded-[12px]">
                 <TableHeader>
-                  <TableRow className='bg-accent/60'>
-                    <TableHead className='w-[80px] min-w-[80px]'>
+                  <TableRow className="bg-accent/60">
+                    <TableHead className="w-[80px] min-w-[80px]">
                       Image
                     </TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead className='text-right' colSpan={4}>
+                    <TableHead className="text-right" colSpan={4}>
                       Action
                     </TableHead>
                   </TableRow>
@@ -175,7 +175,7 @@ export default function ProjectsSettings() {
                     return (
                       <TableRow key={i}>
                         <TableCell>
-                          <Avatar className='size-10 rounded-full border bg-accent'>
+                          <Avatar className="size-10 rounded-full border bg-accent">
                             <AvatarImage src={proj.image} />
                             <AvatarFallback>
                               {proj.name.charAt(0).toUpperCase()}
@@ -186,43 +186,43 @@ export default function ProjectsSettings() {
                           {proj.name.charAt(0).toUpperCase() +
                             proj.name.slice(1).toLowerCase()}
                         </TableCell>
-                        <TableCell className='w-full' colSpan={4}>
-                          <div className='flex w-full flex-row items-center justify-end gap-2'>
+                        <TableCell className="w-full" colSpan={4}>
+                          <div className="flex w-full flex-row items-center justify-end gap-2">
                             {proj.user_role !== UserRole.Guest && (
                               <ApiDialog randomize projectid={proj.id}>
                                 <Button
-                                  variant={'outline'}
-                                  size={'icon'}
-                                  className='rounded-[12px] hover:bg-background'
+                                  variant={"outline"}
+                                  size={"icon"}
+                                  className="rounded-[12px] hover:bg-background"
                                 >
-                                  <Key className='size-4' />
+                                  <Key className="size-4" />
                                 </Button>
                               </ApiDialog>
                             )}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
-                                  size={'icon'}
-                                  variant={'ghost'}
-                                  className='rounded-[12px] hover:bg-background'
+                                  size={"icon"}
+                                  variant={"ghost"}
+                                  className="rounded-[12px] hover:bg-background"
                                   disabled={
                                     proj.user_role === UserRole.Guest ||
                                     proj.user_role === UserRole.Developer
                                   }
                                 >
-                                  <MoreHorizontal className='size-4' />
+                                  <MoreHorizontal className="size-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent className='mr-20'>
+                              <DropdownMenuContent className="mr-20">
                                 <DialogTrigger
-                                  className='w-full'
+                                  className="w-full"
                                   onClick={() => setSelectedProject(proj)}
                                 >
                                   <DropdownMenuItem>Edit</DropdownMenuItem>
                                 </DialogTrigger>
                                 <DropdownMenuItem
                                   onClick={() => DeleteProject(proj)}
-                                  className='bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20'
+                                  className="bg-red-500/0 !text-red-500 transition-all hover:!bg-red-500/20"
                                 >
                                   Delete
                                 </DropdownMenuItem>
@@ -237,13 +237,13 @@ export default function ProjectsSettings() {
                 <TableFooter>
                   <TableRow>
                     <TableCell colSpan={3}>Total</TableCell>
-                    <TableCell className='text-right'>
+                    <TableCell className="text-right">
                       {sortedProjects.length}
                     </TableCell>
                   </TableRow>
                 </TableFooter>
               </Table>
-              <div className='border-none text-muted-foreground text-sm mx-auto mt-5'>
+              <div className="border-none text-muted-foreground text-sm mx-auto mt-5">
                 A list of your projects.
               </div>
             </div>

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
 // Import necessary dependencies and contexts
-import { ProjectsContext, UserContext } from '@/dash-context';
-import { useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { loadMetrics } from '@/utils';
-import { UserRole } from '@/types';
-import { Loader } from 'lucide-react';
+import { ProjectsContext, UserContext } from "@/dash-context";
+import { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { loadMetrics } from "@/utils";
+import { UserRole } from "@/types";
+import { Loader } from "lucide-react";
 
 // Dashboard layout component that handles project/user data loading and displays a loading state
 export default function DashboardContentLayout({
@@ -27,7 +27,7 @@ export default function DashboardContentLayout({
 
   // Get user-related state and methods from context
   const { setUser, userLoading, setUserLoading } = useContext(UserContext);
-  const [activeProjectName, setActiveProjectName] = useState('');
+  const [activeProjectName, setActiveProjectName] = useState("");
   const router = useRouter();
 
   // Initial data loading effect
@@ -38,17 +38,17 @@ export default function DashboardContentLayout({
         0 &&
       !projectsLoading
     ) {
-      router.push('/new-project');
+      router.push("/new-project");
     }
 
     // Load user data if not already loaded
     if (userLoading) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/user', {
-        method: 'GET',
+      fetch(process.env.NEXT_PUBLIC_API_URL + "/user", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
       })
         .then((res) => {
           if (res.ok) {
@@ -56,7 +56,7 @@ export default function DashboardContentLayout({
           } else {
             res.text().then((text) => {
               toast.error(text);
-              router.push('/sign-in');
+              router.push("/sign-in");
             });
           }
         })
@@ -70,12 +70,12 @@ export default function DashboardContentLayout({
 
     // Load projects data if not already loaded
     if (projectsLoading) {
-      fetch(process.env.NEXT_PUBLIC_API_URL + '/projects', {
-        method: 'GET',
+      fetch(process.env.NEXT_PUBLIC_API_URL + "/projects", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
       })
         .then((res) => {
           if (res.ok) {
@@ -90,13 +90,13 @@ export default function DashboardContentLayout({
           if (json === undefined) return;
           if (json === null) json = [];
           if (json.length === 0) {
-            router.push('/new-project');
+            router.push("/new-project");
             return;
           }
 
           // Get saved active project from localStorage or default to 0
           let savedActiveProject = parseInt(
-            localStorage.getItem('activeProject') ?? '0',
+            localStorage.getItem("activeProject") ?? "0",
           );
           if (savedActiveProject > json.length - 1 || savedActiveProject < 0) {
             savedActiveProject = 0;
@@ -152,20 +152,20 @@ export default function DashboardContentLayout({
     } else {
       setTimeout(() => setProjectsLoading(false), 300);
     }
-    localStorage.setItem('activeProject', activeProject.toString());
+    localStorage.setItem("activeProject", activeProject.toString());
   }, [activeProject]);
 
   // Render loading state or children components
   return (
     <>
       {projectsLoading || userLoading ? (
-        <div className='absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-4 bg-accent'>
-          <span className='sr-only'>Loader</span>
-          <Loader className='size-7 animate-spin text-muted-foreground' />
-          <div className='inline-flex items-center font-mono text-sm text-muted-foreground'>
+        <div className="absolute left-0 top-0 flex h-[100vh] w-[100vw] select-none flex-col items-center justify-center gap-4 bg-accent">
+          <span className="sr-only">Loader</span>
+          <Loader className="size-7 animate-spin text-muted-foreground" />
+          <div className="inline-flex items-center font-mono text-sm text-muted-foreground">
             {projectsLoading && activeProjectName
               ? `Loading ${activeProjectName.charAt(0).toUpperCase() + activeProjectName.slice(1).toLowerCase()}`
-              : 'Loading Measurely'}
+              : "Loading Measurely"}
           </div>
         </div>
       ) : (

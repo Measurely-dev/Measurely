@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import * as SliderPrimitive from '@radix-ui/react-slider';
+import * as React from "react";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface SliderNewProps
   extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
@@ -19,9 +19,9 @@ const Slider = React.forwardRef<
   (
     {
       className,
-      showSteps = 'none',
+      showSteps = "none",
       formatLabel,
-      formatLabelSide = 'top',
+      formatLabelSide = "top",
       ...props
     },
     ref,
@@ -92,7 +92,7 @@ const Slider = React.forwardRef<
       <SliderPrimitive.Root
         ref={ref}
         className={cn(
-          'relative flex cursor-pointer touch-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+          "relative flex cursor-pointer touch-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
           "data-[orientation='horizontal']:w-full data-[orientation='horizontal']:items-center",
           "data-[orientation='vertical']:h-full data-[orientation='vertical']:justify-center",
           className,
@@ -106,20 +106,20 @@ const Slider = React.forwardRef<
       >
         <SliderPrimitive.Track
           className={cn(
-            'relative grow overflow-hidden rounded-full bg-accent',
+            "relative grow overflow-hidden rounded-full bg-accent",
             "data-[orientation='horizontal']:h-4 data-[orientation='horizontal']:w-full",
             "data-[orientation='vertical']:h-full data-[orientation='vertical']:w-2",
           )}
         >
           <SliderPrimitive.Range
             className={cn(
-              'absolute bg-primary',
+              "absolute bg-primary",
               "data-[orientation='horizontal']:h-full",
               "data-[orientation='vertical']:w-full",
             )}
           />
           {showSteps !== undefined &&
-            showSteps !== 'none' &&
+            showSteps !== "none" &&
             stepLines.map((value, index) => {
               if (value === min || value === max) {
                 return null;
@@ -131,25 +131,25 @@ const Slider = React.forwardRef<
                   key={index}
                   className={cn(
                     {
-                      'h-2 w-0.5': orientation !== 'vertical',
-                      'h-0.5 w-2': orientation === 'vertical',
+                      "h-2 w-0.5": orientation !== "vertical",
+                      "h-0.5 w-2": orientation === "vertical",
                     },
-                    'absolute bg-input',
+                    "absolute bg-input",
                     {
-                      'left-1':
-                        orientation === 'vertical' && showSteps === 'half',
-                      'top-1':
-                        orientation !== 'vertical' && showSteps === 'half',
-                      'left-0':
-                        orientation === 'vertical' && showSteps === 'full',
-                      'top-0':
-                        orientation !== 'vertical' && showSteps === 'full',
-                      '-translate-x-1/2 transform': orientation !== 'vertical',
-                      '-translate-y-1/2 transform': orientation === 'vertical',
+                      "left-1":
+                        orientation === "vertical" && showSteps === "half",
+                      "top-1":
+                        orientation !== "vertical" && showSteps === "half",
+                      "left-0":
+                        orientation === "vertical" && showSteps === "full",
+                      "top-0":
+                        orientation !== "vertical" && showSteps === "full",
+                      "-translate-x-1/2 transform": orientation !== "vertical",
+                      "-translate-y-1/2 transform": orientation === "vertical",
                     },
                   )}
                   style={{
-                    [orientation === 'vertical' ? 'bottom' : 'left']:
+                    [orientation === "vertical" ? "bottom" : "left"]:
                       `${adjustedPosition}%`,
                   }}
                 />
@@ -160,28 +160,28 @@ const Slider = React.forwardRef<
           <SliderPrimitive.Thumb
             key={index}
             className={cn(
-              'block h-6 w-6 rounded-full border-2 border-primary bg-background transition-colors',
+              "block h-6 w-6 rounded-full border-2 border-primary bg-background transition-colors",
             )}
           >
             <div
               className={cn(
                 {
-                  'bottom-8 left-1/2 -translate-x-1/2 transform':
-                    formatLabelSide === 'top',
+                  "bottom-8 left-1/2 -translate-x-1/2 transform":
+                    formatLabelSide === "top",
                 },
                 {
-                  'left-1/2 top-8 -translate-x-1/2 transform':
-                    formatLabelSide === 'bottom',
+                  "left-1/2 top-8 -translate-x-1/2 transform":
+                    formatLabelSide === "bottom",
                 },
                 {
-                  'right-8 -translate-y-1/4 transform':
-                    formatLabelSide === 'left',
+                  "right-8 -translate-y-1/4 transform":
+                    formatLabelSide === "left",
                 },
                 {
-                  'left-8 -translate-y-1/4 transform':
-                    formatLabelSide === 'right',
+                  "left-8 -translate-y-1/4 transform":
+                    formatLabelSide === "right",
                 },
-                'absolute z-30 w-max items-center justify-items-center overflow-hidden rounded-[8px] border px-3 py-1 text-center font-medium text-sm shadow-sm shadow-blac/5',
+                "absolute z-30 w-max items-center justify-items-center overflow-hidden rounded-[8px] border px-3 py-1 text-center font-medium text-sm shadow-sm shadow-blac/5",
               )}
             >
               {formatLabel && formatLabel(numberStep)}

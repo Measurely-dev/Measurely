@@ -1,5 +1,5 @@
 // Import required components and utilities
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   CommandEmpty,
   CommandGroup,
@@ -7,17 +7,17 @@ import {
   CommandItem,
   CommandList,
   Command,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Metric, MetricEvent } from '@/types';
-import { parseFilterList, valueFormatter } from '@/utils';
-import { ChevronsUpDown, CircleOff } from 'lucide-react';
-import { Dispatch, SetStateAction, useState, useEffect } from 'react';
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Metric, MetricEvent } from "@/types";
+import { parseFilterList, valueFormatter } from "@/utils";
+import { ChevronsUpDown, CircleOff } from "lucide-react";
+import { Dispatch, SetStateAction, useState, useEffect } from "react";
 
 // Filter component that displays and manages metric filters
 function Filters(props: {
@@ -62,15 +62,14 @@ function Filters(props: {
     updateFilters();
   }, [props.metric, props.events]);
 
-
   return (
     <Popover>
       {/* Filter selection button */}
       <PopoverTrigger asChild>
         <Button
-          variant='outline'
-          role='combobox'
-          className='w-[250px] justify-between rounded-[12px] border bg-background hover:bg-background/70'
+          variant="outline"
+          role="combobox"
+          className="w-[250px] justify-between rounded-[12px] border bg-background hover:bg-background/70"
         >
           {props.activeFilterId !== null
             ? props.metric.filters[props.activeFilterId]?.name
@@ -79,28 +78,28 @@ function Filters(props: {
               props.metric?.filters[props.activeFilterId]?.name
                 .slice(1)
                 .toLowerCase()
-            : 'Select a filter'}
-          <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
+            : "Select a filter"}
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
 
       {/* Filter selection popover */}
-      <PopoverContent className='mr-10 w-fit min-w-[340px] max-w-[500px] overflow-hidden rounded-[12px] border p-0 shadow-md'>
+      <PopoverContent className="mr-10 w-fit min-w-[340px] max-w-[500px] overflow-hidden rounded-[12px] border p-0 shadow-md">
         <Command>
-          <CommandInput placeholder='Search filters...' />
+          <CommandInput placeholder="Search filters..." />
           <CommandList>
             {/* Empty state display */}
-            <CommandEmpty className='flex w-full flex-col items-center justify-center py-5'>
-              <div className='relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500'>
-                <CircleOff className='h-6 w-6 text-muted-foreground' />
+            <CommandEmpty className="flex w-full flex-col items-center justify-center py-5">
+              <div className="relative mb-2 grid size-12 place-items-center rounded-xl bg-background shadow-lg ring-1 ring-border transition duration-500">
+                <CircleOff className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h2 className='mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground'>
+              <h2 className="mt-3 max-w-[80%] text-center text-sm font-normal text-muted-foreground">
                 No filter to show at the moment
                 <br />
                 <a
-                  href='https://measurely.dev/docs/features/filters'
-                  target='_blank'
-                  className='cursor-pointer text-blue-500 underline'
+                  href="https://measurely.dev/docs/features/filters"
+                  target="_blank"
+                  className="cursor-pointer text-blue-500 underline"
                 >
                   How to create one
                 </a>
@@ -111,19 +110,19 @@ function Filters(props: {
             {Object.keys(filters).length !== 0 ? (
               <CommandGroup>
                 <CommandItem
-                  className='truncate rounded-[10px]'
+                  className="truncate rounded-[10px]"
                   onSelect={() => props.setActiveFilterId(null)}
                 >
                   {!props.activeFilterId ? (
                     <div
                       className={cn(
-                        'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
+                        "mr-1.5 size-3 min-w-3 rounded-full border bg-black",
                       )}
                     />
                   ) : (
                     <div
                       className={cn(
-                        'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
+                        "mr-1.5 size-3 min-w-3 rounded-full border bg-accent",
                       )}
                     />
                   )}
@@ -146,7 +145,7 @@ function Filters(props: {
                     return (
                       <CommandItem
                         key={filter.id}
-                        className='truncate rounded-[10px]'
+                        className="truncate rounded-[10px]"
                         value={filter.name}
                         onSelect={(value) => {
                           if (props.activeFilterId === filter.id) {
@@ -164,32 +163,32 @@ function Filters(props: {
                         {props.activeFilterId === filter.id ? (
                           <div
                             className={cn(
-                              'mr-1.5 size-3 min-w-3 rounded-full border bg-black',
+                              "mr-1.5 size-3 min-w-3 rounded-full border bg-black",
                             )}
                           />
                         ) : (
                           <div
                             className={cn(
-                              'mr-1.5 size-3 min-w-3 rounded-full border bg-accent',
+                              "mr-1.5 size-3 min-w-3 rounded-full border bg-accent",
                             )}
                           />
                         )}
                         {/* Filter summary display */}
-                        <div className='text-medium flex w-full gap-1 truncate capitalize'>
+                        <div className="text-medium flex w-full gap-1 truncate capitalize">
                           {(filter.summary ?? 0) === 0 ? (
-                            <div className='h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500'>
+                            <div className="h-fit w-fit rounded-[6px] bg-zinc-500/10 px-2 py-0.5 font-mono text-xs text-zinc-500">
                               0
                             </div>
                           ) : (filter.summary ?? 0) > 0 ? (
-                            <div className='h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500'>
+                            <div className="h-fit w-fit rounded-[6px] bg-green-500/10 px-1 py-0.5 font-mono text-xs text-green-500">
                               +{valueFormatter(filter.summary)}
                             </div>
                           ) : (
-                            <div className='h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-xs text-red-500'>
+                            <div className="h-fit w-fit rounded-[6px] bg-red-500/10 px-1 py-0.5 font-mono text-xs text-red-500">
                               -{valueFormatter(filter.summary)}
                             </div>
                           )}
-                          <div className='w-full truncate'>{filter.name}</div>
+                          <div className="w-full truncate">{filter.name}</div>
                         </div>
                       </CommandItem>
                     );

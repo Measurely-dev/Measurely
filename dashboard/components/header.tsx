@@ -18,16 +18,20 @@ export default function Header(props: {
 }) {
   return (
     // Main container with responsive flex layout
-    <div className={`flex w-full gap-12 max-sm:flex-col max-sm:gap-5 sm:items-center sm:justify-between ${props.className}`}>
+    <div
+      className={`flex w-full gap-12 max-sm:flex-col max-sm:gap-5 sm:items-center sm:justify-between ${props.className}`}
+    >
       {/* Title and description container */}
-      <div className='flex flex-col gap-[5px]'>
+      <div className="flex flex-col gap-[5px]">
         {/* Title element */}
         <div className={`text-2xl font-medium ${props.titleClassName}`}>
           {props.title}
         </div>
         {/* Optional description element */}
         {props.description ? (
-          <div className={`text-sm text-muted-foreground ${props.descriptionClassName}`}>
+          <div
+            className={`text-sm text-muted-foreground ${props.descriptionClassName}`}
+          >
             {props.description}
           </div>
         ) : null}

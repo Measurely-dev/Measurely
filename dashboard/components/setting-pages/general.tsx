@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
 // UI Component imports
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import SettingCard from '../setting-card';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { FormEvent, useContext, useState } from 'react';
-import { UserContext } from '@/dash-context';
-import DisconnectProviderDialog from '../disconnect-provider-dialog';
-import { ImageIcon, Info, UserRoundX } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { providers } from '@/providers';
-import { useConfirm } from '@omit/react-confirm-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MAXFILESIZE } from '@/utils';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import SettingCard from "../setting-card";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { FormEvent, useContext, useState } from "react";
+import { UserContext } from "@/dash-context";
+import DisconnectProviderDialog from "../disconnect-provider-dialog";
+import { ImageIcon, Info, UserRoundX } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { providers } from "@/providers";
+import { useConfirm } from "@omit/react-confirm-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MAXFILESIZE } from "@/utils";
 
 export default function GeneralSettings() {
   // User context and router setup
@@ -31,9 +31,9 @@ export default function GeneralSettings() {
   const [firstName, setFirstName] = useState(user?.first_name?.trim());
   const [lastName, setLastName] = useState(user?.last_name?.trim());
   const [email, setEmail] = useState(user?.email?.trim());
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmedPassword, setConfirmedPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
 
   // Profile image states
   const [file, setFile] = useState<any>(null);
@@ -47,12 +47,12 @@ export default function GeneralSettings() {
     const trimmedLastName = lastName?.trim();
 
     if (file !== null && file.size > MAXFILESIZE) {
-      toast.error('The image is too large, MAX 500KB');
+      toast.error("The image is too large, MAX 500KB");
       return;
     }
 
     if (!trimmedFirstName) {
-      toast.error('The first name field must be filled');
+      toast.error("The first name field must be filled");
       return;
     }
 
@@ -69,9 +69,9 @@ export default function GeneralSettings() {
       trimmedLastName?.toLowerCase() !== user.last_name
     ) {
       const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/name`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           first_name: trimmedFirstName.toLowerCase(),
           last_name: trimmedLastName?.toLowerCase(),
@@ -79,7 +79,7 @@ export default function GeneralSettings() {
       });
 
       if (response1.ok) {
-        toast.success('Successfully updated first name and/or last name.');
+        toast.success("Successfully updated first name and/or last name.");
         updated.first_name = trimmedFirstName.toLowerCase();
         updated.last_name = trimmedLastName?.toLowerCase();
       }
@@ -88,20 +88,20 @@ export default function GeneralSettings() {
     // Upload new profile image if selected
     if (file !== null) {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
       const response2 = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/user_image`,
         {
-          method: 'POST',
-          credentials: 'include',
+          method: "POST",
+          credentials: "include",
           body: formData,
         },
       );
 
       if (response2.ok) {
-        toast.success('Successfully updated your image.');
+        toast.success("Successfully updated your image.");
         const body = await response2.json();
-        updated['image'] = body.url;
+        updated["image"] = body.url;
         setFile(null);
         setReader(null);
       }
@@ -116,19 +116,19 @@ export default function GeneralSettings() {
     e.preventDefault();
     const trimmedEmail = email?.trim();
     if (!trimmedEmail) {
-      toast.error('The email field cannot be empty');
+      toast.error("The email field cannot be empty");
       return;
     }
     setLoadingEmail(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/request_email_change`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ new_email: trimmedEmail.toLowerCase() }),
     })
       .then((resp) => {
         if (resp.status === 200) {
-          toast.success('We sent you an email to confirm your request');
+          toast.success("We sent you an email to confirm your request");
         } else {
           resp.text().then((text) => toast.error(text));
         }
@@ -150,20 +150,20 @@ export default function GeneralSettings() {
       !trimmedNewPassword ||
       !trimmedConfirmedPassword
     ) {
-      toast.error('All fields must be filled');
+      toast.error("All fields must be filled");
       return;
     }
 
     if (trimmedConfirmedPassword !== trimmedNewPassword) {
-      toast.error('The passwords do not match');
+      toast.error("The passwords do not match");
       return;
     }
 
     setLoadingPassword(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/password`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         old_password: trimmedOldPassword,
         new_password: trimmedNewPassword,
@@ -171,7 +171,7 @@ export default function GeneralSettings() {
     })
       .then((resp) => {
         if (resp.status === 200) {
-          toast.success('Your password was successfully updated');
+          toast.success("Your password was successfully updated");
         } else {
           resp.text().then((text) => toast.error(text));
         }
@@ -184,38 +184,38 @@ export default function GeneralSettings() {
   // Handler for account deletion
   const DeleteAccount = async () => {
     const isConfirmed = await confirm({
-      title: 'Delete my account',
-      icon: <UserRoundX className='size-6 text-destructive' />,
+      title: "Delete my account",
+      icon: <UserRoundX className="size-6 text-destructive" />,
       description:
-        'Are you sure you want to delete this account? You will loose all the data linked to this account forever.',
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+        "Are you sure you want to delete this account? You will loose all the data linked to this account forever.",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
       cancelButton: {
-        size: 'default',
-        variant: 'outline',
-        className: 'rounded-[12px]',
+        size: "default",
+        variant: "outline",
+        className: "rounded-[12px]",
       },
       confirmButton: {
-        className: 'bg-red-500 hover:bg-red-600 text-white rounded-[12px]',
+        className: "bg-red-500 hover:bg-red-600 text-white rounded-[12px]",
       },
       alertDialogTitle: {
-        className: 'flex items-center gap-2',
+        className: "flex items-center gap-2",
       },
       alertDialogContent: {
-        className: '!rounded-[12px]',
+        className: "!rounded-[12px]",
       },
     });
 
     if (isConfirmed) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/account`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
       }).then((resp) => {
         if (resp.status === 200) {
           toast.success(
-            'Successfully deleted your account. You will now be logged out.',
+            "Successfully deleted your account. You will now be logged out.",
           );
-          router.push('/sign-in');
+          router.push("/sign-in");
         } else {
           resp.text().then((text) => {
             toast.error(text);
@@ -227,10 +227,10 @@ export default function GeneralSettings() {
 
   // Component render
   return (
-    <div className='grid gap-5'>
+    <div className="grid gap-5">
       <SettingCard
-        title='Profile'
-        description='Used to identify your account.'
+        title="Profile"
+        description="Used to identify your account."
         btn_loading={loadingProfile}
         btn_disabled={
           !firstName?.trim() ||
@@ -240,22 +240,22 @@ export default function GeneralSettings() {
         }
         action={handleFirstLastNameSubmit}
         content={
-          <div className='flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4'>
-            <div className='flex flex-row gap-2'>
-              <Avatar className='relative mr-4 size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-accent'>
-                <Label className='relative h-full w-full cursor-pointer'>
+          <div className="flex w-full flex-row gap-2 max-md:flex-col max-md:gap-4">
+            <div className="flex flex-row gap-2">
+              <Avatar className="relative mr-4 size-[65px] cursor-pointer items-center justify-center overflow-visible !rounded-full bg-accent">
+                <Label className="relative h-full w-full cursor-pointer">
                   <AvatarImage
-                    className='rounded-full'
-                    alt='Project image'
+                    className="rounded-full"
+                    alt="Project image"
                     src={reader === null ? user.image : reader}
                   />
-                  <AvatarFallback className='h-full w-full !rounded-full'>
-                    <ImageIcon className='size-5 text-muted-foreground' />
+                  <AvatarFallback className="h-full w-full !rounded-full">
+                    <ImageIcon className="size-5 text-muted-foreground" />
                   </AvatarFallback>
                   <Input
-                    type='file'
-                    accept='.jpg, .jpeg, .png, .webp .svg'
-                    className='absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0'
+                    type="file"
+                    accept=".jpg, .jpeg, .png, .webp .svg"
+                    className="absolute left-0 top-0 h-full w-full cursor-pointer bg-background opacity-0"
                     onChange={(event) => {
                       const selectedFile = event.target.files?.[0];
                       if (!selectedFile) return;
@@ -270,65 +270,65 @@ export default function GeneralSettings() {
                 </Label>
               </Avatar>
             </div>
-            <Label className='flex w-full flex-col gap-2'>
+            <Label className="flex w-full flex-col gap-2">
               First name
               <Input
-                placeholder='John'
-                name='first_name'
-                className='w-full'
-                type='text'
+                placeholder="John"
+                name="first_name"
+                className="w-full"
+                type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
               />
             </Label>
-            <Label className='flex w-full flex-col gap-2'>
+            <Label className="flex w-full flex-col gap-2">
               Last name
               <Input
-                placeholder='Doe'
-                name='last_name'
-                className='w-full'
-                type='text'
+                placeholder="Doe"
+                name="last_name"
+                className="w-full"
+                type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
               />
             </Label>
           </div>
         }
-        btn='Save'
+        btn="Save"
       />
 
       <SettingCard
-        title='Email'
+        title="Email"
         btn_loading={loadingEmail}
         btn_disabled={!email?.trim() || email.trim() === user.email}
         disabled_text={
-          <div className='flex flex-col items-center justify-center gap-4'>
-            <Info className='size-16 text-blue-500' />
-            <div className='text-md max-w-[220px] text-center text-muted-foreground'>
-              You cannot update your{' '}
-              <span className='font-semibold text-primary'>email</span> when
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Info className="size-16 text-blue-500" />
+            <div className="text-md max-w-[220px] text-center text-muted-foreground">
+              You cannot update your{" "}
+              <span className="font-semibold text-primary">email</span> when
               connected to a provider
             </div>
           </div>
         }
-        description='This accounts main email.'
+        description="This accounts main email."
         action={handleEmailSubmit}
         content={
-          <Label className='flex flex-col gap-2'>
+          <Label className="flex flex-col gap-2">
             <Input
-              placeholder='Email'
-              type='email'
-              name='email'
+              placeholder="Email"
+              type="email"
+              name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </Label>
         }
-        btn='Save'
+        btn="Save"
       />
 
       <SettingCard
-        title='Password'
+        title="Password"
         btn_loading={loadingPassword}
         btn_disabled={
           !oldPassword?.trim() ||
@@ -339,77 +339,77 @@ export default function GeneralSettings() {
           user.providers === null ? false : (user.providers.length ?? 0) > 0
         }
         disabled_text={
-          <div className='flex flex-col items-center justify-center gap-4'>
-            <Info className='size-16 text-blue-500' />
-            <div className='text-md max-w-[220px] text-center text-muted-foreground'>
-              You cannot update your{' '}
-              <span className='font-semibold text-primary'>password</span> when
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Info className="size-16 text-blue-500" />
+            <div className="text-md max-w-[220px] text-center text-muted-foreground">
+              You cannot update your{" "}
+              <span className="font-semibold text-primary">password</span> when
               connected to a provider
             </div>
           </div>
         }
-        description='The key protecting this account.'
+        description="The key protecting this account."
         action={handlePasswordSubmit}
         content={
-          <div className='flex flex-col gap-4'>
-            <Label className='flex flex-col gap-2'>
+          <div className="flex flex-col gap-4">
+            <Label className="flex flex-col gap-2">
               Current password
               <Input
-                placeholder='Current password'
-                name='old_password'
-                type='password'
+                placeholder="Current password"
+                name="old_password"
+                type="password"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
               />
             </Label>
-            <Label className='flex flex-col gap-2'>
+            <Label className="flex flex-col gap-2">
               New password
               <Input
-                placeholder='New password'
-                name='new_password'
-                type='password'
+                placeholder="New password"
+                name="new_password"
+                type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
             </Label>
-            <Label className='flex flex-col gap-2'>
+            <Label className="flex flex-col gap-2">
               Confirm new password
               <Input
-                placeholder='Confirm new password'
-                name='confirmed_password'
-                type='password'
+                placeholder="Confirm new password"
+                name="confirmed_password"
+                type="password"
                 value={confirmedPassword}
                 onChange={(e) => setConfirmedPassword(e.target.value)}
               />
             </Label>
           </div>
         }
-        btn='Save'
+        btn="Save"
       />
 
       <SettingCard
-        title='Providers'
-        description='A list of providers linked or not to this account.'
+        title="Providers"
+        description="A list of providers linked or not to this account."
         btn_loading={false}
         btn_disabled={false}
         action={() => {}}
         content={
-          <div className='flex flex-col gap-4'>
+          <div className="flex flex-col gap-4">
             {providers.map((provider: any) => {
               return (
                 <div
                   key={provider.type}
-                  className='flex items-center justify-between'
+                  className="flex items-center justify-between"
                 >
-                  <div className='flex flex-row items-center gap-2'>
-                    <div className='flex size-10 items-center justify-center rounded-md bg-accent'>
-                      {provider.logo}{' '}
+                  <div className="flex flex-row items-center gap-2">
+                    <div className="flex size-10 items-center justify-center rounded-md bg-accent">
+                      {provider.logo}{" "}
                     </div>
-                    <div className='flex flex-col'>
-                      <p className='text-sm font-medium leading-none'>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium leading-none">
                         {provider.name}
                       </p>
-                      <p className='text-sm text-zinc-500 dark:text-zinc-400'>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
                         {provider.description}
                       </p>
                     </div>
@@ -419,8 +419,8 @@ export default function GeneralSettings() {
                     : (user?.providers.filter((p) => p.type === provider.type)
                         .length ?? 0)) === 0 ? (
                     <Button
-                      variant={'ghost'}
-                      className='rounded-[10px]'
+                      variant={"ghost"}
+                      className="rounded-[10px]"
                       onClick={() => {
                         router.push(
                           `${process.env.NEXT_PUBLIC_API_URL}/oauth/${provider.name.toLowerCase()}?state=connect.${user?.id}`,
@@ -442,7 +442,7 @@ export default function GeneralSettings() {
                           : (user.providers.length ?? 0)
                       }
                     >
-                      <Button variant={'ghost'} className='rounded-[10px]'>
+                      <Button variant={"ghost"} className="rounded-[10px]">
                         Disconnect
                       </Button>
                     </DisconnectProviderDialog>
@@ -455,19 +455,19 @@ export default function GeneralSettings() {
       />
 
       <SettingCard
-        title='Delete account'
+        title="Delete account"
         btn_loading={false}
         btn_disabled={false}
         action={(e) => {
           e.preventDefault();
         }}
         danger
-        description='This action will delete this account and all the data in it forever.'
+        description="This action will delete this account and all the data in it forever."
         content={
-          <div className='flex flex-col gap-4'>
+          <div className="flex flex-col gap-4">
             <Button
-              variant={'destructiveOutline'}
-              className='rounded-[10px]'
+              variant={"destructiveOutline"}
+              className="rounded-[10px]"
               onClick={DeleteAccount}
             >
               Delete account

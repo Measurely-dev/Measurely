@@ -1,9 +1,13 @@
-"use client"
+"use client";
 import { useTheme } from "next-themes";
 import { Toaster } from "sonner";
 
 // Wrapper component to access the current theme
-export default function LayoutClient({ children }: { children: React.ReactNode }) {
+export default function LayoutClient({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { theme } = useTheme();
 
   return (

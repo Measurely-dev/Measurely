@@ -1,8 +1,8 @@
 // Import React's type for child components
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 // Dashboard container component that wraps content with consistent spacing and layout
-// @param children - Child components to be rendered inside the container 
+// @param children - Child components to be rendered inside the container
 // @param className - Optional additional CSS classes to apply
 export default function DashboardContentContainer(props: {
   children: ReactNode;

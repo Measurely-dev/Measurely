@@ -9,7 +9,7 @@ export default function HeroTitle(props: {
     // Container with flex column layout and center alignment
     <div className={`flex flex-col gap-[10px] text-center ${props.className}`}>
       {/* Subtitle with decorative symbol prefix */}
-      <div className='text-center text-lg font-medium'>✧ {props.subtitle}</div>
+      <div className="text-center text-lg font-medium">✧ {props.subtitle}</div>
 
       {/* Main title with responsive font sizes */}
       <div

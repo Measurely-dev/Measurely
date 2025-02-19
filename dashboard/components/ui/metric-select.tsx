@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { Check, ChevronsUpDown, Trash } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import * as React from "react";
+import { Check, ChevronsUpDown, Trash } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandGroup,
@@ -10,15 +10,15 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { ProjectsContext } from '@/dash-context';
-import { Metric } from '@/types';
-import { Dispatch, SetStateAction } from 'react';
+} from "@/components/ui/popover";
+import { ProjectsContext } from "@/dash-context";
+import { Metric } from "@/types";
+import { Dispatch, SetStateAction } from "react";
 
 export function MetricSelect(props: {
   selectedMetrics: Metric[];
@@ -29,7 +29,7 @@ export function MetricSelect(props: {
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [openCombobox, setOpenCombobox] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState<string>('');
+  const [inputValue, setInputValue] = React.useState<string>("");
   const { projects, activeProject } = React.useContext(ProjectsContext);
 
   const projectMetrics = projects?.[activeProject]?.metrics ?? [];
@@ -57,7 +57,7 @@ export function MetricSelect(props: {
       }
     }
 
-    props.setSelectFilterCategories('');
+    props.setSelectFilterCategories("");
     inputRef?.current?.focus();
   };
   const onComboboxOpenChange = (value: boolean) => {
@@ -72,37 +72,37 @@ export function MetricSelect(props: {
   };
 
   return (
-    <div className='w-full'>
+    <div className="w-full">
       <Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
         <PopoverTrigger asChild>
           <Button
-            variant='outline'
-            role='combobox'
+            variant="outline"
+            role="combobox"
             aria-expanded={openCombobox}
-            className='h-11 w-full justify-between rounded-[12px] text-foreground'
+            className="h-11 w-full justify-between rounded-[12px] text-foreground"
           >
-            <span className='truncate'>
-              {props.selectedMetrics.length === 0 && 'Select metric(s)'}
+            <span className="truncate">
+              {props.selectedMetrics.length === 0 && "Select metric(s)"}
               {props.selectedMetrics.length === 1 &&
                 props.selectedMetrics[0].name}
               {props.selectedMetrics.length === 2 &&
-                props.selectedMetrics.map(({ name }) => name).join(', ')}
+                props.selectedMetrics.map(({ name }) => name).join(", ")}
               {props.selectedMetrics.length > 2 &&
                 `${props.selectedMetrics.length} metrics selected`}
             </span>
-            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-[300px] max-w-none overflow-hidden rounded-[12px] p-0 shadow-md'>
+        <PopoverContent className="w-[300px] max-w-none overflow-hidden rounded-[12px] p-0 shadow-md">
           <Command loop>
             <CommandInput
               ref={inputRef}
-              placeholder='Search metrics...'
+              placeholder="Search metrics..."
               value={inputValue}
               onValueChange={setInputValue}
             />
             <CommandList>
-              <CommandGroup className='max-h-[300px] overflow-auto'>
+              <CommandGroup className="max-h-[300px] overflow-auto">
                 {projectMetrics.length > 0 ? (
                   projectMetrics.map((metric) => {
                     const isActive = props.selectedMetrics.some(
@@ -116,16 +116,16 @@ export function MetricSelect(props: {
                       >
                         <Check
                           className={cn(
-                            'mr-2 h-4 w-4',
-                            isActive ? 'opacity-100' : 'opacity-0',
+                            "mr-2 h-4 w-4",
+                            isActive ? "opacity-100" : "opacity-0",
                           )}
                         />
-                        <div className='flex-1 capitalize'>{metric.name}</div>
+                        <div className="flex-1 capitalize">{metric.name}</div>
                       </CommandItem>
                     );
                   })
                 ) : (
-                  <div className='p-2 text-center text-sm text-muted-foreground'>
+                  <div className="p-2 text-center text-sm text-muted-foreground">
                     No metrics available.
                   </div>
                 )}
@@ -133,22 +133,22 @@ export function MetricSelect(props: {
               <CommandSeparator />
               <CommandGroup>
                 <CommandItem
-                  className='flex items-center justify-center gap-1 !text-center text-sm !text-destructive'
+                  className="flex items-center justify-center gap-1 !text-center text-sm !text-destructive"
                   onSelect={clearSelectedMetrics}
                 >
-                  <Trash className='size-4' /> Clear metric(s)
+                  <Trash className="size-4" /> Clear metric(s)
                 </CommandItem>
               </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
-      <div className='relative mt-3 h-fit overflow-y-auto'>
+      <div className="relative mt-3 h-fit overflow-y-auto">
         {props.selectedMetrics.map(({ name, id }) => (
           <Badge
             key={id}
-            variant='outline'
-            className='group relative mr-1 w-fit select-none rounded-full border border-input bg-accent/80 px-3 text-sm font-medium text-muted-foreground shadow-none'
+            variant="outline"
+            className="group relative mr-1 w-fit select-none rounded-full border border-input bg-accent/80 px-3 text-sm font-medium text-muted-foreground shadow-none"
           >
             {name}
           </Badge>

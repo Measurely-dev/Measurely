@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Import required React and UI components
 import {
@@ -8,10 +8,10 @@ import {
   useMemo,
   useState,
   useEffect,
-} from 'react';
-import { Button } from '@/components/ui/button';
-import { useContext } from 'react';
-import { ProjectsContext } from '@/dash-context';
+} from "react";
+import { Button } from "@/components/ui/button";
+import { useContext } from "react";
+import { ProjectsContext } from "@/dash-context";
 import {
   Dialog,
   DialogClose,
@@ -22,8 +22,8 @@ import {
   DialogOverlay,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { AreaChart } from '@/components/ui/area-chart';
+} from "@/components/ui/dialog";
+import { AreaChart } from "@/components/ui/area-chart";
 import {
   AreaChartData,
   BarChartData,
@@ -31,10 +31,10 @@ import {
   ComboChartData,
   PieChartData,
   RadarChartData,
-} from '@/components/global/blocks-fake-data';
-import { ComboChart } from '@/components/ui/combo-chart';
-import { BarChart } from '@/components/ui/bar-chart';
-import { BarList } from '@/components/ui/bar-list';
+} from "@/components/global/blocks-fake-data";
+import { ComboChart } from "@/components/ui/combo-chart";
+import { BarChart } from "@/components/ui/bar-chart";
+import { BarList } from "@/components/ui/bar-list";
 import {
   DialogStack,
   DialogStackBody,
@@ -47,16 +47,16 @@ import {
   DialogStackPrevious,
   DialogStackTitle,
   DialogStackTrigger,
-} from '@/components/ui/dialog-stack';
-import { Input } from '@/components/ui/input';
-import { MetricSelect } from '@/components/ui/metric-select';
-import { Popover, PopoverContent } from '@/components/ui/popover';
+} from "@/components/ui/dialog-stack";
+import { Input } from "@/components/ui/input";
+import { MetricSelect } from "@/components/ui/metric-select";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from '@/components/ui/chart';
+} from "@/components/ui/chart";
 import {
   Pie,
   PieChart,
@@ -65,20 +65,20 @@ import {
   Radar,
   RadarChart,
   Label as RechartLabel,
-} from 'recharts';
-import { Label } from '@/components/ui/label';
+} from "recharts";
+import { Label } from "@/components/ui/label";
 import {
   Block,
   BlockType,
   ChartType,
   chartTypeMetricLimits,
   Metric,
-} from '@/types';
-import { toast } from 'sonner';
-import { generateString } from '@/utils';
-import { LabelSelect } from '@/components/ui/label-select';
-import { FilterCategorySelect } from '@/components/ui/filter-category-select';
-import { useRouter } from 'next/navigation';
+} from "@/types";
+import { toast } from "sonner";
+import { generateString } from "@/utils";
+import { LabelSelect } from "@/components/ui/label-select";
+import { FilterCategorySelect } from "@/components/ui/filter-category-select";
+import { useRouter } from "next/navigation";
 
 // Interface for block showcase items
 interface BlockShowcaseType {
@@ -91,80 +91,80 @@ interface BlockShowcaseType {
 // Chart configuration objects
 const chartConfig = {
   desktop: {
-    label: 'Desktop',
-    color: 'blue',
+    label: "Desktop",
+    color: "blue",
   },
 } satisfies ChartConfig;
 
 const pieChartConfig = {
-  visitors: { label: 'Visitors' },
-  chrome: { label: 'Chrome', color: 'blue' },
-  safari: { label: 'Safari', color: 'lightblue' },
-  firefox: { label: 'Firefox', color: 'purple' },
-  edge: { label: 'Edge', color: 'violet' },
-  other: { label: 'Other', color: 'pink' },
+  visitors: { label: "Visitors" },
+  chrome: { label: "Chrome", color: "blue" },
+  safari: { label: "Safari", color: "lightblue" },
+  firefox: { label: "Firefox", color: "purple" },
+  edge: { label: "Edge", color: "violet" },
+  other: { label: "Other", color: "pink" },
 } satisfies ChartConfig;
 
 // Wide block type configurations
 const blockWideType: BlockShowcaseType[] = [
   {
-    name: 'Area Chart',
+    name: "Area Chart",
     value: ChartType.Area,
     description:
-      'Visualizes data trends over time with shaded areas, highlighting volume or changes.',
+      "Visualizes data trends over time with shaded areas, highlighting volume or changes.",
     chart: (
       <AreaChart
-        className='h-40'
+        className="h-40"
         data={AreaChartData}
-        colors={['violet', 'blue']}
-        index='date'
-        categories={['SolarPanels', 'Inverters']}
+        colors={["violet", "blue"]}
+        index="date"
+        categories={["SolarPanels", "Inverters"]}
         valueFormatter={(number: number) =>
-          `$${Intl.NumberFormat('us').format(number).toString()}`
+          `$${Intl.NumberFormat("us").format(number).toString()}`
         }
         showYAxis={false}
       />
     ),
   },
   {
-    name: 'Bar Chart',
+    name: "Bar Chart",
     value: ChartType.Bar,
     description:
-      'Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.',
+      "Represents data in a horizontal bar format, best for ranking and side-by-side comparisons.",
     chart: (
       <BarChart
-        className='h-40'
+        className="h-40"
         data={BarChartData}
-        colors={['violet', 'blue']}
-        index='date'
-        categories={['SolarPanels', 'Inverters']}
+        colors={["violet", "blue"]}
+        index="date"
+        categories={["SolarPanels", "Inverters"]}
         valueFormatter={(number: number) =>
-          `$${Intl.NumberFormat('us').format(number).toString()}`
+          `$${Intl.NumberFormat("us").format(number).toString()}`
         }
         showYAxis={false}
       />
     ),
   },
   {
-    name: 'Combo Chart',
+    name: "Combo Chart",
     value: ChartType.Combo,
     description:
-      'Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.',
+      "Combines a bar chart and line chart in one, great for comparing totals and trends simultaneously.",
     chart: (
       <ComboChart
-        className='h-40'
+        className="h-40"
         data={ComboChartData}
-        index='date'
+        index="date"
         enableBiaxial={true}
         barSeries={{
-          categories: ['SolarPanels'],
+          categories: ["SolarPanels"],
           showYAxis: false,
-          colors: ['blue'],
+          colors: ["blue"],
         }}
         lineSeries={{
-          categories: ['Inverters'],
+          categories: ["Inverters"],
           showYAxis: false,
-          colors: ['fuchsia'],
+          colors: ["fuchsia"],
         }}
       />
     ),
@@ -174,44 +174,44 @@ const blockWideType: BlockShowcaseType[] = [
 // Compact block type configurations
 const blockCompactType: BlockShowcaseType[] = [
   {
-    name: 'Pie Chart',
+    name: "Pie Chart",
     value: ChartType.Pie,
     description:
-      'Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.',
+      "Shows proportions of a whole using a pie chart, perfect for visualizing percentages or ratios.",
     chart: (
       <ChartContainer
         config={pieChartConfig}
-        className='mx-auto h-[250px] w-full'
+        className="mx-auto h-[250px] w-full"
       >
         <PieChart>
           <Pie
             data={PieChartData}
-            dataKey='visitors'
-            nameKey='browser'
+            dataKey="visitors"
+            nameKey="browser"
             innerRadius={60}
             strokeWidth={5}
           >
             <RechartLabel
               content={({ viewBox }) => {
-                if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                   return (
                     <text
                       x={viewBox.cx}
                       y={viewBox.cy}
-                      textAnchor='middle'
-                      dominantBaseline='middle'
+                      textAnchor="middle"
+                      dominantBaseline="middle"
                     >
                       <tspan
                         x={viewBox.cx}
                         y={viewBox.cy}
-                        className='fill-foreground text-3xl font-bold'
+                        className="fill-foreground text-3xl font-bold"
                       >
                         1000
                       </tspan>
                       <tspan
                         x={viewBox.cx}
                         y={(viewBox.cy || 0) + 24}
-                        className='fill-muted-foreground'
+                        className="fill-muted-foreground"
                       >
                         Visitors
                       </tspan>
@@ -226,19 +226,19 @@ const blockCompactType: BlockShowcaseType[] = [
     ),
   },
   {
-    name: 'Radar Chart',
+    name: "Radar Chart",
     value: ChartType.Radar,
     description:
-      'Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.',
+      "Shows data distribution across multiple axes, perfect for comparing categories or metrics in a visually intuitive and informative way.",
     chart: (
-      <ChartContainer config={chartConfig} className='mx-auto h-[250px] w-full'>
+      <ChartContainer config={chartConfig} className="mx-auto h-[250px] w-full">
         <RadarChart data={RadarChartData}>
           <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-          <PolarGrid className='fill-[blue] opacity-20' gridType='polygon' />
-          <PolarAngleAxis dataKey='month' />
+          <PolarGrid className="fill-[blue] opacity-20" gridType="polygon" />
+          <PolarAngleAxis dataKey="month" />
           <Radar
-            dataKey='desktop'
-            fill='var(--color-desktop)'
+            dataKey="desktop"
+            fill="var(--color-desktop)"
             fillOpacity={0.5}
           />
         </RadarChart>
@@ -246,10 +246,10 @@ const blockCompactType: BlockShowcaseType[] = [
     ),
   },
   {
-    name: 'Bar List',
+    name: "Bar List",
     value: ChartType.BarList,
     description:
-      'Displays data in a vertical bar chart format, ideal for comparing multiple categories.',
+      "Displays data in a vertical bar chart format, ideal for comparing multiple categories.",
     chart: <BarList data={BarListData} />,
   },
 ];
@@ -257,7 +257,7 @@ const blockCompactType: BlockShowcaseType[] = [
 // Main dialog component for block selection
 export default function BlocksDialog(props: {
   children?: ReactNode;
-  type: 'compact' | 'wide';
+  type: "compact" | "wide";
   groupkey?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -269,18 +269,18 @@ export default function BlocksDialog(props: {
 
   // Handle dialog open/close
   const handleOpenChange = (open: boolean) => {
-    if (open && props.type === 'compact') {
+    if (open && props.type === "compact") {
       const project = projects[activeProject];
       const hasMetricWithFilters = project.metrics?.some(
         (metric) => Object.keys(metric.filters || {}).length > 0,
       );
 
       if (!hasMetricWithFilters) {
-        toast.warning('You need at least one metric with a filter', {
+        toast.warning("You need at least one metric with a filter", {
           action: {
-            label: 'How to?',
-            onClick: () => router.push('/docs/features/filters/'),
-          }
+            label: "How to?",
+            onClick: () => router.push("/docs/features/filters/"),
+          },
         });
         return;
       }
@@ -301,20 +301,20 @@ export default function BlocksDialog(props: {
     <DialogStack>
       <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
         <DialogOverlay />
-        <DialogTrigger asChild className='max-sm:w-full'>
+        <DialogTrigger asChild className="max-sm:w-full">
           {props.children}
         </DialogTrigger>
-        <DialogContent className='flex h-[80vh] max-h-[650px] w-[95%] max-w-[700px] flex-col gap-0 p-0 max-sm:w-[100%]'>
-          <DialogHeader className='px-5 py-5 max-sm:text-start'>
+        <DialogContent className="flex h-[80vh] max-h-[650px] w-[95%] max-w-[700px] flex-col gap-0 p-0 max-sm:w-[100%]">
+          <DialogHeader className="px-5 py-5 max-sm:text-start">
             <DialogTitle>Select Block</DialogTitle>
             <DialogDescription>
               Custom components to showcase or compare metric data on your
               overview page.
             </DialogDescription>
           </DialogHeader>
-          <div className='flex h-full flex-col gap-5 overflow-y-auto border-t px-5 pb-5 pt-3'>
-            {props.type === 'wide' ? (
-              <div className='grid grid-cols-1 gap-5'>
+          <div className="flex h-full flex-col gap-5 overflow-y-auto border-t px-5 pb-5 pt-3">
+            {props.type === "wide" ? (
+              <div className="grid grid-cols-1 gap-5">
                 {blockWideType.map((block, i) => (
                   <BlockItem
                     key={i}
@@ -328,7 +328,7 @@ export default function BlocksDialog(props: {
                 ))}
               </div>
             ) : (
-              <div className='grid grid-cols-2 gap-5 max-sm:grid-cols-1'>
+              <div className="grid grid-cols-2 gap-5 max-sm:grid-cols-1">
                 {blockCompactType.map((block, i) => (
                   <BlockItem
                     key={i}
@@ -343,9 +343,9 @@ export default function BlocksDialog(props: {
               </div>
             )}
           </div>
-          <DialogFooter className='border-t p-5'>
+          <DialogFooter className="border-t p-5">
             <DialogClose asChild onClick={() => setValue(0)}>
-              <Button className='rounded-[12px]' variant={'secondary'}>
+              <Button className="rounded-[12px]" variant={"secondary"}>
                 Cancel
               </Button>
             </DialogClose>
@@ -355,7 +355,7 @@ export default function BlocksDialog(props: {
               groupKey={props.groupkey}
             >
               <Button
-                className='w-fit rounded-[12px] max-md:mb-2'
+                className="w-fit rounded-[12px] max-md:mb-2"
                 disabled={value === -1}
               >
                 Next
@@ -407,19 +407,19 @@ function BlockItem(props: {
     <div
       className={`flex w-full select-none flex-col gap-1 rounded-xl border p-3 transition-all duration-150 ${
         props.state === props.value
-          ? 'cursor-pointer bg-blue-500/10 ring-2 ring-blue-500/70'
-          : 'cursor-pointer hover:bg-accent/50'
+          ? "cursor-pointer bg-blue-500/10 ring-2 ring-blue-500/70"
+          : "cursor-pointer hover:bg-accent/50"
       }`}
       onClick={handleClick}
     >
-      <div className='text-sm font-medium'>{props.name}</div>
-      <div className='text-xs font-light text-muted-foreground'>
+      <div className="text-sm font-medium">{props.name}</div>
+      <div className="text-xs font-light text-muted-foreground">
         {props.description}
       </div>
       {props.value === ChartType.BarList ? (
-        <BarList className='mt-4' data={BarListData} />
+        <BarList className="mt-4" data={BarListData} />
       ) : (
-        <div className='pointer-events-none mx-auto mt-4 flex w-full select-none items-center justify-center'>
+        <div className="pointer-events-none mx-auto mt-4 flex w-full select-none items-center justify-center">
           {props.chart}
         </div>
       )}
@@ -458,11 +458,11 @@ function BlocksDialogStack(props: {
   const min = chartLimits.min;
   const max = chartLimits.max;
 
-  const [nameInputValue, setNameInputValue] = useState<string>('');
+  const [nameInputValue, setNameInputValue] = useState<string>("");
   const dialogStackContext = useContext(DialogStackContext);
   const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string>('');
-  const [selectFilterCategory, setSelectFilterCategory] = useState<string>('');
+  const [selectedLabel, setSelectedLabel] = useState<string>("");
+  const [selectFilterCategory, setSelectFilterCategory] = useState<string>("");
   const { projects, activeProject, setProjects } = useContext(ProjectsContext);
 
   const isCompactType = blockCompactType.some(
@@ -477,19 +477,19 @@ function BlocksDialogStack(props: {
     <>
       <DialogStackOverlay
         onClick={() => {
-          setNameInputValue('');
-          setSelectedLabel('');
+          setNameInputValue("");
+          setSelectedLabel("");
           setSelectedMetrics([]);
           closeDialog();
         }}
       />
       <DialogStackTrigger asChild>{props.children}</DialogStackTrigger>
-      <DialogStackBody className='z-[110] my-auto h-fit'>
-        <DialogStackContent className='relative'>
+      <DialogStackBody className="z-[110] my-auto h-fit">
+        <DialogStackContent className="relative">
           <DialogHeader>
             <DialogStackTitle>
-              Choose{' '}
-              <span className='text-purple-500'>{blockSelected?.name}</span>{' '}
+              Choose{" "}
+              <span className="text-purple-500">{blockSelected?.name}</span>{" "}
               Name
             </DialogStackTitle>
             <DialogStackDescription>
@@ -497,36 +497,36 @@ function BlocksDialogStack(props: {
               block will display.
             </DialogStackDescription>
           </DialogHeader>
-          <div className='my-4 mb-0 flex flex-col gap-2'>
+          <div className="my-4 mb-0 flex flex-col gap-2">
             <Popover open={true}>
               <PopoverContent asChild>
-                <div className='hidden' />
+                <div className="hidden" />
               </PopoverContent>
             </Popover>
             <Label>Choose block name</Label>
             <Input
-              placeholder='Block name...'
-              className='z-50 h-11 rounded-[12px]'
+              placeholder="Block name..."
+              className="z-50 h-11 rounded-[12px]"
               value={nameInputValue}
               onChange={(e) => setNameInputValue(e.target.value)}
               maxLength={25}
             />
           </div>
-          <DialogStackFooter className='mt-5'>
+          <DialogStackFooter className="mt-5">
             <Button
               onClick={() => {
-                setNameInputValue('');
-                setSelectedLabel('');
+                setNameInputValue("");
+                setSelectedLabel("");
                 setSelectedMetrics([]);
                 closeDialog();
               }}
-              className='rounded-[12px]'
-              variant={'secondary'}
+              className="rounded-[12px]"
+              variant={"secondary"}
             >
               Cancel
             </Button>
             <DialogStackNext asChild>
-              <Button className='rounded-[12px]' disabled={!nameInputValue}>
+              <Button className="rounded-[12px]" disabled={!nameInputValue}>
                 Next
               </Button>
             </DialogStackNext>
@@ -541,8 +541,8 @@ function BlocksDialogStack(props: {
               and help you organize your metrics.
             </DialogStackDescription>
           </DialogHeader>
-          <div className='my-4 mb-0'>
-            <div className='flex flex-col gap-2'>
+          <div className="my-4 mb-0">
+            <div className="flex flex-col gap-2">
               <Label>Block label</Label>
               <LabelSelect
                 selectedLabel={selectedLabel}
@@ -552,14 +552,14 @@ function BlocksDialogStack(props: {
           </div>
           <DialogStackFooter>
             <DialogStackPrevious asChild>
-              <Button className='rounded-[12px]' variant={'secondary'}>
+              <Button className="rounded-[12px]" variant={"secondary"}>
                 Previous
               </Button>
             </DialogStackPrevious>
             <DialogStackNext asChild>
               <Button
-                className='rounded-[12px]'
-                disabled={selectedLabel === ''}
+                className="rounded-[12px]"
+                disabled={selectedLabel === ""}
               >
                 Next
               </Button>
@@ -575,13 +575,13 @@ function BlocksDialogStack(props: {
               track various data points.
             </DialogStackDescription>
           </DialogHeader>
-          <div className='my-4 mb-0 flex flex-col gap-2'>
-            <div className='flex flex-col gap-2'>
+          <div className="my-4 mb-0 flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               <Label>
                 {isCompactType &&
                 selectedMetrics.length > 0 &&
                 Object.keys(selectedMetrics[0].filters || {}).length === 0 ? (
-                  <span className='text-red-500'>
+                  <span className="text-red-500">
                     Please select a metric that has filters
                   </span>
                 ) : (
@@ -591,15 +591,15 @@ function BlocksDialogStack(props: {
                       className={`ml-2 ${
                         selectedMetrics.length < min ||
                         selectedMetrics.length > max
-                          ? 'text-red-500'
-                          : 'text-green-500'
+                          ? "text-red-500"
+                          : "text-green-500"
                       }`}
                     >
                       {selectedMetrics.length < min
                         ? `(${min - selectedMetrics.length} more required)`
                         : selectedMetrics.length > max
                           ? `(${selectedMetrics.length - max} too many)`
-                          : ''}
+                          : ""}
                     </span>
                   </>
                 )}
@@ -615,7 +615,7 @@ function BlocksDialogStack(props: {
             {isCompactType &&
               selectedMetrics.length > 0 &&
               Object.keys(selectedMetrics[0].filters || {}).length > 0 && (
-                <div className='mt-4 flex flex-col gap-2'>
+                <div className="mt-4 flex flex-col gap-2">
                   <Label>Select filter category</Label>
                   <FilterCategorySelect
                     metric={selectedMetrics[0]}
@@ -627,24 +627,24 @@ function BlocksDialogStack(props: {
           </div>
           <DialogStackFooter>
             <DialogStackPrevious asChild>
-              <Button className='rounded-[12px]' variant={'secondary'}>
+              <Button className="rounded-[12px]" variant={"secondary"}>
                 Previous
               </Button>
             </DialogStackPrevious>
             <Button
-              className='rounded-[12px]'
+              className="rounded-[12px]"
               disabled={
                 selectedMetrics.length < min ||
                 selectedMetrics.length > max ||
                 (isCompactType &&
                   selectedMetrics.length > 0 &&
                   Object.keys(selectedMetrics[0].filters || {}).length === 0) ||
-                (isCompactType && selectFilterCategory === '')
+                (isCompactType && selectFilterCategory === "")
               }
               onClick={() => {
                 props.setIsDialogOpen(false);
-                setNameInputValue('');
-                setSelectedLabel('');
+                setNameInputValue("");
+                setSelectedLabel("");
                 setSelectedMetrics([]);
                 closeDialog();
                 const project = projects[activeProject];
@@ -656,7 +656,7 @@ function BlocksDialogStack(props: {
                   return;
                 }
                 const color =
-                  project.blocks?.labels[labelIndex].default_color ?? '';
+                  project.blocks?.labels[labelIndex].default_color ?? "";
                 const newBlock: Block = {
                   id: 0,
                   unique_key: generateString(10),
@@ -677,12 +677,12 @@ function BlocksDialogStack(props: {
                       (l) => l.unique_key === props.groupKey,
                     ) ?? [];
                   if (layout.length === 0) {
-                    toast.error('Block does not exist');
+                    toast.error("Block does not exist");
                     return;
                   }
                   const length = layout[0].nested ? layout[0].nested.length : 0;
                   if ((length ?? 0) >= 3) {
-                    toast.error('Cannot have more than 3 blocks in a group');
+                    toast.error("Cannot have more than 3 blocks in a group");
                     return;
                   }
 

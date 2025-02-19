@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { AnimatePresence, MotionConfig, Variants, motion } from 'framer-motion';
-import { ArrowLeftIcon, ChevronRight } from 'lucide-react';
+import { AnimatePresence, MotionConfig, Variants, motion } from "framer-motion";
+import { ArrowLeftIcon, ChevronRight } from "lucide-react";
 import React, {
   createContext,
   forwardRef,
@@ -11,13 +11,13 @@ import React, {
   useLayoutEffect,
   useRef,
   useState,
-} from 'react';
+} from "react";
 
-import { cn } from '@/lib/utils';
-import { createPortal } from 'react-dom';
+import { cn } from "@/lib/utils";
+import { createPortal } from "react-dom";
 
 const TRANSITION = {
-  type: 'spring',
+  type: "spring",
   bounce: 0.1,
   duration: 0.4,
 };
@@ -43,7 +43,7 @@ export function useFloatingPanel() {
   const context = useContext(FloatingPanelContext);
   if (!context) {
     throw new Error(
-      'useFloatingPanel must be used within a FloatingPanelProvider',
+      "useFloatingPanel must be used within a FloatingPanelProvider",
     );
   }
   return context;
@@ -54,10 +54,10 @@ function useFloatingPanelLogic(
 ) {
   const uniqueId = useId();
   const [isOpen, setIsOpen] = useState(false);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (controlledOpen !== undefined) {
@@ -73,7 +73,7 @@ function useFloatingPanelLogic(
 
   const closeFloatingPanel = () => {
     setIsOpen(false);
-    setNote('');
+    setNote("");
     onOpenChange?.(false);
   };
 
@@ -113,7 +113,7 @@ export function FloatingPanelRoot({
   return (
     <FloatingPanelContext.Provider value={floatingPanelLogic}>
       <MotionConfig transition={TRANSITION}>
-        <div className={cn('relative', className)}>{children}</div>
+        <div className={cn("relative", className)}>{children}</div>
       </MotionConfig>
     </FloatingPanelContext.Provider>
   );
@@ -141,7 +141,7 @@ export function FloatingPanelTrigger({
     if (triggerRef.current) {
       openFloatingPanel(triggerRef.current.getBoundingClientRect());
       setTitle(title);
-      setDescription(description ?? '');
+      setDescription(description ?? "");
     }
     onClick?.(e);
   };
@@ -151,7 +151,7 @@ export function FloatingPanelTrigger({
       ref={triggerRef} // Added ref here
       layoutId={`floating-panel-trigger-${uniqueId}`}
       className={cn(
-        'relative cursor-pointer overflow-hidden active:scale-[0.98]',
+        "relative cursor-pointer overflow-hidden active:scale-[0.98]",
         className,
       )}
       style={{ borderRadius: 8 }}
@@ -159,26 +159,26 @@ export function FloatingPanelTrigger({
         handleClick(e);
         e.stopPropagation();
       }}
-      aria-haspopup='dialog'
+      aria-haspopup="dialog"
       aria-expanded={isOpen}
     >
       <motion.div
-        className='absolute left-0 top-0 z-10 size-full'
-        style={{ borderRadius: 'inherit' }}
-        initial={{ border: '1.5px solid transparent' }}
+        className="absolute left-0 top-0 z-10 size-full"
+        style={{ borderRadius: "inherit" }}
+        initial={{ border: "1.5px solid transparent" }}
         animate={{
           border: isOpen
-            ? '1.5px dashed hsl(var(--input))'
-            : '1px solid transparent',
+            ? "1.5px dashed hsl(var(--input))"
+            : "1px solid transparent",
         }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
       />
 
       <motion.div
         layoutId={`floating-panel-label-container-${uniqueId}`}
         initial={{ opacity: 1 }}
         animate={{ opacity: isOpen ? 0 : 1 }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <motion.span layoutId={`floating-panel-label-${uniqueId}`}>
           {children}
@@ -190,13 +190,13 @@ export function FloatingPanelTrigger({
 interface FloatingPanelContentProps {
   children: React.ReactNode;
   className?: string;
-  side?: 'left' | 'right' | 'center'; // Added center option
+  side?: "left" | "right" | "center"; // Added center option
 }
 
 export function FloatingPanelContent({
   children,
   className,
-  side = 'left', // Default to 'left'
+  side = "left", // Default to 'left'
 }: FloatingPanelContentProps) {
   const {
     isOpen,
@@ -225,16 +225,16 @@ export function FloatingPanelContent({
         closeFloatingPanel();
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [closeFloatingPanel]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeFloatingPanel();
+      if (event.key === "Escape") closeFloatingPanel();
     };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [closeFloatingPanel]);
 
   const variants: Variants = {
@@ -245,37 +245,37 @@ export function FloatingPanelContent({
   const getPositionStyle = () => {
     if (!triggerRect) {
       return {
-        translateX: '-50%',
-        translateY: '-50%',
-        left: '50%',
-        top: '50%',
+        translateX: "-50%",
+        translateY: "-50%",
+        left: "50%",
+        top: "50%",
       };
     }
 
     switch (side) {
-      case 'left':
+      case "left":
         return {
           left: `${triggerRect.left}px`,
           top: `${triggerRect.bottom + 8}px`,
         };
-      case 'right':
+      case "right":
         return {
           left: `${panelWidth > 0 ? triggerRect.right - panelWidth : triggerRect.left}px`,
           top: `${triggerRect.bottom + 8}px`,
         };
-      case 'center':
+      case "center":
         return {
-          translateX: '-50%',
-          translateY: '-50%',
-          left: '50%',
-          top: '50%',
+          translateX: "-50%",
+          translateY: "-50%",
+          left: "50%",
+          top: "50%",
         };
       default:
         return {
-          translateX: '-50%',
-          translateY: '-50%',
-          left: '50%',
-          top: '50%',
+          translateX: "-50%",
+          translateY: "-50%",
+          left: "50%",
+          top: "50%",
         };
     }
   };
@@ -285,31 +285,31 @@ export function FloatingPanelContent({
       {isOpen && (
         <>
           <motion.div
-            initial={{ backgroundColor: 'transparent', opacity: 0 }}
-            animate={{ backgroundColor: 'black', opacity: 0.2 }}
-            exit={{ backgroundColor: 'transparent', opacity: 0 }}
-            className='fixed inset-0 z-40'
+            initial={{ backgroundColor: "transparent", opacity: 0 }}
+            animate={{ backgroundColor: "black", opacity: 0.2 }}
+            exit={{ backgroundColor: "transparent", opacity: 0 }}
+            className="fixed inset-0 z-40"
             onClick={(e) => e.stopPropagation()}
           />
           <motion.div
             ref={contentRef}
             layoutId={`floating-panel-${uniqueId}`}
             className={cn(
-              'fixed z-50 overflow-hidden border border-input bg-background shadow-lg outline-none',
+              "fixed z-50 overflow-hidden border border-input bg-background shadow-lg outline-none",
               className,
             )}
             style={{
               borderRadius: 12,
-              transformOrigin: side === 'center' ? 'center center' : 'top left',
+              transformOrigin: side === "center" ? "center center" : "top left",
               minWidth: 200,
               ...getPositionStyle(),
             }}
-            initial='hidden'
-            animate='visible'
-            exit='hidden'
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
             variants={variants}
-            role='dialog'
-            aria-modal='true'
+            role="dialog"
+            aria-modal="true"
             aria-labelledby={`floating-panel-title-${uniqueId}`}
           >
             <FloatingPanelTitle title={title} description={description} />
@@ -326,11 +326,11 @@ function FloatingPanelTitle(props: { title: string; description: string }) {
   return (
     <motion.div
       layoutId={`floating-panel-label-container-${uniqueId}`}
-      className='flex flex-col bg-background px-4 py-2'
+      className="flex flex-col bg-background px-4 py-2"
     >
       <motion.div
         layoutId={`floating-panel-label-${uniqueId}`}
-        className='text-sm font-semibold text-primary'
+        className="text-sm font-semibold text-primary"
         id={`floating-panel-title-${uniqueId}`}
       >
         {props.title}
@@ -338,7 +338,7 @@ function FloatingPanelTitle(props: { title: string; description: string }) {
       {props.description && (
         <motion.div
           layoutId={`floating-panel-description-${uniqueId}`}
-          className='text-sm text-secondary'
+          className="text-sm text-secondary"
         >
           {props.description}
         </motion.div>
@@ -368,7 +368,7 @@ export function FloatingPanelForm({
 
   return (
     <form
-      className={cn('flex h-full flex-col', className)}
+      className={cn("flex h-full flex-col", className)}
       onSubmit={handleSubmit}
     >
       {children}
@@ -391,7 +391,7 @@ export function FloatingPanelLabel({
     <motion.label
       htmlFor={htmlFor}
       className={cn(
-        'mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100',
+        "mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100",
         className,
       )}
     >
@@ -421,7 +421,7 @@ export function FloatingPanelTextarea({
       minLength={min}
       maxLength={max}
       className={cn(
-        'h-full w-full resize-none rounded-md bg-transparent px-4 py-3 text-sm outline-none',
+        "h-full w-full resize-none rounded-md bg-transparent px-4 py-3 text-sm outline-none",
         className,
       )}
       autoFocus
@@ -442,7 +442,7 @@ export function FloatingPanelHeader({
 }: FloatingPanelHeaderProps) {
   return (
     <motion.div
-      className={cn('px-4 py-2 font-semibold text-primary', className)}
+      className={cn("px-4 py-2 font-semibold text-primary", className)}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
@@ -463,7 +463,7 @@ export function FloatingPanelBody({
 }: FloatingPanelBodyProps) {
   return (
     <motion.div
-      className={cn('p-4', className)}
+      className={cn("p-4", className)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
@@ -484,7 +484,7 @@ export function FloatingPanelFooter({
 }: FloatingPanelFooterProps) {
   return (
     <motion.div
-      className={cn('flex justify-between px-4 py-3', className)}
+      className={cn("flex justify-between px-4 py-3", className)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
@@ -502,15 +502,15 @@ interface FloatingPanelCloseButtonProps {
 
 export function FloatingPanelCloseButton({
   className,
-  icon = <ArrowLeftIcon size={16} className='text-primary' />, // Default icon
-  ariaLabel = 'Close floating panel', // Default aria-label
+  icon = <ArrowLeftIcon size={16} className="text-primary" />, // Default icon
+  ariaLabel = "Close floating panel", // Default aria-label
 }: FloatingPanelCloseButtonProps) {
   const { closeFloatingPanel } = useFloatingPanel();
 
   return (
     <motion.button
-      type='button'
-      className={cn('flex items-center', className)}
+      type="button"
+      className={cn("flex items-center", className)}
       onClick={closeFloatingPanel}
       aria-label={ariaLabel}
       whileHover={{ scale: 1.1 }}
@@ -528,16 +528,16 @@ interface FloatingPanelSubmitButtonProps {
 
 export function FloatingPanelSubmitButton({
   className,
-  children = 'Submit', // Default text
+  children = "Submit", // Default text
 }: FloatingPanelSubmitButtonProps) {
   return (
     <motion.button
       className={cn(
-        'relative ml-1 flex h-8 shrink-0 scale-100 select-none appearance-none items-center justify-center rounded-lg border border-zinc-950/10 bg-transparent px-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 focus-visible:ring-2 active:scale-[0.98] dark:border-zinc-50/10 dark:text-zinc-50 dark:hover:bg-zinc-800',
+        "relative ml-1 flex h-8 shrink-0 scale-100 select-none appearance-none items-center justify-center rounded-lg border border-zinc-950/10 bg-transparent px-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 focus-visible:ring-2 active:scale-[0.98] dark:border-zinc-50/10 dark:text-zinc-50 dark:hover:bg-zinc-800",
         className,
       )}
-      type='submit'
-      aria-label='Submit'
+      type="submit"
+      aria-label="Submit"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
@@ -560,9 +560,9 @@ export const FloatingPanelButton = forwardRef<
     <motion.button
       ref={ref}
       className={cn(
-        'flex w-full items-center gap-2 rounded-md py-2 text-left text-sm',
+        "flex w-full items-center gap-2 rounded-md py-2 text-left text-sm",
         {
-          'cursor-not-allowed opacity-50': disabled, // Disabled styles
+          "cursor-not-allowed opacity-50": disabled, // Disabled styles
         },
         className,
       )}
@@ -579,7 +579,7 @@ export const FloatingPanelButton = forwardRef<
   );
 });
 
-FloatingPanelButton.displayName = 'FloatingPanelButton';
+FloatingPanelButton.displayName = "FloatingPanelButton";
 
 interface FloatingPanelSubMenuProps {
   children: React.ReactNode;
@@ -621,19 +621,19 @@ export function FloatingPanelSubMenu({
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [isSubMenuOpen]);
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       <FloatingPanelButton
         ref={triggerRef}
-        className='flex w-full items-center justify-between rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted'
+        className="flex w-full items-center justify-between rounded-[10px] px-4 py-2 text-left transition-colors hover:bg-muted"
         onClick={handleToggleSubMenu}
       >
         <span>{title}</span>
-        <ChevronRight className='size-4' />
+        <ChevronRight className="size-4" />
       </FloatingPanelButton>
 
       {isSubMenuOpen &&
@@ -643,15 +643,15 @@ export function FloatingPanelSubMenu({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2 }}
-            className='fixed z-50' // Use fixed positioning
+            className="fixed z-50" // Use fixed positioning
             style={{
               top: subMenuPosition.top,
               left: subMenuPosition.left,
             }}
           >
-            <div className='w-[200px] rounded-[12px] border border-input bg-background shadow-sm'>
+            <div className="w-[200px] rounded-[12px] border border-input bg-background shadow-sm">
               {/* Submenu Body */}
-              <div className='p-1'>{children}</div>
+              <div className="p-1">{children}</div>
             </div>
           </motion.div>,
           document.body,

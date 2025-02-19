@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 // Import necessary components and utilities
-import DashboardContentContainer from '@/components/container';
+import DashboardContentContainer from "@/components/container";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,14 +9,14 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { useContext, useEffect } from 'react';
-import { TeamTable } from './team-table';
-import TeamInvite from './team-invite';
-import { ProjectsContext } from '@/dash-context';
-import { UserRole } from '@/types';
-import { toast } from 'sonner';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/breadcrumb";
+import { useContext, useEffect } from "react";
+import { TeamTable } from "./team-table";
+import TeamInvite from "./team-invite";
+import { ProjectsContext } from "@/dash-context";
+import { UserRole } from "@/types";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Main team page component
 export default function TeamPage() {
@@ -25,12 +25,12 @@ export default function TeamPage() {
 
   // Set page metadata on component mount
   useEffect(() => {
-    document.title = 'Team | Measurely';
+    document.title = "Team | Measurely";
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
-        'content',
-        'Collaborate with your team on Measurely. Manage roles, share insights, and work together to track and analyze metrics effectively.',
+        "content",
+        "Collaborate with your team on Measurely. Manage roles, share insights, and work together to track and analyze metrics effectively.",
       );
     }
   }, []);
@@ -43,7 +43,7 @@ export default function TeamPage() {
         if (projects[activeProject].members === null) {
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/members/${projects[activeProject].id}`,
-            { method: 'GET', credentials: 'include' },
+            { method: "GET", credentials: "include" },
           );
 
           if (response.ok) {
@@ -57,7 +57,7 @@ export default function TeamPage() {
               ),
             );
           } else {
-            toast.error('Failed to load the team member list');
+            toast.error("Failed to load the team member list");
           }
         }
       }
@@ -67,12 +67,12 @@ export default function TeamPage() {
   }, [activeProject]);
 
   return (
-    <DashboardContentContainer className='mt-0 flex w-full pb-[15px] pt-[15px]'>
+    <DashboardContentContainer className="mt-0 flex w-full pb-[15px] pt-[15px]">
       {/* Navigation breadcrumb */}
-      <Breadcrumb className='mb-5'>
+      <Breadcrumb className="mb-5">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink className='pointer-events-none'>
+            <BreadcrumbLink className="pointer-events-none">
               Dashboard
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -90,14 +90,14 @@ export default function TeamPage() {
       />
 
       {/* Team table or loading skeleton */}
-      <div className='mt-5 h-full'>
+      <div className="mt-5 h-full">
         {projects[activeProject].members === null ? (
-          <div className='flex flex-col gap-3'>
-            <div className='flex gap-4'>
-              <Skeleton className='h-[40px] w-full rounded-[12px]' />
-              <Skeleton className='h-[40px] w-[220px] rounded-[12px]' />
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-4">
+              <Skeleton className="h-[40px] w-full rounded-[12px]" />
+              <Skeleton className="h-[40px] w-[220px] rounded-[12px]" />
             </div>
-            <Skeleton className='h-[300px] w-full rounded-[12px]' />
+            <Skeleton className="h-[300px] w-full rounded-[12px]" />
           </div>
         ) : (
           <TeamTable members={projects[activeProject].members} />

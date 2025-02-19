@@ -1,9 +1,9 @@
 // Tremor BarChart [v0.2.1]
 
-'use client';
+"use client";
 
-import React from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import React from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import {
   Bar,
   CartesianGrid,
@@ -14,8 +14,8 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
-import { AxisDomain } from 'recharts/types/util/types';
+} from "recharts";
+import { AxisDomain } from "recharts/types/util/types";
 
 import {
   AvailableChartColors,
@@ -23,9 +23,9 @@ import {
   constructCategoryColors,
   getColorClassName,
   getYAxisDomain,
-} from '../../lib/chartUtils';
-import { useOnWindowResize } from '../../lib/onWindowResize';
-import { cx } from '../../lib/utils';
+} from "../../lib/chartUtils";
+import { useOnWindowResize } from "../../lib/onWindowResize";
+import { cx } from "../../lib/utils";
 
 //#region Shape
 
@@ -33,8 +33,8 @@ function deepEqual<T>(obj1: T, obj2: T): boolean {
   if (obj1 === obj2) return true;
 
   if (
-    typeof obj1 !== 'object' ||
-    typeof obj2 !== 'object' ||
+    typeof obj1 !== "object" ||
+    typeof obj2 !== "object" ||
     obj1 === null ||
     obj2 === null
   ) {
@@ -61,10 +61,10 @@ const renderShape = (
   const { fillOpacity, name, payload, value } = props;
   let { x, width, y, height } = props;
 
-  if (layout === 'horizontal' && height < 0) {
+  if (layout === "horizontal" && height < 0) {
     y += height;
     height = Math.abs(height); // height must be a positive number
-  } else if (layout === 'vertical' && width < 0) {
+  } else if (layout === "vertical" && width < 0) {
     x += width;
     width = Math.abs(width); // width must be a positive number
   }
@@ -110,10 +110,10 @@ const LegendItem = ({
     <li
       className={cx(
         // base
-        'group inline-flex flex-nowrap items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 transition',
+        "group inline-flex flex-nowrap items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 transition",
         hasOnValueChange
-          ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800'
-          : 'cursor-default',
+          ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+          : "cursor-default",
       )}
       onClick={(e) => {
         e.stopPropagation();
@@ -122,21 +122,21 @@ const LegendItem = ({
     >
       <span
         className={cx(
-          'size-2 shrink-0 rounded-sm',
-          getColorClassName(color, 'bg'),
-          activeLegend && activeLegend !== name ? 'opacity-40' : 'opacity-100',
+          "size-2 shrink-0 rounded-sm",
+          getColorClassName(color, "bg"),
+          activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
         aria-hidden={true}
       />
       <p
         className={cx(
           // base
-          'truncate whitespace-nowrap text-xs',
+          "truncate whitespace-nowrap text-xs",
           // text color
-          'text-gray-700 dark:text-gray-300',
+          "text-gray-700 dark:text-gray-300",
           hasOnValueChange &&
-            'group-hover:text-gray-900 dark:group-hover:text-gray-50',
-          activeLegend && activeLegend !== name ? 'opacity-40' : 'opacity-100',
+            "group-hover:text-gray-900 dark:group-hover:text-gray-50",
+          activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
       >
         {name}
@@ -176,13 +176,13 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
 
   return (
     <button
-      type='button'
+      type="button"
       className={cx(
         // base
-        'group inline-flex size-5 items-center truncate rounded transition',
+        "group inline-flex size-5 items-center truncate rounded transition",
         disabled
-          ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
-          : 'cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50',
+          ? "cursor-not-allowed text-gray-400 dark:text-gray-600"
+          : "cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50",
       )}
       disabled={disabled}
       onClick={(e) => {
@@ -198,7 +198,7 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
         setIsPressed(false);
       }}
     >
-      <Icon className='size-full' aria-hidden='true' />
+      <Icon className="size-full" aria-hidden="true" />
     </button>
   );
 };
@@ -244,7 +244,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
   }, [setHasScroll]);
 
   const scrollToTest = React.useCallback(
-    (direction: 'left' | 'right') => {
+    (direction: "left" | "right") => {
       const element = scrollableRef?.current;
       const scrollButtons = scrollButtonsRef?.current;
       const scrollButtonsWith = scrollButtons?.clientWidth ?? 0;
@@ -253,10 +253,10 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
       if (element && enableLegendSlider) {
         element.scrollTo({
           left:
-            direction === 'left'
+            direction === "left"
               ? element.scrollLeft - width + scrollButtonsWith
               : element.scrollLeft + width - scrollButtonsWith,
-          behavior: 'smooth',
+          behavior: "smooth",
         });
         setTimeout(() => {
           checkScroll();
@@ -268,10 +268,10 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
 
   React.useEffect(() => {
     const keyDownHandler = (key: string) => {
-      if (key === 'ArrowLeft') {
-        scrollToTest('left');
-      } else if (key === 'ArrowRight') {
-        scrollToTest('right');
+      if (key === "ArrowLeft") {
+        scrollToTest("left");
+      } else if (key === "ArrowRight") {
+        scrollToTest("right");
       }
     };
     if (isKeyDowned) {
@@ -287,7 +287,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
 
   const keyDown = (e: KeyboardEvent) => {
     e.stopPropagation();
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
       setIsKeyDowned(e.key);
     }
@@ -301,32 +301,32 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
     const scrollable = scrollableRef?.current;
     if (enableLegendSlider) {
       checkScroll();
-      scrollable?.addEventListener('keydown', keyDown);
-      scrollable?.addEventListener('keyup', keyUp);
+      scrollable?.addEventListener("keydown", keyDown);
+      scrollable?.addEventListener("keyup", keyUp);
     }
 
     return () => {
-      scrollable?.removeEventListener('keydown', keyDown);
-      scrollable?.removeEventListener('keyup', keyUp);
+      scrollable?.removeEventListener("keydown", keyDown);
+      scrollable?.removeEventListener("keyup", keyUp);
     };
   }, [checkScroll, enableLegendSlider]);
 
   return (
     <ol
       ref={ref}
-      className={cx('relative overflow-hidden', className)}
+      className={cx("relative overflow-hidden", className)}
       {...other}
     >
       <div
         ref={scrollableRef}
         tabIndex={0}
         className={cx(
-          'flex h-full',
+          "flex h-full",
           enableLegendSlider
             ? hasScroll?.right || hasScroll?.left
-              ? 'snap-mandatory items-center overflow-auto pl-4 pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-              : ''
-            : 'flex-wrap',
+              ? "snap-mandatory items-center overflow-auto pl-4 pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              : ""
+            : "flex-wrap",
         )}
       >
         {categories.map((category, index) => (
@@ -344,16 +344,16 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
           <div
             className={cx(
               // base
-              'absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1',
+              "absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1",
               // background color
-              'bg-white dark:bg-gray-950',
+              "bg-white dark:bg-gray-950",
             )}
           >
             <ScrollButton
               icon={ArrowLeft}
               onClick={() => {
                 setIsKeyDowned(null);
-                scrollToTest('left');
+                scrollToTest("left");
               }}
               disabled={!hasScroll?.left}
             />
@@ -361,7 +361,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
               icon={ArrowRight}
               onClick={() => {
                 setIsKeyDowned(null);
-                scrollToTest('right');
+                scrollToTest("right");
               }}
               disabled={!hasScroll?.right}
             />
@@ -372,7 +372,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
   );
 });
 
-Legend.displayName = 'Legend';
+Legend.displayName = "Legend";
 
 const ChartLegend = (
   { payload }: any,
@@ -381,7 +381,7 @@ const ChartLegend = (
   activeLegend: string | undefined,
   onClick?: (category: string, color: string) => void,
   enableLegendSlider?: boolean,
-  legendPosition?: 'left' | 'center' | 'right',
+  legendPosition?: "left" | "center" | "right",
   yAxisWidth?: number,
 ) => {
   const legendRef = React.useRef<HTMLDivElement>(null);
@@ -392,22 +392,22 @@ const ChartLegend = (
     setLegendHeight(calculateHeight(legendRef.current?.clientHeight));
   });
 
-  const filteredPayload = payload.filter((item: any) => item.type !== 'none');
+  const filteredPayload = payload.filter((item: any) => item.type !== "none");
 
   const paddingLeft =
-    legendPosition === 'left' && yAxisWidth ? yAxisWidth - 8 : 0;
+    legendPosition === "left" && yAxisWidth ? yAxisWidth - 8 : 0;
 
   return (
     <div
       style={{ paddingLeft: paddingLeft }}
       ref={legendRef}
       className={cx(
-        'flex items-center',
-        { 'justify-center': legendPosition === 'center' },
+        "flex items-center",
+        { "justify-center": legendPosition === "center" },
         {
-          'justify-start': legendPosition === 'left',
+          "justify-start": legendPosition === "left",
         },
-        { 'justify-end': legendPosition === 'right' },
+        { "justify-end": legendPosition === "right" },
       )}
     >
       <Legend
@@ -425,7 +425,7 @@ const ChartLegend = (
 
 //#region Tooltip
 
-type TooltipProps = Pick<ChartTooltipProps, 'active' | 'payload' | 'label'>;
+type TooltipProps = Pick<ChartTooltipProps, "active" | "payload" | "label">;
 
 type PayloadItem = {
   category: string;
@@ -454,45 +454,45 @@ const ChartTooltip = ({
       <div
         className={cx(
           // base
-          'rounded-md border text-sm shadow-md',
+          "rounded-md border text-sm shadow-md",
           // border color
-          'border-gray-200 dark:border-gray-800',
+          "border-gray-200 dark:border-gray-800",
           // background color
-          'bg-white dark:bg-gray-950',
+          "bg-white dark:bg-gray-950",
         )}
       >
-        <div className={cx('border-b border-inherit px-4 py-2')}>
+        <div className={cx("border-b border-inherit px-4 py-2")}>
           <p
             className={cx(
               // base
-              'font-medium',
+              "font-medium",
               // text color
-              'text-gray-900 dark:text-gray-50',
+              "text-gray-900 dark:text-gray-50",
             )}
           >
             {label}
           </p>
         </div>
-        <div className={cx('space-y-1 px-4 py-2')}>
+        <div className={cx("space-y-1 px-4 py-2")}>
           {payload.map(({ value, category, color }, index) => (
             <div
               key={`id-${index}`}
-              className='flex items-center justify-between space-x-8'
+              className="flex items-center justify-between space-x-8"
             >
-              <div className='flex items-center space-x-2'>
+              <div className="flex items-center space-x-2">
                 <span
-                  aria-hidden='true'
+                  aria-hidden="true"
                   className={cx(
-                    'size-2 shrink-0 rounded-sm',
-                    getColorClassName(color, 'bg'),
+                    "size-2 shrink-0 rounded-sm",
+                    getColorClassName(color, "bg"),
                   )}
                 />
                 <p
                   className={cx(
                     // base
-                    'whitespace-nowrap text-right',
+                    "whitespace-nowrap text-right",
                     // text color
-                    'text-gray-700 dark:text-gray-300',
+                    "text-gray-700 dark:text-gray-300",
                   )}
                 >
                   {category}
@@ -501,9 +501,9 @@ const ChartTooltip = ({
               <p
                 className={cx(
                   // base
-                  'whitespace-nowrap text-right font-medium tabular-nums',
+                  "whitespace-nowrap text-right font-medium tabular-nums",
                   // text color
-                  'text-gray-900 dark:text-gray-50',
+                  "text-gray-900 dark:text-gray-50",
                 )}
               >
                 {valueFormatter(value)}
@@ -520,7 +520,7 @@ const ChartTooltip = ({
 //#region BarChart
 
 type BaseEventProps = {
-  eventType: 'category' | 'bar';
+  eventType: "category" | "bar";
   categoryClicked: string;
   [key: string]: number | string;
 };
@@ -538,7 +538,7 @@ interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   showYAxis?: boolean;
   showGridLines?: boolean;
   yAxisWidth?: number;
-  intervalType?: 'preserveStartEnd' | 'equidistantPreserveStart';
+  intervalType?: "preserveStartEnd" | "equidistantPreserveStart";
   showTooltip?: boolean;
   showLegend?: boolean;
   autoMinValue?: boolean;
@@ -551,9 +551,9 @@ interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   barCategoryGap?: string | number;
   xAxisLabel?: string;
   yAxisLabel?: string;
-  layout?: 'vertical' | 'horizontal';
-  type?: 'default' | 'stacked' | 'percent';
-  legendPosition?: 'left' | 'center' | 'right';
+  layout?: "vertical" | "horizontal";
+  type?: "default" | "stacked" | "percent";
+  legendPosition?: "left" | "center" | "right";
   tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void;
   customTooltip?: React.ComponentType<TooltipProps>;
 }
@@ -571,7 +571,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       showYAxis = true,
       showGridLines = true,
       yAxisWidth = 56,
-      intervalType = 'equidistantPreserveStart',
+      intervalType = "equidistantPreserveStart",
       showTooltip = true,
       showLegend = true,
       autoMinValue = false,
@@ -585,9 +585,9 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       tickGap = 5,
       xAxisLabel,
       yAxisLabel,
-      layout = 'horizontal',
-      type = 'default',
-      legendPosition = 'right',
+      layout = "horizontal",
+      type = "default",
+      legendPosition = "right",
       tooltipCallback,
       customTooltip,
       ...other
@@ -605,7 +605,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
     );
     const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue);
     const hasOnValueChange = !!onValueChange;
-    const stacked = type === 'stacked' || type === 'percent';
+    const stacked = type === "stacked" || type === "percent";
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined);
     const prevLabelRef = React.useRef<string | undefined>(undefined);
@@ -628,7 +628,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
           value: data.value,
         });
         onValueChange?.({
-          eventType: 'bar',
+          eventType: "bar",
           categoryClicked: data.tooltipPayload?.[0]?.dataKey,
           ...data.payload,
         });
@@ -643,7 +643,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       } else {
         setActiveLegend(dataKey);
         onValueChange?.({
-          eventType: 'category',
+          eventType: "category",
           categoryClicked: dataKey,
         });
       }
@@ -652,17 +652,17 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
     const abbreviateNumber = (value: any) => {
       if (value >= 1e9) {
         const formatted = (value / 1e9).toFixed(1);
-        return formatted.endsWith('.0')
+        return formatted.endsWith(".0")
           ? `${(value / 1e9).toFixed(0)}B`
           : `${formatted}B`;
       } else if (value >= 1e6) {
         const formatted = (value / 1e6).toFixed(1);
-        return formatted.endsWith('.0')
+        return formatted.endsWith(".0")
           ? `${(value / 1e6).toFixed(0)}M`
           : `${formatted}M`;
       } else if (value >= 1e3) {
         const formatted = (value / 1e3).toFixed(1);
-        return formatted.endsWith('.0')
+        return formatted.endsWith(".0")
           ? `${(value / 1e3).toFixed(0)}K`
           : `${formatted}K`;
       }
@@ -672,8 +672,8 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
     return (
       <div
         ref={forwardedRef}
-        className={cx('h-80 w-full', className)}
-        tremor-id='tremor-raw'
+        className={cx("h-80 w-full", className)}
+        tremor-id="tremor-raw"
         {...other}
       >
         <ResponsiveContainer>
@@ -694,60 +694,60 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
               right: yAxisLabel ? 5 : undefined,
               top: 5,
             }}
-            stackOffset={type === 'percent' ? 'expand' : undefined}
+            stackOffset={type === "percent" ? "expand" : undefined}
             layout={layout}
             barCategoryGap={barCategoryGap}
           >
             {showGridLines ? (
               <CartesianGrid
-                className={cx('stroke-gray-200 stroke-1 dark:stroke-gray-800')}
-                horizontal={layout !== 'vertical'}
-                vertical={layout === 'vertical'}
+                className={cx("stroke-gray-200 stroke-1 dark:stroke-gray-800")}
+                horizontal={layout !== "vertical"}
+                vertical={layout === "vertical"}
               />
             ) : null}
             <XAxis
               hide={!showXAxis}
               tick={{
                 transform:
-                  layout !== 'vertical' ? 'translate(0, 6)' : undefined,
+                  layout !== "vertical" ? "translate(0, 6)" : undefined,
               }}
-              fill=''
-              stroke=''
+              fill=""
+              stroke=""
               className={cx(
                 // base
-                'text-xs',
+                "text-xs",
                 // text fill
-                'fill-gray-500 dark:fill-gray-500',
-                { 'mt-4': layout !== 'vertical' },
+                "fill-gray-500 dark:fill-gray-500",
+                { "mt-4": layout !== "vertical" },
               )}
               tickLine={false}
               axisLine={false}
               minTickGap={tickGap}
-              {...(layout !== 'vertical'
+              {...(layout !== "vertical"
                 ? {
                     padding: {
                       left: paddingValue,
                       right: paddingValue,
                     },
                     dataKey: index,
-                    interval: startEndOnly ? 'preserveStartEnd' : intervalType,
+                    interval: startEndOnly ? "preserveStartEnd" : intervalType,
                     ticks: startEndOnly
                       ? [data[0][index], data[data.length - 1][index]]
                       : undefined,
                   }
                 : {
-                    type: 'number',
+                    type: "number",
                     domain: yAxisDomain as AxisDomain,
                     tickFormatter:
-                      type === 'percent' ? valueToPercent : valueFormatter,
+                      type === "percent" ? valueToPercent : valueFormatter,
                     allowDecimals: allowDecimals,
                   })}
             >
               {xAxisLabel && (
                 <Label
-                  position='insideBottom'
+                  position="insideBottom"
                   offset={-20}
-                  className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
+                  className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
                 >
                   {xAxisLabel}
                 </Label>
@@ -758,26 +758,26 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
               hide={!showYAxis}
               axisLine={false}
               tickLine={false}
-              fill=''
-              stroke=''
+              fill=""
+              stroke=""
               className={cx(
                 // base
-                'text-xs',
+                "text-xs",
                 // text fill
-                'fill-gray-500 dark:fill-gray-500',
+                "fill-gray-500 dark:fill-gray-500",
               )}
               tick={{
                 transform:
-                  layout !== 'vertical'
-                    ? 'translate(-3, 0)'
-                    : 'translate(0, 0)',
+                  layout !== "vertical"
+                    ? "translate(-3, 0)"
+                    : "translate(0, 0)",
               }}
-              {...(layout !== 'vertical'
+              {...(layout !== "vertical"
                 ? {
-                    type: 'number',
+                    type: "number",
                     domain: yAxisDomain as AxisDomain,
                     tickFormatter:
-                      type === 'percent'
+                      type === "percent"
                         ? valueToPercent
                         : (value) => abbreviateNumber(value),
                     allowDecimals: allowDecimals,
@@ -787,34 +787,34 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                     ticks: startEndOnly
                       ? [data[0][index], data[data.length - 1][index]]
                       : undefined,
-                    type: 'category',
-                    interval: 'equidistantPreserveStart',
+                    type: "category",
+                    interval: "equidistantPreserveStart",
                   })}
             >
               {yAxisLabel && (
                 <Label
-                  position='insideLeft'
-                  style={{ textAnchor: 'middle' }}
+                  position="insideLeft"
+                  style={{ textAnchor: "middle" }}
                   angle={-90}
                   offset={-15}
-                  className='fill-gray-800 text-sm font-medium dark:fill-gray-200'
+                  className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
                 >
                   {yAxisLabel}
                 </Label>
               )}
             </YAxis>
             <Tooltip
-              wrapperStyle={{ outline: 'none' }}
+              wrapperStyle={{ outline: "none" }}
               isAnimationActive={true}
               animationDuration={100}
-              cursor={{ fill: '#d1d5db', opacity: '0.15' }}
+              cursor={{ fill: "#d1d5db", opacity: "0.15" }}
               offset={20}
               position={{
-                y: layout === 'horizontal' ? 0 : undefined,
-                x: layout === 'horizontal' ? undefined : yAxisWidth + 20,
+                y: layout === "horizontal" ? 0 : undefined,
+                x: layout === "horizontal" ? undefined : yAxisWidth + 20,
               }}
               content={({ active, payload, label }) => {
-                const cleanPayload: TooltipProps['payload'] = payload
+                const cleanPayload: TooltipProps["payload"] = payload
                   ? payload.map((item: any) => ({
                       category: item.dataKey,
                       value: item.value,
@@ -857,7 +857,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
             />
             {showLegend ? (
               <RechartsLegend
-                verticalAlign='top'
+                verticalAlign="top"
                 height={legendHeight}
                 content={({ payload }) =>
                   ChartLegend(
@@ -881,17 +881,17 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 className={cx(
                   getColorClassName(
                     categoryColors.get(category) as AvailableChartColorsKeys,
-                    'fill',
+                    "fill",
                   ),
-                  onValueChange ? 'cursor-pointer' : '',
+                  onValueChange ? "cursor-pointer" : "",
                 )}
                 key={category}
                 name={category}
-                type='linear'
+                type="linear"
                 dataKey={category}
-                stackId={stacked ? 'stack' : undefined}
+                stackId={stacked ? "stack" : undefined}
                 isAnimationActive={true}
-                fill=''
+                fill=""
                 shape={(props: any) =>
                   renderShape(props, activeBar, activeLegend, layout)
                 }
@@ -905,6 +905,6 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
   },
 );
 
-BarChart.displayName = 'BarChart';
+BarChart.displayName = "BarChart";
 
 export { BarChart, type BarChartEventProps, type TooltipProps };

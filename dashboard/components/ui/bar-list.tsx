@@ -1,8 +1,8 @@
 // Tremor BarList [v0.1.1]
 
-import React from 'react';
+import React from "react";
 
-import { cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from "@/lib/utils";
 
 type Bar<T> = T & {
   key?: string;
@@ -17,7 +17,7 @@ interface BarListProps<T = unknown>
   valueFormatter?: (value: number) => string;
   showAnimation?: boolean;
   onValueChange?: (payload: Bar<T>) => void;
-  sortOrder?: 'ascending' | 'descending' | 'none';
+  sortOrder?: "ascending" | "descending" | "none";
   color?: string; // Hex or CSS color for all bars
 }
 
@@ -27,20 +27,20 @@ function BarListInner<T>(
     valueFormatter = (value) => value.toString(),
     showAnimation = false,
     onValueChange,
-    sortOrder = 'descending',
-    color = 'blue',
+    sortOrder = "descending",
+    color = "blue",
     className,
     ...props
   }: BarListProps<T>,
   forwardedRef: React.ForwardedRef<HTMLDivElement>,
 ) {
-  const Component = onValueChange ? 'button' : 'div';
+  const Component = onValueChange ? "button" : "div";
   const sortedData = React.useMemo(() => {
-    if (sortOrder === 'none') {
+    if (sortOrder === "none") {
       return data;
     }
     return [...data].sort((a, b) => {
-      return sortOrder === 'ascending' ? a.value - b.value : b.value - a.value;
+      return sortOrder === "ascending" ? a.value - b.value : b.value - a.value;
     });
   }, [data, sortOrder]);
 
@@ -51,17 +51,17 @@ function BarListInner<T>(
     );
   }, [sortedData]);
 
-  const rowHeight = 'h-8';
+  const rowHeight = "h-8";
 
   return (
     <div
       ref={forwardedRef}
-      className={cx('flex justify-between space-x-6', className)}
+      className={cx("flex justify-between space-x-6", className)}
       aria-sort={sortOrder}
-      tremor-id='tremor-raw'
+      tremor-id="tremor-raw"
       {...props}
     >
-      <div className='relative w-full space-y-1.5'>
+      <div className="relative w-full space-y-1.5">
         {sortedData.map((item, index) => (
           <Component
             key={item.key ?? item.name}
@@ -70,28 +70,28 @@ function BarListInner<T>(
             }}
             className={cx(
               // base
-              'group w-full rounded',
+              "group w-full rounded",
               // focus
               focusRing,
               onValueChange
                 ? [
-                    '!-m-0 cursor-pointer',
+                    "!-m-0 cursor-pointer",
                     // hover
-                    'hover:bg-gray-50 hover:dark:bg-gray-900',
+                    "hover:bg-gray-50 hover:dark:bg-gray-900",
                   ]
-                : '',
+                : "",
             )}
           >
             <div
               className={cx(
                 // base
-                'flex items-center rounded transition-all',
+                "flex items-center rounded transition-all",
                 rowHeight,
-                onValueChange ? 'group-hover:bg-opacity-80' : '',
+                onValueChange ? "group-hover:bg-opacity-80" : "",
                 // margin and duration
                 {
-                  'mb-0': index === sortedData.length - 1,
-                  'duration-800': showAnimation,
+                  "mb-0": index === sortedData.length - 1,
+                  "duration-800": showAnimation,
                 },
               )}
               style={{
@@ -99,22 +99,22 @@ function BarListInner<T>(
                 backgroundColor: `${color}1A`,
               }}
             >
-              <div className={cx('absolute left-2 flex max-w-full pr-2')}>
+              <div className={cx("absolute left-2 flex max-w-full pr-2")}>
                 {item.href ? (
                   <a
                     href={item.href}
                     className={cx(
                       // base
-                      'truncate whitespace-nowrap rounded text-sm',
+                      "truncate whitespace-nowrap rounded text-sm",
                       // text color
-                      'text-gray-900 dark:text-gray-50',
+                      "text-gray-900 dark:text-gray-50",
                       // hover
-                      'hover:underline hover:underline-offset-2',
+                      "hover:underline hover:underline-offset-2",
                       // focus
                       focusRing,
                     )}
-                    target='_blank'
-                    rel='noreferrer'
+                    target="_blank"
+                    rel="noreferrer"
                     onClick={(event) => event.stopPropagation()}
                   >
                     {item.name}
@@ -123,9 +123,9 @@ function BarListInner<T>(
                   <p
                     className={cx(
                       // base
-                      'truncate whitespace-nowrap text-sm font-medium',
+                      "truncate whitespace-nowrap text-sm font-medium",
                       // text color
-                      'text-gray-900 dark:text-gray-50',
+                      "text-gray-900 dark:text-gray-50",
                     )}
                     style={{ color: color }}
                   >
@@ -142,17 +142,17 @@ function BarListInner<T>(
           <div
             key={item.key ?? item.name}
             className={cx(
-              'flex items-center justify-end',
+              "flex items-center justify-end",
               rowHeight,
-              index === sortedData.length - 1 ? 'mb-0' : 'mb-1.5',
+              index === sortedData.length - 1 ? "mb-0" : "mb-1.5",
             )}
           >
             <p
               className={cx(
                 // base
-                'truncate whitespace-nowrap font-mono text-sm font-medium leading-none',
+                "truncate whitespace-nowrap font-mono text-sm font-medium leading-none",
                 // text color
-                'text-gray-900 dark:text-gray-50',
+                "text-gray-900 dark:text-gray-50",
               )}
               style={{ color: color }}
             >
@@ -165,7 +165,7 @@ function BarListInner<T>(
   );
 }
 
-BarListInner.displayName = 'BarList';
+BarListInner.displayName = "BarList";
 
 const BarList = React.forwardRef(BarListInner) as <T>(
   p: BarListProps<T> & { ref?: React.ForwardedRef<HTMLDivElement> },

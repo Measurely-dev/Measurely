@@ -7,6 +7,7 @@ Thank you for your interest in contributing to Measurely!
 ### Prerequisites
 
 Ensure you have the following installed:
+
 - [Git](https://git-scm.com/)
 - [Go](https://go.dev/)
 - [Node.js v20.x (LTS)](https://nodejs.org/)
@@ -49,4 +50,3 @@ Visit the app at `http://localhost:3000`.
 ## Community & Support
 
 For any questions, join our discussions on GitHub or reach out via our community channels.
-

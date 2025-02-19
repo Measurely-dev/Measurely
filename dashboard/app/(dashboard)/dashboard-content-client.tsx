@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 // Import context providers and React hooks
-import { defaultUser, ProjectsContext, UserContext } from '@/dash-context';
-import { useState } from 'react';
-import { Project, User } from '@/types';
-import { ConfirmDialogProvider } from '@omit/react-confirm-dialog';
+import { defaultUser, ProjectsContext, UserContext } from "@/dash-context";
+import { useState } from "react";
+import { Project, User } from "@/types";
+import { ConfirmDialogProvider } from "@omit/react-confirm-dialog";
 
 /**
  * Client-side dashboard content wrapper component that provides context for user and projects data
- * 
+ *
  * @param children - Child components to be wrapped with context providers
  * @returns Dashboard content with user and projects context
  */

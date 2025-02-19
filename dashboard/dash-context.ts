@@ -1,13 +1,13 @@
-import React, { createContext, Dispatch } from 'react';
-import { InvoiceStatus, Project, User, UserRole } from './types';
+import React, { createContext, Dispatch } from "react";
+import { InvoiceStatus, Project, User, UserRole } from "./types";
 
 // Default user object with empty values used for initialization
 export const defaultUser: User = {
-  first_name: '',
-  last_name: '',
-  email: '',
-  id: '',
-  image: '',
+  first_name: "",
+  last_name: "",
+  email: "",
+  id: "",
+  image: "",
   user_role: UserRole.Owner,
   invoice_status: InvoiceStatus.ACTIVE,
   providers: [],
@@ -15,19 +15,19 @@ export const defaultUser: User = {
 
 // Type definition for the User context containing current user state and loading status
 export interface UserContextType {
-  user: User;                                              // Current user object
-  setUser: Dispatch<React.SetStateAction<User>>;          // Function to update user
-  userLoading: boolean;                                   // Loading state flag
+  user: User; // Current user object
+  setUser: Dispatch<React.SetStateAction<User>>; // Function to update user
+  userLoading: boolean; // Loading state flag
   setUserLoading: Dispatch<React.SetStateAction<boolean>>; // Function to update loading state
 }
 
 // Type definition for the Projects context containing projects list and active project
 export interface ProjectsContextType {
-  projects: Project[];                                     // Array of all projects
+  projects: Project[]; // Array of all projects
   setProjects: Dispatch<React.SetStateAction<Project[]>>; // Function to update projects list
-  activeProject: number;                                  // ID of currently selected project
+  activeProject: number; // ID of currently selected project
   setActiveProject: Dispatch<React.SetStateAction<number>>; // Function to update active project
-  projectsLoading: boolean;                               // Projects loading state flag
+  projectsLoading: boolean; // Projects loading state flag
   setProjectsLoading: Dispatch<React.SetStateAction<boolean>>; // Function to update projects loading state
 }
 
