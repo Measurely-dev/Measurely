@@ -74,6 +74,11 @@ export async function loadMetrics(project_id: string): Promise<Metric[]> {
   const json = await res.json();
   if (!json) return [];
 
+  for (let i = 0; i < json.length; i++) {
+    const metric = json[i] as Metric;
+    metric.total /= 100;
+  }
+
   // Apply names to nested filters
   return json;
 }
@@ -126,7 +131,10 @@ export const fetchMetricEvents = async (
   if (!events) return [];
   events.forEach((event) => {
     if (!event.filters) event.filters = [];
+    event.value_pos /= 100;
+    event.value_neg /= 100;
   });
+
   return events;
 };
 
@@ -136,10 +144,10 @@ export const fetchMetricEvents = async (
 export const processMetricEvents = (
   filter_id: string | null,
   metricEvents: MetricEvent[],
-  chart_type: "event" | "trend",
   precision: ChartPrecision,
   from: Date,
   metric: Metric,
+  useTrend: boolean,
 ): ChartPoint[] => {
   // Calculate data points
   let data_length = 0;
@@ -215,18 +223,16 @@ export const processMetricEvents = (
     filtered_events = metricEvents;
   }
 
-  if (chart_type === "event") {
-    if (metric.type === MetricType.Average) {
-      processAverageChart(chartData, filtered_events, precision, metric, false);
-    } else {
-      processEventChart(chartData, filtered_events, precision, metric);
-    }
-  } else if (chart_type === "trend") {
-    if (metric.type === MetricType.Average) {
-      processAverageChart(chartData, filtered_events, precision, metric, true);
-    } else {
-      processTrendChart(chartData, filtered_events, precision, metric);
-    }
+  if (metric.type === MetricType.Average) {
+    processAverageChart(
+      chartData,
+      filtered_events,
+      precision,
+      metric,
+      useTrend,
+    );
+  } else {
+    processEventChart(chartData, filtered_events, precision, metric, useTrend);
   }
 
   let lastDate: Date | null = null;
@@ -249,46 +255,36 @@ const processEventChart = (
   metricEvents: MetricEvent[],
   precision: ChartPrecision,
   metric: Metric,
+  isTrend: boolean,
 ) => {
-  metricEvents.forEach((event) => {
-    const event_date = new Date(event.date);
-    chartData.forEach((point) => {
-      if (datesMatch(point.date as Date, event_date, precision)) {
-        if (metric.type === MetricType.Dual) {
-          point[metric.name_pos] += event.value_pos;
-          point[metric.name_neg] += event.value_neg;
-        }
-
-        point[metric.name] += event.value_pos - event.value_neg;
-      }
-    });
-  });
-};
-
-const processTrendChart = (
-  chartData: ChartPoint[],
-  metricEvents: MetricEvent[],
-  precision: ChartPrecision,
-  metric: Metric,
-) => {
-  let total_pos = 0;
-  let total_neg = 0;
   const now = new Date();
-  metricEvents.forEach((event) => {
-    const event_date = new Date(event.date);
-    chartData.forEach((point) => {
-      if (datesMatch(point.date as Date, event_date, precision)) {
-        total_pos += event.value_pos;
-        total_neg += event.value_neg;
-      }
-      if (point.date <= now) {
-        point[metric.name] = total_pos - total_neg;
-        if (metric.type === MetricType.Dual) {
-          point[metric.name_pos] = total_pos;
-          point[metric.name_neg] = total_neg;
+
+  chartData.forEach((point) => {
+    let total_pos = 0;
+    let total_neg = 0;
+    if (point.date <= now) {
+      metricEvents.forEach((event) => {
+        const event_date = new Date(event.date);
+        if (isTrend) {
+          const tmpDate = createOffsetDate(point.date as Date, precision);
+          if (tmpDate >= event_date) {
+            total_pos += event.value_pos;
+            total_neg += event.value_neg;
+          }
+        } else {
+          if (datesMatch(point.date as Date, event_date, precision)) {
+            total_pos += event.value_pos;
+            total_neg += event.value_neg;
+          }
         }
+      });
+
+      point[metric.name] = total_pos - total_neg;
+      if (metric.type === MetricType.Dual) {
+        point[metric.name_pos] = total_pos;
+        point[metric.name_neg] = total_neg;
       }
-    });
+    }
   });
 };
 
@@ -299,27 +295,57 @@ const processAverageChart = (
   metric: Metric,
   isTrend: boolean,
 ) => {
-  let total_pos = 0;
-  let total_neg = 0;
-  let event_count = 0;
-  metricEvents.forEach((event) => {
-    const event_date = new Date(event.date);
-    chartData.forEach((point) => {
-      if (datesMatch(point.date as Date, event_date, precision)) {
-        total_pos += event.value_pos;
-        total_neg += event.value_neg;
-        event_count += 1;
-      }
+  const now = new Date();
+
+  chartData.forEach((point) => {
+    let total_pos = 0;
+    let total_neg = 0;
+    let event_count = 0;
+    if (point.date <= now) {
+      metricEvents.forEach((event) => {
+        const event_date = new Date(event.date);
+        if (isTrend) {
+          const tmpDate = createOffsetDate(point.date as Date, precision);
+          if (tmpDate >= event_date) {
+            total_pos += event.value_pos;
+            total_neg += event.value_neg;
+            event_count += 1;
+          }
+        } else {
+          if (datesMatch(point.date as Date, event_date, precision)) {
+            total_pos += event.value_pos;
+            total_neg += event.value_neg;
+            event_count += 1;
+          }
+        }
+      });
       point[metric.name] =
         event_count === 0 ? 0 : (total_pos - total_neg) / event_count;
-      if (!isTrend) {
-        total_pos = 0;
-        total_neg = 0;
-        event_count = 0;
-      }
-    });
+    }
   });
 };
+
+function createOffsetDate(date: Date, precision: ChartPrecision): Date {
+  let offset = 0;
+  switch (precision) {
+    case "D":
+      offset = 60 * 60 * 1000;
+      break;
+    case "W":
+      offset = 12 * 60 * 60 * 1000;
+      break;
+    case "M":
+      offset = 24 * 60 * 60 * 1000;
+      break;
+    case "Y":
+      offset = 15 * 24 * 60 * 60 * 1000;
+      break;
+  }
+
+  const tmpDate = new Date(date);
+  tmpDate.setTime(tmpDate.getTime() + offset);
+  return tmpDate;
+}
 
 /**
  * Helper to check if dates match based on range
@@ -371,7 +397,8 @@ function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
  * Formats date for X-axis display
  */
 export const parseXAxis = (value: Date, precision: ChartPrecision): string => {
-  if (precision === "D") return `${value.getHours()} H`;
+  const hour = value.getHours();
+  if (precision === "D") return `${hour < 10 ? "0" + hour.toString() : hour} H`;
   if (precision === "W") return `${getDaysFromDate(value)}`;
   if (precision === "M" || precision === "15D")
     return `${getMonthsFromDate(value)} ${value.getDate()}`;
@@ -498,7 +525,7 @@ export const calculateEventUpdate = (
     total_update += event.value_pos - event.value_neg;
   });
 
-  const previous_total = metric.total_pos - metric.total_neg - total_update;
+  const previous_total = metric.total - total_update;
 
   if (total_update === 0) return 0;
   if (previous_total === 0) {
@@ -524,16 +551,13 @@ export const calculateAverageUpdate = (
     total_update += event.value_pos - event.value_neg;
   });
 
-  const previous_total = metric.total_pos - metric.total_neg - total_update;
+  const previous_total = metric.total - total_update;
   const previous_event_count = metric.event_count - event_count_update;
   const previous_average = calculateAverage(
     previous_total,
     previous_event_count,
   );
-  const current_average = calculateAverage(
-    metric.total_pos - metric.total_neg,
-    metric.event_count,
-  );
+  const current_average = calculateAverage(metric.total, metric.event_count);
 
   const average_update = current_average - previous_average;
 

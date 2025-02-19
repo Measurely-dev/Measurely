@@ -128,27 +128,27 @@ func New() Service {
 
 	plans["starter"] = types.Plan{
 		Name:             "Starter",
-		MonthlyPriceId:   os.Getenv(""),
-		YearlyPriceId:    os.Getenv(""),
+		ProductID:        "",
+		BasePrice:        0,
 		MetricLimit:      3,
 		Range:            30,
 		MaxEventPerMonth: 5000,
 	}
 
 	plans["plus"] = types.Plan{
-		Name:           "Plus",
-		MonthlyPriceId: os.Getenv(""),
-		YearlyPriceId:  os.Getenv(""),
-		MetricLimit:    15,
-		Range:          365,
+		Name:        "Plus",
+		ProductID:   os.Getenv("PLUS_PRODUCT_ID"),
+		BasePrice:   9,
+		MetricLimit: 15,
+		Range:       365,
 	}
 
 	plans["pro"] = types.Plan{
-		Name:           "Pro",
-		MonthlyPriceId: os.Getenv(""),
-		YearlyPriceId:  os.Getenv(""),
-		MetricLimit:    -1,
-		Range:          365,
+		Name:        "Pro",
+		ProductID:   os.Getenv("PRO_PRODUCT_ID"),
+		BasePrice:   22,
+		MetricLimit: -1,
+		Range:       365,
 	}
 
 	// Return the new service with all components initialized
@@ -1717,7 +1717,7 @@ func (s *Service) CreateMetric(w http.ResponseWriter, r *http.Request) {
 				if err == nil {
 					resp, err := http.DefaultClient.Do(req)
 					if err == nil && resp.StatusCode == 200 {
-						metric.TotalPos = request.BaseValue
+						metric.Total = request.BaseValue
 					}
 				}
 			}

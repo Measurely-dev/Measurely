@@ -29,7 +29,10 @@ func main() {
 
 	go service.IntegrationWorker()
 
-	PORT := ":8080"
+	PORT := os.Getenv("PORT")
+	if PORT == "" {
+		PORT = ":8080"
+	}
 	log.Println("Server started on port ", PORT)
 	err := handler.Start(PORT)
 	if err != nil {

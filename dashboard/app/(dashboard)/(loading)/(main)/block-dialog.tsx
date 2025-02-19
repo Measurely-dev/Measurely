@@ -280,10 +280,7 @@ export default function BlocksDialog(props: {
           action: {
             label: 'How to?',
             onClick: () => router.push('/docs/features/filters/'),
-          },
-          classNames: {
-            actionButton: '!rounded-[6px] !bg-orange-500 !text-white',
-          },
+          }
         });
         return;
       }

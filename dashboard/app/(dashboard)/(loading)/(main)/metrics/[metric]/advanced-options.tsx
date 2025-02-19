@@ -14,13 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import {
-  ChartColors,
-  colors,
-  dualColors,
-  DualMetricChartColors,
-  MetricType,
-} from "@/types";
+import { colors, dualColors, MetricType } from "@/types";
 import {
   Dispatch,
   ReactNode,
@@ -39,15 +33,11 @@ function AdvancedOptions(props: {
   metricType: MetricType;
   children: ReactNode;
   chartType: string;
-  chartColor: string;
-  dualMetricChartColor?: string;
+  chartColor: number;
+  setChartColor: Dispatch<SetStateAction<number>>;
   splitTrendChecked?: boolean;
-  setChartType: Dispatch<SetStateAction<"stacked" | "percent" | "default">>;
-  setChartColor: Dispatch<SetStateAction<keyof ChartColors>>;
-  setDualMetricChartColor?: Dispatch<
-    SetStateAction<keyof DualMetricChartColors>
-  >;
   setSplitTrendChecked?: Dispatch<SetStateAction<boolean>>;
+  setChartType: Dispatch<SetStateAction<"stacked" | "percent" | "default">>;
 }) {
   // Controls popover open state
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -55,12 +45,8 @@ function AdvancedOptions(props: {
   // Load saved chart settings from localStorage on mount
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem("chartsettings") ?? "{}");
-    let name = props.metricId + props.chartName;
-    if (props.chartName === "trend" && props.splitTrendChecked) {
-      name += "dual";
-    }
+    const name = props.metricId + props.chartName;
     if (!settings[name]) return;
-
     // Apply saved chart type if exists
     if (settings[name].chartType) {
       props.setChartType(
@@ -70,23 +56,14 @@ function AdvancedOptions(props: {
 
     // Apply saved color settings
     if (settings[name].chartColor) {
-      if (props.dualMetricChartColor && props.setDualMetricChartColor) {
-        props.setDualMetricChartColor(
-          settings[name].chartColor as keyof DualMetricChartColors,
-        );
-      } else {
-        props.setChartColor(settings[name].chartColor as keyof ChartColors);
-      }
+      props.setChartColor(settings[name].chartColor);
     }
   }, [props.splitTrendChecked]);
 
   // Save chart settings to localStorage when they change
   useEffect(() => {
     const settings = JSON.parse(localStorage.getItem("chartsettings") ?? "{}");
-    let name = props.metricId + props.chartName;
-    if (props.chartName === "trend" && props.splitTrendChecked) {
-      name += "dual";
-    }
+    const name = props.metricId + props.chartName;
     if (!settings[name])
       settings[name] = {
         chartType: undefined,
@@ -95,19 +72,10 @@ function AdvancedOptions(props: {
 
     settings[name].chartType = props.chartType;
 
-    if (props.dualMetricChartColor && props.setDualMetricChartColor) {
-      settings[name].chartColor = props.dualMetricChartColor;
-    } else {
-      settings[name].chartColor = props.chartColor;
-    }
+    settings[name].chartColor = props.chartColor;
 
     localStorage.setItem("chartsettings", JSON.stringify(settings));
-  }, [
-    props.chartType,
-    props.chartColor,
-    props.dualMetricChartColor,
-    props.splitTrendChecked,
-  ]);
+  }, [props.chartType, props.chartColor, props.splitTrendChecked]);
 
   return (
     <Popover open={isOpen} onOpenChange={(e) => setIsOpen(e)}>
@@ -143,19 +111,13 @@ function AdvancedOptions(props: {
           )}
 
           {/* Dual metric color selector */}
-          {(props.metricType === MetricType.Dual &&
-            props.chartName !== "trend") ||
-          (props.chartName === "trend" && props.splitTrendChecked) ? (
+          {props.metricType === MetricType.Dual ? (
             <Label className="flex flex-col gap-2">
               Chart color
               <Select
-                value={props.dualMetricChartColor}
+                value={props.chartColor.toString()}
                 onValueChange={(e) => {
-                  if (props.setDualMetricChartColor !== undefined) {
-                    props.setDualMetricChartColor(
-                      e as keyof DualMetricChartColors,
-                    );
-                  }
+                  props.setChartColor(parseInt(e));
                   setIsOpen(false);
                 }}
               >
@@ -165,9 +127,8 @@ function AdvancedOptions(props: {
                 <SelectContent className="z-[120]">
                   <SelectGroup>
                     {dualColors.map((colors, i) => {
-                      console.log(colors.indexes.toString());
                       return (
-                        <SelectItem key={i} value={colors.indexes.toString()}>
+                        <SelectItem key={i} value={i.toString()}>
                           <div className="flex flex-row items-center gap-2">
                             <div className="flex gap-1">
                               <div
@@ -196,34 +157,24 @@ function AdvancedOptions(props: {
             <Label className="flex flex-col gap-2">
               Chart color
               <Select
-                value={props.chartColor}
+                value={props.chartColor.toString()}
                 onValueChange={(e) => {
-                  props.setChartColor(e as keyof ChartColors);
+                  props.setChartColor(parseInt(e));
                   setIsOpen(false);
                 }}
               >
                 <SelectTrigger className="h-11 border">
-                  <SelectValue placeholder="Select chart color" />
+                  <ColorItem
+                    name={colors[props.chartColor].name}
+                    index={colors[props.chartColor].index}
+                  />
                 </SelectTrigger>
                 <SelectContent className="z-[120]">
                   <SelectGroup>
-                    {colors.map((color) => {
+                    {colors.map((color, i) => {
                       return (
-                        <SelectItem
-                          key={color.index}
-                          value={color.index.toString()}
-                        >
-                          <div className="flex flex-row capitalize items-center gap-2">
-                            <div className="flex gap-1">
-                              <div
-                                className="size-2 rounded-full"
-                                style={{
-                                  backgroundColor: `hsl(var(--chart-${color.index}))`,
-                                }}
-                              />
-                            </div>
-                            {color.name}
-                          </div>
+                        <SelectItem key={i} value={i.toString()}>
+                          <ColorItem name={color.name} index={color.index} />
                         </SelectItem>
                       );
                     })}
@@ -258,6 +209,22 @@ function AdvancedOptions(props: {
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function ColorItem(props: { name: string; index: number }) {
+  return (
+    <div className="flex flex-row capitalize items-center gap-2">
+      <div className="flex gap-1">
+        <div
+          className="size-2 rounded-full"
+          style={{
+            backgroundColor: `hsl(var(--chart-${props.index.toString()}))`,
+          }}
+        />
+      </div>
+      {props.name}
+    </div>
   );
 }
 

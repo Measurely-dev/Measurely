@@ -31,13 +31,12 @@ import {
 } from "@/components/ui/tooltip";
 import { ProjectsContext, UserContext } from "@/dash-context";
 import {
-  AllowedColors,
-  ChartColors,
-  DualMetricChartColors,
   Metric,
   MetricEvent,
   MetricType,
   UserRole,
+  colors,
+  dualColors,
 } from "@/types";
 import {
   valueFormatter,
@@ -60,6 +59,7 @@ import {
   Loader,
   Minus,
   Sliders,
+  Split,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { cloneElement, useContext, useEffect, useMemo, useState } from "react";
@@ -91,48 +91,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-// Define color configurations for dual metric charts
-const dualMetricChartColors: DualMetricChartColors = {
-  default: { positive: "green", negative: "red" },
-  cool: { positive: "cyan", negative: "violet" },
-  warm: { positive: "fuchsia", negative: "red" },
-  contrast: { positive: "lime", negative: "gray" },
-  soft: { positive: "pink", negative: "gray" },
-  vibrant: { positive: "fuchsia", negative: "blue" },
-  neutral: { positive: "gray", negative: "gray" },
-  pastel: { positive: "rose", negative: "teal" },
-  sunset: { positive: "orange", negative: "violet" },
-  ocean: { positive: "emerald", negative: "sky" },
-  forest: { positive: "green", negative: "yellow" },
-};
-
-// Helper function to get dual metric chart colors based on theme
-function getDualMetricChartColors(
-  colorsConfig: DualMetricChartColors,
-  theme: keyof DualMetricChartColors,
-): AllowedColors[] {
-  const selectedColors = colorsConfig[theme];
-  return [selectedColors.positive, selectedColors.negative];
-}
-
-// Determines if a plus sign should be shown before positive values
-const todayBadgeSign = (v: number | null) => {
-  if (v === null || v === 0 || v < 0)
-    return <Minus className="-ml-0.5 size-4" aria-hidden={true} />;
-  return v < 0 ? (
-    <ArrowDown className="-ml-0.5 size-4" aria-hidden={true} />
-  ) : (
-    <ArrowUp className="-ml-0.5 size-4" aria-hidden={true} />
-  );
-};
-
-const todayBadgeColor = (v: number | null) => {
-  if (v === null || v === 0) return "border-input bg-zinc-500/10 text-zinc-500";
-  return v > 0
-    ? "bg-green-100 border-green-500 dark:bg-green-500/30 dark:text-green-500 text-green-600"
-    : "bg-red-100 border-red-500 dark:bg-red-500/30 dark:text-red-500 text-red-600";
-};
+import { BadgeColor, BadgeSign } from "@/components/ui/badge";
 
 // Main component for the dashboard metric page
 export default function DashboardMetricPage() {
@@ -179,13 +138,11 @@ export default function DashboardMetricPage() {
     if (metric.type === MetricType.Average) {
       setDailyUpdate(calculateAverageUpdate(data, metric));
       setValue(
-        metric.event_count === 0
-          ? 0
-          : (metric.total_pos - metric.total_neg) / metric.event_count,
+        metric.event_count === 0 ? 0 : metric.total / metric.event_count,
       );
     } else {
       setDailyUpdate(calculateEventUpdate(data, metric));
-      setValue(metric.total_pos - metric.total_neg);
+      setValue(metric.total);
     }
   };
 
@@ -420,10 +377,10 @@ export default function DashboardMetricPage() {
                 <div>
                   <div className="flex flex-wrap justify-center gap-4">
                     <span
-                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${todayBadgeColor(dailyUpdate)}`}
+                      className={`inline-flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-semibold ${BadgeColor(dailyUpdate)}`}
                     >
-                      {todayBadgeSign(dailyUpdate)}
-                      {dailyUpdate} %
+                      {BadgeSign(dailyUpdate)}
+                      {Math.abs(dailyUpdate)} %
                     </span>
                   </div>
                 </div>
@@ -447,15 +404,7 @@ function Chart(props: {
   const [chartType, setChartType] = useState<"stacked" | "percent" | "default">(
     "default",
   );
-  const [chartColor, setChartColor] = useState<keyof ChartColors>("blue");
-  const [dualMetricChartColor, setDualMetricChartColor] =
-    useState<keyof DualMetricChartColors>("default");
-  const dualMetricChartConfig = {
-    colors: getDualMetricChartColors(
-      dualMetricChartColors,
-      dualMetricChartColor,
-    ),
-  };
+  const [chartColor, setChartColor] = useState<number>(0);
   const [range, setRange] = useState<number>(1);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
@@ -530,10 +479,10 @@ function Chart(props: {
     return processMetricEvents(
       activeFilterId,
       metricEvents,
-      props.type,
       "D",
       date?.from,
       props.metric,
+      props.type === "trend",
     );
   }, [metricEvents]);
 
@@ -580,19 +529,31 @@ function Chart(props: {
     };
   };
 
-  const barChartConfig = {
-    [props.metric?.name ?? "value"]: {
-      label: props.metric?.name ?? "Value",
-      color: "hsl(var(--chart-1))",
-    },
-  } satisfies ChartConfig;
-
-  const areaChartConfig = {
-    [props.metric?.name ?? "value"]: {
-      label: props.metric?.name ?? "Value",
-      color: "hsl(var(--chart-1))",
-    },
-  } satisfies ChartConfig;
+  const config = useMemo(() => {
+    if (props.metric?.type === MetricType.Dual) {
+      return {
+        [props.metric?.name ?? ""]: {
+          label: props.metric?.name ?? "",
+          color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
+        },
+        [props.metric?.name_pos ?? ""]: {
+          label: props.metric?.name_pos ?? "",
+          color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
+        },
+        [props.metric?.name_neg ?? ""]: {
+          label: props.metric?.name_neg ?? "",
+          color: `hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`,
+        },
+      } satisfies ChartConfig;
+    } else {
+      return {
+        [props.metric?.name ?? ""]: {
+          label: props.metric?.name ?? "",
+          color: `hsl(var(--chart-${colors[chartColor].index}))`,
+        },
+      } satisfies ChartConfig;
+    }
+  }, [chartColor]);
 
   return (
     <>
@@ -676,14 +637,8 @@ function Chart(props: {
                 setSplitTrendChecked={setSplitTrendChecked}
                 chartType={chartType}
                 chartColor={chartColor}
-                dualMetricChartColor={dualMetricChartColor}
                 setChartColor={setChartColor}
                 setChartType={setChartType}
-                setDualMetricChartColor={
-                  props.metric?.type === MetricType.Base
-                    ? undefined
-                    : setDualMetricChartColor
-                }
               >
                 <TooltipTrigger asChild>
                   <Button
@@ -743,7 +698,7 @@ function Chart(props: {
             <Separator className="my-4" />
             {props.type === "trend" ? (
               <ChartContainer
-                config={areaChartConfig}
+                config={config}
                 className="min-h-[50vh] max-h-[50vh] w-full"
               >
                 <AreaChart
@@ -771,15 +726,10 @@ function Chart(props: {
                             <div
                               className="size-2 rounded-[2px] mr-1.5"
                               style={{
-                                backgroundColor:
-                                  areaChartConfig[
-                                    name as keyof typeof areaChartConfig
-                                  ]?.color || "grey",
+                                backgroundColor: config[name]?.color || "grey",
                               }}
                             />
-                            {areaChartConfig[
-                              name as keyof typeof areaChartConfig
-                            ]?.label || name}
+                            {config[name]?.label || name}
                             <div className="ml-auto flex items-baseline gap-1 font-mono font-medium tabular-nums text-foreground">
                               {value}
                               <span className="font-normal text-muted-foreground">
@@ -791,19 +741,36 @@ function Chart(props: {
                       />
                     }
                   />
+
                   <Area
-                    dataKey={props.metric?.name ?? "value"}
+                    dataKey={
+                      (props.metric?.type === MetricType.Dual &&
+                      splitTrendChecked
+                        ? props.metric?.name_pos
+                        : props.metric?.name) ?? ""
+                    }
                     type="linear"
-                    fill={`hsl(var(--chart-1))`}
-                    fillOpacity={0.4}
-                    stroke={`hsl(var(--chart-1))`}
+                    fill={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
+                    fillOpacity={0.05}
+                    stroke={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
                   />
+
+                  {props.metric?.type === MetricType.Dual &&
+                    splitTrendChecked && (
+                      <Area
+                        dataKey={props.metric?.name_neg ?? ""}
+                        type="linear"
+                        fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                        fillOpacity={0.05}
+                        stroke={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                      />
+                    )}
                   <ChartLegend content={<ChartLegendContent />} />
                 </AreaChart>
               </ChartContainer>
             ) : (
               <ChartContainer
-                config={barChartConfig}
+                config={config}
                 className="min-h-[50vh] max-h-[50vh] w-full"
               >
                 <BarChart
@@ -823,12 +790,37 @@ function Chart(props: {
                   <YAxis tickLine={false} tickMargin={10} axisLine={false} />
                   <ChartTooltip
                     cursor={false}
-                    content={<ChartTooltipContent />}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, name) => (
+                          <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
+                            <div
+                              className="size-2 rounded-[2px] mr-1.5"
+                              style={{
+                                backgroundColor: config[name]?.color || "grey",
+                              }}
+                            />
+                            {config[name]?.label || name}
+                            <div className="ml-auto flex items-baseline gap-1 font-mono font-medium tabular-nums text-foreground">
+                              {value}
+                              <span className="font-normal text-muted-foreground">
+                                {getUnit(props.metric?.unit ?? "")}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      />
+                    }
                   />
+
                   <Bar
-                    dataKey={props.metric?.name ?? "value"}
-                    fill="hsl(var(--chart-1))"
-                    radius={8}
+                    dataKey={
+                      (props.metric?.type === MetricType.Dual
+                        ? props.metric?.name_pos
+                        : props.metric?.name) ?? ""
+                    }
+                    fill={`hsl(var(--chart-${props.metric?.type === MetricType.Dual ? dualColors[chartColor].indexes[0] : colors[chartColor].index}))`}
+                    radius={[4, 4, 0, 0]}
                   >
                     <LabelList
                       position="top"
@@ -838,6 +830,25 @@ function Chart(props: {
                       formatter={(value: number) => (value === 0 ? "" : value)}
                     />
                   </Bar>
+
+                  {props.metric?.type === MetricType.Dual && (
+                    <Bar
+                      dataKey={props.metric?.name_neg ?? ""}
+                      fill={`hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`}
+                      radius={[4, 4, 0, 0]}
+                    >
+                      <LabelList
+                        position="top"
+                        offset={12}
+                        className="fill-foreground"
+                        fontSize={12}
+                        formatter={(value: number) =>
+                          value === 0 ? "" : value
+                        }
+                      />
+                    </Bar>
+                  )}
+
                   <ChartLegend content={<ChartLegendContent />} />
                 </BarChart>
               </ChartContainer>
