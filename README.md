@@ -79,7 +79,7 @@ For any questions, feedback, or assistance, reach out to us:
 
 ## About
 
-Measurely was created by [zxk-afz](https://github.com/zxk-afz) and [yasthegoat](https://github.com/yasthegoat) to simplify metric tracking and visualization for modern developers and businesses.
+Measurely was created by [zakafz](https://github.com/zakafz) and [yasthegoat](https://github.com/yasthegoat) to simplify metric tracking and visualization for modern developers and businesses.
 
 ## License
 

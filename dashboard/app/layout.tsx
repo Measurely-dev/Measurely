@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 
   // Project authors
   authors: [
-    { name: "zxk-afz", url: "https://github.com/zxk-afz" },
+    { name: "zakafz", url: "https://github.com/zakafz" },
     { name: "yasthegoat", url: "https://github.com/yasthegoat" },
   ],
 
