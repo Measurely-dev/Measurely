@@ -176,7 +176,7 @@ func (s *Service) GetProjectCache(api_key string) (ProjectCache, error) {
 func SetupCors() *cors.Cors {
 	allowed_origins := []string{"http://localhost:3000"}
 	if os.Getenv("ENV") == "production" {
-		allowed_origins = []string{"https://measurely.dev", "https://www.measurely.dev"}
+		allowed_origins = []string{"https://*.measurely.dev", "https://www.measurely.dev"}
 	}
 
 	return cors.New(cors.Options{
@@ -190,7 +190,7 @@ func SetupCors() *cors.Cors {
 // Returns appropriate origin URL based on environment
 func GetOrigin() string {
 	if os.Getenv("ENV") == "production" {
-		return "https://measurely.dev"
+		return "https://app.measurely.dev"
 	}
 	return "http://localhost:3000"
 }

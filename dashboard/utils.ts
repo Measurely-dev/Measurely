@@ -8,6 +8,11 @@ import {
   UserRole,
 } from "./types";
 import { ChangeEvent, useState } from "react";
+import {
+  RangeSelection,
+  RangeSelector,
+} from "./app/(dashboard)/(loading)/(main)/metrics/[metric]/range-selector";
+import { Dam } from "lucide-react";
 
 /**
  * Constants
@@ -109,12 +114,8 @@ export const fetchMetricEvents = async (
   metric: Metric,
   project_id: string,
 ): Promise<MetricEvent[]> => {
-  start.setHours(0);
-  start.setMinutes(0);
-  start.setSeconds(0);
-  end.setHours(23);
-  end.setMinutes(59);
-  end.setSeconds(59);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
 
   const eventsRes = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/events?metric_id=${metric.id}&project_id=${project_id}&start=${start.toISOString()}&end=${end.toISOString()}`,
@@ -172,10 +173,7 @@ export const processMetricEvents = (
   // Initialize data array
   const now = new Date();
   const dateCounter = new Date(from);
-  dateCounter.setHours(0);
-  dateCounter.setMinutes(0);
-  dateCounter.setSeconds(0);
-  dateCounter.setMilliseconds(0);
+  dateCounter.setHours(0, 0, 0, 0);
 
   const chartData: ChartPoint[] = [];
   const unit = getUnit(metric.unit);
@@ -184,15 +182,12 @@ export const processMetricEvents = (
     const eventDate = new Date(dateCounter);
     const point: ChartPoint = {
       date: eventDate,
-      metadata: {
-        tooltipdate:
-          parseXAxis(eventDate, precision) +
-          ` ${precision === "W" ? eventDate.getHours() + " H" : ""}`,
-        [`metric_unit_${metric.name}`]: unit,
-      },
+      label:
+        parseXAxis(eventDate, precision) +
+        ` ${precision === "W" ? `— ${eventDate.getHours()} H to ${eventDate.getHours() + 12} H` : ""}`,
     };
 
-    if (eventDate <= now) {
+    if (eventDate.getTime() <= now.getTime()) {
       point[metric.name] = 0;
       if (metric.type === MetricType.Dual) {
         point[metric.name_pos] = 0;
@@ -238,7 +233,7 @@ export const processMetricEvents = (
   let lastDate: Date | null = null;
   chartData.forEach((point) => {
     const matches =
-      lastDate && datesMatch(point.date as Date, lastDate, precision);
+      lastDate && datesMatch(point.date as Date, lastDate, precision, false);
     if (!matches) {
       lastDate = new Date(point.date);
       point.date = parseXAxis(point.date as Date, precision);
@@ -262,17 +257,17 @@ const processEventChart = (
   chartData.forEach((point) => {
     let total_pos = 0;
     let total_neg = 0;
-    if (point.date <= now) {
+    if ((point.date as Date).getTime() <= now.getTime()) {
       metricEvents.forEach((event) => {
         const event_date = new Date(event.date);
         if (isTrend) {
           const tmpDate = createOffsetDate(point.date as Date, precision);
-          if (tmpDate >= event_date) {
+          if (tmpDate.getTime() >= event_date.getTime()) {
             total_pos += event.value_pos;
             total_neg += event.value_neg;
           }
         } else {
-          if (datesMatch(point.date as Date, event_date, precision)) {
+          if (datesMatch(point.date as Date, event_date, precision, true)) {
             total_pos += event.value_pos;
             total_neg += event.value_neg;
           }
@@ -301,18 +296,18 @@ const processAverageChart = (
     let total_pos = 0;
     let total_neg = 0;
     let event_count = 0;
-    if (point.date <= now) {
+    if ((point.date as Date).getTime() <= now.getTime()) {
       metricEvents.forEach((event) => {
         const event_date = new Date(event.date);
         if (isTrend) {
           const tmpDate = createOffsetDate(point.date as Date, precision);
-          if (tmpDate >= event_date) {
+          if (tmpDate.getTime() >= event_date.getTime()) {
             total_pos += event.value_pos;
             total_neg += event.value_neg;
             event_count += 1;
           }
         } else {
-          if (datesMatch(point.date as Date, event_date, precision)) {
+          if (datesMatch(point.date as Date, event_date, precision, false)) {
             total_pos += event.value_pos;
             total_neg += event.value_neg;
             event_count += 1;
@@ -350,7 +345,12 @@ function createOffsetDate(date: Date, precision: ChartPrecision): Date {
 /**
  * Helper to check if dates match based on range
  */
-function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
+function datesMatch(
+  d1: Date,
+  d2: Date,
+  precision: ChartPrecision,
+  usePeriods: boolean,
+): boolean {
   if (precision === "D") {
     return (
       d1.getDate() === d2.getDate() &&
@@ -361,8 +361,9 @@ function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
   }
 
   if (precision === "W") {
-    const isSame12HourPeriod =
-      Math.floor(d1.getHours() / 12) === Math.floor(d2.getHours() / 12); // 0 for AM, 1 for PM
+    const isSame12HourPeriod = usePeriods
+      ? Math.floor(d1.getHours() / 12) === Math.floor(d2.getHours() / 12)
+      : true; // 0 for AM, 1 for PM
     return (
       d1.getDate() === d2.getDate() &&
       d1.getMonth() === d2.getMonth() &&
@@ -380,9 +381,10 @@ function datesMatch(d1: Date, d2: Date, precision: ChartPrecision): boolean {
   }
 
   if (precision === "Y") {
-    const isSame15DayPeriod =
-      Math.floor((d1.getDate() - 1) / 15) ===
-      Math.floor((d2.getDate() - 1) / 15); // 0 for days 1–15, 1 for 16–end
+    const isSame15DayPeriod = usePeriods
+      ? Math.floor((d1.getDate() - 1) / 15) ===
+        Math.floor((d2.getDate() - 1) / 15)
+      : true; // 0 for days 1–15, 1 for 16–end
     return (
       d1.getMonth() === d2.getMonth() &&
       d1.getFullYear() === d2.getFullYear() &&
@@ -596,4 +598,57 @@ export function useCharacterLimit({
     handleChange,
     maxLength,
   };
+}
+
+export function getEndDate(range: RangeSelection): Date {
+  let end = new Date(range.date);
+  end.setHours(23, 59, 59, 999);
+  switch (range.type) {
+    case "today":
+    case "yesterday":
+      break;
+    case "7-days":
+      end.setDate(end.getDate() + 6);
+      break;
+    case "15-days":
+      end.setDate(end.getDate() + 14);
+      break;
+    case "30-days":
+      end.setDate(end.getDate() + 29);
+      break;
+    case "12-months":
+      end.setMonth(end.getMonth() + 11);
+      break;
+    case "month-to-date":
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+      break;
+    case "year-to-date":
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+      break;
+  }
+
+  return end;
+}
+
+export function getPrecisionLevel(range: RangeSelection): ChartPrecision {
+  switch (range.type) {
+    case "today":
+    case "yesterday":
+      return "D";
+    case "7-days":
+      return "W";
+    case "15-days":
+      return "15D";
+    case "30-days":
+      return "M";
+    case "12-months":
+      return "Y";
+    case "month-to-date":
+      return "Y";
+    case "year-to-date":
+      return "Y";
+  }
+  return "D";
 }

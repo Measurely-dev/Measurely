@@ -45,6 +45,8 @@ import {
   processMetricEvents,
   calculateEventUpdate,
   calculateAverageUpdate,
+  getEndDate,
+  getPrecisionLevel,
 } from "@/utils";
 import { Dialog } from "@/components/ui/dialog";
 import {
@@ -72,7 +74,7 @@ import { DateValue } from "react-aria-components";
 import Filters from "./filter-selector";
 import AdvancedOptions from "./advanced-options";
 import { Separator } from "@/components/ui/separator";
-import { RangeSelector } from "./range-selector";
+import { RangeSelection, RangeSelector } from "./range-selector";
 import {
   ChartConfig,
   ChartContainer,
@@ -92,6 +94,8 @@ import {
   YAxis,
 } from "recharts";
 import { BadgeColor, BadgeSign } from "@/components/ui/badge";
+import { Arrow } from "@radix-ui/react-dropdown-menu";
+import { is } from "date-fns/locale";
 
 // Main component for the dashboard metric page
 export default function DashboardMetricPage() {
@@ -405,29 +409,30 @@ function Chart(props: {
     "default",
   );
   const [chartColor, setChartColor] = useState<number>(0);
-  const [range, setRange] = useState<number>(1);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
-  });
 
   const [metricEvents, setMetricEvents] = useState<MetricEvent[] | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [loadingLeft, setLoadingLeft] = useState(false);
-  const [year, setYear] = useState(new Date().getFullYear());
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [splitTrendChecked, setSplitTrendChecked] = useState(false);
   const [rangeSummary, setRangeSummary] = useState(0);
 
+  const [range, setRange] = useState<RangeSelection>({
+    type: "today",
+    date: new Date(new Date().setHours(0, 0, 0, 0)),
+  });
+
   // Load chart data based on the selected date range and filter
   const loadMetricEvents = async () => {
-    if (!props.metric || !date?.from || !date.to) return;
+    if (!props.metric) return;
+
+    const end = getEndDate(range);
 
     const data = await fetchMetricEvents(
-      date.from,
-      date.to,
+      range.date,
+      end,
       props.metric,
       props.metric.project_id,
     );
@@ -472,15 +477,16 @@ function Chart(props: {
     }
 
     loadMetricEvents();
-  }, [date, range, year, activeFilterId, props.metric]);
+  }, [range, activeFilterId, props.metric]);
 
   const chartData = useMemo(() => {
-    if (!date?.from || !date?.to || !metricEvents || !props.metric) return [];
+    if (!metricEvents || !props.metric) return [];
+    const precision = getPrecisionLevel(range);
     return processMetricEvents(
       activeFilterId,
       metricEvents,
-      "D",
-      date?.from,
+      precision,
+      range.date,
       props.metric,
       props.type === "trend",
     );
@@ -535,25 +541,71 @@ function Chart(props: {
         [props.metric?.name ?? ""]: {
           label: props.metric?.name ?? "",
           color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
+          unit: props.metric?.unit ?? "",
         },
         [props.metric?.name_pos ?? ""]: {
           label: props.metric?.name_pos ?? "",
           color: `hsl(var(--chart-${dualColors[chartColor].indexes[0]}))`,
+          unit: props.metric?.unit ?? "",
         },
         [props.metric?.name_neg ?? ""]: {
           label: props.metric?.name_neg ?? "",
           color: `hsl(var(--chart-${dualColors[chartColor].indexes[1]}))`,
+          unit: props.metric?.unit ?? "",
         },
-      } satisfies ChartConfig;
+      };
     } else {
       return {
         [props.metric?.name ?? ""]: {
           label: props.metric?.name ?? "",
           color: `hsl(var(--chart-${colors[chartColor].index}))`,
+          unit: props.metric?.unit ?? "",
         },
-      } satisfies ChartConfig;
+      };
     }
   }, [chartColor]);
+
+  function arrowHandler(offset: number) {
+    if (offset > 0) setLoadingRight(true);
+    else if (offset < 0) setLoadingLeft(true);
+
+    const date = new Date(range.date);
+    const now = new Date();
+    const yesterday = new Date();
+
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+
+    now.setHours(0, 0, 0, 0);
+
+    date.setDate(date.getDate() + offset);
+
+    if (yesterday.getTime() === date.getTime()) {
+      setRange({ type: "yesterday", date: date });
+    } else if (now.getTime() === date.getTime()) {
+      setRange({ type: "today", date: date });
+    } else {
+      setRange({ type: "custom-day", date: date });
+    }
+  }
+
+  const isArrowDisabledLeft = useMemo(() => {
+    const limit = new Date(2000, 0, 1, 0, 0, 0, 0);
+    const previous = new Date(range.date);
+    previous.setDate(previous.getDate() - 1);
+    return previous.getTime() < limit.getTime();
+  }, [range.date]);
+
+  const isArrowDisabledRight = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const next = new Date(range.date);
+    next.setDate(next.getDate() + 1);
+    next.setHours(0, 0, 0, 0);
+
+    return next.getTime() > now.getTime();
+  }, [range.date]);
 
   return (
     <>
@@ -570,64 +622,22 @@ function Chart(props: {
       <div className="mb-5 overflow-x-auto">
         <div className="mt-5 flex w-fit flex-row items-center gap-2">
           <div className="flex gap-2">
-            <RangeSelector />
+            <RangeSelector value={range} onChange={setRange} />
           </div>
           <div className="flex h-full items-center gap-2 max-sm:w-full max-sm:justify-between">
-            <OffsetBtns
-              onLeft={() => {
-                if (range >= 365) {
-                  const new_year = new Date(year, 1, 0).getFullYear() - 1;
-                  if (new_year < 1999) return;
-                  setYear(new_year);
-                  setLoadingLeft(true);
-                } else {
-                  const newFrom = new Date(date?.from || new Date());
-                  newFrom.setDate(newFrom.getDate() - range);
-                  if (newFrom.getFullYear() < 1999) return;
-                  setDate({ from: newFrom, to: date?.to });
-                  setLoadingLeft(true);
-                }
-              }}
-              onRight={() => {
-                if (range >= 365) {
-                  const new_year = new Date(year, 1, 0).getFullYear() + 1;
-                  const current_year = new Date().getFullYear();
-                  if (new_year > current_year) return;
-                  setYear(new_year);
-                  setLoadingRight(true);
-                } else {
-                  const newFrom = new Date(date?.from || new Date());
-                  newFrom.setDate(newFrom.getDate() + range);
-                  const now = new Date();
-                  if (newFrom > now) return;
-                  setDate({ from: newFrom, to: date?.to });
-                  setLoadingRight(true);
-                }
-              }}
-              isLoadingLeft={loadingLeft}
-              isLoadingRight={loadingRight}
-              isDisabledLeft={useMemo(() => {
-                if (range >= 365) {
-                  return new Date(year, 1, 0).getFullYear() - 1 < 1999;
-                } else {
-                  const newFrom = new Date(date?.from || new Date());
-                  newFrom.setDate(newFrom.getDate() - range);
-                  return newFrom.getFullYear() < 1999;
-                }
-              }, [date, year, range])}
-              isDisabledRight={useMemo(() => {
-                if (range >= 365) {
-                  return (
-                    new Date(year, 1, 0).getFullYear() + 1 >
-                    new Date().getFullYear()
-                  );
-                } else {
-                  const newFrom = new Date(date?.from || new Date());
-                  newFrom.setDate(newFrom.getDate() + range);
-                  return newFrom > new Date();
-                }
-              }, [date, year, range])}
-            />
+            {(range.type === "today" ||
+              range.type === "yesterday" ||
+              range.type === "custom-day") && (
+              <OffsetBtns
+                onLeft={() => arrowHandler(-1)}
+                onRight={() => arrowHandler(1)}
+                isLoadingLeft={loadingLeft}
+                isLoadingRight={loadingRight}
+                isDisabledLeft={isArrowDisabledLeft}
+                isDisabledRight={isArrowDisabledRight}
+              />
+            )}
+
             <Tooltip delayDuration={300}>
               <AdvancedOptions
                 chartName={props.type}
@@ -673,9 +683,6 @@ function Chart(props: {
           <div className="mt-2 w-full min-w-[600px] rounded-[12px] border bg-accent dark:bg-card p-5 shadow-sm shadow-black/5">
             <div className="flex w-full items-center justify-between gap-5">
               <div className="flex flex-col">
-                <div className="text-md text-muted-foreground">
-                  {range === 365 ? `Summary of ${year}` : "Summary"}
-                </div>
                 <div className="text-xl font-medium font-mono">
                   {valueFormatter(rangeSummary)}
                   <span className="text-lg ml-1 text-muted-foreground">
@@ -721,6 +728,9 @@ function Chart(props: {
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
+                        labelFormatter={(label, payload) => {
+                          return payload[0].payload.label;
+                        }}
                         formatter={(value, name) => (
                           <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
                             <div
@@ -733,7 +743,7 @@ function Chart(props: {
                             <div className="ml-auto flex items-baseline gap-1 font-mono font-medium tabular-nums text-foreground">
                               {value}
                               <span className="font-normal text-muted-foreground">
-                                {getUnit(props.metric?.unit ?? "")}
+                                {getUnit(config[name]?.unit)}
                               </span>
                             </div>
                           </div>
@@ -792,6 +802,9 @@ function Chart(props: {
                     cursor={false}
                     content={
                       <ChartTooltipContent
+                        labelFormatter={(label, payload) => {
+                          return payload[0].payload.label;
+                        }}
                         formatter={(value, name) => (
                           <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
                             <div
@@ -804,7 +817,7 @@ function Chart(props: {
                             <div className="ml-auto flex items-baseline gap-1 font-mono font-medium tabular-nums text-foreground">
                               {value}
                               <span className="font-normal text-muted-foreground">
-                                {getUnit(props.metric?.unit ?? "")}
+                                {getUnit(config[name].unit)}
                               </span>
                             </div>
                           </div>
@@ -864,10 +877,10 @@ function Chart(props: {
 function OffsetBtns(props: {
   onLeft: () => void;
   onRight: () => void;
-  isLoadingLeft?: boolean | false;
-  isLoadingRight?: boolean | false;
-  isDisabledLeft?: boolean | false;
-  isDisabledRight?: boolean | false;
+  isLoadingLeft: boolean;
+  isLoadingRight: boolean;
+  isDisabledLeft: boolean;
+  isDisabledRight: boolean;
 }) {
   return (
     <div className="flex gap-2">

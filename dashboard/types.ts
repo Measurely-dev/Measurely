@@ -204,7 +204,7 @@ export const chartTypeMetricLimits: Record<
 export interface ChartPoint {
   [key: string]: any;
   date: string | Date;
-  metadata: { tooltipdate: string; [key: string]: any };
+  label: string;
 }
 
 /**
