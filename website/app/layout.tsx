@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     title: "Measurely - Open-Source Analytics for Developers",
     description:
       "Track metrics and analyze data seamlessly with Measurely's developer-friendly analytics platform.",
-    image: "https://media.measurely.dev/twitter-card.png",
+    images: ["https://media.measurely.dev/twitter-card.png"],
   },
   alternates: {
     canonical: "https://measurely.dev",
