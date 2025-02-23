@@ -13,16 +13,51 @@ import Link from "next/link";
 import LogoSvg from "@/components/global/logo-svg";
 
 export const metadata: Metadata = {
-  description: "Track metrics efficiently and analyze data with ease.",
+  description:
+    "Open-source analytics platform for developers to track metrics, monitor user behavior, and gain actionable insights.",
   metadataBase: new URL("https://measurely.dev"),
-  keywords: ["Docs", "Metrics", "Track", "Analytics", "KPI", "SDKs", "Event"],
+  keywords: [
+    "Open-source analytics",
+    "Web analytics tools",
+    "User behavior tracking",
+    "Event tracking software",
+    "Real-time analytics",
+    "Data visualization",
+    "KPI monitoring",
+    "Developer analytics SDKs",
+    "Customizable dashboards",
+    "Self-hosted analytics",
+    "Privacy-focused analytics",
+    "Product analytics",
+    "Conversion rate optimization",
+    "Funnel analysis",
+    "Retention analysis",
+    "Cohort analysis",
+    "A/B testing tools",
+    "Session recording",
+    "Heatmaps",
+    "User segmentation",
+    "Google Analytics",
+    "PostHog",
+    "Matomo",
+    "Piwik",
+    "Mixpanel",
+    "Amplitude",
+    "Open Web Analytics",
+    "OWA",
+    "Plausible",
+    "Grofana",
+    "Analytics",
+    "Dashboard",
+    "Analytics Dashboard",
+  ],
   generator: "Next.js",
   applicationName: "Measurely",
   appleWebApp: {
     title: "Measurely",
   },
   title: {
-    default: "Measurely - Track your metrics effectively",
+    default: "Measurely - Open-Source Analytics for Developers",
     template: "%s | Measurely",
   },
   openGraph: {
@@ -30,9 +65,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://measurely.dev",
     siteName: "Measurely",
-    title: "Measurely - Track your metrics effectively",
+    title: "Measurely - Open-Source Analytics for Developers",
     description:
-      "Track and analyze your metrics seamlessly with Measurely. Perfect for developers and data-driven teams.",
+      "Monitor user behavior and gain actionable insights with Measurely's open-source analytics platform, designed for developers and data-driven teams.",
     images: [
       {
         url: "https://media.measurely.dev/opengraph.png",
@@ -43,13 +78,18 @@ export const metadata: Metadata = {
     ],
   },
   other: {
-    "msapplication-TileColor": "#fff",
+    "msapplication-TileColor": "#ffffff",
   },
   twitter: {
-    site: "https://measurely.dev",
+    site: "@measurely",
+    card: "summary_large_image",
+    title: "Measurely - Open-Source Analytics for Developers",
+    description:
+      "Track metrics and analyze data seamlessly with Measurely's developer-friendly analytics platform.",
+    image: "https://media.measurely.dev/twitter-card.png",
   },
   alternates: {
-    canonical: "./",
+    canonical: "https://measurely.dev",
   },
 };
 
