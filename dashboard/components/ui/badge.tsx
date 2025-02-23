@@ -46,7 +46,7 @@ function BadgeColor(v: number) {
     return "bg-green-100 border-green-500 dark:bg-green-500/30 dark:text-green-500 text-green-600";
   else if (v < 0)
     return "bg-red-100 border-red-500 dark:bg-red-500/30 dark:text-red-500 text-red-600";
-  else "border-input bg-zinc-500/10 text-zinc-500";
+  else return "border-input bg-zinc-500/10 text-zinc-500";
 }
 
 export { Badge, badgeVariants, BadgeSign, BadgeColor };
