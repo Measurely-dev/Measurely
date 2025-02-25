@@ -98,7 +98,7 @@ export default function Body(props: { type: "waitlist" | "register" }) {
             }
           >
             <Button className="rounded-[12px]">
-              {props.type === "waitlist" ? "Join wailist" : "Start tracking"}
+              {props.type === "waitlist" ? "Join waitlist" : "Start tracking"}
             </Button>
           </Link>
           <Link href={"/docs/"}>
