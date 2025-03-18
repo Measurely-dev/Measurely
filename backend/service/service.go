@@ -212,6 +212,7 @@ func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
 
 func (s *Service) CleanUp() {
 	s.db.Close()
+	s.bm.Shutdown()
 }
 
 func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {
