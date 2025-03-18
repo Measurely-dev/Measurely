@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 )
 
 type DB struct {
@@ -18,7 +18,7 @@ type DB struct {
 }
 
 func NewPostgres(url string) (*DB, error) {
-	db, err := sqlx.Connect("postgres", url)
+	db, err := sqlx.Connect("pgx", url)
 	if err != nil {
 		return nil, err
 	}
