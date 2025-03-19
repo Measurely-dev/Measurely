@@ -12,6 +12,7 @@ interface PricingCardProps {
   recurrence: string; // Billing frequency (month/year)
   target?: string; // Target audience text
   list?: Array<ReactNode>; // List of features
+  eventclassName?: string; // Event class name
   button?: string; // Button text
   disabled?: boolean; // Disable button state
   sliderValue?: string | number; // Value for usage slider
@@ -30,6 +31,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   recurrence,
   target,
   list,
+  eventclassName,
   button,
   disabled,
   loading,
@@ -106,7 +108,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
         <div className="mt-5 flex flex-row items-center gap-[10px]">
           <div className="text-sm font-medium text-muted-foreground">
             Up to{" "}
-            <span className="mx-1 rounded-[6px] bg-accent px-2 py-1 font-mono text-base font-bold text-primary">
+            <span className={`mx-1 rounded-[6px] bg-accent px-2 py-1 font-mono text-base font-bold text-primary ${eventclassName}`}>
               {isFree ? "5K" : sliderValue}
             </span>{" "}
             events per month

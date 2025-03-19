@@ -470,6 +470,24 @@ export function getEventAmount(value: number): string {
   return valueMap[value] || "N/A";
 }
 
+// Maps event amounts to slider values
+export function getSliderValue(eventAmount: string): number {
+  const valueMap: Record<string, number> = {
+    "10K": 0,
+    "50K": 10,
+    "100K": 20,
+    "250K": 30,
+    "500K": 40,
+    "1M": 50,
+    "2M": 60,
+    "4M": 70,
+    "6M": 80,
+    "8M": 90,
+    "10M": 100,
+  };
+  return valueMap[eventAmount] || -1;
+}
+
 export function getEventCount(value: number): number {
   const valueMap: Record<number, number> = {
     0: 10000,
