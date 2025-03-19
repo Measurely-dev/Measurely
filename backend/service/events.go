@@ -196,7 +196,7 @@ func (s *Service) CreateMetricEventV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update metric
-	if err, count := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, projectCache.id, pos, neg, &formattedFilters); err != nil {
+	if count, err := s.db.UpdateMetricAndCreateEvent(metricCache.metric_id, projectCache.id, pos, neg, &formattedFilters, s.bm); err != nil {
 		log.Printf("Error updating metric: %v", err)
 		http.Error(w, "Failed to update metric", http.StatusInternalServerError)
 		return

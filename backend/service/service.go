@@ -51,6 +51,7 @@ type ProjectCache struct {
 
 type Service struct {
 	db            *db.DB
+	bm            *db.BatchManager
 	email         *email.Email
 	s3Client      *s3.Client
 	providers     map[string]Provider
@@ -61,7 +62,7 @@ type Service struct {
 
 func New() Service {
 	// Initialize the database connection
-	db, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
+	dbConn, err := db.NewPostgres(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("Error initializing database: %v", err)
 	}
@@ -151,9 +152,12 @@ func New() Service {
 		Range:       365,
 	}
 
+	batchManager := db.NewBatchManager(dbConn, 1000, time.Millisecond*500)
+
 	// Return the new service with all components initialized
 	return Service{
-		db:            db,
+		db:            dbConn,
+		bm:            batchManager,
 		email:         email,
 		providers:     providers,
 		s3Client:      client,
@@ -208,6 +212,7 @@ func (s *Service) AuthenticatedMiddleware(next http.Handler) http.Handler {
 
 func (s *Service) CleanUp() {
 	s.db.Close()
+	s.bm.Shutdown()
 }
 
 func (s *Service) EmailValid(w http.ResponseWriter, r *http.Request) {

@@ -459,7 +459,6 @@ export default function FilterManagerDialog(props: {
                 onValueChange={setActiveAccordion}
               >
                 {Object.keys(parsedFilters).map((category) => (
-                  <>
                     <AccordionItem
                       key={category}
                       className="border-b px-5 hover:bg-accent/60"
@@ -538,7 +537,6 @@ export default function FilterManagerDialog(props: {
                         </div>
                       </AccordionContent>
                     </AccordionItem>
-                  </>
                 ))}
               </Accordion>
               <div className="flex h-[60px] items-center justify-between rounded-b-[12px] border bg-accent dark:bg-card border-t-0 px-5">

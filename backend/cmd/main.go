@@ -27,11 +27,5 @@ func main() {
 
 	handler := handler.New(&service)
 
-	go service.IntegrationWorker()
-
-	log.Println("Server started on port 8080")
-	err := handler.Start(":8080")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	handler.Start(":8080")
 }

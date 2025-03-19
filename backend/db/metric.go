@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,92 +50,7 @@ func (db *DB) DeleteMetric(id, projectId uuid.UUID) error {
 	return err
 }
 
-func (db *DB) UpdateMetricAndCreateEvent(
-	metricId uuid.UUID,
-	projectId uuid.UUID,
-	toAdd int32,
-	toRemove int32,
-	filters *map[string]string,
-) (error, int) {
-	tx, err := db.Conn.Beginx()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %v", err), 0
-	}
 
-	now := time.Now().UTC()
-
-	var metricType int
-	var filtersData []byte
-
-	log.Println(toAdd, toRemove)
-
-	err = tx.QueryRowx(`
-		UPDATE metrics
-		SET total = total + ( CAST($1 AS BIGINT) - CAST($2 AS BIGINT) ),
-			event_count = event_count + 1,
-			last_event_timestamp = $3
-		WHERE id = $4
-		RETURNING type, filters`,
-		toAdd, toRemove, now, metricId,
-	).Scan(&metricType, &filtersData)
-
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to update metrics and fetch totals: %v", err), 0
-	}
-
-	var metric_filters map[uuid.UUID]types.Filter
-	if err := json.Unmarshal(filtersData, &metric_filters); err != nil {
-		tx.Rollback()
-		log.Println(err)
-		return fmt.Errorf("Failed to fetch metric filters"), 0
-	}
-
-	var filter_list []uuid.UUID
-
-	for filter_id, filter_value := range metric_filters {
-		for category, name := range *filters {
-			if filter_value.Name == name && filter_value.Category == category {
-				filter_list = append(filter_list, filter_id)
-			}
-		}
-	}
-
-	marshaled_filters, err := json.Marshal(filter_list)
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to include the chosen filters in the event %v", err), 0
-	}
-
-	var monthlyCount int
-	err = tx.QueryRowx(`
-		UPDATE projects
-		SET monthly_event_count = monthly_event_count + 1
-		WHERE id = $1
-		RETURNING monthly_event_count`, projectId,
-	).Scan(&monthlyCount)
-
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to update user's monthly event count: %v", err), 0
-	}
-
-	_, err = tx.Exec(`
-		INSERT INTO metric_events ( metric_id, value_pos, value_neg, date, filters)
-		VALUES ($1, $2, $3, $4, $5)
-	`, metricId, toAdd, toRemove, now, marshaled_filters)
-
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to insert metric event: %v", err), 0
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %v", err), 0
-	}
-
-	return nil, monthlyCount
-}
 
 func (db *DB) GetMetricsCount(projectId uuid.UUID) (int, error) {
 	var count int

@@ -2,7 +2,13 @@ package handler
 
 import (
 	"Measurely/service"
+	"context"
+	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -21,16 +27,45 @@ func New(s *service.Service) Handler {
 	}
 }
 
-func (h *Handler) Start(port string) error {
+func (h *Handler) Start(port string) {
 	h.router.Use(middleware.StripSlashes)
 	h.router.Use(middleware.Logger)
 	h.router.Use(middleware.Recoverer)
 
 	h.setup_api()
 
-	defer h.service.CleanUp()
+	server := &http.Server{
+		Addr:    port,
+		Handler: h.router,
+	}
 
-	return http.ListenAndServe(port, h.router)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Fprintf(os.Stderr, "Failed to start the server: %v", err)
+			os.Exit(1)
+		}
+	}()
+
+	fmt.Printf("🚀 Starting application on port %v\n", port)
+
+	<-quit
+	fmt.Println("Shutting down server...")
+
+	// Create a context with a timeout for graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Attempt graceful shutdown
+	if err := server.Shutdown(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "Server Shutdown Failed:%+v", err)
+	}
+
+	h.service.CleanUp()
+
+	fmt.Println("Server gracefully stopped")
 }
 
 func (h *Handler) setup_api() {
