@@ -66,15 +66,16 @@ export default function Body(props: { type: "waitlist" | "register" }) {
       <div className="flex text-primary pb-24 pt-10 w-full flex-col items-center gap-5 text-center max-md:h-fit max-md:min-h-[50vh]">
         <Link
           href={"/blog/3"}
-          className="group flex cursor-pointer select-none flex-row items-center gap-3 rounded-full border border-input bg-accent p-0.5 pr-1 text-sm shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-black/10 max-sm:scale-90"
+          className="group flex cursor-pointer select-none flex-row items-center gap-3 rounded-full border border-input bg-accent p-0.5 pr-1 text-sm shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-black/10 max-sm:scale-90 !no-underline"
         >
           <div className="rounded-full border bg-background px-3 py-1">
-            <span className="font-mono">Open Source</span>
+            <div className="font-mono">Open Source</div>
           </div>
-          <span className="flex w-[110px] flex-row items-center justify-between gap-2 pr-2 transition-all duration-200 group-hover:pr-1">
+          <div className="flex w-[110px] flex-row items-center justify-between gap-2 pr-2 transition-all duration-200 group-hover:pr-1">
             Learn more <MoveRight className="size-4" />
-          </span>
+          </div>
         </Link>
+
         <h1 className="flex-col !text-[3.6rem] font-medium text-primary !leading-tight max-lg:!text-[3rem] max-md:!text-[2rem] max-sm:!text-[1.9rem] md:inline-flex">
           Track All Your Metrics <br />
           <span className="animate-gradient bg-gradient-to-r from-purple-500 via-blue-500 to-pink-400 bg-clip-text text-transparent">
@@ -98,7 +99,7 @@ export default function Body(props: { type: "waitlist" | "register" }) {
             }
           >
             <Button className="rounded-[12px]">
-              {props.type === "waitlist" ? "Join wailist" : "Start tracking"}
+              {props.type === "waitlist" ? "Join waitlist" : "Start tracking"}
             </Button>
           </Link>
           <Link href={"/docs/"}>
@@ -387,7 +388,11 @@ function LandingPageBodyPricing() {
               key={i}
               startingFrom
               name={plan.name}
-              className={`md:first:rounded-e-none md:first:border-r-0 md:last:rounded-s-none md:last:border-l-0 ${plan.name === "Plus" ? "md:z-10 md:scale-105 md:bg-background md:shadow-xl" : ""}`}
+              className={`md:first:rounded-e-none md:first:border-r-0 md:last:rounded-s-none md:last:border-l-0 ${
+                plan.name === "Plus"
+                  ? "md:z-10 md:scale-105 md:bg-background md:shadow-xl"
+                  : ""
+              }`}
               description={plan.description}
               price={plan.price}
               recurrence={plan.reccurence}

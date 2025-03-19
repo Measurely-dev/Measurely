@@ -8,6 +8,7 @@ import { Badge } from "../ui/badge";
 // Interface defining props for the PricingOptions component
 interface PricingOptionsProps {
   sliderValue: number[]; // Current value of slider
+  className?: string;
   setSliderValue: (value: number[]) => void; // Function to update slider value
   billingPeriod: "month" | "year"; // Current billing period selection
   setBillingPeriod: Dispatch<SetStateAction<"month" | "year">>; // Function to update billing period
@@ -19,20 +20,24 @@ export const PricingOptions = ({
   sliderValue,
   setSliderValue,
   billingPeriod,
+  className,
   setBillingPeriod,
   type = "page",
 }: PricingOptionsProps) => {
   return (
     <div
-      className={
+      className={`${className} ${
         type !== "page"
           ? "mb-4 flex flex-row items-end justify-between gap-2 px-1"
           : "flex flex-col-reverse"
-      }
+      } 
+      `}
     >
       {/* Event quantity slider section */}
       <div
-        className={`flex w-full max-w-[400px] flex-row items-center gap-4 max-md:w-[85%] ${type === "dialog" ? "mt-10" : "mx-auto mb-10 mt-[40px]"}`}
+        className={`flex w-full max-w-[400px] flex-row items-center gap-4 max-md:w-[85%] ${
+          type === "dialog" ? "mt-10" : "mx-auto mb-10 mt-[40px]"
+        }`}
       >
         <span className="font-mono text-sm font-medium text-primary">10K</span>
         <Slider

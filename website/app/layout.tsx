@@ -1,5 +1,3 @@
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import { Metadata } from "next";
 import { Layout, Navbar } from "nextra-theme-docs";
 import { Head, Search } from "nextra/components";
@@ -119,7 +117,7 @@ export default async function RootLayout({
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <Head />
-      <body className={GeistSans.className + " " + GeistMono.variable}>
+      <body>
         <Layout
           navbar={<NavbarComponent />}
           pageMap={await getPageMap()}
