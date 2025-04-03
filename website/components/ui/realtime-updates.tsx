@@ -1,12 +1,8 @@
 "use client";
 
 import React from "react";
-import { motion } from "motion/react";
-import {
-  FileIcon,
-  SparklesIcon,
-  User,
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { FileIcon, SparklesIcon, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LogoSvg from "../global/logo-svg";
 
