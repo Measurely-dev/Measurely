@@ -12,7 +12,6 @@ import LogoSvg from "../global/logo-svg";
 
 interface RealtimeUpdateProps {
   className?: string;
-  circleText?: string;
   badgeTexts?: {
     first: string;
     second: string;
@@ -29,7 +28,6 @@ interface RealtimeUpdateProps {
 
 const RealtimeUpdate = ({
   className,
-  circleText,
   badgeTexts,
   buttonTexts,
   title,
